@@ -1,0 +1,20 @@
+[package]
+name = "envelope"
+version = "0.1.0"
+edition = "2021"
+license-file = "LICENSE.md"
+description = "Gordian Envelope for Rust."
+authors = ["Blockchain Commons"]
+keywords = ["encoding", "cbor", "binary", "format", "serialization"]
+repository = "https://github.com/BlockchainCommons/bc-envelope-rust"
+readme = "README.md"
+categories = ["data-structures", "encoding"]
+
+[dependencies]
+dcbor = { path = "../bc-dcbor-rust" }
+bc-crypto = { path = "../bc-crypto-rust" }
+bc-components = { path = "../bc-components-rust" }
+bc-ur = { path = "../bc-ur-rust" }
+
+[dev-dependencies]
+hex = "0.4.3"
