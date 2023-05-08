@@ -1,3 +1,18 @@
+mod envelope;
+pub use envelope::Envelope;
+
+mod cbor;
+
+mod assertion;
+pub use assertion::Assertion;
+
+mod known_value;
+pub use known_value::KnownValue;
+
+pub mod known_values;
+
+mod digest;
+
 #[cfg(test)]
 mod tests {
     use bc_crypto::sha256;
