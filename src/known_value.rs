@@ -1,3 +1,5 @@
+use std::fmt::{Formatter, Display};
+
 use bc_components::tags;
 use dcbor::{CBOR, CBORTagged, Tag, CBOREncodable, CBORDecodable, CBORError, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
 
@@ -68,8 +70,8 @@ impl std::hash::Hash for KnownValue {
     }
 }
 
-impl std::fmt::Display for KnownValue {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for KnownValue {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match &self.assigned_name {
             Some(KnownValueName::Static(name)) => write!(f, "{}", name),
             Some(KnownValueName::Dynamic(name)) => write!(f, "{}", name),

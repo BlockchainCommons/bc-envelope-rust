@@ -1,5 +1,5 @@
-use bc_components::{Digest, Compressed, EncryptedMessage};
-use dcbor::CBOR;
+use bc_components::{Digest, Compressed, EncryptedMessage, DigestProvider};
+use dcbor::{CBOR, CBOREncodable};
 use crate::{assertion::Assertion, known_value::KnownValue};
 
 /// A flexible container for structured data.
@@ -32,4 +32,31 @@ pub enum Envelope {
 
     /// Represents an elided envelope.
     Elided(Digest),
+}
+
+impl Envelope {
+    /// Create an Envelope from a &dyn CBOREncodable
+    pub fn from_cbor_encodable(cbor_encodable: &dyn CBOREncodable) -> Self {
+        let cbor = cbor_encodable.cbor();
+        let digest = Digest::from_image(&cbor.cbor_data());
+        Envelope::Leaf {
+            cbor,
+            digest,
+        }
+    }
+}
+
+// Conversion from &CBOREncodable to Envelope
+impl<T> From<&T> for Envelope
+where
+    T: CBOREncodable,
+{
+    fn from(t: &T) -> Self {
+        let cbor = t.cbor();
+        let digest = Digest::from_image(&cbor.cbor_data());
+        Envelope::Leaf {
+            cbor,
+            digest,
+        }
+    }
 }

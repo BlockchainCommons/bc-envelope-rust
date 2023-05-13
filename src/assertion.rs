@@ -52,7 +52,7 @@ impl Assertion {
     {
         let predicate = predicate.into();
         let object = object.into();
-        let digest = Digest::new_from_data_providers(&[&predicate, &object]);
+        let digest = Digest::from_image_parts(&[&predicate.cbor_data(), &object.cbor_data()]);
         Self {
             predicate: Box::new(predicate),
             object: Box::new(object),
@@ -68,6 +68,10 @@ impl Assertion {
     // Returns the object of the assertion.
     pub fn object(&self) -> &Envelope {
         &self.object
+    }
+
+    pub fn digest_ref(&self) -> &Digest {
+        &self.digest
     }
 }
 

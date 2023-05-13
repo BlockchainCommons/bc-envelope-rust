@@ -1,5 +1,14 @@
 mod envelope;
-pub use envelope::Envelope;
+mod assertions;
+mod queries;
+
+mod envelope_error;
+pub use envelope_error::EnvelopeError;
+
+mod walk;
+pub use walk::{EdgeType};
+
+pub use crate::envelope::Envelope;
 
 mod cbor;
 

@@ -1,4 +1,4 @@
-use bc_components::{DataProvider, tags};
+use bc_components::tags;
 use bc_ur::{UREncodable, URDecodable, URCodable};
 use dcbor::{CBORTagged, CBOREncodable, CBORDecodable, CBORError, CBOR, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable, Tag};
 
@@ -126,11 +126,19 @@ extension Envelope: CBORTaggedCodable {
 ```
  */
 
-impl DataProvider for Envelope {
-    fn provided_data(&self) -> Vec<u8> {
-        self.tagged_cbor().cbor_data()
-    }
-}
+/// Support for CBOR encoding and decoding of ``Envelope``.
+
+/// All envelopes are tagged with the `envelope` tag. Within that tag, each of
+/// the seven cases has a unique CBOR signature:
+///
+/// * `.node` contains a CBOR array, the first element of which is the subject,
+/// followed by one or more assertions.
+/// * `.leaf` is tagged #6.24, which is the IANA tag for embedded CBOR.
+/// * `.wrapped` is tagged with the `wrapped-envelope` tag.
+/// * `.knownValue` is tagged with the `known-value` tag.
+/// * `.assertion` is tagged with the `assertion` tag.
+/// * `.encrypted` is tagged with the `crypto-msg` tag.
+/// * `.elided` is tagged with the `crypto-digest` tag.
 
 impl CBORTagged for Envelope {
     const CBOR_TAG: Tag = tags::ENVELOPE;
@@ -153,16 +161,16 @@ impl CBORCodable for Envelope { }
 impl CBORTaggedEncodable for Envelope {
     fn untagged_cbor(&self) -> CBOR {
         match self {
-            Envelope::Node { subject, assertions, digest } => {
+            Envelope::Node { subject, assertions, digest: _ } => {
                 let mut result = vec![subject.tagged_cbor()];
                 for assertion in assertions {
                     result.push(assertion.tagged_cbor());
                 }
                 CBOR::Array(result)
             }
-            Envelope::Leaf { cbor, digest } => CBOR::Tagged(tags::LEAF, Box::new(cbor.clone())),
-            Envelope::Wrapped { envelope, digest } => CBOR::Tagged(tags::WRAPPED_ENVELOPE, Box::new(envelope.cbor())),
-            Envelope::KnownValue { value, digest } => value.tagged_cbor(),
+            Envelope::Leaf { cbor, digest: _ } => CBOR::Tagged(tags::LEAF, Box::new(cbor.clone())),
+            Envelope::Wrapped { envelope, digest: _ } => CBOR::Tagged(tags::WRAPPED_ENVELOPE, Box::new(envelope.cbor())),
+            Envelope::KnownValue { value, digest: _ } => value.tagged_cbor(),
             Envelope::Assertion(assertion) => assertion.tagged_cbor(),
             Envelope::Encrypted(encrypted_message) => encrypted_message.tagged_cbor(),
             Envelope::Compressed(compressed) => compressed.tagged_cbor(),
