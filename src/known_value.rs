@@ -1,6 +1,6 @@
 use std::fmt::{Formatter, Display};
 
-use bc_components::tags;
+use bc_components::{tags, DigestProvider, Digest};
 use dcbor::{CBOR, CBORTagged, Tag, CBOREncodable, CBORDecodable, CBORError, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
 
  #[derive(Debug, Clone)]
@@ -77,6 +77,12 @@ impl Display for KnownValue {
             Some(KnownValueName::Dynamic(name)) => write!(f, "{}", name),
             None => write!(f, "{}", self.value),
         }
+    }
+}
+
+impl DigestProvider for KnownValue {
+    fn digest(&self) -> Digest {
+        Digest::from(self.tagged_cbor().cbor_data())
     }
 }
 

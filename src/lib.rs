@@ -1,4 +1,8 @@
+#![feature(closure_lifetime_binder)]
+
 mod envelope;
+pub use crate::envelope::Envelope;
+
 mod assertions;
 mod queries;
 
@@ -6,9 +10,7 @@ mod envelope_error;
 pub use envelope_error::EnvelopeError;
 
 mod walk;
-pub use walk::{EdgeType};
-
-pub use crate::envelope::Envelope;
+pub use walk::{EdgeType, Visitor};
 
 mod cbor;
 

@@ -16,7 +16,7 @@ impl Envelope {
     }
 
     /// The envelope's assertions.
-    pub fn assertions(&self) -> Vec<&Envelope> {
+    pub fn assertions(&self) -> Vec<&Box<Envelope>> {
         match self {
             Envelope::Node { assertions, .. } => assertions.iter().collect(),
             _ => vec![],
@@ -236,7 +236,7 @@ impl Envelope {
 
 impl Envelope {
     /// Returns all assertions with the given predicate. Match by comparing digests.
-    pub fn assertions_with_predicate(&self, predicate: &Envelope) -> Vec<&Envelope> {
+    pub fn assertions_with_predicate(&self, predicate: &Envelope) -> Vec<&Box<Envelope>> {
         self.assertions()
             .into_iter()
             .filter(|&assertion| {
@@ -248,12 +248,12 @@ impl Envelope {
     }
 
     /// Returns all assertions with the given predicate.
-    pub fn assertions_with_predicate_cbor(&self, predicate: &dyn CBOREncodable) -> Vec<&Envelope> {
+    pub fn assertions_with_predicate_cbor(&self, predicate: &dyn CBOREncodable) -> Vec<&Box<Envelope>> {
         self.assertions_with_predicate(&Envelope::from_cbor_encodable(predicate))
     }
 
     /// Returns all assertions with the given predicate.
-    pub fn assertions_with_predicate_known_value(&self, predicate: &KnownValue) -> Vec<&Envelope> {
+    pub fn assertions_with_predicate_known_value(&self, predicate: &KnownValue) -> Vec<&Box<Envelope>> {
         self.assertions_with_predicate(&Envelope::from(predicate))
     }
 }
