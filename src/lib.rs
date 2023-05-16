@@ -1,6 +1,7 @@
 #![feature(closure_lifetime_binder)]
 
 mod envelope;
+mod salt;
 pub use crate::envelope::Envelope;
 
 mod assertions;

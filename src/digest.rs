@@ -1,4 +1,4 @@
-use std::{collections::HashSet, cell::RefCell};
+use std::{collections::HashSet, cell::RefCell, rc::Rc};
 
 use bc_components::{Digest, DigestProvider};
 
@@ -50,9 +50,9 @@ impl Envelope {
     /// # Returns
     ///
     /// * A set of digests down to `levelLimit`.
-    pub fn digests(&self, level_limit: usize) -> HashSet<Digest> {
+    pub fn digests(self: Rc<Envelope>, level_limit: usize) -> HashSet<Digest> {
         let result = RefCell::new(HashSet::new());
-        let visitor = |envelope: &Envelope, level: usize, _: EdgeType, _: Option<&()>| -> _ {
+        let visitor = |envelope: Rc<Envelope>, level: usize, _: EdgeType, _: Option<&()>| -> _ {
             if level < level_limit {
                 let mut result = result.borrow_mut();
                 result.insert(envelope.digest());
@@ -65,12 +65,12 @@ impl Envelope {
     }
 
     /// The set of all digests in the envelope.
-    pub fn deep_digests(&self) -> HashSet<Digest> {
+    pub fn deep_digests(self: Rc<Envelope>) -> HashSet<Digest> {
         self.digests(usize::MAX)
     }
 
     /// The set of all digests in the envelope, down to its second level.
-    pub fn shallow_digests(&self) -> HashSet<Digest> {
+    pub fn shallow_digests(self: Rc<Envelope>) -> HashSet<Digest> {
         self.digests(2)
     }
 }

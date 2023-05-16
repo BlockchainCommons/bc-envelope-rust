@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use bc_components::{Digest, DigestProvider, tags};
 use dcbor::{CBORTagged, Tag, CBOR, CBOREncodable, CBORDecodable, CBORError, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
 
@@ -38,8 +40,8 @@ public struct Assertion {
 /// Represents an assertion.
 #[derive(Clone, Debug)]
 pub struct Assertion {
-    predicate: Box<Envelope>,
-    object: Box<Envelope>,
+    predicate: Rc<Envelope>,
+    object: Rc<Envelope>,
     digest: Digest,
 }
 
@@ -54,20 +56,20 @@ impl Assertion {
         let object = object.into();
         let digest = Digest::from_image_parts(&[&predicate.cbor_data(), &object.cbor_data()]);
         Self {
-            predicate: Box::new(predicate),
-            object: Box::new(object),
+            predicate: Rc::new(predicate),
+            object: Rc::new(object),
             digest
         }
     }
 
     // Returns the predicate of the assertion.
-    pub fn predicate(&self) -> &Envelope {
-        &self.predicate
+    pub fn predicate(&self) -> Rc<Envelope> {
+        self.predicate.clone()
     }
 
     // Returns the object of the assertion.
-    pub fn object(&self) -> &Envelope {
-        &self.object
+    pub fn object(&self) -> Rc<Envelope> {
+        self.object.clone()
     }
 
     pub fn digest_ref(&self) -> &Digest {
@@ -92,7 +94,7 @@ impl CBOREncodable for Assertion {
 }
 
 impl CBORDecodable for Assertion {
-    fn from_cbor(cbor: &CBOR) -> Result<Box<Self>, CBORError> {
+    fn from_cbor(cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
         Self::from_tagged_cbor(cbor)
     }
 }
@@ -106,12 +108,12 @@ impl CBORTaggedEncodable for Assertion {
 }
 
 impl CBORTaggedDecodable for Assertion {
-    fn from_untagged_cbor(cbor: &CBOR) -> Result<Box<Self>, CBORError> {
-        let array: Box<Vec<Envelope>> = Vec::<Envelope>::from_cbor(cbor)?;
+    fn from_untagged_cbor(cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
+        let array: Rc<Vec<Envelope>> = Vec::<Envelope>::from_cbor(cbor)?;
         if array.len() != 2 {
             return Err(CBORError::InvalidFormat);
         }
-        Ok(Box::new(Self::new(array[0].clone(), array[1].clone())))
+        Ok(Rc::new(Self::new(array[0].clone(), array[1].clone())))
     }
 }
 

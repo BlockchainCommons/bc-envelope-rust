@@ -1,4 +1,4 @@
-use std::fmt::{Formatter, Display};
+use std::{fmt::{Formatter, Display}, rc::Rc};
 
 use bc_components::{tags, DigestProvider, Digest};
 use dcbor::{CBOR, CBORTagged, Tag, CBOREncodable, CBORDecodable, CBORError, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
@@ -97,7 +97,7 @@ impl CBOREncodable for KnownValue {
 }
 
 impl CBORDecodable for KnownValue {
-    fn from_cbor(cbor: &CBOR) -> Result<Box<Self>, CBORError> {
+    fn from_cbor(cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
         Self::from_tagged_cbor(cbor)
     }
 }
@@ -111,9 +111,9 @@ impl CBORTaggedEncodable for KnownValue {
 }
 
 impl CBORTaggedDecodable for KnownValue {
-    fn from_untagged_cbor(cbor: &CBOR) -> Result<Box<Self>, CBORError> {
+    fn from_untagged_cbor(cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
         let value = *u64::from_cbor(cbor)?;
-        Ok(Box::new(Self::new(value)))
+        Ok(Rc::new(Self::new(value)))
     }
 }
 

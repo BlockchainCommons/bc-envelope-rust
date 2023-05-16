@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use bc_components::{tags, Digest, EncryptedMessage, Compressed};
 use bc_ur::{UREncodable, URDecodable, URCodable};
 use dcbor::{CBORTagged, CBOREncodable, CBORDecodable, CBORError, CBOR, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable, Tag};
@@ -29,7 +31,7 @@ impl CBOREncodable for Envelope {
 }
 
 impl CBORDecodable for Envelope {
-    fn from_cbor(cbor: &CBOR) -> Result<Box<Self>, CBORError> {
+    fn from_cbor(cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
         Self::from_tagged_cbor(cbor)
     }
 }
@@ -46,8 +48,8 @@ impl CBORTaggedEncodable for Envelope {
                 }
                 CBOR::Array(result)
             }
-            Envelope::Leaf { cbor, digest: _ } => CBOR::Tagged(tags::LEAF, Box::new(cbor.clone())),
-            Envelope::Wrapped { envelope, digest: _ } => CBOR::Tagged(tags::WRAPPED_ENVELOPE, Box::new(envelope.cbor())),
+            Envelope::Leaf { cbor, digest: _ } => CBOR::Tagged(tags::LEAF, Rc::new(cbor.clone())),
+            Envelope::Wrapped { envelope, digest: _ } => CBOR::Tagged(tags::WRAPPED_ENVELOPE, Rc::new(envelope.cbor())),
             Envelope::KnownValue { value, digest: _ } => value.tagged_cbor(),
             Envelope::Assertion(assertion) => assertion.tagged_cbor(),
             Envelope::Encrypted(encrypted_message) => encrypted_message.tagged_cbor(),
@@ -58,17 +60,45 @@ impl CBORTaggedEncodable for Envelope {
 }
 
 impl CBORTaggedDecodable for Envelope {
-    fn from_untagged_cbor(cbor: &CBOR) -> Result<Box<Self>, CBORError> {
+    fn from_untagged_cbor(cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
         match cbor {
             CBOR::Tagged(tag, item) => {
                 match tag.value() {
-                    tags::LEAF_VALUE => Ok(Box::new(Envelope::new_leaf(*item.clone()))),
-                    tags::KNOWN_VALUE_VALUE => Ok(Box::new(Envelope::new_with_known_value(*KnownValue::from_untagged_cbor(item)?))),
-                    tags::WRAPPED_ENVELOPE_VALUE => Ok(Box::new(Envelope::new_wrapped(*Envelope::from_untagged_cbor(item)?))),
-                    tags::ASSERTION_VALUE => Ok(Box::new(Envelope::new_with_assertion(*Assertion::from_untagged_cbor(item)?))),
-                    tags::ENCRYPTED_VALUE => Ok(Box::new(Envelope::new_with_encrypted(*EncryptedMessage::from_untagged_cbor(item)?).map_err(|_| CBORError::InvalidFormat)?)),
-                    tags::COMPRESSED_VALUE => Ok(Box::new(Envelope::new_with_compressed(*Compressed::from_untagged_cbor(item)?).map_err(|_| CBORError::InvalidFormat)?)),
-                    tags::DIGEST_VALUE => Ok(Box::new(Envelope::new_elided(*Digest::from_untagged_cbor(item)?))),
+                    tags::LEAF_VALUE => {
+                        let cbor = item.as_ref().clone();
+                        let envelope = Envelope::new_leaf(cbor);
+                        Ok(Rc::new(envelope))
+                    },
+                    tags::KNOWN_VALUE_VALUE => {
+                        let known_value = KnownValue::from_untagged_cbor(item)?.as_ref().clone();
+                        let envelope = Envelope::new_with_known_value(known_value);
+                        Ok(Rc::new(envelope))
+                    },
+                    tags::WRAPPED_ENVELOPE_VALUE => {
+                        let inner_envelope = Envelope::from_untagged_cbor(item)?;
+                        let envelope = Envelope::new_wrapped(inner_envelope);
+                        Ok(Rc::new(envelope))
+                    },
+                    tags::ASSERTION_VALUE => {
+                        let assertion = Assertion::from_untagged_cbor(item)?.as_ref().clone();
+                        let envelope = Envelope::new_with_assertion(assertion);
+                        Ok(Rc::new(envelope))
+                    },
+                    tags::ENCRYPTED_VALUE => {
+                        let encrypted = EncryptedMessage::from_untagged_cbor(item)?.as_ref().clone();
+                        let envelope = Envelope::new_with_encrypted(encrypted).map_err(|_| CBORError::InvalidFormat)?;
+                        Ok(Rc::new(envelope))
+                    },
+                    tags::COMPRESSED_VALUE => {
+                        let compressed = Compressed::from_untagged_cbor(item)?.as_ref().clone();
+                        let envelope = Envelope::new_with_compressed(compressed).map_err(|_| CBORError::InvalidFormat)?;
+                        Ok(Rc::new(envelope))
+                    },
+                    tags::DIGEST_VALUE => {
+                        let digest = Digest::from_untagged_cbor(item)?.as_ref().clone();
+                        let envelope = Envelope::new_elided(digest);
+                        Ok(Rc::new(envelope))
+                    },
                     _ => Err(CBORError::InvalidFormat),
                 }
             }
@@ -77,8 +107,8 @@ impl CBORTaggedDecodable for Envelope {
                     return Err(CBORError::InvalidFormat);
                 }
                 let subject = Envelope::from_tagged_cbor(&elements[0])?;
-                let assertions = elements[1..].iter().map(|item| Envelope::from_tagged_cbor(item)).collect::<Result<Vec<Box<Envelope>>, CBORError>>()?;
-                Ok(Box::new(Envelope::new_with_assertions(subject, assertions).map_err(|_| CBORError::InvalidFormat)?))
+                let assertions = elements[1..].iter().map(|item| Envelope::from_tagged_cbor(item)).collect::<Result<Vec<Rc<Envelope>>, CBORError>>()?;
+                Ok(Rc::new(Envelope::new_with_assertions(subject, assertions).map_err(|_| CBORError::InvalidFormat)?))
             }
             _ => Err(CBORError::InvalidFormat),
         }

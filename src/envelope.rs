@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use bc_components::{Digest, Compressed, EncryptedMessage, DigestProvider};
 use dcbor::{CBOR, CBOREncodable};
 use crate::{assertion::Assertion, known_value::KnownValue, EnvelopeError};
@@ -8,13 +10,13 @@ use crate::{assertion::Assertion, known_value::KnownValue, EnvelopeError};
 #[derive(Clone, Debug)]
 pub enum Envelope {
     /// Represents an envelope with one or more assertions.
-    Node { subject: Box<Envelope>, assertions: Vec<Box<Envelope>>, digest: Digest },
+    Node { subject: Rc<Envelope>, assertions: Vec<Rc<Envelope>>, digest: Digest },
 
     /// Represents an envelope with encoded CBOR data.
     Leaf { cbor: CBOR, digest: Digest },
 
     /// Represents an envelope that wraps another envelope.
-    Wrapped { envelope: Box<Envelope>, digest: Digest },
+    Wrapped { envelope: Rc<Envelope>, digest: Digest },
 
     /// Represents a value from a namespace of unsigned integers.
     KnownValue { value: KnownValue, digest: Digest },
@@ -36,13 +38,13 @@ pub enum Envelope {
 
 impl Envelope {
     /// Create an Envelope from a &dyn CBOREncodable
-    pub fn from_cbor_encodable(cbor_encodable: &dyn CBOREncodable) -> Self {
+    pub fn from_cbor_encodable(cbor_encodable: &dyn CBOREncodable) -> Rc<Self> {
         let cbor = cbor_encodable.cbor();
         let digest = Digest::from_image(&cbor.cbor_data());
-        Envelope::Leaf {
+        Rc::new(Envelope::Leaf {
             cbor,
             digest,
-        }
+        })
     }
 }
 
@@ -63,7 +65,7 @@ where
 
 // Internal constructors
 impl Envelope {
-    pub fn new_with_unchecked_assertions(subject: Box<Envelope>, unchecked_assertions: Vec<Box<Envelope>>) -> Self {
+    pub fn new_with_unchecked_assertions(subject: Rc<Envelope>, unchecked_assertions: Vec<Rc<Envelope>>) -> Self {
         assert!(!unchecked_assertions.is_empty());
         let mut sorted_assertions = unchecked_assertions;
         sorted_assertions.sort_by(|a, b| a.digest_ref().cmp(b.digest_ref()));
@@ -73,7 +75,7 @@ impl Envelope {
         Envelope::Node { subject: subject, assertions: sorted_assertions, digest }
     }
 
-    pub fn new_with_assertions(subject: Box<Envelope>, assertions: Vec<Box<Envelope>>) -> Result<Self, EnvelopeError> {
+    pub fn new_with_assertions(subject: Rc<Envelope>, assertions: Vec<Rc<Envelope>>) -> Result<Self, EnvelopeError> {
         if !assertions.iter().all(|a| a.is_subject_assertion() || a.is_subject_obscured()) {
             return Err(EnvelopeError::InvalidFormat);
         }
@@ -112,8 +114,8 @@ impl Envelope {
         Envelope::Leaf { cbor, digest }
     }
 
-    pub fn new_wrapped(envelope: Envelope) -> Self {
+    pub fn new_wrapped(envelope: Rc<Envelope>) -> Self {
         let digest = Digest::from_digests(&[envelope.digest()]);
-        Envelope::Wrapped { envelope: Box::new(envelope), digest }
+        Envelope::Wrapped { envelope, digest }
     }
 }
