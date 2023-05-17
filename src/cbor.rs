@@ -1,10 +1,8 @@
 use std::rc::Rc;
-
 use bc_components::{tags_registry, Digest, EncryptedMessage, Compressed};
 use bc_ur::{UREncodable, URDecodable, URCodable};
 use dcbor::{CBORTagged, CBOREncodable, CBORDecodable, CBORError, CBOR, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable, Tag};
-
-use crate::{Envelope, KnownValue, Assertion};
+use crate::{Envelope, Assertion, KnownValue};
 
 /// Support for CBOR encoding and decoding of ``Envelope``.
 

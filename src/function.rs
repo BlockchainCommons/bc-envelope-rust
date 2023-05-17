@@ -4,6 +4,7 @@ use bc_components::tags_registry;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable, CBORError};
 
 use crate::KnownFunctions;
+pub use crate::function_registry::*;
 
 #[derive(Clone, Debug, Eq)]
 pub enum FunctionName {

@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use bc_components::tags_registry;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable, CBORError};
-
+pub use crate::parameter_registry::*;
 use crate::KnownParameters;
 
 #[derive(Clone, Debug, Eq)]

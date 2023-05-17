@@ -7,16 +7,10 @@ mod digest;
 mod salt;
 mod format;
 mod cbor;
-
 mod string_utils;
-
-pub mod parameter_registry;
-pub use parameter_registry::PARAMETERS;
-
-pub mod function_registry;
-pub use function_registry::FUNCTIONS;
-
-pub mod known_value_registry;
+mod known_value_registry;
+mod parameter_registry;
+mod function_registry;
 
 mod envelope;
 pub use crate::envelope::Envelope;
@@ -33,20 +27,20 @@ pub use walk::{EdgeType, Visitor};
 mod assertion;
 pub use assertion::Assertion;
 
-mod known_value;
+pub mod known_value;
 pub use known_value::KnownValue;
+
+pub mod function;
+pub use function::Function;
+
+pub mod parameter;
+pub use parameter::Parameter;
 
 mod known_values;
 pub use known_values::KnownValues;
 
-mod function;
-pub use function::Function;
-
 mod known_functions;
 pub use known_functions::KnownFunctions;
-
-mod parameter;
-pub use parameter::Parameter;
 
 mod known_parameters;
 pub use known_parameters::KnownParameters;
