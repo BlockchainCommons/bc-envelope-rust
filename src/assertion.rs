@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use bc_components::{Digest, DigestProvider, tags};
+use bc_components::{Digest, DigestProvider, tags_registry};
 use dcbor::{CBORTagged, Tag, CBOR, CBOREncodable, CBORDecodable, CBORError, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
 
 use crate::envelope::Envelope;
@@ -84,7 +84,7 @@ impl DigestProvider for Assertion {
 }
 
 impl CBORTagged for Assertion {
-    const CBOR_TAG: Tag = tags::ASSERTION;
+    const CBOR_TAG: Tag = tags_registry::ASSERTION;
 }
 
 impl CBOREncodable for Assertion {

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use bc_components::{tags, Digest, EncryptedMessage, Compressed};
+use bc_components::{tags_registry, Digest, EncryptedMessage, Compressed};
 use bc_ur::{UREncodable, URDecodable, URCodable};
 use dcbor::{CBORTagged, CBOREncodable, CBORDecodable, CBORError, CBOR, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable, Tag};
 
@@ -21,7 +21,7 @@ use crate::{Envelope, KnownValue, Assertion};
 /// * `.elided` is tagged with the `crypto-digest` tag.
 
 impl CBORTagged for Envelope {
-    const CBOR_TAG: Tag = tags::ENVELOPE;
+    const CBOR_TAG: Tag = tags_registry::ENVELOPE;
 }
 
 impl CBOREncodable for Envelope {
@@ -48,8 +48,8 @@ impl CBORTaggedEncodable for Envelope {
                 }
                 CBOR::Array(result)
             }
-            Envelope::Leaf { cbor, digest: _ } => CBOR::Tagged(tags::LEAF, Rc::new(cbor.clone())),
-            Envelope::Wrapped { envelope, digest: _ } => CBOR::Tagged(tags::WRAPPED_ENVELOPE, Rc::new(envelope.cbor())),
+            Envelope::Leaf { cbor, digest: _ } => CBOR::Tagged(tags_registry::LEAF, Rc::new(cbor.clone())),
+            Envelope::Wrapped { envelope, digest: _ } => CBOR::Tagged(tags_registry::WRAPPED_ENVELOPE, Rc::new(envelope.cbor())),
             Envelope::KnownValue { value, digest: _ } => value.tagged_cbor(),
             Envelope::Assertion(assertion) => assertion.tagged_cbor(),
             Envelope::Encrypted(encrypted_message) => encrypted_message.tagged_cbor(),
@@ -64,37 +64,37 @@ impl CBORTaggedDecodable for Envelope {
         match cbor {
             CBOR::Tagged(tag, item) => {
                 match tag.value() {
-                    tags::LEAF_VALUE => {
+                    tags_registry::LEAF_VALUE => {
                         let cbor = item.as_ref().clone();
                         let envelope = Envelope::new_leaf(cbor);
                         Ok(Rc::new(envelope))
                     },
-                    tags::KNOWN_VALUE_VALUE => {
+                    tags_registry::KNOWN_VALUE_VALUE => {
                         let known_value = KnownValue::from_untagged_cbor(item)?.as_ref().clone();
                         let envelope = Envelope::new_with_known_value(known_value);
                         Ok(Rc::new(envelope))
                     },
-                    tags::WRAPPED_ENVELOPE_VALUE => {
+                    tags_registry::WRAPPED_ENVELOPE_VALUE => {
                         let inner_envelope = Envelope::from_untagged_cbor(item)?;
                         let envelope = Envelope::new_wrapped(inner_envelope);
                         Ok(Rc::new(envelope))
                     },
-                    tags::ASSERTION_VALUE => {
+                    tags_registry::ASSERTION_VALUE => {
                         let assertion = Assertion::from_untagged_cbor(item)?.as_ref().clone();
                         let envelope = Envelope::new_with_assertion(assertion);
                         Ok(Rc::new(envelope))
                     },
-                    tags::ENCRYPTED_VALUE => {
+                    tags_registry::ENCRYPTED_VALUE => {
                         let encrypted = EncryptedMessage::from_untagged_cbor(item)?.as_ref().clone();
                         let envelope = Envelope::new_with_encrypted(encrypted).map_err(|_| CBORError::InvalidFormat)?;
                         Ok(Rc::new(envelope))
                     },
-                    tags::COMPRESSED_VALUE => {
+                    tags_registry::COMPRESSED_VALUE => {
                         let compressed = Compressed::from_untagged_cbor(item)?.as_ref().clone();
                         let envelope = Envelope::new_with_compressed(compressed).map_err(|_| CBORError::InvalidFormat)?;
                         Ok(Rc::new(envelope))
                     },
-                    tags::DIGEST_VALUE => {
+                    tags_registry::DIGEST_VALUE => {
                         let digest = Digest::from_untagged_cbor(item)?.as_ref().clone();
                         let envelope = Envelope::new_elided(digest);
                         Ok(Rc::new(envelope))

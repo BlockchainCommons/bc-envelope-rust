@@ -1,9 +1,9 @@
 use std::{fmt::{Formatter, Display}, rc::Rc};
 
-use bc_components::{tags, DigestProvider, Digest};
+use bc_components::{tags_registry, DigestProvider, Digest};
 use dcbor::{CBOR, CBORTagged, Tag, CBOREncodable, CBORDecodable, CBORError, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
 
- #[derive(Debug, Clone)]
+#[derive(Debug, Clone)]
 enum KnownValueName {
     Static(&'static str),
     Dynamic(String),
@@ -44,14 +44,23 @@ impl KnownValue {
         self.value
     }
 
-    /// The human readable name.
-    ///
-    /// Defaults to the numerical value if no name has been assigned.
-    pub fn name(&self) -> Option<&str> {
+    /// The name assigned to the known value.
+    pub fn assigned_name(&self) -> Option<&str> {
         match &self.assigned_name {
             Some(KnownValueName::Static(name)) => Some(name),
             Some(KnownValueName::Dynamic(name)) => Some(name),
             None => None,
+        }
+    }
+
+    /// The human readable name.
+    ///
+    /// Defaults to the numerical value if no name has been assigned.
+    pub fn name(&self) -> String {
+        match &self.assigned_name {
+            Some(KnownValueName::Static(name)) => name.to_string(),
+            Some(KnownValueName::Dynamic(name)) => name.clone(),
+            None => self.value.to_string(),
         }
     }
 }
@@ -87,7 +96,7 @@ impl DigestProvider for KnownValue {
 }
 
 impl CBORTagged for KnownValue {
-    const CBOR_TAG: Tag = tags::KNOWN_VALUE;
+    const CBOR_TAG: Tag = tags_registry::KNOWN_VALUE;
 }
 
 impl CBOREncodable for KnownValue {

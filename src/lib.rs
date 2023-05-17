@@ -1,11 +1,23 @@
 #![feature(closure_lifetime_binder)]
 
-mod envelope;
-mod salt;
-pub use crate::envelope::Envelope;
-
 mod assertions;
 mod queries;
+mod digest;
+mod salt;
+mod format;
+mod cbor;
+
+pub mod parameter_registry;
+pub mod function_registry;
+
+pub mod known_value_registry;
+pub use known_value_registry::KNOWN_VALUES;
+
+mod envelope;
+pub use crate::envelope::Envelope;
+
+mod format_context;
+pub use format_context::FormatContext;
 
 mod envelope_error;
 pub use envelope_error::EnvelopeError;
@@ -13,17 +25,26 @@ pub use envelope_error::EnvelopeError;
 mod walk;
 pub use walk::{EdgeType, Visitor};
 
-mod cbor;
-
 mod assertion;
 pub use assertion::Assertion;
 
 mod known_value;
 pub use known_value::KnownValue;
 
-pub mod known_values;
+mod known_values;
+pub use known_values::KnownValues;
 
-mod digest;
+mod function;
+pub use function::Function;
+
+mod known_functions;
+pub use known_functions::KnownFunctions;
+
+mod parameter;
+pub use parameter::Parameter;
+
+mod known_parameters;
+pub use known_parameters::KnownParameters;
 
 #[cfg(test)]
 mod tests {
