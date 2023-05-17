@@ -17,7 +17,6 @@ pub mod function_registry;
 pub use function_registry::FUNCTIONS;
 
 pub mod known_value_registry;
-pub use known_value_registry::KNOWN_VALUES;
 
 mod envelope;
 pub use crate::envelope::Envelope;

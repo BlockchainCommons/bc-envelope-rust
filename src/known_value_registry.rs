@@ -141,11 +141,13 @@ pub static KNOWN_VALUES: LazyKnownValues = LazyKnownValues {
 
 #[cfg(test)]
 mod tests {
+    use crate::known_value::KNOWN_VALUES;
+
     #[test]
     fn test_1() {
         use crate::*;
-        assert_eq!(known_value_registry::IS_A.value(), 2);
-        assert_eq!(known_value_registry::IS_A.name(), Some("isA").unwrap());
+        assert_eq!(known_value::IS_A.value(), 2);
+        assert_eq!(known_value::IS_A.name(), Some("isA").unwrap());
         let binding = KNOWN_VALUES.get();
         let known_values = &*binding.as_ref().unwrap();
         assert_eq!(known_values.known_value_named("isA").unwrap().value(), 2);
