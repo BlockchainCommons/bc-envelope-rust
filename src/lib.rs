@@ -1,4 +1,3 @@
-#![feature(closure_lifetime_binder)]
 #![feature(iter_intersperse)]
 
 mod assertions;
