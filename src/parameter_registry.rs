@@ -34,3 +34,8 @@ impl LazyParameters {
         self.data.lock().unwrap()
     }
 }
+
+pub static PARAMETERS: LazyParameters = LazyParameters {
+    init: Once::new(),
+    data: Mutex::new(None),
+};

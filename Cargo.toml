@@ -16,6 +16,6 @@ bc-crypto = { path = "../bc-crypto-rust" }
 bc-components = { path = "../bc-components-rust" }
 bc-ur = { path = "../bc-ur-rust" }
 paste = "1.0.12"
+hex = "0.4.3"
 
 [dev-dependencies]
-hex = "0.4.3"

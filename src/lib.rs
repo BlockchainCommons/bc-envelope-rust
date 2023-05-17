@@ -1,4 +1,5 @@
 #![feature(closure_lifetime_binder)]
+#![feature(iter_intersperse)]
 
 mod assertions;
 mod queries;
@@ -7,8 +8,13 @@ mod salt;
 mod format;
 mod cbor;
 
+mod string_utils;
+
 pub mod parameter_registry;
+pub use parameter_registry::PARAMETERS;
+
 pub mod function_registry;
+pub use function_registry::FUNCTIONS;
 
 pub mod known_value_registry;
 pub use known_value_registry::KNOWN_VALUES;
@@ -48,6 +54,8 @@ pub use known_parameters::KnownParameters;
 
 #[cfg(test)]
 mod tests {
+    mod type_tests;
+
     use bc_crypto::sha256;
 
     #[test]

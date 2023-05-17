@@ -36,3 +36,8 @@ impl LazyFunctions {
         self.data.lock().unwrap()
     }
 }
+
+pub static FUNCTIONS: LazyFunctions = LazyFunctions {
+    init: Once::new(),
+    data: Mutex::new(None),
+};

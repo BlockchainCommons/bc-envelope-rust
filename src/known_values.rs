@@ -52,10 +52,9 @@ impl KnownValues {
         self.known_values_by_assigned_name.get(assigned_name)
     }
 
-    pub fn known_value_for_raw_value(raw_value: u64, known_values: &Self) -> KnownValue {
+    pub fn known_value_for_raw_value(raw_value: u64, known_values: Option<&Self>) -> KnownValue {
         known_values
-            .known_values_by_raw_value
-            .get(&raw_value)
+            .and_then(|known_values| known_values.known_values_by_raw_value.get(&raw_value))
             .cloned()
             .unwrap_or_else(|| KnownValue::new(raw_value))
     }

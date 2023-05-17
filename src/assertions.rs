@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{Envelope, EnvelopeError};
+use crate::{Envelope, EnvelopeError, envelope::new_envelope_with_unchecked_assertions};
 
 // Support for manipulating assertions.
 
@@ -22,12 +22,12 @@ impl Envelope {
                         if !assertions.iter().any(|a| a.digest_ref() == envelope2.digest_ref()) {
                             let mut assertions = assertions.clone();
                             assertions.push(envelope2);
-                            Ok(Rc::new(Envelope::new_with_unchecked_assertions(subject.clone(), assertions)))
+                            Ok(new_envelope_with_unchecked_assertions(subject.clone(), assertions))
                         } else {
                             Ok(self)
                         }
                     },
-                    _ => Ok(Rc::new(Envelope::new_with_unchecked_assertions(self.subject().clone(), vec![envelope2]))),
+                    _ => Ok(new_envelope_with_unchecked_assertions(self.subject().clone(), vec![envelope2])),
                 }
             },
             None => Ok(self),

@@ -128,6 +128,14 @@ impl Envelope {
             _ => false,
         }
     }
+
+    /// `true` if the envelope is case `::Elided`, `false` otherwise.
+    pub fn is_elided(&self) -> bool {
+        match self {
+            Envelope::Elided(_) => true,
+            _ => false,
+        }
+    }
 }
 
 impl Envelope {

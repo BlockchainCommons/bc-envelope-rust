@@ -67,37 +67,37 @@ impl CBORTaggedDecodable for Envelope {
                     tags_registry::LEAF_VALUE => {
                         let cbor = item.as_ref().clone();
                         let envelope = Envelope::new_leaf(cbor);
-                        Ok(Rc::new(envelope))
+                        Ok(envelope)
                     },
                     tags_registry::KNOWN_VALUE_VALUE => {
                         let known_value = KnownValue::from_untagged_cbor(item)?.as_ref().clone();
                         let envelope = Envelope::new_with_known_value(known_value);
-                        Ok(Rc::new(envelope))
+                        Ok(envelope)
                     },
                     tags_registry::WRAPPED_ENVELOPE_VALUE => {
                         let inner_envelope = Envelope::from_untagged_cbor(item)?;
                         let envelope = Envelope::new_wrapped(inner_envelope);
-                        Ok(Rc::new(envelope))
+                        Ok(envelope)
                     },
                     tags_registry::ASSERTION_VALUE => {
                         let assertion = Assertion::from_untagged_cbor(item)?.as_ref().clone();
                         let envelope = Envelope::new_with_assertion(assertion);
-                        Ok(Rc::new(envelope))
+                        Ok(envelope)
                     },
                     tags_registry::ENCRYPTED_VALUE => {
                         let encrypted = EncryptedMessage::from_untagged_cbor(item)?.as_ref().clone();
                         let envelope = Envelope::new_with_encrypted(encrypted).map_err(|_| CBORError::InvalidFormat)?;
-                        Ok(Rc::new(envelope))
+                        Ok(envelope)
                     },
                     tags_registry::COMPRESSED_VALUE => {
                         let compressed = Compressed::from_untagged_cbor(item)?.as_ref().clone();
                         let envelope = Envelope::new_with_compressed(compressed).map_err(|_| CBORError::InvalidFormat)?;
-                        Ok(Rc::new(envelope))
+                        Ok(envelope)
                     },
                     tags_registry::DIGEST_VALUE => {
                         let digest = Digest::from_untagged_cbor(item)?.as_ref().clone();
                         let envelope = Envelope::new_elided(digest);
-                        Ok(Rc::new(envelope))
+                        Ok(envelope)
                     },
                     _ => Err(CBORError::InvalidFormat),
                 }
@@ -108,7 +108,7 @@ impl CBORTaggedDecodable for Envelope {
                 }
                 let subject = Envelope::from_tagged_cbor(&elements[0])?;
                 let assertions = elements[1..].iter().map(|item| Envelope::from_tagged_cbor(item)).collect::<Result<Vec<Rc<Envelope>>, CBORError>>()?;
-                Ok(Rc::new(Envelope::new_with_assertions(subject, assertions).map_err(|_| CBORError::InvalidFormat)?))
+                Ok(Envelope::new_with_assertions(subject, assertions).map_err(|_| CBORError::InvalidFormat)?)
             }
             _ => Err(CBORError::InvalidFormat),
         }
