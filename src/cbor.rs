@@ -153,3 +153,30 @@ public extension Envelope {
 }
 ```
  */
+
+#[cfg(test)]
+impl Envelope {
+    /// Used by test suite to check round-trip encoding of `Envelope`.
+    ///
+    /// Not needed in production code.
+    pub fn check_encoding(&self) -> Result<Rc<Self>, CBORError> {
+        let cbor = self.tagged_cbor();
+        let restored = Envelope::from_tagged_cbor(&cbor).map_err(|_| {
+            println!("=== EXPECTED");
+            println!("{}", self.format());
+            println!("=== GOT");
+            println!("{}", cbor.diagnostic());
+            println!("===");
+            CBORError::InvalidFormat
+        })?;
+        if self.digest_ref() != restored.digest_ref() {
+            println!("=== EXPECTED");
+            println!("{}", self.format());
+            println!("=== GOT");
+            println!("{}", restored.format());
+            println!("===");
+            return Err(CBORError::InvalidFormat);
+        }
+        Ok(Rc::new(self.clone()))
+    }
+}
