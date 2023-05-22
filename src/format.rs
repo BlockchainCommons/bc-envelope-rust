@@ -1,6 +1,8 @@
-use bc_components::{Digest, CID};
-use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable};
-use crate::{Envelope, FormatContext, Assertion, KnownValue, string_utils::StringUtils, KnownValues};
+use std::error::Error;
+
+use bc_components::{Digest, CID, URI, UUID};
+use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable, Date};
+use crate::{Envelope, FormatContext, Assertion, KnownValue, string_utils::StringUtils, KnownValues, KnownFunctions, Function, Parameter, KnownParameters};
 use bc_components::tags_registry;
 
 /// Support for the various text output formats for ``Envelope``.
@@ -222,59 +224,103 @@ impl PartialOrd for EnvelopeFormatItem {
 
 impl EnvelopeFormat for Digest {
     fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
-        EnvelopeFormatItem::Item(hex::encode(&self.raw()))
+        EnvelopeFormatItem::Item(hex::encode(&self.data()))
     }
 }
 
 impl EnvelopeFormat for CID {
     fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
-        EnvelopeFormatItem::Item(hex::encode(&self.raw()))
+        EnvelopeFormatItem::Item(hex::encode(&self.data()))
     }
 }
 
 trait EnvelopeSummary {
-    fn envelope_summary(self: &Self, max_length: usize, context: &FormatContext) -> String;
+    fn envelope_summary(self: &Self, max_length: usize, context: &FormatContext) -> Result<String, Box<dyn Error>>;
 }
 
 impl EnvelopeSummary for CBOR {
-    fn envelope_summary(self: &Self, max_length: usize, context: &FormatContext) -> String {
+    fn envelope_summary(self: &Self, max_length: usize, context: &FormatContext) -> Result<String, Box<dyn Error>> {
         match self {
-            CBOR::Unsigned(n) => n.to_string(),
-            CBOR::Negative(n) => n.to_string(),
-            CBOR::Bytes(data) => format!("Bytes({})", data.len()),
+            CBOR::Unsigned(n) => Ok(n.to_string()),
+            CBOR::Negative(n) => Ok(n.to_string()),
+            CBOR::Bytes(data) => Ok(format!("Bytes({})", data.len())),
             CBOR::Text(string) => {
                 let string = if string.len() > max_length {
                     format!("{}…", string.chars().take(max_length).collect::<String>())
                 } else {
                     string.clone()
                 };
-                string.replace("\n", "\\n").flanked_by("\"", "\"")
+                Ok(string.replace("\n", "\\n").flanked_by("\"", "\""))
             }
-            CBOR::Array(elements) => elements
-                .iter()
-                .map(|element| element.envelope_summary(max_length, context))
-                .collect::<Vec<String>>()
-                .join(", ")
-                .flanked_by("[", "]"),
-            CBOR::Map(_) => "Map".to_string(),
-            CBOR::Tagged(tag, cbor) => {
+            CBOR::Array(elements) => {
+                Ok(elements
+                    .iter()
+                    .map(|element| element.envelope_summary(max_length, context))
+                    .collect::<Result<Vec<String>, Box<dyn Error>>>()?
+                    .join(", ")
+                    .flanked_by("[", "]")
+                )
+            },
+            CBOR::Map(_) => Ok("Map".to_string()),
+            CBOR::Tagged(tag, untagged_cbor) => {
                 match tag.value() {
-                    tags_registry::ENVELOPE_VALUE => "Envelope".to_string(),
+                    tags_registry::ENVELOPE_VALUE => Ok("Envelope".to_string()),
                     tags_registry::KNOWN_VALUE_VALUE => {
-                        if let CBOR::Unsigned(raw_value) = &**cbor {
-                            KnownValues::known_value_for_raw_value(*raw_value, Some(context.known_values()))
-                                .to_string()
+                        if let CBOR::Unsigned(raw_value) = &**untagged_cbor {
+                            Ok(KnownValues::known_value_for_raw_value(*raw_value, Some(context.known_values()))
+                                .to_string())
                         } else {
-                            "<not a known value>".to_string()
+                            Ok("<not a known value>".to_string())
                         }
+                    },
+                    tags_registry::SIGNATURE_VALUE => Ok("Signature".to_string()),
+                    tags_registry::NONCE_VALUE => Ok("Nonce".to_string()),
+                    tags_registry::SALT_VALUE => Ok("Salt".to_string()),
+                    tags_registry::SEALED_MESSAGE_VALUE => Ok("SealedMessage".to_string()),
+                    tags_registry::SSKR_SHARE_VALUE => Ok("SSKRShare".to_string()),
+                    tags_registry::PUBLIC_KEYBASE_VALUE => Ok("PublicKeyBase".to_string()),
+                    tags_registry::DATE_VALUE => {
+                        let date = Date::from_untagged_cbor(untagged_cbor)?;
+                        let s = date.to_string();
+                        if s.len() == 20 && s.ends_with("T00:00:00Z") {
+                            Ok(s.chars().take(10).collect::<String>())
+                        } else {
+                            Ok(s)
+                        }
+                    },
+                    tags_registry::CID_VALUE => {
+                        Ok(CID::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("CID(", ")"))
+                    },
+                    tags_registry::URI_VALUE => {
+                        Ok(URI::from_untagged_cbor(untagged_cbor)?.to_string().flanked_by("URI(", ")"))
+                    },
+                    tags_registry::UUID_VALUE => {
+                        Ok(UUID::from_untagged_cbor(untagged_cbor)?.to_string().flanked_by("UUID(", ")"))
+                    },
+                    tags_registry::DIGEST_VALUE => {
+                        Ok(Digest::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("Digest(", ")"))
+                    },
+                    tags_registry::FUNCTION_VALUE => {
+                        let f = Function::from_untagged_cbor(untagged_cbor)?;
+                        Ok(KnownFunctions::name_for_function(&f, Some(context.functions())).flanked_by("«", "»"))
+                    },
+                    tags_registry::PARAMETER_VALUE => {
+                        let p = Parameter::from_untagged_cbor(untagged_cbor)?;
+                        Ok(KnownParameters::name_for_parameter(&p, Some(context.parameters())).flanked_by("❰", "❱"))
+                    },
+                    tags_registry::REQUEST_VALUE => {
+                        Ok(Envelope::from_untagged_cbor(untagged_cbor)?.format_opt(Some(context)).flanked_by("request(", ")"))
+                    },
+                    tags_registry::RESPONSE_VALUE => {
+                        Ok(Envelope::from_untagged_cbor(untagged_cbor)?.format_opt(Some(context)).flanked_by("response(", ")"))
                     },
                     _ => {
                         let name = context.name_for_tag(tag);
-                        format!("{}({})", name, cbor.envelope_summary(max_length, context))
+                        Ok(format!("{}({})", name, untagged_cbor.envelope_summary(max_length, context)?))
                     }
                 }
             },
-            CBOR::Simple(v) => v.to_string(),
+            CBOR::Simple(v) => Ok(v.to_string()),
         }
     }
 }
@@ -287,7 +333,10 @@ impl EnvelopeFormat for CBOR {
                     .map(|envelope| envelope.format_item(context))
                     .unwrap_or_else(|_| "<error>".into())
             }
-            _ => EnvelopeFormatItem::Item(self.envelope_summary(usize::MAX, context)),
+            _ => EnvelopeFormatItem::Item(
+                self.envelope_summary(usize::MAX, context)
+                    .unwrap_or_else(|_| "<error>".into())
+            ),
         }
     }
 }

@@ -15,7 +15,7 @@ mod envelope;
 pub use crate::envelope::Envelope;
 
 mod format_context;
-pub use format_context::FormatContext;
+pub use format_context::{FormatContext, FORMAT_CONTEXT};
 
 mod envelope_error;
 pub use envelope_error::EnvelopeError;
@@ -47,6 +47,7 @@ pub use known_parameters::KnownParameters;
 #[cfg(test)]
 mod tests {
     mod type_tests;
+    mod core_tests;
 
     use bc_crypto::sha256;
 

@@ -1,6 +1,7 @@
+use bc_components::tags_registry::KNOWN_TAGS;
 use dcbor::{KnownTagsDict, Tag, KnownTags};
-
-use crate::{known_values::KnownValues, KnownFunctions, KnownParameters};
+use std::sync::{Once, Mutex};
+use crate::{known_values::KnownValues, KnownFunctions, KnownParameters, known_value::KNOWN_VALUES, function::FUNCTIONS, parameter::PARAMETERS};
 
 #[derive(Clone, Debug)]
 pub struct FormatContext {
@@ -62,4 +63,42 @@ impl Default for FormatContext {
     fn default() -> Self {
         Self::new(None, None, None, None)
     }
+}
+
+pub struct LazyFormatContext {
+    init: Once,
+    data: Mutex<Option<FormatContext>>,
+}
+
+impl LazyFormatContext {
+    pub fn get(&self) -> std::sync::MutexGuard<Option<FormatContext>> {
+        self.init.call_once(|| {
+            let known_tags_binding = KNOWN_TAGS.get();
+            let known_tags = &*known_tags_binding.as_ref().unwrap();
+            let known_values_binding = KNOWN_VALUES.get();
+            let known_values = &*known_values_binding.as_ref().unwrap();
+            let functions_binding = FUNCTIONS.get();
+            let functions = &*functions_binding.as_ref().unwrap();
+            let parameters_binding = PARAMETERS.get();
+            let parameters = &*parameters_binding.as_ref().unwrap();
+
+            let context = FormatContext::new(Some(known_tags), Some(known_values), Some(functions), Some(parameters));
+            *self.data.lock().unwrap() = Some(context);
+        });
+        self.data.lock().unwrap()
+    }
+}
+
+pub static FORMAT_CONTEXT: LazyFormatContext = LazyFormatContext {
+    init: Once::new(),
+    data: Mutex::new(None),
+};
+
+#[macro_export]
+macro_rules! with_format_context {
+    ($action:expr) => {{
+        let binding = crate::FORMAT_CONTEXT.get();
+        let context = &*binding.as_ref().unwrap();
+        $action(context)
+    }};
 }

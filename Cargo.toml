@@ -19,3 +19,6 @@ paste = "1.0.12"
 hex = "0.4.3"
 
 [dev-dependencies]
+hex-literal = "0.4.1"
+lazy_static = "1.4.0"
+indoc = "2.0.0"

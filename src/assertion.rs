@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{rc::Rc, any::Any};
 
 use bc_components::{Digest, DigestProvider, tags_registry};
 use dcbor::{CBORTagged, Tag, CBOR, CBOREncodable, CBORDecodable, CBORError, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
@@ -45,19 +45,58 @@ pub struct Assertion {
     digest: Digest,
 }
 
+/*
+```rust
+
+    /// Returns the envelope's subject, decoded as the given type.
+    ///
+    /// If the encoded type doesn't match the given type, returns `EnvelopeError::InvalidFormat`.
+    pub fn extract_subject<T>(&self) -> Result<Rc<T>, EnvelopeError>
+    where
+        T: Any + CBORDecodable,
+    {
+        fn extract_type<T, U>(value: &U) -> Result<Rc<T>, EnvelopeError>
+        where
+            T: Any,
+            U: Any + Clone,
+        {
+            if TypeId::of::<T>() == TypeId::of::<U>() {
+                Ok((Rc::new(value.clone()) as Rc<dyn Any>)
+                    .downcast::<T>()
+                    .unwrap())
+            } else {
+                Err(EnvelopeError::InvalidFormat)
+            }
+        }
+
+        match self {
+            Envelope::Wrapped { envelope, .. } => extract_type::<T, Envelope>(&**envelope),
+            Envelope::Node { subject, .. } => subject.extract_subject::<T>(),
+            Envelope::Leaf { cbor, .. } => Ok(T::from_cbor(cbor).map_err(EnvelopeError::CBORError)?),
+            Envelope::KnownValue { value, .. } => extract_type::<T, KnownValue>(&*value),
+            Envelope::Assertion(assertion) => extract_type::<T, Assertion>(&*assertion),
+            Envelope::Encrypted(encrypted_message) => extract_type::<T, EncryptedMessage>(&*encrypted_message),
+            Envelope::Compressed(compressed) => extract_type::<T, Compressed>(&*compressed),
+            Envelope::Elided(digest) => extract_type::<T, Digest>(&*digest),
+        }
+    }
+}
+```
+ */
+
 impl Assertion {
     /// Creates an assertion and calculates its digest.
     pub fn new<P, O>(predicate: P, object: O) -> Self
-    where
-        P: Into<Envelope>,
-        O: Into<Envelope>,
+        where
+            P: Any + Clone + CBOREncodable,
+            O: Any + Clone + CBOREncodable,
     {
-        let predicate = predicate.into();
-        let object = object.into();
-        let digest = Digest::from_image_parts(&[&predicate.cbor_data(), &object.cbor_data()]);
+        let predicate = Envelope::new(predicate);
+        let object = Envelope::new(object);
+        let digest = Digest::from_digests(&[predicate.digest(), object.digest()]);
         Self {
-            predicate: Rc::new(predicate),
-            object: Rc::new(object),
+            predicate,
+            object,
             digest
         }
     }
