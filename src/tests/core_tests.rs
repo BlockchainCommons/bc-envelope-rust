@@ -19,7 +19,19 @@ fn assertion_envelope() -> Rc<Envelope> {
 fn single_assertion_envelope() -> Rc<Envelope> {
     Envelope::new("Alice")
         .add_assertion_predicate_object("knows", "Bob")
-        .unwrap()
+}
+
+fn double_assertion_envelope() -> Rc<Envelope> {
+    single_assertion_envelope()
+        .add_assertion_predicate_object("knows", "Carol")
+}
+
+fn wrapped_envelope() -> Rc<Envelope> {
+    Envelope::new(basic_envelope())
+}
+
+fn double_wrapped_envelope() -> Rc<Envelope> {
+    Envelope::new(wrapped_envelope())
 }
 
 #[test]
@@ -156,4 +168,209 @@ fn test_assertion_subject() {
     );
 
     assert_eq!(e.digest(), Envelope::new_assertion(&"knows", &"Bob").digest());
+}
+
+#[test]
+fn test_subject_with_assertion() {
+    let e = single_assertion_envelope().check_encoding().unwrap();
+
+    with_format_context!(|context| {
+        assert_eq!(e.diagnostic_opt(true, Some(context)),
+        indoc! {r#"
+        200(   ; envelope
+           [
+              200(   ; envelope
+                 24("Alice")   ; leaf
+              ),
+              200(   ; envelope
+                 201(   ; assertion
+                    [
+                       200(   ; envelope
+                          24("knows")   ; leaf
+                       ),
+                       200(   ; envelope
+                          24("Bob")   ; leaf
+                       )
+                    ]
+                 )
+              )
+           ]
+        )
+        "#}.trim()
+        );
+    });
+
+    assert_eq!(e.clone().digest().to_string(), "Digest(8955db5e016affb133df56c11fe6c5c82fa3036263d651286d134c7e56c0e9f2)");
+
+    assert_eq!(e.format(),
+    indoc! {r#"
+    "Alice" [
+        "knows": "Bob"
+    ]
+    "#}.trim()
+    );
+
+    assert_eq!(*e.extract_subject::<String>().unwrap(), "Alice");
+}
+
+#[test]
+fn test_subject_with_two_assertions() {
+    let e = double_assertion_envelope().check_encoding().unwrap();
+
+    with_format_context!(|context| {
+        assert_eq!(e.diagnostic_opt(true, Some(context)),
+        indoc! {r#"
+        200(   ; envelope
+           [
+              200(   ; envelope
+                 24("Alice")   ; leaf
+              ),
+              200(   ; envelope
+                 201(   ; assertion
+                    [
+                       200(   ; envelope
+                          24("knows")   ; leaf
+                       ),
+                       200(   ; envelope
+                          24("Carol")   ; leaf
+                       )
+                    ]
+                 )
+              ),
+              200(   ; envelope
+                 201(   ; assertion
+                    [
+                       200(   ; envelope
+                          24("knows")   ; leaf
+                       ),
+                       200(   ; envelope
+                          24("Bob")   ; leaf
+                       )
+                    ]
+                 )
+              )
+           ]
+        )
+        "#}.trim()
+        );
+    });
+
+    assert_eq!(e.clone().digest().to_string(), "Digest(b8d857f6e06a836fbc68ca0ce43e55ceb98eefd949119dab344e11c4ba5a0471)");
+
+    assert_eq!(e.format(),
+    indoc! {r#"
+    "Alice" [
+        "knows": "Bob"
+        "knows": "Carol"
+    ]
+    "#}.trim()
+    );
+
+    assert_eq!(*e.extract_subject::<String>().unwrap(), "Alice");
+}
+
+#[test]
+fn test_wrapped() {
+    let e = wrapped_envelope().check_encoding().unwrap();
+
+    with_format_context!(|context| {
+        assert_eq!(e.diagnostic_opt(true, Some(context)),
+        indoc! {r#"
+        200(   ; envelope
+           203(   ; wrapped-envelope
+              24("Hello.")   ; leaf
+           )
+        )
+        "#}.trim()
+        );
+    });
+
+    assert_eq!(e.clone().digest().to_string(), "Digest(172a5e51431062e7b13525cbceb8ad8475977444cf28423e21c0d1dcbdfcaf47)");
+
+    assert_eq!(e.format(),
+    indoc! {r#"
+    {
+        "Hello."
+    }
+    "#}.trim()
+    );
+}
+
+#[test]
+fn test_double_wrapped() {
+    let e = double_wrapped_envelope().check_encoding().unwrap();
+
+    with_format_context!(|context| {
+        assert_eq!(e.diagnostic_opt(true, Some(context)),
+        indoc! {r#"
+        200(   ; envelope
+           203(   ; wrapped-envelope
+              203(   ; wrapped-envelope
+                 24("Hello.")   ; leaf
+              )
+           )
+        )
+        "#}.trim()
+        );
+    });
+
+    assert_eq!(e.clone().digest().to_string(), "Digest(8b14f3bcd7c05aac8f2162e7047d7ef5d5eab7d82ee3f9dc4846c70bae4d200b)");
+
+    assert_eq!(e.format(),
+    indoc! {r#"
+    {
+        {
+            "Hello."
+        }
+    }
+    "#}.trim()
+    );
+}
+
+#[test]
+fn test_assertion_with_assertions() {
+    let a = Envelope::new_assertion(1, 2)
+        .add_assertion_predicate_object(3, 4)
+        .add_assertion_predicate_object(5, 6);
+    let e = Envelope::new(7)
+        .add_assertion(a);
+    assert_eq!(e.format(),
+    indoc! {r#"
+    7 [
+        {
+            1: 2
+        } [
+            3: 4
+            5: 6
+        ]
+    ]
+    "#}.trim()
+    );
+}
+
+#[test]
+fn test_digest_leaf() {
+    let digest = basic_envelope().digest();
+    let e = Envelope::new(digest).check_encoding().unwrap();
+    assert_eq!(e.format(),
+    indoc! {r#"
+    Digest(8cc96cdb)
+    "#}.trim()
+    );
+
+    assert_eq!(e.clone().digest().to_string(), "Digest(17db10e567ceb05522f0074c27c7d7796cac1d5ce20e45f405ab9063fdeeff1a)");
+
+    with_format_context!(|context| {
+        assert_eq!(e.diagnostic_opt(true, Some(context)),
+        indoc! {r#"
+        200(   ; envelope
+           24(   ; leaf
+              204(   ; digest
+                 h'8cc96cdb771176e835114a0f8936690b41cfed0df22d014eedd64edaea945d59'
+              )
+           )
+        )
+        "#}.trim()
+        );
+    });
 }

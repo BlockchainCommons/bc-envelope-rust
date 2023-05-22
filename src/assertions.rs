@@ -1,11 +1,15 @@
 use std::rc::Rc;
 
-use crate::{Envelope, EnvelopeError, envelope::{new_envelope_with_unchecked_assertions, IntoEnvelope}, Assertion};
+use crate::{Envelope, EnvelopeError, envelope::{new_envelope_with_unchecked_assertions, IntoEnvelope}};
 
 // Support for manipulating assertions.
 
 impl Envelope {
-    pub fn add_assertion(self: Rc<Envelope>, assertion: Option<Rc<Envelope>>, salted: bool) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn add_assertion(self: Rc<Envelope>, assertion: Rc<Envelope>) -> Rc<Envelope> {
+        self.add_assertion_opt(Some(assertion), false).unwrap()
+    }
+
+    pub fn add_assertion_opt(self: Rc<Envelope>, assertion: Option<Rc<Envelope>>, salted: bool) -> Result<Rc<Envelope>, EnvelopeError> {
         match assertion {
             Some(assertion) => {
                 if !assertion.is_subject_assertion() && !assertion.is_subject_obscured() {
@@ -34,13 +38,13 @@ impl Envelope {
         }
     }
 
-    pub fn add_assertion_predicate_object_salted<P: IntoEnvelope, O: IntoEnvelope>(self: Rc<Envelope>, predicate: P, object: O, salted: bool) -> Result<Rc<Envelope>, EnvelopeError>
+    pub fn add_assertion_predicate_object_salted<P: IntoEnvelope, O: IntoEnvelope>(self: Rc<Envelope>, predicate: P, object: O, salted: bool) -> Rc<Envelope>
     {
         let assertion = Envelope::new_assertion(predicate, object);
-        self.add_assertion(Some(assertion), salted)
+        self.add_assertion_opt(Some(assertion), salted).unwrap()
     }
 
-    pub fn add_assertion_predicate_object<P: IntoEnvelope, O: IntoEnvelope>(self: Rc<Envelope>, predicate: P, object: O) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn add_assertion_predicate_object<P: IntoEnvelope, O: IntoEnvelope>(self: Rc<Envelope>, predicate: P, object: O) -> Rc<Envelope> {
         self.add_assertion_predicate_object_salted(predicate, object, false)
     }
 }

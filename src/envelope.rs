@@ -175,7 +175,7 @@ mod tests {
     #[test]
     fn test_any_envelope() {
         let e1 = Envelope::new_leaf("Hello");
-        let e2 = Envelope::new(e1.clone());
+        let e2 = Envelope::new("Hello");
         assert_eq!(e1.format(), e2.format());
         assert_eq!(e1.digest(), e2.digest());
     }

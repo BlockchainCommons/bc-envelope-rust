@@ -47,7 +47,7 @@ impl CBORTaggedEncodable for Envelope {
                 CBOR::Array(result)
             }
             Envelope::Leaf { cbor, digest: _ } => CBOR::Tagged(tags_registry::LEAF, Rc::new(cbor.clone())),
-            Envelope::Wrapped { envelope, digest: _ } => CBOR::Tagged(tags_registry::WRAPPED_ENVELOPE, Rc::new(envelope.cbor())),
+            Envelope::Wrapped { envelope, digest: _ } => CBOR::Tagged(tags_registry::WRAPPED_ENVELOPE, Rc::new(envelope.untagged_cbor())),
             Envelope::KnownValue { value, digest: _ } => value.tagged_cbor(),
             Envelope::Assertion(assertion) => assertion.tagged_cbor(),
             Envelope::Encrypted(encrypted_message) => encrypted_message.tagged_cbor(),

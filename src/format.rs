@@ -349,7 +349,7 @@ impl EnvelopeFormat for Envelope {
             Envelope::Wrapped { envelope, .. } => EnvelopeFormatItem::List(vec![
                 EnvelopeFormatItem::Begin("{".to_string()),
                 envelope.format_item(context),
-                EnvelopeFormatItem::Item("}".to_string()),
+                EnvelopeFormatItem::End("}".to_string()),
             ]),
             Envelope::Assertion(assertion) => assertion.format_item(context),
             Envelope::Encrypted(_) => EnvelopeFormatItem::Item("ENCRYPTED".to_string()),
