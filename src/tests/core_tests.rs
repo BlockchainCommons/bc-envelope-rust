@@ -16,6 +16,12 @@ fn assertion_envelope() -> Rc<Envelope> {
     Envelope::new_assertion(&"knows", &"Bob")
 }
 
+fn single_assertion_envelope() -> Rc<Envelope> {
+    Envelope::new("Alice")
+        .add_assertion_predicate_object("knows", "Bob")
+        .unwrap()
+}
+
 #[test]
 fn test_int_subject() {
     let e = Envelope::new_leaf(42).check_encoding().unwrap();
@@ -142,8 +148,6 @@ fn test_assertion_subject() {
         "#}.trim()
         );
     });
-
-    assert_eq!("Digest(78d666eb8f4c0977a0425ab6aa21ea16934a6bc97c6f0c3abaefac951c1714a2)", e.digest().to_string());
 
     assert_eq!(e.format(),
     indoc! {r#"

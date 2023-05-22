@@ -1,9 +1,9 @@
-use std::{rc::Rc, any::Any};
+use std::{rc::Rc, any::{Any, TypeId}};
 
 use bc_components::{Digest, DigestProvider, tags_registry};
 use dcbor::{CBORTagged, Tag, CBOR, CBOREncodable, CBORDecodable, CBORError, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
 
-use crate::envelope::Envelope;
+use crate::envelope::{Envelope, IntoEnvelope};
 
 /*
 ```swift
@@ -86,17 +86,27 @@ pub struct Assertion {
 
 impl Assertion {
     /// Creates an assertion and calculates its digest.
-    pub fn new<P, O>(predicate: P, object: O) -> Self
-        where
-            P: Any + Clone + CBOREncodable,
-            O: Any + Clone + CBOREncodable,
-    {
-        let predicate = Envelope::new(predicate);
-        let object = Envelope::new(object);
-        let digest = Digest::from_digests(&[predicate.digest(), object.digest()]);
+    pub fn new<P: IntoEnvelope, O: IntoEnvelope>(predicate: P, object: O) -> Self {
+        let p = if TypeId::of::<P>() == TypeId::of::<Rc<Envelope>>() {
+            (&predicate as &dyn Any).downcast_ref::<Rc<Envelope>>().unwrap().clone()
+        } else if TypeId::of::<P>() == TypeId::of::<Envelope>() {
+            Rc::new((&predicate as &dyn Any).downcast_ref::<Envelope>().unwrap().clone())
+        } else {
+            Envelope::new(predicate)
+        };
+
+        let o = if TypeId::of::<O>() == TypeId::of::<Rc<Envelope>>() {
+            (&object as &dyn Any).downcast_ref::<Rc<Envelope>>().unwrap().clone()
+        } else if TypeId::of::<O>() == TypeId::of::<Envelope>() {
+            Rc::new((&object as &dyn Any).downcast_ref::<Envelope>().unwrap().clone())
+        } else {
+            Envelope::new(object)
+        };
+
+        let digest = Digest::from_digests(&[p.digest(), o.digest()]);
         Self {
-            predicate,
-            object,
+            predicate: p,
+            object: o,
             digest
         }
     }

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{Envelope, EnvelopeError, envelope::new_envelope_with_unchecked_assertions};
+use crate::{Envelope, EnvelopeError, envelope::{new_envelope_with_unchecked_assertions, IntoEnvelope}, Assertion};
 
 // Support for manipulating assertions.
 
@@ -32,5 +32,15 @@ impl Envelope {
             },
             None => Ok(self),
         }
+    }
+
+    pub fn add_assertion_predicate_object_salted<P: IntoEnvelope, O: IntoEnvelope>(self: Rc<Envelope>, predicate: P, object: O, salted: bool) -> Result<Rc<Envelope>, EnvelopeError>
+    {
+        let assertion = Envelope::new_assertion(predicate, object);
+        self.add_assertion(Some(assertion), salted)
+    }
+
+    pub fn add_assertion_predicate_object<P: IntoEnvelope, O: IntoEnvelope>(self: Rc<Envelope>, predicate: P, object: O) -> Result<Rc<Envelope>, EnvelopeError> {
+        self.add_assertion_predicate_object_salted(predicate, object, false)
     }
 }

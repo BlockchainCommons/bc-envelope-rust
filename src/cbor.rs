@@ -161,7 +161,8 @@ impl Envelope {
     /// Not needed in production code.
     pub fn check_encoding(&self) -> Result<Rc<Self>, CBORError> {
         let cbor = self.tagged_cbor();
-        let restored = Envelope::from_tagged_cbor(&cbor).map_err(|_| {
+        let restored = Envelope::from_tagged_cbor(&cbor);
+        let restored = restored.map_err(|_| {
             println!("=== EXPECTED");
             println!("{}", self.format());
             println!("=== GOT");

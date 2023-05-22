@@ -47,24 +47,17 @@ impl Envelope {
     }
 }
 
-// Conversion from &CBOREncodable to Envelope
-impl<T> From<&T> for Envelope
-where
-    T: CBOREncodable,
-{
-    fn from(t: &T) -> Self {
-        let cbor = t.cbor();
-        let digest = Digest::from_image(&cbor.cbor_data());
-        Envelope::Leaf {
-            cbor,
-            digest,
-        }
-    }
+pub trait IntoEnvelope: Any + Clone + CBOREncodable {
+    fn into_envelope(self) -> Rc<Envelope>;
 }
 
-pub trait RcEnvelope { }
-
-impl RcEnvelope for Rc<Envelope> { }
+impl<T> IntoEnvelope for T
+    where T: Any + Clone + CBOREncodable
+{
+    fn into_envelope(self) -> Rc<Envelope> {
+        Envelope::new(self)
+    }
+}
 
 pub fn new_envelope_with_unchecked_assertions(subject: Rc<Envelope>, unchecked_assertions: Vec<Rc<Envelope>>) -> Rc<Envelope> {
     assert!(!unchecked_assertions.is_empty());
@@ -87,6 +80,11 @@ impl Envelope {
 
     pub(crate) fn new_with_assertion(assertion: Assertion) -> Rc<Self> {
         Rc::new(Self::Assertion(assertion))
+    }
+
+    pub(crate) fn new_with_known_value(value: KnownValue) -> Rc<Self> {
+        let digest = value.digest();
+        Rc::new(Self::KnownValue { value, digest })
     }
 
     pub(crate) fn new_with_encrypted(encrypted_message: EncryptedMessage) -> Result<Rc<Self>, EnvelopeError> {
@@ -119,60 +117,23 @@ impl Envelope {
     }
 }
 
-/*
-```swift
-public extension Envelope {
+impl Envelope {
     /// Create an envelope with the given subject.
     ///
-    /// If the subject is another ``Envelope``, a wrapped envelope is created.
-    /// If the subject is a ``KnownValue``, a known value envelope is created.
-    /// If the subject is an ``Assertion``, an assertion envelope is created.
+    /// If the subject is another `Envelope`, a wrapped envelope is created.
+    /// If the subject is a `KnownValue`, a known value envelope is created.
+    /// If the subject is an `Assertion`, an assertion envelope is created.
     /// If the subject is an `EncryptedMessage`, with a properly declared `Digest`, then an encrypted Envelope is created.
+    /// If the subject is a `Compressed`, with a properly declared `Digest`, then a compressed Envelope is created.
     /// If the subject is any type conforming to `CBOREncodable`, then a leaf envelope is created.
-    /// Any other type passed as `subject` is a programmer error and results in a trap.
-    ///
-    /// ```swift
-    /// let e = Envelope("Hello")
-    /// print(e.format)
-    /// ```
-    ///
-    /// ```
-    /// "Hello"
-    /// ```
-    /// - Parameter subject: The envelope's subject.
-    init(_ subject: Any) {
-        if let envelope = subject as? Envelope {
-            self.init(wrapped: envelope)
-        } else if let knownValue = subject as? KnownValue {
-            self.init(knownValue: knownValue)
-        } else if let assertion = subject as? Assertion {
-            self.init(assertion: assertion)
-        } else if
-            let encryptedMessage = subject as? EncryptedMessage,
-            encryptedMessage.digest != nil
-        {
-            try! self.init(encryptedMessage: encryptedMessage)
-        } else if let cborItem = subject as? CBOREncodable {
-            self.init(leaf: cborItem.cbor)
-        } else {
-            preconditionFailure()
-        }
-    }
-
-```
- */
-
-impl Envelope {
-    pub fn new<S>(subject: S) -> Rc<Self>
-        where
-            S: Any + Clone + CBOREncodable
-    {
+    /// Any other type passed as `subject` is a programmer error and results in a panic.
+    pub fn new<S: IntoEnvelope>(subject: S) -> Rc<Self> {
         if TypeId::of::<S>() == TypeId::of::<Rc<Envelope>>() {
-            return (&subject as &dyn Any).downcast_ref::<Rc<Envelope>>().unwrap().clone()
+            return Self::new_wrapped((&subject as &dyn Any).downcast_ref::<Rc<Envelope>>().unwrap().clone())
         }
 
         if TypeId::of::<S>() == TypeId::of::<Envelope>() {
-            return Rc::new((&subject as &dyn Any).downcast_ref::<Envelope>().unwrap().clone())
+            return Self::new_wrapped(Rc::new((&subject as &dyn Any).downcast_ref::<Envelope>().unwrap().clone()))
         }
 
         if TypeId::of::<S>() == TypeId::of::<KnownValue>() {
@@ -201,24 +162,8 @@ impl Envelope {
         return Self::new_leaf(cbor);
     }
 
-    pub fn new_assertion<P, O>(predicate: P, object: O) -> Rc<Self>
-        where
-            P: Any + Clone + CBOREncodable,
-            O: Any + Clone + CBOREncodable
-    {
+    pub fn new_assertion<P: IntoEnvelope, O: IntoEnvelope>(predicate: P, object: O) -> Rc<Self> {
         Self::new_with_assertion(Assertion::new(predicate, object))
-    }
-
-    pub fn new_with_known_value(value: KnownValue) -> Rc<Self> {
-        let digest = value.digest();
-        Rc::new(Self::KnownValue { value, digest })
-    }
-
-    pub fn new_with_known_value_predicate<O>(predicate: KnownValue, object: O) -> Rc<Self>
-        where
-            O: Any + Clone + CBOREncodable
-    {
-        Self::new_assertion(predicate, object)
     }
 }
 
