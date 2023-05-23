@@ -2,6 +2,7 @@
 
 mod assertions;
 mod cbor;
+mod compress;
 mod digest;
 mod format;
 mod function_registry;
@@ -50,6 +51,7 @@ pub use known_parameters::KnownParameters;
 
 #[cfg(test)]
 mod tests {
+    mod check_encoding;
     mod type_tests;
     mod core_tests;
     mod core_nesting_tests;

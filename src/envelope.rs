@@ -62,9 +62,9 @@ impl<T> IntoEnvelope for T
 pub fn new_envelope_with_unchecked_assertions(subject: Rc<Envelope>, unchecked_assertions: Vec<Rc<Envelope>>) -> Rc<Envelope> {
     assert!(!unchecked_assertions.is_empty());
     let mut sorted_assertions = unchecked_assertions;
-    sorted_assertions.sort_by(|a, b| a.digest_ref().cmp(b.digest_ref()));
-    let mut digests = vec![subject.digest()];
-    digests.extend(sorted_assertions.iter().map(|a| a.digest()));
+    sorted_assertions.sort_by(|a, b| a.digest().cmp(&b.digest()));
+    let mut digests = vec![subject.digest().into_owned()];
+    digests.extend(sorted_assertions.iter().map(|a| a.digest().into_owned()));
     let digest = Digest::from_digests(&digests);
     Rc::new(Envelope::Node { subject: subject, assertions: sorted_assertions, digest })
 }
@@ -83,7 +83,7 @@ impl Envelope {
     }
 
     pub(crate) fn new_with_known_value(value: KnownValue) -> Rc<Self> {
-        let digest = value.digest();
+        let digest = value.digest().into_owned();
         Rc::new(Self::KnownValue { value, digest })
     }
 
@@ -112,7 +112,7 @@ impl Envelope {
     }
 
     pub(crate) fn new_wrapped(envelope: Rc<Envelope>) -> Rc<Self> {
-        let digest = Digest::from_digests(&[envelope.digest()]);
+        let digest = Digest::from_digests(&[envelope.digest().into_owned()]);
         Rc::new(Self::Wrapped { envelope, digest })
     }
 }
@@ -206,7 +206,7 @@ mod tests {
     #[test]
     fn test_any_compressed() {
         let data = "Hello".as_bytes();
-        let digest = data.digest();
+        let digest = data.digest().into_owned();
         let compressed = Compressed::from_uncompressed_data(data, Some(digest));
         let e1 = Envelope::new_with_compressed(compressed.clone()).unwrap();
         let e2 = Envelope::new(compressed);

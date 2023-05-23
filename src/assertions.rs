@@ -1,5 +1,7 @@
 use std::rc::Rc;
 
+use bc_components::DigestProvider;
+
 use crate::{Envelope, EnvelopeError, envelope::{new_envelope_with_unchecked_assertions, IntoEnvelope}};
 
 // Support for manipulating assertions.
@@ -23,7 +25,7 @@ impl Envelope {
 
                 match &*self {
                     Envelope::Node { subject, assertions, .. } => {
-                        if !assertions.iter().any(|a| a.digest_ref() == envelope2.digest_ref()) {
+                        if !assertions.iter().any(|a| a.digest() == envelope2.digest()) {
                             let mut assertions = assertions.clone();
                             assertions.push(envelope2);
                             Ok(new_envelope_with_unchecked_assertions(subject.clone(), assertions))

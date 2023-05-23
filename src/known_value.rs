@@ -1,4 +1,4 @@
-use std::{fmt::{Formatter, Display}, rc::Rc};
+use std::{fmt::{Formatter, Display}, rc::Rc, borrow::Cow};
 
 use bc_components::{tags_registry, DigestProvider, Digest};
 use dcbor::{CBOR, CBORTagged, Tag, CBOREncodable, CBORDecodable, CBORError, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
@@ -93,8 +93,8 @@ impl Display for KnownValue {
 }
 
 impl DigestProvider for KnownValue {
-    fn digest(&self) -> Digest {
-        Digest::from(self.tagged_cbor().cbor_data())
+    fn digest(&self) -> Cow<Digest> {
+        Cow::Owned(Digest::from_image(&self.tagged_cbor().cbor_data()))
     }
 }
 

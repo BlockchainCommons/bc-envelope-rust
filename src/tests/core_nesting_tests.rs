@@ -1,10 +1,9 @@
-use std::rc::Rc;
-use crate::{Envelope, with_format_context, KnownValue, known_value_registry};
-use bc_components::DigestProvider;
+use crate::Envelope;
+use std::error::Error;
 use indoc::indoc;
 
 #[test]
-pub fn test_predicate_enclosures() {
+fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     let alice = Envelope::new("Alice");
     let knows = Envelope::new("knows");
     let bob = Envelope::new("Bob");
@@ -26,7 +25,7 @@ pub fn test_predicate_enclosures() {
     "#}.trim()
     );
 
-    let knows_ab_bob = Envelope::new_assertion_with_predobj(knows.clone().add_assertion(ab.clone()), bob.clone()).check_encoding().unwrap();
+    let knows_ab_bob = Envelope::new_assertion_with_predobj(knows.clone().add_assertion(ab.clone()), bob.clone()).check_encoding()?;
     assert_eq!(knows_ab_bob.format(),
     indoc! {r#"
     "knows" [
@@ -36,7 +35,7 @@ pub fn test_predicate_enclosures() {
     "#}.trim()
     );
 
-    let knows_bob_ab = Envelope::new_assertion_with_predobj(knows.clone(), bob.clone().add_assertion(ab.clone())).check_encoding().unwrap();
+    let knows_bob_ab = Envelope::new_assertion_with_predobj(knows.clone(), bob.clone().add_assertion(ab.clone())).check_encoding()?;
     assert_eq!(knows_bob_ab.format(),
     indoc! {r#"
     "knows": "Bob" [
@@ -47,7 +46,7 @@ pub fn test_predicate_enclosures() {
 
     let knows_bob_enclose_ab = knows_bob.clone()
         .add_assertion(ab.clone())
-        .check_encoding().unwrap();
+        .check_encoding()?;
     assert_eq!(knows_bob_enclose_ab.format(),
     indoc! {r#"
     {
@@ -60,7 +59,7 @@ pub fn test_predicate_enclosures() {
 
     let alice_knows_bob = alice.clone()
         .add_assertion(knows_bob.clone())
-        .check_encoding().unwrap();
+        .check_encoding()?;
     assert_eq!(alice_knows_bob.format(),
     indoc! {r#"
     "Alice" [
@@ -71,7 +70,7 @@ pub fn test_predicate_enclosures() {
 
     let alice_ab_knows_bob = alice_knows_bob.clone()
         .add_assertion(ab.clone())
-        .check_encoding().unwrap();
+        .check_encoding()?;
     assert_eq!(alice_ab_knows_bob.format(),
     indoc! {r#"
     "Alice" [
@@ -83,7 +82,7 @@ pub fn test_predicate_enclosures() {
 
     let alice_knows_ab_bob = alice.clone()
         .add_assertion(Envelope::new_assertion_with_predobj(knows.clone().add_assertion(ab.clone()), bob.clone()))
-        .check_encoding().unwrap();
+        .check_encoding()?;
     assert_eq!(alice_knows_ab_bob.format(),
     indoc! {r#"
     "Alice" [
@@ -97,7 +96,7 @@ pub fn test_predicate_enclosures() {
 
     let alice_knows_bob_ab = alice.clone()
         .add_assertion(Envelope::new_assertion_with_predobj(knows.clone(), bob.clone().add_assertion(ab.clone())))
-        .check_encoding().unwrap();
+        .check_encoding()?;
     assert_eq!(alice_knows_bob_ab.format(),
     indoc! {r#"
     "Alice" [
@@ -110,7 +109,7 @@ pub fn test_predicate_enclosures() {
 
     let alice_knows_ab_bob_ab = alice.clone()
         .add_assertion(Envelope::new_assertion_with_predobj(knows.clone().add_assertion(ab.clone()), bob.clone().add_assertion(ab.clone())))
-        .check_encoding().unwrap();
+        .check_encoding()?;
     assert_eq!(alice_knows_ab_bob_ab.format(),
     indoc! {r#"
     "Alice" [
@@ -127,7 +126,7 @@ pub fn test_predicate_enclosures() {
     let alice_ab_knows_ab_bob_ab = alice.clone()
         .add_assertion(ab.clone())
         .add_assertion(Envelope::new_assertion_with_predobj(knows.clone().add_assertion(ab.clone()), bob.clone().add_assertion(ab.clone())))
-        .check_encoding().unwrap();
+        .check_encoding()?;
     assert_eq!(alice_ab_knows_ab_bob_ab.format(),
     indoc! {r#"
     "Alice" [
@@ -145,7 +144,7 @@ pub fn test_predicate_enclosures() {
     let alice_ab_knows_ab_bob_ab_enclose_ab = alice.clone()
         .add_assertion(ab.clone())
         .add_assertion(Envelope::new_assertion_with_predobj(knows.clone().add_assertion(ab.clone()), bob.clone().add_assertion(ab.clone())).add_assertion(ab.clone()))
-        .check_encoding().unwrap();
+        .check_encoding()?;
     assert_eq!(alice_ab_knows_ab_bob_ab_enclose_ab.format(),
     indoc! {r#"
     "Alice" [
@@ -163,133 +162,12 @@ pub fn test_predicate_enclosures() {
     ]
     "#}.trim()
     );
+
+    Ok(())
 }
 
-/*
-```swift
-    func testNestingPlaintext() {
-        let envelope = Envelope(plaintextHello)
-
-        let expectedFormat =
-        """
-        "Hello."
-        """
-        XCTAssertEqual(envelope.format(), expectedFormat)
-
-        let elidedEnvelope = envelope.elide()
-        XCTAssert(elidedEnvelope.isEquivalent(to: envelope))
-
-        let expectedElidedFormat =
-        """
-        ELIDED
-        """
-        XCTAssertEqual(elidedEnvelope.format(), expectedElidedFormat)
-    }
-
-    func testNestingOnce() throws {
-        let envelope = try Envelope(plaintextHello)
-            .wrap()
-            .checkEncoding()
-
-        let expectedFormat =
-        """
-        {
-            "Hello."
-        }
-        """
-        XCTAssertEqual(envelope.format(), expectedFormat)
-
-        let elidedEnvelope = try Envelope(plaintextHello)
-            .elide()
-            .wrap()
-            .checkEncoding()
-
-        XCTAssert(elidedEnvelope.isEquivalent(to: envelope))
-
-        let expectedElidedFormat =
-        """
-        {
-            ELIDED
-        }
-        """
-        XCTAssertEqual(elidedEnvelope.format(), expectedElidedFormat)
-    }
-
-    func testNestingTwice() throws {
-        let envelope = try Envelope(plaintextHello)
-            .wrap()
-            .wrap()
-            .checkEncoding()
-
-        let expectedFormat =
-        """
-        {
-            {
-                "Hello."
-            }
-        }
-        """
-        XCTAssertEqual(envelope.format(), expectedFormat)
-
-        let target = try envelope
-            .unwrap()
-            .unwrap()
-        let elidedEnvelope = try envelope.elideRemoving(target)
-
-        let expectedElidedFormat =
-        """
-        {
-            {
-                ELIDED
-            }
-        }
-        """
-        XCTAssertEqual(elidedEnvelope.format(), expectedElidedFormat)
-        XCTAssert(envelope.isEquivalent(to: elidedEnvelope))
-        XCTAssert(envelope.isEquivalent(to: elidedEnvelope))
-    }
-
-    func testAssertionsOnAllPartsOfEnvelope() throws {
-        let predicate = Envelope("predicate")
-            .addAssertion("predicate-predicate", "predicate-object")
-        let object = Envelope("object")
-            .addAssertion("object-predicate", "object-object")
-        let envelope = try Envelope("subject")
-            .addAssertion(predicate, object)
-            .checkEncoding()
-
-        let expectedFormat =
-        """
-        "subject" [
-            "predicate" [
-                "predicate-predicate": "predicate-object"
-            ]
-            : "object" [
-                "object-predicate": "object-object"
-            ]
-        ]
-        """
-        XCTAssertEqual(envelope.format(), expectedFormat)
-    }
-
-    func testAssertionOnBareAssertion() throws {
-        let envelope = try Envelope("predicate", "object")
-            .addAssertion(Envelope("assertion-predicate", "assertion-object"))
-        let expectedFormat =
-        """
-        {
-            "predicate": "object"
-        } [
-            "assertion-predicate": "assertion-object"
-        ]
-        """
-        XCTAssertEqual(envelope.format(), expectedFormat)
-    }
-```
- */
-
 #[test]
-fn test_nesting_plaintext() {
+fn test_nesting_plaintext() -> Result<(), Box<dyn Error>> {
     let envelope = Envelope::new("Hello.");
 
     let expected_format = indoc! {r#"
@@ -304,13 +182,15 @@ fn test_nesting_plaintext() {
     ELIDED
     "#}.trim();
     assert_eq!(elided_envelope.format(), expected_elided_format);
+
+    Ok(())
 }
 
 #[test]
-fn test_nesting_once() {
+fn test_nesting_once() -> Result<(), Box<dyn Error>> {
     let envelope = Envelope::new("Hello.")
-        .wrap()
-        .check_encoding().unwrap();
+        .wrap_envelope()
+        .check_encoding()?;
 
     let expected_format = indoc! {r#"
     {
@@ -321,8 +201,8 @@ fn test_nesting_once() {
 
     let elided_envelope = Envelope::new("Hello.")
         .elide()
-        .wrap()
-        .check_encoding().unwrap();
+        .wrap_envelope()
+        .check_encoding()?;
 
     assert!(elided_envelope.clone().is_equivalent_to(envelope.clone()));
 
@@ -332,14 +212,16 @@ fn test_nesting_once() {
     }
     "#}.trim();
     assert_eq!(elided_envelope.format(), expected_elided_format);
+
+    Ok(())
 }
 
 #[test]
-fn test_nesting_twice() {
+fn test_nesting_twice() -> Result<(), Box<dyn Error>> {
     let envelope = Envelope::new("Hello.")
-        .wrap()
-        .wrap()
-        .check_encoding().unwrap();
+        .wrap_envelope()
+        .wrap_envelope()
+        .check_encoding()?;
 
     let expected_format = indoc! {r#"
     {
@@ -350,10 +232,13 @@ fn test_nesting_twice() {
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
 
+    let e2 = envelope.clone();
+    println!("{}", e2.format());
+
     let target = envelope.clone()
-        .unwrap()
-        .unwrap();
-    let elided_envelope = envelope.clone().elide_removing(target).unwrap();
+        .unwrap_envelope()?
+        .unwrap_envelope()?;
+    let elided_envelope = envelope.clone().elide_removing_target(&target);
 
     let expected_elided_format = indoc! {r#"
     {
@@ -365,4 +250,47 @@ fn test_nesting_twice() {
     assert_eq!(elided_envelope.format(), expected_elided_format);
     assert!(envelope.clone().is_equivalent_to(elided_envelope.clone()));
     assert!(envelope.clone().is_equivalent_to(elided_envelope.clone()));
+
+    Ok(())
+}
+
+#[test]
+fn test_assertions_on_all_parts_of_envelope() -> Result<(), Box<dyn Error>> {
+    let predicate = Envelope::new("predicate")
+        .add_assertion_with_predobj("predicate-predicate", "predicate-object");
+    let object = Envelope::new("object")
+        .add_assertion_with_predobj("object-predicate", "object-object");
+    let envelope = Envelope::new("subject")
+        .add_assertion_with_predobj(predicate, object)
+        .check_encoding()?;
+
+    let expected_format = indoc! {r#"
+    "subject" [
+        "predicate" [
+            "predicate-predicate": "predicate-object"
+        ]
+        : "object" [
+            "object-predicate": "object-object"
+        ]
+    ]
+    "#}.trim();
+    assert_eq!(envelope.format(), expected_format);
+
+    Ok(())
+}
+
+#[test]
+fn test_assertion_on_bare_assertion() -> Result<(), Box<dyn Error>> {
+    let envelope = Envelope::new_assertion_with_predobj("predicate", "object")
+        .add_assertion_with_predobj("assertion-predicate", "assertion-object");
+    let expected_format = indoc! {r#"
+    {
+        "predicate": "object"
+    } [
+        "assertion-predicate": "assertion-object"
+    ]
+    "#}.trim();
+    assert_eq!(envelope.format(), expected_format);
+
+    Ok(())
 }

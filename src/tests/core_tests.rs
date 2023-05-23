@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::rc::Rc;
 use crate::{Envelope, with_format_context, KnownValue, known_value_registry};
 use bc_components::DigestProvider;
@@ -34,8 +35,8 @@ fn double_wrapped_envelope() -> Rc<Envelope> {
 }
 
 #[test]
-fn test_int_subject() {
-    let e = Envelope::new_leaf(42).check_encoding().unwrap();
+fn test_int_subject() -> Result<(), Box<dyn Error>> {
+    let e = Envelope::new_leaf(42).check_encoding()?;
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -55,12 +56,14 @@ fn test_int_subject() {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<i32>().unwrap(), 42);
+    assert_eq!(*e.extract_subject::<i32>()?, 42);
+
+    Ok(())
 }
 
 #[test]
-fn test_negative_int_subject() {
-    let e = Envelope::new_leaf(-42).check_encoding().unwrap();
+fn test_negative_int_subject() -> Result<(), Box<dyn Error>> {
+    let e = Envelope::new_leaf(-42).check_encoding()?;
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -80,12 +83,14 @@ fn test_negative_int_subject() {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<i32>().unwrap(), -42);
+    assert_eq!(*e.extract_subject::<i32>()?, -42);
+
+    Ok(())
 }
 
 #[test]
-fn test_cbor_encodable_subject() {
-    let e = basic_envelope().check_encoding().unwrap();
+fn test_cbor_encodable_subject() -> Result<(), Box<dyn Error>> {
+    let e = basic_envelope().check_encoding()?;
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
@@ -104,12 +109,14 @@ fn test_cbor_encodable_subject() {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<String>().unwrap(), "Hello.");
+    assert_eq!(*e.extract_subject::<String>()?, "Hello.");
+
+    Ok(())
 }
 
 #[test]
-fn test_known_value_subject() {
-    let e = known_value_envelope().check_encoding().unwrap();
+fn test_known_value_subject() -> Result<(), Box<dyn Error>> {
+    let e = known_value_envelope().check_encoding()?;
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -129,12 +136,14 @@ fn test_known_value_subject() {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<KnownValue>().unwrap(), known_value_registry::NOTE);
+    assert_eq!(*e.extract_subject::<KnownValue>()?, known_value_registry::NOTE);
+
+    Ok(())
 }
 
 #[test]
-fn test_assertion_subject() {
-    let e = assertion_envelope().check_encoding().unwrap();
+fn test_assertion_subject() -> Result<(), Box<dyn Error>> {
+    let e = assertion_envelope().check_encoding()?;
 
     assert_eq!(e.clone().predicate().unwrap().digest().to_string(), "Digest(db7dd21c5169b4848d2a1bcb0a651c9617cdd90bae29156baaefbb2a8abef5ba)");
     assert_eq!(e.clone().object().unwrap().digest().to_string(), "Digest(13b741949c37b8e09cc3daa3194c58e4fd6b2f14d4b1d0f035a46d6d5a1d3f11)");
@@ -167,11 +176,13 @@ fn test_assertion_subject() {
     );
 
     assert_eq!(e.digest(), Envelope::new_assertion_with_predobj(&"knows", &"Bob").digest());
+
+    Ok(())
 }
 
 #[test]
-fn test_subject_with_assertion() {
-    let e = single_assertion_envelope().check_encoding().unwrap();
+fn test_subject_with_assertion() -> Result<(), Box<dyn Error>> {
+    let e = single_assertion_envelope().check_encoding()?;
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -209,12 +220,14 @@ fn test_subject_with_assertion() {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<String>().unwrap(), "Alice");
+    assert_eq!(*e.extract_subject::<String>()?, "Alice");
+
+    Ok(())
 }
 
 #[test]
-fn test_subject_with_two_assertions() {
-    let e = double_assertion_envelope().check_encoding().unwrap();
+fn test_subject_with_two_assertions() -> Result<(), Box<dyn Error>> {
+    let e = double_assertion_envelope().check_encoding()?;
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -265,12 +278,14 @@ fn test_subject_with_two_assertions() {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<String>().unwrap(), "Alice");
+    assert_eq!(*e.extract_subject::<String>()?, "Alice");
+
+    Ok(())
 }
 
 #[test]
-fn test_wrapped() {
-    let e = wrapped_envelope().check_encoding().unwrap();
+fn test_wrapped() -> Result<(), Box<dyn Error>> {
+    let e = wrapped_envelope().check_encoding()?;
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -293,11 +308,13 @@ fn test_wrapped() {
     }
     "#}.trim()
     );
+
+    Ok(())
 }
 
 #[test]
-fn test_double_wrapped() {
-    let e = double_wrapped_envelope().check_encoding().unwrap();
+fn test_double_wrapped() -> Result<(), Box<dyn Error>> {
+    let e = double_wrapped_envelope().check_encoding()?;
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -324,10 +341,12 @@ fn test_double_wrapped() {
     }
     "#}.trim()
     );
+
+    Ok(())
 }
 
 #[test]
-fn test_assertion_with_assertions() {
+fn test_assertion_with_assertions() -> Result<(), Box<dyn Error>> {
     let a = Envelope::new_assertion_with_predobj(1, 2)
         .add_assertion_with_predobj(3, 4)
         .add_assertion_with_predobj(5, 6);
@@ -345,12 +364,14 @@ fn test_assertion_with_assertions() {
     ]
     "#}.trim()
     );
+
+    Ok(())
 }
 
 #[test]
-fn test_digest_leaf() {
-    let digest = basic_envelope().digest();
-    let e = Envelope::new(digest).check_encoding().unwrap();
+fn test_digest_leaf() -> Result<(), Box<dyn Error>> {
+    let digest = basic_envelope().digest().into_owned();
+    let e = Envelope::new(digest).check_encoding()?;
     assert_eq!(e.format(),
     indoc! {r#"
     Digest(8cc96cdb)
@@ -372,4 +393,6 @@ fn test_digest_leaf() {
         "#}.trim()
         );
     });
+
+    Ok(())
 }

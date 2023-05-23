@@ -1,4 +1,4 @@
-use std::{rc::Rc, any::{Any, TypeId}};
+use std::{rc::Rc, any::{Any, TypeId}, borrow::Cow};
 
 use bc_components::{Digest, DigestProvider, tags_registry};
 use dcbor::{CBORTagged, Tag, CBOR, CBOREncodable, CBORDecodable, CBORError, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
@@ -103,7 +103,7 @@ impl Assertion {
             Envelope::new(object)
         };
 
-        let digest = Digest::from_digests(&[p.digest(), o.digest()]);
+        let digest = Digest::from_digests(&[p.digest().into_owned(), o.digest().into_owned()]);
         Self {
             predicate: p,
             object: o,
@@ -126,9 +126,17 @@ impl Assertion {
     }
 }
 
+impl PartialEq for Assertion {
+    fn eq(&self, other: &Self) -> bool {
+        self.digest_ref() == other.digest_ref()
+    }
+}
+
+impl Eq for Assertion { }
+
 impl DigestProvider for Assertion {
-    fn digest(&self) -> Digest {
-        self.digest.clone()
+    fn digest(&self) -> Cow<Digest> {
+        Cow::Borrowed(&self.digest)
     }
 }
 

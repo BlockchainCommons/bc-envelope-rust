@@ -1,4 +1,4 @@
-use bc_components::{Compressed, Digest, EncryptedMessage};
+use bc_components::{Compressed, Digest, EncryptedMessage, DigestProvider};
 use dcbor::{CBORDecodable, CBOR, CBOREncodable};
 use std::{any::{Any, TypeId}, rc::Rc};
 
@@ -251,7 +251,7 @@ impl Envelope {
                 assertion
                     .clone()
                     .predicate()
-                    .map(|p| p.digest_ref() == predicate.digest_ref())
+                    .map(|p| p.digest() == predicate.digest())
                     .unwrap_or(false)
             )
             .collect()
