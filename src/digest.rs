@@ -70,8 +70,44 @@ impl Envelope {
 }
 
 impl Envelope {
+    /// Produce a value that will necessarily be different if two envelopes differ
+    /// structurally, even if they are semantically equivalent.
+    ///
+    /// Comparing the `digest` field of two envelopes (or calling `isEquivalent(to:)`) tests
+    /// whether two envelopes are *semantically equivalent*. This is accomplished by
+    /// simply comparing the top level digests of the envelopes for equality, and has a
+    /// complexity of `O(1)`.
+    ///
+    /// This means that two envelopes are considered equivalent if they contain
+    /// identical information in their completely unencrypted and unelided form.
+    ///
+    /// Some applications need to determine whether two envelopes are not only
+    /// semantically equivalent, but also structurally identical. Two envelopes that are
+    /// not semantically equivalent cannot be structurally identical, but two envelopes
+    /// that *are* semantically equivalent *may or may not* be structurally identical.
+    ///
+    /// The `structural_digest` attribute is used to produce a value that will
+    /// necessarily be different if two envelopes differ structurally, even if they are
+    /// semantically equivalent. It has a complexity of `O(m + n)` where `m` and `n` are
+    /// the number of elements in each of the two envelopes when they *are* semantically
+    /// equivalent. It is recommended that envelopes be compared for structural equality
+    /// by calling `isIdentical(to:)` as this short-circuits to `false` in cases where
+    /// the compared envelopes are not semantically equivalent.
     pub fn structural_digest(self: Rc<Envelope>) -> Digest {
-        todo!();
+        let image = RefCell::new(Vec::new());
+        let visitor = |envelope: Rc<Envelope>, _: usize, _: EdgeType, _: Option<&()>| -> _ {
+            // Add a discriminator to the image for the obscured cases.
+            match &*envelope {
+                Envelope::Encrypted(_) => image.borrow_mut().push(0),
+                Envelope::Elided(_) => image.borrow_mut().push(1),
+                Envelope::Compressed(_) => image.borrow_mut().push(2),
+                _ => {}
+            }
+            image.borrow_mut().extend_from_slice(envelope.digest().data());
+            None
+        };
+        self.walk(false, &visitor);
+        Digest::from_image(&image.into_inner())
     }
 }
 
@@ -94,7 +130,7 @@ impl Envelope {
     /// `m` and `n` are the number of elements in each of the two envelopes when they
     /// *are* semantically equivalent.
     pub fn is_identical_to(self: Rc<Envelope>, other: Rc<Envelope>) -> bool {
-        if self.clone().is_equivalent_to(other.clone()) {
+        if !self.clone().is_equivalent_to(other.clone()) {
             return true;
         }
         self.structural_digest() == other.structural_digest()

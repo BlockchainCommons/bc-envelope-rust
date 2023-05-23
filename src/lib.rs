@@ -56,6 +56,7 @@ mod tests {
     mod core_tests;
     mod core_nesting_tests;
     mod core_encoding_tests;
+    mod elision_tests;
 
     use bc_crypto::sha256;
 
