@@ -7,5 +7,6 @@ pub enum EnvelopeError {
     MissingDigest,
     NonexistentPredicate,
     AmbiguousPredicate,
+    NotWrapped,
     CBORError(CBORError),
 }

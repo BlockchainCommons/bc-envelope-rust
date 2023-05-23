@@ -1,15 +1,19 @@
 #![feature(iter_intersperse)]
 
 mod assertions;
-mod queries;
-mod digest;
-mod salt;
-mod format;
 mod cbor;
-mod string_utils;
+mod digest;
+mod format;
+mod function_registry;
 mod known_value_registry;
 mod parameter_registry;
-mod function_registry;
+mod queries;
+mod salt;
+mod string_utils;
+mod wrap;
+
+mod elide;
+pub use elide::ObscureAction;
 
 mod envelope;
 pub use crate::envelope::Envelope;
@@ -48,6 +52,7 @@ pub use known_parameters::KnownParameters;
 mod tests {
     mod type_tests;
     mod core_tests;
+    mod core_nesting_tests;
 
     use bc_crypto::sha256;
 

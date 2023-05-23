@@ -38,13 +38,13 @@ impl Envelope {
         }
     }
 
-    pub fn add_assertion_predicate_object_salted<P: IntoEnvelope, O: IntoEnvelope>(self: Rc<Envelope>, predicate: P, object: O, salted: bool) -> Rc<Envelope>
+    pub fn add_assertion_with_predobj_salted<P: IntoEnvelope, O: IntoEnvelope>(self: Rc<Envelope>, predicate: P, object: O, salted: bool) -> Rc<Envelope>
     {
-        let assertion = Envelope::new_assertion(predicate, object);
+        let assertion = Envelope::new_assertion_with_predobj(predicate, object);
         self.add_assertion_opt(Some(assertion), salted).unwrap()
     }
 
-    pub fn add_assertion_predicate_object<P: IntoEnvelope, O: IntoEnvelope>(self: Rc<Envelope>, predicate: P, object: O) -> Rc<Envelope> {
-        self.add_assertion_predicate_object_salted(predicate, object, false)
+    pub fn add_assertion_with_predobj<P: IntoEnvelope, O: IntoEnvelope>(self: Rc<Envelope>, predicate: P, object: O) -> Rc<Envelope> {
+        self.add_assertion_with_predobj_salted(predicate, object, false)
     }
 }

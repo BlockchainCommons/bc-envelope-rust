@@ -1,5 +1,4 @@
 use std::rc::Rc;
-
 use crate::{Envelope, with_format_context, KnownValue, known_value_registry};
 use bc_components::DigestProvider;
 use indoc::indoc;
@@ -13,17 +12,17 @@ fn known_value_envelope() -> Rc<Envelope> {
 }
 
 fn assertion_envelope() -> Rc<Envelope> {
-    Envelope::new_assertion(&"knows", &"Bob")
+    Envelope::new_assertion_with_predobj(&"knows", &"Bob")
 }
 
 fn single_assertion_envelope() -> Rc<Envelope> {
     Envelope::new("Alice")
-        .add_assertion_predicate_object("knows", "Bob")
+        .add_assertion_with_predobj("knows", "Bob")
 }
 
 fn double_assertion_envelope() -> Rc<Envelope> {
     single_assertion_envelope()
-        .add_assertion_predicate_object("knows", "Carol")
+        .add_assertion_with_predobj("knows", "Carol")
 }
 
 fn wrapped_envelope() -> Rc<Envelope> {
@@ -167,7 +166,7 @@ fn test_assertion_subject() {
     "#}.trim()
     );
 
-    assert_eq!(e.digest(), Envelope::new_assertion(&"knows", &"Bob").digest());
+    assert_eq!(e.digest(), Envelope::new_assertion_with_predobj(&"knows", &"Bob").digest());
 }
 
 #[test]
@@ -329,9 +328,9 @@ fn test_double_wrapped() {
 
 #[test]
 fn test_assertion_with_assertions() {
-    let a = Envelope::new_assertion(1, 2)
-        .add_assertion_predicate_object(3, 4)
-        .add_assertion_predicate_object(5, 6);
+    let a = Envelope::new_assertion_with_predobj(1, 2)
+        .add_assertion_with_predobj(3, 4)
+        .add_assertion_with_predobj(5, 6);
     let e = Envelope::new(7)
         .add_assertion(a);
     assert_eq!(e.format(),

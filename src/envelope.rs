@@ -162,7 +162,7 @@ impl Envelope {
         return Self::new_leaf(cbor);
     }
 
-    pub fn new_assertion<P: IntoEnvelope, O: IntoEnvelope>(predicate: P, object: O) -> Rc<Self> {
+    pub fn new_assertion_with_predobj<P: IntoEnvelope, O: IntoEnvelope>(predicate: P, object: O) -> Rc<Self> {
         Self::new_with_assertion(Assertion::new(predicate, object))
     }
 }
