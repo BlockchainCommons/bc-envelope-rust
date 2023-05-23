@@ -440,33 +440,6 @@ impl EnvelopeFormat for KnownValue {
     }
 }
 
-/*
-```swift
-public extension Envelope {
-    func description(context: FormatContext?) -> String {
-        switch self {
-        case .node(subject: let subject, assertions: let assertions, digest: _):
-            return ".node(\(subject), \(assertions))"
-        case .leaf(let cbor, _):
-            return ".cbor(\(cbor.formatItem(context: context).description))"
-        case .wrapped(let envelope, _):
-            return ".wrapped(\(envelope))"
-        case .knownValue(let knownValue, _):
-            return ".knownValue(\(knownValue))"
-        case .assertion(let assertion):
-            return ".assertion(\(assertion.predicate), \(assertion.object))"
-        case .encrypted:
-            return ".encrypted"
-        case .compressed:
-            return ".compressed"
-        case .elided:
-            return ".elided"
-        }
-    }
-}
-```
- */
-
  impl Envelope {
     fn description(self: &Self, context: Option<&FormatContext>) -> String {
         match self {

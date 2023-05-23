@@ -5,38 +5,6 @@ use dcbor::{CBORTagged, Tag, CBOR, CBOREncodable, CBORDecodable, CBORError, CBOR
 
 use crate::envelope::{Envelope, IntoEnvelope};
 
-/*
-```swift
-/// Represents an assertion in an envelope.
-///
-/// This structure is public but opaque, and the APIs on ``Envelope`` itself should be used to manipulate it.
-public struct Assertion {
-    let predicate: Envelope
-    let object: Envelope
-    let digest: Digest
-
-    /// Creates an ``Assertion`` and calculates its digest.
-    init(predicate: Any, object: Any) {
-        let p: Envelope
-        if let predicate = predicate as? Envelope {
-            p = predicate
-        } else {
-            p = Envelope(predicate)
-        }
-        let o: Envelope
-        if let object = object as? Envelope {
-            o = object
-        } else {
-            o = Envelope(object)
-        }
-        self.predicate = p
-        self.object = o
-        self.digest = Digest(p.digest + o.digest)
-    }
-}
-```
- */
-
 /// Represents an assertion.
 #[derive(Clone, Debug)]
 pub struct Assertion {
@@ -44,45 +12,6 @@ pub struct Assertion {
     object: Rc<Envelope>,
     digest: Digest,
 }
-
-/*
-```rust
-
-    /// Returns the envelope's subject, decoded as the given type.
-    ///
-    /// If the encoded type doesn't match the given type, returns `EnvelopeError::InvalidFormat`.
-    pub fn extract_subject<T>(&self) -> Result<Rc<T>, EnvelopeError>
-    where
-        T: Any + CBORDecodable,
-    {
-        fn extract_type<T, U>(value: &U) -> Result<Rc<T>, EnvelopeError>
-        where
-            T: Any,
-            U: Any + Clone,
-        {
-            if TypeId::of::<T>() == TypeId::of::<U>() {
-                Ok((Rc::new(value.clone()) as Rc<dyn Any>)
-                    .downcast::<T>()
-                    .unwrap())
-            } else {
-                Err(EnvelopeError::InvalidFormat)
-            }
-        }
-
-        match self {
-            Envelope::Wrapped { envelope, .. } => extract_type::<T, Envelope>(&**envelope),
-            Envelope::Node { subject, .. } => subject.extract_subject::<T>(),
-            Envelope::Leaf { cbor, .. } => Ok(T::from_cbor(cbor).map_err(EnvelopeError::CBORError)?),
-            Envelope::KnownValue { value, .. } => extract_type::<T, KnownValue>(&*value),
-            Envelope::Assertion(assertion) => extract_type::<T, Assertion>(&*assertion),
-            Envelope::Encrypted(encrypted_message) => extract_type::<T, EncryptedMessage>(&*encrypted_message),
-            Envelope::Compressed(compressed) => extract_type::<T, Compressed>(&*compressed),
-            Envelope::Elided(digest) => extract_type::<T, Digest>(&*digest),
-        }
-    }
-}
-```
- */
 
 impl Assertion {
     /// Creates an assertion and calculates its digest.
