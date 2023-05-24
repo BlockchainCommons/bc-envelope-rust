@@ -44,7 +44,7 @@ impl Envelope {
     /// # Returns
     ///
     /// * A set of digests down to `levelLimit`.
-    pub fn digests(self: Rc<Envelope>, level_limit: usize) -> HashSet<Digest> {
+    pub fn digests(self: Rc<Self>, level_limit: usize) -> HashSet<Digest> {
         let result = RefCell::new(HashSet::new());
         let visitor = |envelope: Rc<Envelope>, level: usize, _: EdgeType, _: Option<&()>| -> _ {
             if level < level_limit {
@@ -59,12 +59,12 @@ impl Envelope {
     }
 
     /// The set of all digests in the envelope.
-    pub fn deep_digests(self: Rc<Envelope>) -> HashSet<Digest> {
+    pub fn deep_digests(self: Rc<Self>) -> HashSet<Digest> {
         self.digests(usize::MAX)
     }
 
     /// The set of all digests in the envelope, down to its second level.
-    pub fn shallow_digests(self: Rc<Envelope>) -> HashSet<Digest> {
+    pub fn shallow_digests(self: Rc<Self>) -> HashSet<Digest> {
         self.digests(2)
     }
 }
@@ -93,7 +93,7 @@ impl Envelope {
     /// equivalent. It is recommended that envelopes be compared for structural equality
     /// by calling `isIdentical(to:)` as this short-circuits to `false` in cases where
     /// the compared envelopes are not semantically equivalent.
-    pub fn structural_digest(self: Rc<Envelope>) -> Digest {
+    pub fn structural_digest(self: Rc<Self>) -> Digest {
         let image = RefCell::new(Vec::new());
         let visitor = |envelope: Rc<Envelope>, _: usize, _: EdgeType, _: Option<&()>| -> _ {
             // Add a discriminator to the image for the obscured cases.
@@ -118,7 +118,7 @@ impl Envelope {
     /// the two envelope's digests. The means that two envelopes with certain structural
     /// differences (e.g., one envelope is partially elided and the other is not) will
     /// still test as equivalent.
-    pub fn is_equivalent_to(self: Rc<Envelope>, other: Rc<Envelope>) -> bool {
+    pub fn is_equivalent_to(self: Rc<Self>, other: Rc<Envelope>) -> bool {
         self.digest() == other.digest()
     }
 
@@ -129,7 +129,7 @@ impl Envelope {
     /// thus they *must* have different structures) and a complexity of `O(m + n)` where
     /// `m` and `n` are the number of elements in each of the two envelopes when they
     /// *are* semantically equivalent.
-    pub fn is_identical_to(self: Rc<Envelope>, other: Rc<Envelope>) -> bool {
+    pub fn is_identical_to(self: Rc<Self>, other: Rc<Envelope>) -> bool {
         if !self.clone().is_equivalent_to(other.clone()) {
             return true;
         }

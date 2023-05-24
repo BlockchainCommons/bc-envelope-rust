@@ -26,7 +26,7 @@ impl EdgeType {
 pub type Visitor<'a, Parent> = dyn Fn(Rc<Envelope>, usize, EdgeType, Parent) -> Parent + 'a;
 
 impl Envelope {
-    pub fn walk<Parent: Default + Clone>(self: Rc<Envelope>, hide_nodes: bool, visit: &Visitor<Parent>) {
+    pub fn walk<Parent: Default + Clone>(self: Rc<Self>, hide_nodes: bool, visit: &Visitor<Parent>) {
         if hide_nodes {
             self.walk_tree(visit);
         } else {
@@ -34,11 +34,11 @@ impl Envelope {
         }
     }
 
-    fn walk_structure<Parent: Default + Clone>(self: Rc<Envelope>, visit: &Visitor<Parent>) {
+    fn walk_structure<Parent: Default + Clone>(self: Rc<Self>, visit: &Visitor<Parent>) {
         self._walk_structure(0, EdgeType::None, Default::default(), visit);
     }
 
-    fn _walk_structure<Parent: Clone>(self: Rc<Envelope>, level: usize, incoming_edge: EdgeType, parent: Parent, visit: &Visitor<Parent>) {
+    fn _walk_structure<Parent: Clone>(self: Rc<Self>, level: usize, incoming_edge: EdgeType, parent: Parent, visit: &Visitor<Parent>) {
         let parent = visit(self.clone(), level, incoming_edge, parent);
         let next_level = level + 1;
         match &*self {
@@ -59,12 +59,12 @@ impl Envelope {
         }
     }
 
-    fn walk_tree<Parent: Default + Clone>(self: Rc<Envelope>, visit: &Visitor<Parent>)
+    fn walk_tree<Parent: Default + Clone>(self: Rc<Self>, visit: &Visitor<Parent>)
     {
         self._walk_tree(0, Default::default(), visit);
     }
 
-    fn _walk_tree<Parent: Clone>(self: Rc<Envelope>, level: usize, parent: Parent, visit: &Visitor<Parent>) {
+    fn _walk_tree<Parent: Clone>(self: Rc<Self>, level: usize, parent: Parent, visit: &Visitor<Parent>) {
         let parent = visit(self.clone(), level, EdgeType::None, parent);
         let next_level = level + 1;
         match &*self {

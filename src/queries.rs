@@ -8,7 +8,7 @@ impl Envelope {
     /// The envelope's subject.
     ///
     /// For an envelope with no assertions, returns the same envelope.
-    pub fn subject(self: Rc<Envelope>) -> Rc<Envelope> {
+    pub fn subject(self: Rc<Self>) -> Rc<Envelope> {
         match &*self {
             Envelope::Node { subject, .. } => subject.clone(),
             _ => self,
@@ -16,7 +16,7 @@ impl Envelope {
     }
 
     /// The envelope's assertions.
-    pub fn assertions(self: Rc<Envelope>) -> Vec<Rc<Envelope>> {
+    pub fn assertions(self: Rc<Self>) -> Vec<Rc<Envelope>> {
         match &*self {
             Envelope::Node { assertions, .. } => assertions.clone(),
             _ => vec![],
@@ -32,7 +32,7 @@ impl Envelope {
     }
 
     /// If the envelope's subject is an assertion return it, else return `None`.
-    pub fn assertion(self: Rc<Envelope>) -> Option<Rc<Envelope>> {
+    pub fn assertion(self: Rc<Self>) -> Option<Rc<Envelope>> {
         match &*self {
             Envelope::Assertion(_) => Some(self),
             _ => None,
@@ -40,7 +40,7 @@ impl Envelope {
     }
 
     /// The envelope's predicate, or `None` if the envelope is not an assertion.
-    pub fn predicate(self: Rc<Envelope>) -> Option<Rc<Envelope>> {
+    pub fn predicate(self: Rc<Self>) -> Option<Rc<Envelope>> {
         match &*self {
             Envelope::Assertion(assertion) => Some(assertion.predicate()),
             _ => None,
@@ -48,7 +48,7 @@ impl Envelope {
     }
 
     /// The envelope's object, or `None` if the envelope is not an assertion.
-    pub fn object(self: Rc<Envelope>) -> Option<Rc<Envelope>> {
+    pub fn object(self: Rc<Self>) -> Option<Rc<Envelope>> {
         match &*self {
             Envelope::Assertion(assertion) => Some(assertion.object()),
             _ => None,
@@ -244,7 +244,7 @@ impl Envelope {
 
 impl Envelope {
     /// Returns all assertions with the given predicate. Match by comparing digests.
-    pub fn assertions_with_predicate(self: Rc<Envelope>, predicate: Rc<Envelope>) -> Vec<Rc<Envelope>> {
+    pub fn assertions_with_predicate(self: Rc<Self>, predicate: Rc<Envelope>) -> Vec<Rc<Envelope>> {
         self.assertions()
             .into_iter()
             .filter(|assertion|
@@ -258,12 +258,12 @@ impl Envelope {
     }
 
     /// Returns all assertions with the given predicate.
-    pub fn assertions_with_predicate_cbor(self: Rc<Envelope>, predicate: &dyn CBOREncodable) -> Vec<Rc<Envelope>> {
+    pub fn assertions_with_predicate_leaf(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Vec<Rc<Envelope>> {
         self.assertions_with_predicate(Envelope::from_cbor_encodable(predicate))
     }
 
     /// Returns all assertions with the given predicate.
-    pub fn assertions_with_predicate_known_value(self: Rc<Envelope>, predicate: KnownValue) -> Vec<Rc<Envelope>> {
+    pub fn assertions_with_predicate_known_value(self: Rc<Self>, predicate: KnownValue) -> Vec<Rc<Envelope>> {
         self.assertions_with_predicate(Envelope::new(predicate))
     }
 }
@@ -272,7 +272,7 @@ impl Envelope {
     /// Returns the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn assertion_with_predicate(self: Rc<Envelope>, predicate: Rc<Envelope>) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn assertion_with_predicate(self: Rc<Self>, predicate: Rc<Envelope>) -> Result<Rc<Envelope>, EnvelopeError> {
         let a = self.assertions_with_predicate(predicate);
         if a.is_empty() {
             Err(EnvelopeError::NonexistentPredicate)
@@ -286,14 +286,14 @@ impl Envelope {
     /// Returns the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn assertion_with_predicate_cbor(self: Rc<Envelope>, predicate: &dyn CBOREncodable) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn assertion_with_predicate_leaf(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Rc<Envelope>, EnvelopeError> {
         self.assertion_with_predicate(Envelope::from_cbor_encodable(predicate))
     }
 
     /// Returns the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn assertion_with_predicate_known_value(self: Rc<Envelope>, predicate: KnownValue) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn assertion_with_predicate_known_value(self: Rc<Self>, predicate: KnownValue) -> Result<Rc<Envelope>, EnvelopeError> {
         self.assertion_with_predicate(Envelope::new(predicate))
     }
 }
@@ -302,21 +302,21 @@ impl Envelope {
     /// Returns the object of the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn extract_object_for_predicate(self: Rc<Envelope>, predicate: Rc<Envelope>) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn extract_object_for_predicate(self: Rc<Self>, predicate: Rc<Envelope>) -> Result<Rc<Envelope>, EnvelopeError> {
         Ok(self.assertion_with_predicate(predicate)?.object().unwrap())
     }
 
     /// Returns the object of the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn extract_object_for_predicate_cbor(self: Rc<Envelope>, predicate: &dyn CBOREncodable) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn extract_object_for_predicate_leaf(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Rc<Envelope>, EnvelopeError> {
         self.extract_object_for_predicate(Envelope::from_cbor_encodable(predicate))
     }
 
     /// Returns the object of the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn extract_object_for_predicate_known_value(self: Rc<Envelope>, predicate: KnownValue) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn extract_object_for_predicate_known_value(self: Rc<Self>, predicate: KnownValue) -> Result<Rc<Envelope>, EnvelopeError> {
         self.extract_object_for_predicate(Envelope::new(predicate))
     }
 
@@ -324,7 +324,7 @@ impl Envelope {
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_object<T>(self: Rc<Envelope>, predicate: Rc<Envelope>) -> Result<Rc<T>, EnvelopeError>
+    pub fn extract_object<T>(self: Rc<Self>, predicate: Rc<Envelope>) -> Result<Rc<T>, EnvelopeError>
         where T: CBORDecodable + 'static
     {
         self.assertion_with_predicate(predicate)?.object().unwrap().extract_subject()
@@ -334,7 +334,7 @@ impl Envelope {
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_object_cbor<T>(self: Rc<Envelope>, predicate: &dyn CBOREncodable) -> Result<Rc<T>, EnvelopeError>
+    pub fn extract_object_cbor<T>(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Rc<T>, EnvelopeError>
         where T: CBORDecodable + 'static
     {
         self.extract_object(Envelope::from_cbor_encodable(predicate))
@@ -344,7 +344,7 @@ impl Envelope {
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_object_known_value<T>(self: Rc<Envelope>, predicate: KnownValue) -> Result<Rc<T>, EnvelopeError>
+    pub fn extract_object_known_value<T>(self: Rc<Self>, predicate: KnownValue) -> Result<Rc<T>, EnvelopeError>
         where T: CBORDecodable + 'static
     {
         self.extract_object(Envelope::new(predicate))
@@ -353,24 +353,24 @@ impl Envelope {
 
 impl Envelope {
     /// Returns the objects of all assertions with the matching predicate.
-    pub fn extract_objects_for_predicate(self: Rc<Envelope>, predicate: Rc<Envelope>) -> Vec<Rc<Envelope>> {
+    pub fn extract_objects_for_predicate(self: Rc<Self>, predicate: Rc<Envelope>) -> Vec<Rc<Envelope>> {
         self.assertions_with_predicate(predicate).into_iter().map(|a| a.object().unwrap()).collect()
     }
 
     /// Returns the objects of all assertions with the matching predicate.
-    pub fn extract_objects_for_predicate_cbor(self: Rc<Envelope>, predicate: &dyn CBOREncodable) -> Vec<Rc<Envelope>> {
+    pub fn extract_objects_for_predicate_leaf(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Vec<Rc<Envelope>> {
         self.extract_objects_for_predicate(Envelope::from_cbor_encodable(predicate))
     }
 
     /// Returns the objects of all assertions with the matching predicate.
-    pub fn extract_objects_for_predicate_known_value(self: Rc<Envelope>, predicate: KnownValue) -> Vec<Rc<Envelope>> {
+    pub fn extract_objects_for_predicate_known_value(self: Rc<Self>, predicate: KnownValue) -> Vec<Rc<Envelope>> {
         self.extract_objects_for_predicate(Envelope::new(predicate))
     }
 
     /// Returns the objects of all assertions with the matching predicate.
     ///
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_objects<T>(self: Rc<Envelope>, predicate: Rc<Envelope>) -> Result<Vec<Rc<T>>, EnvelopeError>
+    pub fn extract_objects<T>(self: Rc<Self>, predicate: Rc<Envelope>) -> Result<Vec<Rc<T>>, EnvelopeError>
         where T: CBORDecodable
     {
         self.assertions_with_predicate(predicate).into_iter().map(|a| a.object().unwrap().extract_subject()).collect()
@@ -379,7 +379,7 @@ impl Envelope {
     /// Returns the objects of all assertions with the matching predicate.
     ///
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_objects_cbor<T>(self: Rc<Envelope>, predicate: &dyn CBOREncodable) -> Result<Vec<Rc<T>>, EnvelopeError>
+    pub fn extract_objects_cbor<T>(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Vec<Rc<T>>, EnvelopeError>
         where T: CBORDecodable
     {
         self.extract_objects(Envelope::from_cbor_encodable(predicate))
@@ -388,7 +388,7 @@ impl Envelope {
     /// Returns the objects of all assertions with the matching predicate.
     ///
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_objects_known_value<T>(self: Rc<Envelope>, predicate: KnownValue) -> Result<Vec<Rc<T>>, EnvelopeError>
+    pub fn extract_objects_known_value<T>(self: Rc<Self>, predicate: KnownValue) -> Result<Vec<Rc<T>>, EnvelopeError>
         where T: CBORDecodable
     {
         self.extract_objects(Envelope::new(predicate))

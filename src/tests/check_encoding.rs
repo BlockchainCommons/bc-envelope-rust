@@ -9,7 +9,7 @@ impl Envelope {
     /// Used by test suite to check round-trip encoding of `Envelope`.
     ///
     /// Not needed in production code.
-    pub fn check_encoding(self: Rc<Envelope>) -> Result<Rc<Self>, CBORError> {
+    pub fn check_encoding(self: Rc<Self>) -> Result<Rc<Self>, CBORError> {
         let cbor = self.tagged_cbor();
         let restored = Envelope::from_tagged_cbor(&cbor);
         let restored = restored.map_err(|_| {
