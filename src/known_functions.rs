@@ -28,14 +28,14 @@ impl KnownFunctions {
     }
 
     pub fn name(&self, function: &Function) -> String {
-        self.assigned_name(&function)
+        self.assigned_name(function)
             .map(|name| name.to_string())
             .unwrap_or_else(|| function.name())
     }
 
     pub fn name_for_function(function: &Function, known_functions: Option<&Self>) -> String {
         known_functions
-            .and_then(|known_functions| known_functions.assigned_name(&function))
+            .and_then(|known_functions| known_functions.assigned_name(function))
             .map(|name| name.to_string())
             .unwrap_or_else(|| function.name())
     }

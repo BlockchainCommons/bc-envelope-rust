@@ -109,7 +109,7 @@ fn test_single_assertion_remove_elision() -> Result<(), Box<dyn Error>> {
     );
 
     // Elide the entire assertion
-    let e6 = e1.clone().elide_removing_target(&assertion_envelope()).check_encoding()?;
+    let e6 = e1.elide_removing_target(&assertion_envelope()).check_encoding()?;
     assert_eq!(e6.format(),
     indoc! {r#"
     "Alice" [
@@ -176,7 +176,7 @@ fn test_double_assertion_remove_elision() -> Result<(), Box<dyn Error>> {
     );
 
     // Elide the entire assertion
-    let e6 = e1.clone().elide_removing_target(&assertion_envelope()).check_encoding()?;
+    let e6 = e1.elide_removing_target(&assertion_envelope()).check_encoding()?;
     assert_eq!(e6.format(),
     indoc! {r#"
     "Alice" [
@@ -210,7 +210,7 @@ fn test_single_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
     );
 
     // Reveal just the envelope's structure
-    let e3 = e1.clone().elide_revealing_array(&[&e1.clone()]).check_encoding()?;
+    let e3 = e1.clone().elide_revealing_array(&[&e1]).check_encoding()?;
     assert_eq!(e3.format(),
     indoc! {r#"
     ELIDED [
@@ -220,7 +220,7 @@ fn test_single_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
     );
 
     // Reveal just the envelope's subject
-    let e4 = e1.clone().elide_revealing_array(&[&e1.clone(), &Envelope::new("Alice")]).check_encoding()?;
+    let e4 = e1.clone().elide_revealing_array(&[&e1, &Envelope::new("Alice")]).check_encoding()?;
     assert_eq!(e4.format(),
     indoc! {r#"
     "Alice" [
@@ -230,7 +230,7 @@ fn test_single_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
     );
 
     // Reveal just the assertion's structure.
-    let e5 = e1.clone().elide_revealing_array(&[&e1.clone(), &assertion_envelope()]).check_encoding()?;
+    let e5 = e1.clone().elide_revealing_array(&[&e1, &assertion_envelope()]).check_encoding()?;
     assert_eq!(e5.format(),
     indoc! {r#"
     ELIDED [
@@ -240,7 +240,7 @@ fn test_single_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
     );
 
     // Reveal just the assertion's predicate
-    let e6 = e1.clone().elide_revealing_array(&[&e1.clone(), &assertion_envelope(), &Envelope::new("knows")]).check_encoding()?;
+    let e6 = e1.clone().elide_revealing_array(&[&e1, &assertion_envelope(), &Envelope::new("knows")]).check_encoding()?;
     assert_eq!(e6.format(),
     indoc! {r#"
     ELIDED [
@@ -250,7 +250,7 @@ fn test_single_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
     );
 
     // Reveal just the assertion's object
-    let e7 = e1.clone().elide_revealing_array(&[&e1.clone(), &assertion_envelope(), &Envelope::new("Bob")]).check_encoding()?;
+    let e7 = e1.clone().elide_revealing_array(&[&e1, &assertion_envelope(), &Envelope::new("Bob")]).check_encoding()?;
     assert_eq!(e7.format(),
     indoc! {r#"
     ELIDED [
@@ -284,7 +284,7 @@ fn test_double_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
     );
 
     // Reveal just the envelope's structure
-    let e3 = e1.clone().elide_revealing_array(&[&e1.clone()]).check_encoding()?;
+    let e3 = e1.clone().elide_revealing_array(&[&e1]).check_encoding()?;
     assert_eq!(e3.format(),
     indoc! {r#"
     ELIDED [
@@ -294,7 +294,7 @@ fn test_double_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
     );
 
     // Reveal just the envelope's subject
-    let e4 = e1.clone().elide_revealing_array(&[&e1.clone(), &Envelope::new("Alice")]).check_encoding()?;
+    let e4 = e1.clone().elide_revealing_array(&[&e1, &Envelope::new("Alice")]).check_encoding()?;
     assert_eq!(e4.format(),
     indoc! {r#"
     "Alice" [
@@ -304,7 +304,7 @@ fn test_double_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
     );
 
     // Reveal just the assertion's structure.
-    let e5 = e1.clone().elide_revealing_array(&[&e1.clone(), &assertion_envelope()]).check_encoding()?;
+    let e5 = e1.clone().elide_revealing_array(&[&e1, &assertion_envelope()]).check_encoding()?;
     assert_eq!(e5.format(),
     indoc! {r#"
     ELIDED [
@@ -315,7 +315,7 @@ fn test_double_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
     );
 
     // Reveal just the assertion's predicate
-    let e6 = e1.clone().elide_revealing_array(&[&e1.clone(), &assertion_envelope(), &Envelope::new("knows")]).check_encoding()?;
+    let e6 = e1.clone().elide_revealing_array(&[&e1, &assertion_envelope(), &Envelope::new("knows")]).check_encoding()?;
     assert_eq!(e6.format(),
     indoc! {r#"
     ELIDED [
@@ -326,7 +326,7 @@ fn test_double_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
     );
 
     // Reveal just the assertion's object
-    let e7 = e1.clone().elide_revealing_array(&[&e1.clone(), &assertion_envelope(), &Envelope::new("Bob")]).check_encoding()?;
+    let e7 = e1.clone().elide_revealing_array(&[&e1, &assertion_envelope(), &Envelope::new("Bob")]).check_encoding()?;
     assert_eq!(e7.format(),
     indoc! {r#"
     ELIDED [
@@ -377,7 +377,7 @@ fn test_digests() -> Result<(), Box<dyn Error>> {
     "#}.trim()
     );
 
-    let e5 = e1.clone().elide_revealing_set(&e1.clone().digests(3)).check_encoding()?;
+    let e5 = e1.clone().elide_revealing_set(&e1.digests(3)).check_encoding()?;
     assert_eq!(e5.format(),
     indoc! {r#"
     "Alice" [
@@ -413,7 +413,7 @@ fn test_target_reveal() -> Result<(), Box<dyn Error>> {
     target.extend(assertion_envelope().deep_digests());
     // Reveal the specific `livesAt` assertion
     target.extend(e1.clone().assertion_with_predicate_leaf(&"livesAt")?.deep_digests());
-    let e2 = e1.clone().elide_revealing_set(&target).check_encoding()?;
+    let e2 = e1.elide_revealing_set(&target).check_encoding()?;
     assert_eq!(e2.format(),
     indoc! {r#"
     "Alice" [
@@ -473,7 +473,7 @@ fn test_targeted_remove() -> Result<(), Box<dyn Error>> {
     assert!(e1.clone().is_equivalent_to(e3.clone()));
 
     // Structurally different
-    assert!(!e1.clone().is_identical_to(e3.clone()));
+    assert!(!e1.is_identical_to(e3));
 
     Ok(())
 }

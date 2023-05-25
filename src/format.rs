@@ -51,10 +51,10 @@ impl Envelope {
 }
 
 trait EnvelopeFormat {
-    fn format_item(self: &Self, context: &FormatContext) -> EnvelopeFormatItem;
+    fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem;
 }
 
-#[derive(Debug, Clone, Eq, Ord)]
+#[derive(Debug, Clone, Eq)]
 enum EnvelopeFormatItem {
     Begin(String),
     End(String),
@@ -66,7 +66,7 @@ enum EnvelopeFormatItem {
 impl EnvelopeFormatItem {
     fn flatten(&self) -> Vec<EnvelopeFormatItem> {
         match self {
-            EnvelopeFormatItem::List(items) => items.iter().map(|i| i.flatten()).flatten().collect(),
+            EnvelopeFormatItem::List(items) => items.iter().flat_map(|i| i.flatten()).collect(),
             _ => vec![self.clone()],
         }
     }
@@ -104,7 +104,7 @@ impl EnvelopeFormatItem {
     fn add_space_at_end_if_needed(&self, s: &str) -> String {
         if s.is_empty() {
             " ".to_string()
-        } else if s.chars().last().unwrap() == ' ' {
+        } else if s.ends_with(' ') {
             s.to_string()
         } else {
             s.to_string() + " "
@@ -206,10 +206,10 @@ impl PartialOrd for EnvelopeFormatItem {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         let l_index = self.index();
         let r_index = other.index();
-        if l_index < r_index {
-            return Some(std::cmp::Ordering::Less);
-        } else if r_index < l_index {
-            return Some(std::cmp::Ordering::Greater);
+        match l_index.cmp(&r_index) {
+            std::cmp::Ordering::Less => return Some(std::cmp::Ordering::Less),
+            std::cmp::Ordering::Greater => return Some(std::cmp::Ordering::Greater),
+            _ => {}
         }
         match (self, other) {
             (EnvelopeFormatItem::Begin(l), EnvelopeFormatItem::Begin(r)) => l.partial_cmp(r),
@@ -222,24 +222,31 @@ impl PartialOrd for EnvelopeFormatItem {
     }
 }
 
+
+impl Ord for EnvelopeFormatItem {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
 impl EnvelopeFormat for Digest {
     fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
-        EnvelopeFormatItem::Item(hex::encode(&self.data()))
+        EnvelopeFormatItem::Item(hex::encode(self.data()))
     }
 }
 
 impl EnvelopeFormat for CID {
     fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
-        EnvelopeFormatItem::Item(hex::encode(&self.data()))
+        EnvelopeFormatItem::Item(hex::encode(self.data()))
     }
 }
 
 trait EnvelopeSummary {
-    fn envelope_summary(self: &Self, max_length: usize, context: &FormatContext) -> Result<String, Box<dyn Error>>;
+    fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> Result<String, Box<dyn Error>>;
 }
 
 impl EnvelopeSummary for CBOR {
-    fn envelope_summary(self: &Self, max_length: usize, context: &FormatContext) -> Result<String, Box<dyn Error>> {
+    fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> Result<String, Box<dyn Error>> {
         match self {
             CBOR::Unsigned(n) => Ok(n.to_string()),
             CBOR::Negative(n) => Ok(n.to_string()),
@@ -250,7 +257,7 @@ impl EnvelopeSummary for CBOR {
                 } else {
                     string.clone()
                 };
-                Ok(string.replace("\n", "\\n").flanked_by("\"", "\""))
+                Ok(string.replace('\n', "\\n").flanked_by("\"", "\""))
             }
             CBOR::Array(elements) => {
                 Ok(elements
@@ -326,7 +333,7 @@ impl EnvelopeSummary for CBOR {
 }
 
 impl EnvelopeFormat for CBOR {
-    fn format_item(self: &Self, context: &FormatContext) -> EnvelopeFormatItem {
+    fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
         match self {
             CBOR::Tagged(tag, cbor) if tag == &Envelope::CBOR_TAG => {
                 Envelope::from_untagged_cbor(cbor)
@@ -342,7 +349,7 @@ impl EnvelopeFormat for CBOR {
 }
 
 impl EnvelopeFormat for Envelope {
-    fn format_item(self: &Self, context: &FormatContext) -> EnvelopeFormatItem {
+    fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
         match self {
             Envelope::Leaf { cbor, .. } => cbor.format_item(context),
             Envelope::KnownValue { value, .. } => value.format_item(context),
@@ -412,7 +419,7 @@ impl EnvelopeFormat for Envelope {
                 items.push(EnvelopeFormatItem::Begin("[".to_string()));
                 items.extend(joined_assertions_items.into_iter().flatten());
                 items.push(EnvelopeFormatItem::End("]".to_string()));
-                return EnvelopeFormatItem::List(items);
+                EnvelopeFormatItem::List(items)
             },
             Envelope::Elided(_) => EnvelopeFormatItem::Item("ELIDED".to_string()),
         }
@@ -441,7 +448,7 @@ impl EnvelopeFormat for KnownValue {
 }
 
  impl Envelope {
-    fn description(self: &Self, context: Option<&FormatContext>) -> String {
+    fn description(&self, context: Option<&FormatContext>) -> String {
         match self {
             Envelope::Node { subject, assertions, .. } => {
                 let assertions = assertions
@@ -458,7 +465,7 @@ impl EnvelopeFormat for KnownValue {
             Envelope::Assertion(assertion) => format!(".assertion({}, {})", assertion.predicate(), assertion.object()),
             Envelope::Encrypted(_) => ".encrypted".to_string(),
             Envelope::Compressed(_) => ".compressed".to_string(),
-            Envelope::Elided(_) => format!(".elided")
+            Envelope::Elided(_) => ".elided".to_string()
         }
     }
 }

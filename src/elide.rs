@@ -179,7 +179,7 @@ impl Envelope {
             match action {
                 ObscureAction::Elide => self.elide(),
                 ObscureAction::Encrypt(key) => {
-                    let message = key.encrypt(&self.tagged_cbor().cbor_data(), Some(&self_digest));
+                    let message = key.encrypt(self.tagged_cbor().cbor_data(), self_digest);
                     Envelope::new_with_encrypted(message).unwrap()
                 },
                 ObscureAction::Compress => self.compress(),

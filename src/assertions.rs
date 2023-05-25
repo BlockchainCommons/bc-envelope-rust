@@ -33,7 +33,7 @@ impl Envelope {
                             Ok(self)
                         }
                     },
-                    _ => Ok(new_envelope_with_unchecked_assertions(self.subject().clone(), vec![envelope2])),
+                    _ => Ok(new_envelope_with_unchecked_assertions(self.subject(), vec![envelope2])),
                 }
             },
             None => Ok(self),

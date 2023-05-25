@@ -19,10 +19,10 @@ impl FormatContext {
         parameters: Option<&KnownParameters>,
     ) -> Self {
         Self {
-            tags: tags.cloned().unwrap_or_else(KnownTagsDict::default),
-            known_values: known_values.cloned().unwrap_or_else(KnownValues::default),
-            functions: functions.cloned().unwrap_or_else(KnownFunctions::default),
-            parameters: parameters.cloned().unwrap_or_else(KnownParameters::default),
+            tags: tags.cloned().unwrap_or_default(),
+            known_values: known_values.cloned().unwrap_or_default(),
+            functions: functions.cloned().unwrap_or_default(),
+            parameters: parameters.cloned().unwrap_or_default(),
         }
     }
 
@@ -74,13 +74,13 @@ impl LazyFormatContext {
     pub fn get(&self) -> std::sync::MutexGuard<Option<FormatContext>> {
         self.init.call_once(|| {
             let known_tags_binding = KNOWN_TAGS.get();
-            let known_tags = &*known_tags_binding.as_ref().unwrap();
+            let known_tags = known_tags_binding.as_ref().unwrap();
             let known_values_binding = KNOWN_VALUES.get();
-            let known_values = &*known_values_binding.as_ref().unwrap();
+            let known_values = known_values_binding.as_ref().unwrap();
             let functions_binding = FUNCTIONS.get();
-            let functions = &*functions_binding.as_ref().unwrap();
+            let functions = functions_binding.as_ref().unwrap();
             let parameters_binding = PARAMETERS.get();
-            let parameters = &*parameters_binding.as_ref().unwrap();
+            let parameters = parameters_binding.as_ref().unwrap();
 
             let context = FormatContext::new(Some(known_tags), Some(known_values), Some(functions), Some(parameters));
             *self.data.lock().unwrap() = Some(context);
@@ -97,7 +97,7 @@ pub static FORMAT_CONTEXT: LazyFormatContext = LazyFormatContext {
 #[macro_export]
 macro_rules! with_format_context {
     ($action:expr) => {{
-        let binding = crate::FORMAT_CONTEXT.get();
+        let binding = $crate::FORMAT_CONTEXT.get();
         let context = &*binding.as_ref().unwrap();
         $action(context)
     }};

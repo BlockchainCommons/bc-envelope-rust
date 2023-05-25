@@ -45,7 +45,7 @@ impl KnownValues {
     pub fn name(&self, known_value: KnownValue) -> String {
         self.assigned_name(&known_value)
             .map(|name| name.to_string())
-            .unwrap_or_else(|| known_value.name().to_string())
+            .unwrap_or_else(|| known_value.name())
     }
 
     pub fn known_value_named(&self, assigned_name: &str) -> Option<&KnownValue> {
@@ -69,7 +69,7 @@ impl KnownValues {
         known_values
             .and_then(|known_values| known_values.assigned_name(&known_value))
             .map(|assigned_name| assigned_name.to_string())
-            .unwrap_or_else(|| known_value.name().to_string())
+            .unwrap_or_else(|| known_value.name())
     }
 
     fn _insert(

@@ -18,7 +18,7 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     "#}.trim()
     );
 
-    let ab = Envelope::new_assertion_with_predobj(a.clone(), b.clone());
+    let ab = Envelope::new_assertion_with_predobj(a, b);
     assert_eq!(ab.format(),
     indoc! {r#"
     "A": "B"
@@ -58,7 +58,7 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     );
 
     let alice_knows_bob = alice.clone()
-        .add_assertion(knows_bob.clone())
+        .add_assertion(knows_bob)
         .check_encoding()?;
     assert_eq!(alice_knows_bob.format(),
     indoc! {r#"
@@ -68,7 +68,7 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     "#}.trim()
     );
 
-    let alice_ab_knows_bob = alice_knows_bob.clone()
+    let alice_ab_knows_bob = alice_knows_bob
         .add_assertion(ab.clone())
         .check_encoding()?;
     assert_eq!(alice_ab_knows_bob.format(),
@@ -141,9 +141,9 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     "#}.trim()
     );
 
-    let alice_ab_knows_ab_bob_ab_enclose_ab = alice.clone()
+    let alice_ab_knows_ab_bob_ab_enclose_ab = alice
         .add_assertion(ab.clone())
-        .add_assertion(Envelope::new_assertion_with_predobj(knows.clone().add_assertion(ab.clone()), bob.clone().add_assertion(ab.clone())).add_assertion(ab.clone()))
+        .add_assertion(Envelope::new_assertion_with_predobj(knows.add_assertion(ab.clone()), bob.add_assertion(ab.clone())).add_assertion(ab))
         .check_encoding()?;
     assert_eq!(alice_ab_knows_ab_bob_ab_enclose_ab.format(),
     indoc! {r#"
@@ -176,7 +176,7 @@ fn test_nesting_plaintext() -> Result<(), Box<dyn Error>> {
     assert_eq!(envelope.format(), expected_format);
 
     let elided_envelope = envelope.clone().elide();
-    assert!(elided_envelope.clone().is_equivalent_to(envelope.clone()));
+    assert!(elided_envelope.clone().is_equivalent_to(envelope));
 
     let expected_elided_format = indoc! {r#"
     ELIDED
@@ -204,7 +204,7 @@ fn test_nesting_once() -> Result<(), Box<dyn Error>> {
         .wrap_envelope()
         .check_encoding()?;
 
-    assert!(elided_envelope.clone().is_equivalent_to(envelope.clone()));
+    assert!(elided_envelope.clone().is_equivalent_to(envelope));
 
     let expected_elided_format = indoc! {r#"
     {
@@ -249,7 +249,7 @@ fn test_nesting_twice() -> Result<(), Box<dyn Error>> {
     "#}.trim();
     assert_eq!(elided_envelope.format(), expected_elided_format);
     assert!(envelope.clone().is_equivalent_to(elided_envelope.clone()));
-    assert!(envelope.clone().is_equivalent_to(elided_envelope.clone()));
+    assert!(envelope.is_equivalent_to(elided_envelope));
 
     Ok(())
 }

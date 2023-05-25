@@ -75,66 +75,42 @@ impl Envelope {
 impl Envelope {
     /// `true` if the envelope is case `::Leaf`, `false` otherwise.
     pub fn is_leaf(&self) -> bool {
-        match self {
-            Envelope::Leaf { .. } => true,
-            _ => false,
-        }
+        matches!(self, Envelope::Leaf { .. })
     }
 
     /// `true` if the envelope is case `::Node`, `false` otherwise.
     pub fn is_node(&self) -> bool {
-        match self {
-            Envelope::Node { .. } => true,
-            _ => false,
-        }
+        matches!(self, Envelope::Node { .. })
     }
 
     /// `true` if the envelope is case `::Wrapped`, `false` otherwise.
     pub fn is_wrapped(&self) -> bool {
-        match self {
-            Envelope::Wrapped { .. } => true,
-            _ => false,
-        }
+        matches!(self, Envelope::Wrapped { .. })
     }
 
     /// `true` if the envelope is case `::KnownValue`, `false` otherwise.
     pub fn is_known_value(&self) -> bool {
-        match self {
-            Envelope::KnownValue { .. } => true,
-            _ => false,
-        }
+        matches!(self, Envelope::KnownValue { .. })
     }
 
     /// `true` if the envelope is case `::Assertion`, `false` otherwise.
     pub fn is_assertion(&self) -> bool {
-        match self {
-            Envelope::Assertion(_) => true,
-            _ => false,
-        }
+        matches!(self, Envelope::Assertion(_))
     }
 
     /// `true` if the envelope is case `::Encrypted`, `false` otherwise.
     pub fn is_encrypted(&self) -> bool {
-        match self {
-            Envelope::Encrypted(_) => true,
-            _ => false,
-        }
+        matches!(self, Envelope::Encrypted(_))
     }
 
     /// `true` if the envelope is case `::Compressed`, `false` otherwise.
     pub fn is_compressed(&self) -> bool {
-        match self {
-            Envelope::Compressed(_) => true,
-            _ => false,
-        }
+        matches!(self, Envelope::Compressed(_))
     }
 
     /// `true` if the envelope is case `::Elided`, `false` otherwise.
     pub fn is_elided(&self) -> bool {
-        match self {
-            Envelope::Elided(_) => true,
-            _ => false,
-        }
+        matches!(self, Envelope::Elided(_))
     }
 }
 
@@ -188,22 +164,12 @@ impl Envelope {
     ///
     /// Internal elements include `.node`, `.wrapped`, and `.assertion`.
     pub fn is_internal(&self) -> bool {
-        match self {
-            Envelope::Node { .. } => true,
-            Envelope::Wrapped { .. } => true,
-            Envelope::Assertion(_) => true,
-            _ => false,
-        }
+        matches!(self, Envelope::Node { .. } | Envelope::Wrapped { .. } | Envelope::Assertion(_))
     }
 
     /// `true` if the envelope is encrypted, elided, or compressed; `false` otherwise.
     pub fn is_obscured(&self) -> bool {
-        match self {
-            Envelope::Encrypted(_) => true,
-            Envelope::Compressed(_) => true,
-            Envelope::Elided(_) => true,
-            _ => false,
-        }
+        matches!(self, Envelope::Encrypted(_) | Envelope::Compressed(_) | Envelope::Elided(_))
     }
 }
 
@@ -233,11 +199,11 @@ impl Envelope {
             Envelope::Wrapped { envelope, .. } => extract_type::<T, Envelope>(&**envelope),
             Envelope::Node { subject, .. } => subject.extract_subject::<T>(),
             Envelope::Leaf { cbor, .. } => Ok(T::from_cbor(cbor).map_err(EnvelopeError::CBORError)?),
-            Envelope::KnownValue { value, .. } => extract_type::<T, KnownValue>(&*value),
-            Envelope::Assertion(assertion) => extract_type::<T, Assertion>(&*assertion),
-            Envelope::Encrypted(encrypted_message) => extract_type::<T, EncryptedMessage>(&*encrypted_message),
-            Envelope::Compressed(compressed) => extract_type::<T, Compressed>(&*compressed),
-            Envelope::Elided(digest) => extract_type::<T, Digest>(&*digest),
+            Envelope::KnownValue { value, .. } => extract_type::<T, KnownValue>(value),
+            Envelope::Assertion(assertion) => extract_type::<T, Assertion>(assertion),
+            Envelope::Encrypted(encrypted_message) => extract_type::<T, EncryptedMessage>(encrypted_message),
+            Envelope::Compressed(compressed) => extract_type::<T, Compressed>(compressed),
+            Envelope::Elided(digest) => extract_type::<T, Digest>(digest),
         }
     }
 }

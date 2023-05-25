@@ -40,7 +40,7 @@ pub enum Parameter {
 
 impl Parameter {
     pub fn new_known(value: u64, name: Option<String>) -> Self {
-        Self::Known(value, name.map(|name| ParameterName::Dynamic(name)))
+        Self::Known(value, name.map(ParameterName::Dynamic))
     }
 
     pub fn new_named(name: String) -> Self {

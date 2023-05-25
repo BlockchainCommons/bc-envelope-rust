@@ -58,7 +58,7 @@ mod tests {
     mod core_encoding_tests;
     mod elision_tests;
 
-    use bc_crypto::sha256;
+    use bc_crypto::hash::sha256;
 
     #[test]
     fn it_works() {

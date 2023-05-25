@@ -66,7 +66,7 @@ pub fn new_envelope_with_unchecked_assertions(subject: Rc<Envelope>, unchecked_a
     let mut digests = vec![subject.digest().into_owned()];
     digests.extend(sorted_assertions.iter().map(|a| a.digest().into_owned()));
     let digest = Digest::from_digests(&digests);
-    Rc::new(Envelope::Node { subject: subject, assertions: sorted_assertions, digest })
+    Rc::new(Envelope::Node { subject, assertions: sorted_assertions, digest })
 }
 
 /// Internal constructors
@@ -159,7 +159,7 @@ impl Envelope {
         let a = &subject;
         let cbor_encodable = a as &dyn CBOREncodable;
         let cbor = cbor_encodable.cbor();
-        return Self::new_leaf(cbor);
+        Self::new_leaf(cbor)
     }
 
     pub fn new_assertion_with_predobj<P: IntoEnvelope, O: IntoEnvelope>(predicate: P, object: O) -> Rc<Self> {
@@ -191,7 +191,7 @@ mod tests {
 
     #[test]
     fn test_any_assertion() {
-        let assertion = Assertion::new(&"knows", &"Bob");
+        let assertion = Assertion::new("knows", "Bob");
         let e1 = Envelope::new_with_assertion(assertion.clone());
         let e2 = Envelope::new(assertion);
         assert_eq!(e1.format(), e2.format());

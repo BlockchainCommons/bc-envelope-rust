@@ -41,7 +41,7 @@ pub enum Function {
 
 impl Function {
     pub fn new_known(value: u64, name: Option<String>) -> Self {
-        Self::Known(value, name.map(|name| FunctionName::Dynamic(name)))
+        Self::Known(value, name.map(FunctionName::Dynamic))
     }
 
     pub fn new_named(name: String) -> Self {

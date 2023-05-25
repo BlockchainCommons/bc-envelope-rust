@@ -149,7 +149,7 @@ mod tests {
         assert_eq!(known_value::IS_A.value(), 2);
         assert_eq!(known_value::IS_A.name(), Some("isA").unwrap());
         let binding = KNOWN_VALUES.get();
-        let known_values = &*binding.as_ref().unwrap();
+        let known_values = binding.as_ref().unwrap();
         assert_eq!(known_values.known_value_named("isA").unwrap().value(), 2);
     }
 }

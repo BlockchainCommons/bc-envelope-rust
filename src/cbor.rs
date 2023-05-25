@@ -105,7 +105,7 @@ impl CBORTaggedDecodable for Envelope {
                     return Err(CBORError::InvalidFormat);
                 }
                 let subject = Envelope::from_tagged_cbor(&elements[0])?;
-                let assertions = elements[1..].iter().map(|item| Envelope::from_tagged_cbor(item)).collect::<Result<Vec<Rc<Envelope>>, CBORError>>()?;
+                let assertions = elements[1..].iter().map(Envelope::from_tagged_cbor).collect::<Result<Vec<Rc<Envelope>>, CBORError>>()?;
                 Ok(Envelope::new_with_assertions(subject, assertions).map_err(|_| CBORError::InvalidFormat)?)
             }
             _ => Err(CBORError::InvalidFormat),
