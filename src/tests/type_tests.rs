@@ -17,7 +17,7 @@ fn test_known_value() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_date() -> Result<(), Box<dyn Error>> {
-    let envelope = Envelope::new_leaf(Date::from_str("2018-01-07").unwrap()).check_encoding()?;
+    let envelope = Envelope::new_leaf(Date::new_from_string("2018-01-07").unwrap()).check_encoding()?;
     assert_eq!(envelope.format(), "2018-01-07");
     Ok(())
 }
