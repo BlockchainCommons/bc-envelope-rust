@@ -2,7 +2,7 @@ use bc_components::{Compressed, Digest, EncryptedMessage, DigestProvider};
 use dcbor::{CBORDecodable, CBOR, CBOREncodable};
 use std::{any::{Any, TypeId}, rc::Rc};
 
-use crate::{Assertion, Envelope, EnvelopeError, KnownValue};
+use crate::{Assertion, Envelope, Error, KnownValue};
 
 impl Envelope {
     /// The envelope's subject.
@@ -177,11 +177,11 @@ impl Envelope {
     /// Returns the envelope's subject, decoded as the given type.
     ///
     /// If the encoded type doesn't match the given type, returns `EnvelopeError::InvalidFormat`.
-    pub fn extract_subject<T>(&self) -> Result<Rc<T>, EnvelopeError>
+    pub fn extract_subject<T>(&self) -> Result<Rc<T>, Error>
     where
         T: Any + CBORDecodable,
     {
-        fn extract_type<T, U>(value: &U) -> Result<Rc<T>, EnvelopeError>
+        fn extract_type<T, U>(value: &U) -> Result<Rc<T>, Error>
         where
             T: Any,
             U: Any + Clone,
@@ -191,14 +191,14 @@ impl Envelope {
                     .downcast::<T>()
                     .unwrap())
             } else {
-                Err(EnvelopeError::InvalidFormat)
+                Err(Error::InvalidFormat)
             }
         }
 
         match self {
             Envelope::Wrapped { envelope, .. } => extract_type::<T, Envelope>(&**envelope),
             Envelope::Node { subject, .. } => subject.extract_subject::<T>(),
-            Envelope::Leaf { cbor, .. } => Ok(T::from_cbor(cbor).map_err(EnvelopeError::CBORError)?),
+            Envelope::Leaf { cbor, .. } => Ok(T::from_cbor(cbor).map_err(Error::CBORError)?),
             Envelope::KnownValue { value, .. } => extract_type::<T, KnownValue>(value),
             Envelope::Assertion(assertion) => extract_type::<T, Assertion>(assertion),
             Envelope::Encrypted(encrypted_message) => extract_type::<T, EncryptedMessage>(encrypted_message),
@@ -238,28 +238,28 @@ impl Envelope {
     /// Returns the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn assertion_with_predicate(self: Rc<Self>, predicate: Rc<Envelope>) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn assertion_with_predicate(self: Rc<Self>, predicate: Rc<Envelope>) -> Result<Rc<Envelope>, Error> {
         let a = self.assertions_with_predicate(predicate);
         if a.is_empty() {
-            Err(EnvelopeError::NonexistentPredicate)
+            Err(Error::NonexistentPredicate)
         } else if a.len() == 1 {
             Ok(a[0].clone())
         } else {
-            Err(EnvelopeError::AmbiguousPredicate)
+            Err(Error::AmbiguousPredicate)
         }
     }
 
     /// Returns the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn assertion_with_predicate_leaf(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn assertion_with_predicate_leaf(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Rc<Envelope>, Error> {
         self.assertion_with_predicate(Envelope::from_cbor_encodable(predicate))
     }
 
     /// Returns the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn assertion_with_predicate_known_value(self: Rc<Self>, predicate: KnownValue) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn assertion_with_predicate_known_value(self: Rc<Self>, predicate: KnownValue) -> Result<Rc<Envelope>, Error> {
         self.assertion_with_predicate(Envelope::new(predicate))
     }
 }
@@ -268,21 +268,21 @@ impl Envelope {
     /// Returns the object of the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn extract_object_for_predicate(self: Rc<Self>, predicate: Rc<Envelope>) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn extract_object_for_predicate(self: Rc<Self>, predicate: Rc<Envelope>) -> Result<Rc<Envelope>, Error> {
         Ok(self.assertion_with_predicate(predicate)?.object().unwrap())
     }
 
     /// Returns the object of the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn extract_object_for_predicate_leaf(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn extract_object_for_predicate_leaf(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Rc<Envelope>, Error> {
         self.extract_object_for_predicate(Envelope::from_cbor_encodable(predicate))
     }
 
     /// Returns the object of the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn extract_object_for_predicate_known_value(self: Rc<Self>, predicate: KnownValue) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn extract_object_for_predicate_known_value(self: Rc<Self>, predicate: KnownValue) -> Result<Rc<Envelope>, Error> {
         self.extract_object_for_predicate(Envelope::new(predicate))
     }
 
@@ -290,7 +290,7 @@ impl Envelope {
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_object<T>(self: Rc<Self>, predicate: Rc<Envelope>) -> Result<Rc<T>, EnvelopeError>
+    pub fn extract_object<T>(self: Rc<Self>, predicate: Rc<Envelope>) -> Result<Rc<T>, Error>
         where T: CBORDecodable + 'static
     {
         self.assertion_with_predicate(predicate)?.object().unwrap().extract_subject()
@@ -300,7 +300,7 @@ impl Envelope {
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_object_cbor<T>(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Rc<T>, EnvelopeError>
+    pub fn extract_object_cbor<T>(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Rc<T>, Error>
         where T: CBORDecodable + 'static
     {
         self.extract_object(Envelope::from_cbor_encodable(predicate))
@@ -310,7 +310,7 @@ impl Envelope {
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_object_known_value<T>(self: Rc<Self>, predicate: KnownValue) -> Result<Rc<T>, EnvelopeError>
+    pub fn extract_object_known_value<T>(self: Rc<Self>, predicate: KnownValue) -> Result<Rc<T>, Error>
         where T: CBORDecodable + 'static
     {
         self.extract_object(Envelope::new(predicate))
@@ -336,7 +336,7 @@ impl Envelope {
     /// Returns the objects of all assertions with the matching predicate.
     ///
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_objects<T>(self: Rc<Self>, predicate: Rc<Envelope>) -> Result<Vec<Rc<T>>, EnvelopeError>
+    pub fn extract_objects<T>(self: Rc<Self>, predicate: Rc<Envelope>) -> Result<Vec<Rc<T>>, Error>
         where T: CBORDecodable
     {
         self.assertions_with_predicate(predicate).into_iter().map(|a| a.object().unwrap().extract_subject()).collect()
@@ -345,7 +345,7 @@ impl Envelope {
     /// Returns the objects of all assertions with the matching predicate.
     ///
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_objects_cbor<T>(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Vec<Rc<T>>, EnvelopeError>
+    pub fn extract_objects_cbor<T>(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Vec<Rc<T>>, Error>
         where T: CBORDecodable
     {
         self.extract_objects(Envelope::from_cbor_encodable(predicate))
@@ -354,7 +354,7 @@ impl Envelope {
     /// Returns the objects of all assertions with the matching predicate.
     ///
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_objects_known_value<T>(self: Rc<Self>, predicate: KnownValue) -> Result<Vec<Rc<T>>, EnvelopeError>
+    pub fn extract_objects_known_value<T>(self: Rc<Self>, predicate: KnownValue) -> Result<Vec<Rc<T>>, Error>
         where T: CBORDecodable
     {
         self.extract_objects(Envelope::new(predicate))

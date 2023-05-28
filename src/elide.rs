@@ -3,7 +3,7 @@ use std::{rc::Rc, collections::HashSet};
 use bc_components::{SymmetricKey, DigestProvider, Digest};
 use dcbor::{CBORTaggedEncodable, CBOREncodable};
 
-use crate::{Envelope, Assertion, envelope::new_envelope_with_unchecked_assertions, EnvelopeError};
+use crate::{Envelope, Assertion, envelope::new_envelope_with_unchecked_assertions, Error};
 
 pub enum ObscureAction {
     Elide,
@@ -281,11 +281,11 @@ impl Envelope {
     /// Returns the unelided variant of this envelope.
     ///
     /// Returns the same envelope if it is already unelided.
-    pub fn unelide(self: Rc<Self>, envelope: Rc<Envelope>) -> Result<Rc<Self>, EnvelopeError> {
+    pub fn unelide(self: Rc<Self>, envelope: Rc<Envelope>) -> Result<Rc<Self>, Error> {
         if self.digest() == envelope.digest() {
             Ok(envelope)
         } else {
-            Err(EnvelopeError::InvalidDigest)
+            Err(Error::InvalidDigest)
         }
     }
 }

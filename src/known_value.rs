@@ -1,7 +1,7 @@
 use std::{fmt::{Formatter, Display}, rc::Rc, borrow::Cow};
 
 use bc_components::{tags_registry, DigestProvider, Digest};
-use dcbor::{CBOR, CBORTagged, Tag, CBOREncodable, CBORDecodable, CBORError, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
+use dcbor::{CBOR, CBORTagged, Tag, CBOREncodable, CBORDecodable, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
 
 // Re-export everything from known_value_registry
 pub use crate::known_value_registry::*;
@@ -109,7 +109,7 @@ impl CBOREncodable for KnownValue {
 }
 
 impl CBORDecodable for KnownValue {
-    fn from_cbor(cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
+    fn from_cbor(cbor: &CBOR) -> Result<Rc<Self>, dcbor::Error> {
         Self::from_tagged_cbor(cbor)
     }
 }
@@ -123,7 +123,7 @@ impl CBORTaggedEncodable for KnownValue {
 }
 
 impl CBORTaggedDecodable for KnownValue {
-    fn from_untagged_cbor(cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
+    fn from_untagged_cbor(cbor: &CBOR) -> Result<Rc<Self>, dcbor::Error> {
         let value = *u64::from_cbor(cbor)?;
         Ok(Rc::new(Self::new(value)))
     }

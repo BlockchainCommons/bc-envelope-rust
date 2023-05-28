@@ -1,7 +1,7 @@
 use std::{rc::Rc, any::{Any, TypeId}};
 use bc_components::{Digest, Compressed, EncryptedMessage, DigestProvider};
 use dcbor::{CBOR, CBOREncodable};
-use crate::{assertion::Assertion, KnownValue, EnvelopeError};
+use crate::{assertion::Assertion, KnownValue, Error};
 
 /// A flexible container for structured data.
 ///
@@ -71,9 +71,9 @@ pub fn new_envelope_with_unchecked_assertions(subject: Rc<Envelope>, unchecked_a
 
 /// Internal constructors
 impl Envelope {
-    pub(crate) fn new_with_assertions(subject: Rc<Envelope>, assertions: Vec<Rc<Envelope>>) -> Result<Rc<Self>, EnvelopeError> {
+    pub(crate) fn new_with_assertions(subject: Rc<Envelope>, assertions: Vec<Rc<Envelope>>) -> Result<Rc<Self>, Error> {
         if !assertions.iter().all(|a| a.is_subject_assertion() || a.is_subject_obscured()) {
-            return Err(EnvelopeError::InvalidFormat);
+            return Err(Error::InvalidFormat);
         }
         Ok(new_envelope_with_unchecked_assertions(subject, assertions))
     }
@@ -87,16 +87,16 @@ impl Envelope {
         Rc::new(Self::KnownValue { value, digest })
     }
 
-    pub(crate) fn new_with_encrypted(encrypted_message: EncryptedMessage) -> Result<Rc<Self>, EnvelopeError> {
+    pub(crate) fn new_with_encrypted(encrypted_message: EncryptedMessage) -> Result<Rc<Self>, Error> {
         if !encrypted_message.has_digest() {
-            return Err(EnvelopeError::MissingDigest);
+            return Err(Error::MissingDigest);
         }
         Ok(Rc::new(Self::Encrypted(encrypted_message)))
     }
 
-    pub(crate) fn new_with_compressed(compressed: Compressed) -> Result<Rc<Self>, EnvelopeError> {
+    pub(crate) fn new_with_compressed(compressed: Compressed) -> Result<Rc<Self>, Error> {
         if !compressed.has_digest() {
-            return Err(EnvelopeError::MissingDigest);
+            return Err(Error::MissingDigest);
         }
         Ok(Rc::new(Self::Compressed(compressed)))
     }

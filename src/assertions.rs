@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use bc_components::DigestProvider;
 
-use crate::{Envelope, EnvelopeError, envelope::{new_envelope_with_unchecked_assertions, IntoEnvelope}};
+use crate::{Envelope, Error, envelope::{new_envelope_with_unchecked_assertions, IntoEnvelope}};
 
 // Support for manipulating assertions.
 
@@ -11,11 +11,11 @@ impl Envelope {
         self.add_assertion_opt(Some(assertion), false).unwrap()
     }
 
-    pub fn add_assertion_opt(self: Rc<Self>, assertion: Option<Rc<Envelope>>, salted: bool) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn add_assertion_opt(self: Rc<Self>, assertion: Option<Rc<Envelope>>, salted: bool) -> Result<Rc<Envelope>, Error> {
         match assertion {
             Some(assertion) => {
                 if !assertion.is_subject_assertion() && !assertion.is_subject_obscured() {
-                    return Err(EnvelopeError::InvalidFormat)
+                    return Err(Error::InvalidFormat)
                 }
                 let envelope2 = if salted {
                     assertion.add_salt()

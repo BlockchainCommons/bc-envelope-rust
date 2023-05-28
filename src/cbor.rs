@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use bc_components::{tags_registry, Digest, EncryptedMessage, Compressed};
 use bc_ur::{UREncodable, URDecodable, URCodable};
-use dcbor::{CBORTagged, CBOREncodable, CBORDecodable, CBORError, CBOR, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable, Tag};
+use dcbor::{CBORTagged, CBOREncodable, CBORDecodable, CBOR, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable, Tag};
 use crate::{Envelope, Assertion, KnownValue};
 
 /// Support for CBOR encoding and decoding of ``Envelope``.
@@ -29,7 +29,7 @@ impl CBOREncodable for Envelope {
 }
 
 impl CBORDecodable for Envelope {
-    fn from_cbor(cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
+    fn from_cbor(cbor: &CBOR) -> Result<Rc<Self>, dcbor::Error> {
         Self::from_tagged_cbor(cbor)
     }
 }
@@ -58,7 +58,7 @@ impl CBORTaggedEncodable for Envelope {
 }
 
 impl CBORTaggedDecodable for Envelope {
-    fn from_untagged_cbor(cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
+    fn from_untagged_cbor(cbor: &CBOR) -> Result<Rc<Self>, dcbor::Error> {
         match cbor {
             CBOR::Tagged(tag, item) => {
                 match tag.value() {
@@ -84,12 +84,12 @@ impl CBORTaggedDecodable for Envelope {
                     },
                     tags_registry::ENCRYPTED_VALUE => {
                         let encrypted = EncryptedMessage::from_untagged_cbor(item)?.as_ref().clone();
-                        let envelope = Envelope::new_with_encrypted(encrypted).map_err(|_| CBORError::InvalidFormat)?;
+                        let envelope = Envelope::new_with_encrypted(encrypted).map_err(|_| dcbor::Error::InvalidFormat)?;
                         Ok(envelope)
                     },
                     tags_registry::COMPRESSED_VALUE => {
                         let compressed = Compressed::from_untagged_cbor(item)?.as_ref().clone();
-                        let envelope = Envelope::new_with_compressed(compressed).map_err(|_| CBORError::InvalidFormat)?;
+                        let envelope = Envelope::new_with_compressed(compressed).map_err(|_| dcbor::Error::InvalidFormat)?;
                         Ok(envelope)
                     },
                     tags_registry::DIGEST_VALUE => {
@@ -97,18 +97,18 @@ impl CBORTaggedDecodable for Envelope {
                         let envelope = Envelope::new_elided(digest);
                         Ok(envelope)
                     },
-                    _ => Err(CBORError::InvalidFormat),
+                    _ => Err(dcbor::Error::InvalidFormat),
                 }
             }
             CBOR::Array(elements) => {
                 if elements.len() < 2 {
-                    return Err(CBORError::InvalidFormat);
+                    return Err(dcbor::Error::InvalidFormat);
                 }
                 let subject = Envelope::from_tagged_cbor(&elements[0])?;
-                let assertions = elements[1..].iter().map(Envelope::from_tagged_cbor).collect::<Result<Vec<Rc<Envelope>>, CBORError>>()?;
-                Ok(Envelope::new_with_assertions(subject, assertions).map_err(|_| CBORError::InvalidFormat)?)
+                let assertions = elements[1..].iter().map(Envelope::from_tagged_cbor).collect::<Result<Vec<Rc<Envelope>>, dcbor::Error>>()?;
+                Ok(Envelope::new_with_assertions(subject, assertions).map_err(|_| dcbor::Error::InvalidFormat)?)
             }
-            _ => Err(CBORError::InvalidFormat),
+            _ => Err(dcbor::Error::InvalidFormat),
         }
     }
 }

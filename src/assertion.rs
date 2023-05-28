@@ -1,7 +1,7 @@
 use std::{rc::Rc, any::{Any, TypeId}, borrow::Cow};
 
 use bc_components::{Digest, DigestProvider, tags_registry};
-use dcbor::{CBORTagged, Tag, CBOR, CBOREncodable, CBORDecodable, CBORError, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
+use dcbor::{CBORTagged, Tag, CBOR, CBOREncodable, CBORDecodable, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
 
 use crate::envelope::{Envelope, IntoEnvelope};
 
@@ -80,7 +80,7 @@ impl CBOREncodable for Assertion {
 }
 
 impl CBORDecodable for Assertion {
-    fn from_cbor(cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
+    fn from_cbor(cbor: &CBOR) -> Result<Rc<Self>, dcbor::Error> {
         Self::from_tagged_cbor(cbor)
     }
 }
@@ -94,10 +94,10 @@ impl CBORTaggedEncodable for Assertion {
 }
 
 impl CBORTaggedDecodable for Assertion {
-    fn from_untagged_cbor(cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
+    fn from_untagged_cbor(cbor: &CBOR) -> Result<Rc<Self>, dcbor::Error> {
         let array: Rc<Vec<Envelope>> = Vec::<Envelope>::from_cbor(cbor)?;
         if array.len() != 2 {
-            return Err(CBORError::InvalidFormat);
+            return Err(dcbor::Error::InvalidFormat);
         }
         Ok(Rc::new(Self::new(array[0].clone(), array[1].clone())))
     }

@@ -4,6 +4,7 @@ mod assertions;
 mod cbor;
 mod compress;
 mod digest;
+mod encrypt;
 mod format;
 mod function_registry;
 mod known_value_registry;
@@ -22,8 +23,8 @@ pub use crate::envelope::Envelope;
 mod format_context;
 pub use format_context::{FormatContext, FORMAT_CONTEXT};
 
-mod envelope_error;
-pub use envelope_error::EnvelopeError;
+mod error;
+pub use error::Error;
 
 mod walk;
 pub use walk::{EdgeType, Visitor};
@@ -57,6 +58,7 @@ mod tests {
     mod core_nesting_tests;
     mod core_encoding_tests;
     mod elision_tests;
+    mod encrypted_tests;
 
     use bc_crypto::hash::sha256;
 

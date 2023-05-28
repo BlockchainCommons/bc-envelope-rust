@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use bc_components::tags_registry;
-use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable, CBORError};
+use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
 pub use crate::parameter_registry::*;
 use crate::KnownParameters;
 
@@ -116,17 +116,17 @@ impl CBORTaggedEncodable for Parameter {
 }
 
 impl CBORDecodable for Parameter {
-    fn from_cbor(cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
+    fn from_cbor(cbor: &CBOR) -> Result<Rc<Self>, dcbor::Error> {
         Self::from_tagged_cbor(cbor)
     }
 }
 
 impl CBORTaggedDecodable for Parameter {
-    fn from_untagged_cbor(untagged_cbor: &CBOR) -> Result<Rc<Self>, CBORError> {
+    fn from_untagged_cbor(untagged_cbor: &CBOR) -> Result<Rc<Self>, dcbor::Error> {
         match untagged_cbor {
             CBOR::Unsigned(value) => Ok(Rc::new(Self::new_known(*value, None))),
             CBOR::Text(name) => Ok(Rc::new(Self::new_named(name.clone()))),
-            _ => Err(CBORError::InvalidFormat),
+            _ => Err(dcbor::Error::InvalidFormat),
         }
     }
 }
