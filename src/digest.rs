@@ -46,7 +46,7 @@ impl Envelope {
     /// * A set of digests down to `levelLimit`.
     pub fn digests(self: Rc<Self>, level_limit: usize) -> HashSet<Digest> {
         let result = RefCell::new(HashSet::new());
-        let visitor = |envelope: Rc<Envelope>, level: usize, _: EdgeType, _: Option<&()>| -> _ {
+        let visitor = |envelope: Rc<Self>, level: usize, _: EdgeType, _: Option<&()>| -> _ {
             if level < level_limit {
                 let mut result = result.borrow_mut();
                 result.insert(envelope.digest().into_owned());
@@ -95,7 +95,7 @@ impl Envelope {
     /// the compared envelopes are not semantically equivalent.
     pub fn structural_digest(self: Rc<Self>) -> Digest {
         let image = RefCell::new(Vec::new());
-        let visitor = |envelope: Rc<Envelope>, _: usize, _: EdgeType, _: Option<&()>| -> _ {
+        let visitor = |envelope: Rc<Self>, _: usize, _: EdgeType, _: Option<&()>| -> _ {
             // Add a discriminator to the image for the obscured cases.
             match &*envelope {
                 Envelope::Encrypted(_) => image.borrow_mut().push(0),
@@ -118,7 +118,7 @@ impl Envelope {
     /// the two envelope's digests. The means that two envelopes with certain structural
     /// differences (e.g., one envelope is partially elided and the other is not) will
     /// still test as equivalent.
-    pub fn is_equivalent_to(self: Rc<Self>, other: Rc<Envelope>) -> bool {
+    pub fn is_equivalent_to(self: Rc<Self>, other: Rc<Self>) -> bool {
         self.digest() == other.digest()
     }
 
@@ -129,7 +129,7 @@ impl Envelope {
     /// thus they *must* have different structures) and a complexity of `O(m + n)` where
     /// `m` and `n` are the number of elements in each of the two envelopes when they
     /// *are* semantically equivalent.
-    pub fn is_identical_to(self: Rc<Self>, other: Rc<Envelope>) -> bool {
+    pub fn is_identical_to(self: Rc<Self>, other: Rc<Self>) -> bool {
         if !self.clone().is_equivalent_to(other.clone()) {
             return true;
         }

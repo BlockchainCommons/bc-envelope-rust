@@ -9,13 +9,13 @@ use crate::{assertion::Assertion, KnownValue, Error};
 #[derive(Clone, Debug)]
 pub enum Envelope {
     /// Represents an envelope with one or more assertions.
-    Node { subject: Rc<Envelope>, assertions: Vec<Rc<Envelope>>, digest: Digest },
+    Node { subject: Rc<Self>, assertions: Vec<Rc<Self>>, digest: Digest },
 
     /// Represents an envelope with encoded CBOR data.
     Leaf { cbor: CBOR, digest: Digest },
 
     /// Represents an envelope that wraps another envelope.
-    Wrapped { envelope: Rc<Envelope>, digest: Digest },
+    Wrapped { envelope: Rc<Self>, digest: Digest },
 
     /// Represents a value from a namespace of unsigned integers.
     KnownValue { value: KnownValue, digest: Digest },
@@ -71,7 +71,7 @@ pub fn new_envelope_with_unchecked_assertions(subject: Rc<Envelope>, unchecked_a
 
 /// Internal constructors
 impl Envelope {
-    pub(crate) fn new_with_assertions(subject: Rc<Envelope>, assertions: Vec<Rc<Envelope>>) -> Result<Rc<Self>, Error> {
+    pub(crate) fn new_with_assertions(subject: Rc<Self>, assertions: Vec<Rc<Self>>) -> Result<Rc<Self>, Error> {
         if !assertions.iter().all(|a| a.is_subject_assertion() || a.is_subject_obscured()) {
             return Err(Error::InvalidFormat);
         }
@@ -111,7 +111,7 @@ impl Envelope {
         Rc::new(Self::Leaf { cbor, digest })
     }
 
-    pub(crate) fn new_wrapped(envelope: Rc<Envelope>) -> Rc<Self> {
+    pub(crate) fn new_wrapped(envelope: Rc<Self>) -> Rc<Self> {
         let digest = Digest::from_digests(&[envelope.digest().into_owned()]);
         Rc::new(Self::Wrapped { envelope, digest })
     }
@@ -128,8 +128,8 @@ impl Envelope {
     /// If the subject is any type conforming to `CBOREncodable`, then a leaf envelope is created.
     /// Any other type passed as `subject` is a programmer error and results in a panic.
     pub fn new<S: IntoEnvelope>(subject: S) -> Rc<Self> {
-        if TypeId::of::<S>() == TypeId::of::<Rc<Envelope>>() {
-            return Self::new_wrapped((&subject as &dyn Any).downcast_ref::<Rc<Envelope>>().unwrap().clone())
+        if TypeId::of::<S>() == TypeId::of::<Rc<Self>>() {
+            return Self::new_wrapped((&subject as &dyn Any).downcast_ref::<Rc<Self>>().unwrap().clone())
         }
 
         if TypeId::of::<S>() == TypeId::of::<Envelope>() {

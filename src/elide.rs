@@ -1,6 +1,6 @@
 use std::{rc::Rc, collections::HashSet};
 
-use bc_components::{SymmetricKey, DigestProvider, Digest};
+use bc_components::{SymmetricKey, DigestProvider, Digest, Nonce};
 use dcbor::{CBORTaggedEncodable, CBOREncodable};
 
 use crate::{Envelope, Assertion, envelope::new_envelope_with_unchecked_assertions, Error};
@@ -32,7 +32,7 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_removing_set_with_action(self: Rc<Self>, target: &HashSet<Digest>, action: &ObscureAction) -> Rc<Envelope> {
+    pub fn elide_removing_set_with_action(self: Rc<Self>, target: &HashSet<Digest>, action: &ObscureAction) -> Rc<Self> {
         self.elide_set_with_action(target, false, action)
     }
 
@@ -43,7 +43,7 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_removing_set(self: Rc<Self>, target: &HashSet<Digest>) -> Rc<Envelope> {
+    pub fn elide_removing_set(self: Rc<Self>, target: &HashSet<Digest>) -> Rc<Self> {
         self.elide_set(target, false)
     }
 
@@ -54,7 +54,7 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_removing_array_with_action(self: Rc<Self>, target: &[&dyn DigestProvider], action: &ObscureAction) -> Rc<Envelope> {
+    pub fn elide_removing_array_with_action(self: Rc<Self>, target: &[&dyn DigestProvider], action: &ObscureAction) -> Rc<Self> {
         self.elide_array_with_action(target, false, action)
     }
 
@@ -65,7 +65,7 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_removing_array(self: Rc<Self>, target: &[&dyn DigestProvider]) -> Rc<Envelope> {
+    pub fn elide_removing_array(self: Rc<Self>, target: &[&dyn DigestProvider]) -> Rc<Self> {
         self.elide_array(target, false)
     }
 
@@ -76,7 +76,7 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_removing_target_with_action(self: Rc<Self>, target: &dyn DigestProvider, action: &ObscureAction) -> Rc<Envelope> {
+    pub fn elide_removing_target_with_action(self: Rc<Self>, target: &dyn DigestProvider, action: &ObscureAction) -> Rc<Self> {
         self.elide_target_with_action(target, false, action)
     }
 
@@ -86,7 +86,7 @@ impl Envelope {
     ///   - target: A `DigestProvider`.
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_removing_target(self: Rc<Self>, target: &dyn DigestProvider) -> Rc<Envelope> {
+    pub fn elide_removing_target(self: Rc<Self>, target: &dyn DigestProvider) -> Rc<Self> {
         self.elide_target(target, false)
     }
 
@@ -97,7 +97,7 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_revealing_set_with_action(self: Rc<Self>, target: &HashSet<Digest>, action: &ObscureAction) -> Rc<Envelope> {
+    pub fn elide_revealing_set_with_action(self: Rc<Self>, target: &HashSet<Digest>, action: &ObscureAction) -> Rc<Self> {
         self.elide_set_with_action(target, true, action)
     }
 
@@ -107,7 +107,7 @@ impl Envelope {
     ///   - target: The target set of digests.
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_revealing_set(self: Rc<Self>, target: &HashSet<Digest>) -> Rc<Envelope> {
+    pub fn elide_revealing_set(self: Rc<Self>, target: &HashSet<Digest>) -> Rc<Self> {
         self.elide_set(target, true)
     }
 
@@ -118,7 +118,7 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_revealing_array_with_action(self: Rc<Self>, target: &[&dyn DigestProvider], action: &ObscureAction) -> Rc<Envelope> {
+    pub fn elide_revealing_array_with_action(self: Rc<Self>, target: &[&dyn DigestProvider], action: &ObscureAction) -> Rc<Self> {
         self.elide_array_with_action(target, true, action)
     }
 
@@ -128,7 +128,7 @@ impl Envelope {
     ///   - target: An array of `DigestProvider`s.
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_revealing_array(self: Rc<Self>, target: &[&dyn DigestProvider]) -> Rc<Envelope> {
+    pub fn elide_revealing_array(self: Rc<Self>, target: &[&dyn DigestProvider]) -> Rc<Self> {
         self.elide_array(target, true)
     }
 
@@ -139,7 +139,7 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_revealing_target_with_action(self: Rc<Self>, target: &dyn DigestProvider, action: &ObscureAction) -> Rc<Envelope> {
+    pub fn elide_revealing_target_with_action(self: Rc<Self>, target: &dyn DigestProvider, action: &ObscureAction) -> Rc<Self> {
         self.elide_target_with_action(target, true, action)
     }
 
@@ -149,7 +149,7 @@ impl Envelope {
     ///   - target: A `DigestProvider`.
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_revealing_target(self: Rc<Self>, target: &dyn DigestProvider) -> Rc<Envelope> {
+    pub fn elide_revealing_target(self: Rc<Self>, target: &dyn DigestProvider) -> Rc<Self> {
         self.elide_target(target, true)
     }
 }
@@ -173,13 +173,13 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_set_with_action(self: Rc<Self>, target: &HashSet<Digest>, is_revealing: bool, action: &ObscureAction) -> Rc<Envelope> {
+    pub fn elide_set_with_action(self: Rc<Self>, target: &HashSet<Digest>, is_revealing: bool, action: &ObscureAction) -> Rc<Self> {
         let self_digest = self.digest().into_owned();
         if target.contains(&self_digest) != is_revealing {
             match action {
                 ObscureAction::Elide => self.elide(),
                 ObscureAction::Encrypt(key) => {
-                    let message = key.encrypt(self.tagged_cbor().cbor_data(), self_digest);
+                    let message = key.encrypt(self.tagged_cbor().cbor_data(), Some((&self_digest).into()), None::<Nonce>);
                     Envelope::new_with_encrypted(message).unwrap()
                 },
                 ObscureAction::Compress => self.compress(),
@@ -217,7 +217,7 @@ impl Envelope {
     ///   elements to elide.
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_set(self: Rc<Self>, target: &HashSet<Digest>, is_revealing: bool) -> Rc<Envelope> {
+    pub fn elide_set(self: Rc<Self>, target: &HashSet<Digest>, is_revealing: bool) -> Rc<Self> {
         self.elide_set_with_action(target, is_revealing, &ObscureAction::Elide)
     }
 
@@ -231,7 +231,7 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_array_with_action(self: Rc<Self>, target: &[&dyn DigestProvider], is_revealing: bool, action: &ObscureAction) -> Rc<Envelope> {
+    pub fn elide_array_with_action(self: Rc<Self>, target: &[&dyn DigestProvider], is_revealing: bool, action: &ObscureAction) -> Rc<Self> {
         self.elide_set_with_action(&target.iter().map(|provider| provider.digest().into_owned()).collect(), is_revealing, action)
     }
 
@@ -244,7 +244,7 @@ impl Envelope {
     ///   elements to elide.
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_array(self: Rc<Self>, target: &[&dyn DigestProvider], is_revealing: bool) -> Rc<Envelope> {
+    pub fn elide_array(self: Rc<Self>, target: &[&dyn DigestProvider], is_revealing: bool) -> Rc<Self> {
         self.elide_array_with_action(target, is_revealing, &ObscureAction::Elide)
     }
 
@@ -258,7 +258,7 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_target_with_action(self: Rc<Self>, target: &dyn DigestProvider, is_revealing: bool, action: &ObscureAction) -> Rc<Envelope> {
+    pub fn elide_target_with_action(self: Rc<Self>, target: &dyn DigestProvider, is_revealing: bool, action: &ObscureAction) -> Rc<Self> {
         self.elide_array_with_action(&[target], is_revealing, action)
     }
 
@@ -271,7 +271,7 @@ impl Envelope {
     ///   others revealed.
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_target(self: Rc<Self>, target: &dyn DigestProvider, is_revealing: bool) -> Rc<Envelope> {
+    pub fn elide_target(self: Rc<Self>, target: &dyn DigestProvider, is_revealing: bool) -> Rc<Self> {
         self.elide_target_with_action(target, is_revealing, &ObscureAction::Elide)
     }
 }
@@ -281,7 +281,7 @@ impl Envelope {
     /// Returns the unelided variant of this envelope.
     ///
     /// Returns the same envelope if it is already unelided.
-    pub fn unelide(self: Rc<Self>, envelope: Rc<Envelope>) -> Result<Rc<Self>, Error> {
+    pub fn unelide(self: Rc<Self>, envelope: Rc<Self>) -> Result<Rc<Self>, Error> {
         if self.digest() == envelope.digest() {
             Ok(envelope)
         } else {
