@@ -23,7 +23,7 @@ impl Envelope {
 
     pub fn encrypt_subject_opt(self: Rc<Self>, key: &SymmetricKey, test_nonce: Option<Nonce>) -> Result<Rc<Envelope>, Error> {
         let result: Rc<Envelope>;
-        let original_digest: Digest;
+        let original_digest: Cow<Digest>;
 
         match &*self {
             Envelope::Node { subject, assertions, .. } => {
@@ -31,7 +31,7 @@ impl Envelope {
                     return Err(Error::AlreadyEncrypted);
                 }
                 let encoded_cbor = subject.cbor_data();
-                let digest = subject.digest().into_owned();
+                let digest = subject.digest();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
                 let encrypted_subject = Self::new_with_encrypted(encrypted_message)?;
                 result = new_envelope_with_unchecked_assertions(encrypted_subject, assertions.clone());
@@ -41,22 +41,22 @@ impl Envelope {
                 let encoded_cbor = cbor.cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message)?;
-                original_digest = digest.clone();
+                original_digest = Cow::Borrowed(digest);
             }
             Envelope::Wrapped { digest, .. } => {
                 let encoded_cbor = self.untagged_cbor().cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message)?;
-                original_digest = digest.clone();
+                original_digest = Cow::Borrowed(digest);
             }
             Envelope::KnownValue { value, digest } => {
                 let encoded_cbor = value.cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message)?;
-                original_digest = digest.clone();
+                original_digest = Cow::Borrowed(digest);
             }
             Envelope::Assertion(assertion) => {
-                let digest = assertion.digest().into_owned();
+                let digest = assertion.digest();
                 let encoded_cbor = assertion.cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message)?;
@@ -66,7 +66,7 @@ impl Envelope {
                 return Err(Error::AlreadyEncrypted);
             }
             Envelope::Compressed(compressed) => {
-                let digest = compressed.digest().into_owned();
+                let digest = compressed.digest();
                 let encoded_cbor = compressed.tagged_cbor().cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message)?;
@@ -76,7 +76,7 @@ impl Envelope {
                 return Err(Error::AlreadyElided);
             }
         }
-        assert_eq!(*result.digest(), original_digest);
+        assert_eq!(result.digest(), original_digest);
         Ok(result)
     }
 /*
