@@ -82,6 +82,10 @@ impl CBORTaggedDecodable for Envelope {
                         let envelope = Envelope::new_with_assertion(assertion);
                         Ok(envelope)
                     },
+                    tags_registry::ENVELOPE_VALUE => {
+                        let envelope = Envelope::from_untagged_cbor(item)?;
+                        Ok(envelope)
+                    },
                     tags_registry::ENCRYPTED_VALUE => {
                         let encrypted = EncryptedMessage::from_untagged_cbor(item)?.as_ref().clone();
                         let envelope = Envelope::new_with_encrypted(encrypted).map_err(|_| dcbor::Error::InvalidFormat)?;

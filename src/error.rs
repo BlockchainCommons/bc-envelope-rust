@@ -4,7 +4,6 @@ pub enum Error {
     AlreadyElided,
     AlreadyEncrypted,
     AmbiguousPredicate,
-    CBORError(dcbor::Error),
     InvalidDigest,
     InvalidFormat,
     InvalidKey,
@@ -13,6 +12,8 @@ pub enum Error {
     NotCompressed,
     NotEncrypted,
     NotWrapped,
+    CBORError(dcbor::Error),
+    CryptoError(bc_crypto::Error),
 }
 
 impl std::fmt::Display for Error {

@@ -232,9 +232,6 @@ fn test_nesting_twice() -> Result<(), Box<dyn Error>> {
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
 
-    let e2 = envelope.clone();
-    println!("{}", e2.format());
-
     let target = envelope.clone()
         .unwrap_envelope()?
         .unwrap_envelope()?;
