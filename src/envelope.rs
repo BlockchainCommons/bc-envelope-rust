@@ -213,7 +213,7 @@ impl Envelope {
 }
 
 impl Envelope {
-    pub fn new_assertion_with_predobj<P: Enclosable + 'static, O: Enclosable + 'static>(predicate: P, object: O) -> Rc<Self> {
+    pub fn new_assertion_with_predobj(predicate: Rc<Self>, object: Rc<Self>) -> Rc<Self> {
         Rc::new(Self::new_with_assertion(Assertion::new(predicate, object)))
     }
 }
@@ -242,7 +242,7 @@ mod tests {
 
     #[test]
     fn test_any_assertion() {
-        let assertion = Assertion::new("knows", "Bob");
+        let assertion = Assertion::new("knows".enclose(), "Bob".enclose());
         let e1 = Envelope::new_with_assertion(assertion.clone());
         let e2 = assertion.enclose();
         assert_eq!(e1.format(), e2.format());

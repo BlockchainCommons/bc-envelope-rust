@@ -50,9 +50,9 @@ fn test_2() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_3() -> Result<(), Box<dyn Error>> {
-    let e1 = Envelope::new_assertion_with_predobj("A", "B");
-    let e2 = Envelope::new_assertion_with_predobj("C", "D");
-    let e3 = Envelope::new_assertion_with_predobj("E", "F");
+    let e1 = Envelope::new_assertion_with_predobj("A".enclose(), "B".enclose());
+    let e2 = Envelope::new_assertion_with_predobj("C".enclose(), "D".enclose());
+    let e3 = Envelope::new_assertion_with_predobj("E".enclose(), "F".enclose());
 
     let e4 = e2.add_assertion(e3);
     assert_eq!(e4.format(),

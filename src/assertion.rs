@@ -1,9 +1,9 @@
-use std::{rc::Rc, any::{Any, TypeId}, borrow::Cow};
+use std::{rc::Rc, borrow::Cow};
 
 use bc_components::{Digest, DigestProvider, tags_registry};
 use dcbor::{CBORTagged, Tag, CBOR, CBOREncodable, CBORDecodable, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
 
-use crate::envelope::{Envelope, Enclosable};
+use crate::envelope::Envelope;
 
 /// Represents an assertion.
 #[derive(Clone, Debug)]
@@ -15,29 +15,11 @@ pub struct Assertion {
 
 impl Assertion {
     /// Creates an assertion and calculates its digest.
-    pub fn new<P: Enclosable + 'static, O: Enclosable + 'static>(predicate: P, object: O) -> Self {
-        let p_type = TypeId::of::<P>();
-        let p = if p_type == TypeId::of::<Rc<Envelope>>() {
-            (&predicate as &dyn Any).downcast_ref::<Rc<Envelope>>().unwrap().clone()
-        } else if p_type == TypeId::of::<Envelope>() {
-            Rc::new((&predicate as &dyn Any).downcast_ref::<Envelope>().unwrap().clone())
-        } else {
-            predicate.enclose()
-        };
-
-        let o_type = TypeId::of::<O>();
-        let o = if o_type == TypeId::of::<Rc<Envelope>>() {
-            (&object as &dyn Any).downcast_ref::<Rc<Envelope>>().unwrap().clone()
-        } else if o_type == TypeId::of::<Envelope>() {
-            Rc::new((&object as &dyn Any).downcast_ref::<Envelope>().unwrap().clone())
-        } else {
-            object.enclose()
-        };
-
-        let digest = Digest::from_digests(&[p.digest().into_owned(), o.digest().into_owned()]);
+    pub fn new(predicate: Rc<Envelope>, object: Rc<Envelope>) -> Self {
+        let digest = Digest::from_digests(&[predicate.digest().into_owned(), object.digest().into_owned()]);
         Self {
-            predicate: p,
-            object: o,
+            predicate,
+            object,
             digest
         }
     }
@@ -97,7 +79,7 @@ impl CBORTaggedEncodable for Assertion {
 
 impl CBORTaggedDecodable for Assertion {
     fn from_untagged_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
-        let array: Vec<Envelope> = Vec::<Envelope>::from_cbor(cbor)?;
+        let array: Vec<Rc<Envelope>> = Vec::<Envelope>::from_cbor(cbor)?.into_iter().map(Rc::new).collect();
         if array.len() != 2 {
             return Err(dcbor::Error::InvalidFormat);
         }

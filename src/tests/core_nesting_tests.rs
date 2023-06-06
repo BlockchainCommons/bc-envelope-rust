@@ -254,9 +254,9 @@ fn test_nesting_twice() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_assertions_on_all_parts_of_envelope() -> Result<(), Box<dyn Error>> {
     let predicate = "predicate".enclose()
-        .add_assertion_with_predobj("predicate-predicate", "predicate-object");
+        .add_assertion_with_predobj("predicate-predicate".enclose(), "predicate-object".enclose());
     let object = "object".enclose()
-        .add_assertion_with_predobj("object-predicate", "object-object");
+        .add_assertion_with_predobj("object-predicate".enclose(), "object-object".enclose());
     let envelope = "subject".enclose()
         .add_assertion_with_predobj(predicate, object)
         .check_encoding()?;
@@ -278,8 +278,8 @@ fn test_assertions_on_all_parts_of_envelope() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_assertion_on_bare_assertion() -> Result<(), Box<dyn Error>> {
-    let envelope = Envelope::new_assertion_with_predobj("predicate", "object")
-        .add_assertion_with_predobj("assertion-predicate", "assertion-object");
+    let envelope = Envelope::new_assertion_with_predobj("predicate".enclose(), "object".enclose())
+        .add_assertion_with_predobj("assertion-predicate".enclose(), "assertion-object".enclose());
     let expected_format = indoc! {r#"
     {
         "predicate": "object"

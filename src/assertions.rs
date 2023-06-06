@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use bc_components::DigestProvider;
 
-use crate::{Envelope, Error, envelope::Enclosable};
+use crate::{Envelope, Error};
 
 // Support for manipulating assertions.
 
@@ -40,13 +40,12 @@ impl Envelope {
         }
     }
 
-    pub fn add_assertion_with_predobj_salted<P: Enclosable + 'static, O: Enclosable + 'static>(self: Rc<Self>, predicate: P, object: O, salted: bool) -> Rc<Self>
-    {
+    pub fn add_assertion_with_predobj_salted(self: Rc<Self>, predicate: Rc<Self>, object: Rc<Self>, salted: bool) -> Rc<Self> {
         let assertion = Self::new_assertion_with_predobj(predicate, object);
         self.add_assertion_opt(Some(assertion), salted).unwrap()
     }
 
-    pub fn add_assertion_with_predobj<P: Enclosable + 'static, O: Enclosable + 'static>(self: Rc<Self>, predicate: P, object: O) -> Rc<Self> {
+    pub fn add_assertion_with_predobj(self: Rc<Self>, predicate: Rc<Self>, object: Rc<Self>) -> Rc<Self> {
         self.add_assertion_with_predobj_salted(predicate, object, false)
     }
 }

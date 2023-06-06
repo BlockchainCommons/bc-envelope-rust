@@ -13,17 +13,17 @@ fn known_value_envelope() -> Rc<Envelope> {
 }
 
 fn assertion_envelope() -> Rc<Envelope> {
-    Envelope::new_assertion_with_predobj("knows", "Bob")
+    Envelope::new_assertion_with_predobj("knows".enclose(), "Bob".enclose())
 }
 
 fn single_assertion_envelope() -> Rc<Envelope> {
     "Alice".enclose()
-        .add_assertion_with_predobj("knows", "Bob")
+        .add_assertion_with_predobj("knows".enclose(), "Bob".enclose())
 }
 
 fn double_assertion_envelope() -> Rc<Envelope> {
     single_assertion_envelope()
-        .add_assertion_with_predobj("knows", "Carol")
+        .add_assertion_with_predobj("knows".enclose(), "Carol".enclose())
 }
 
 fn wrapped_envelope() -> Rc<Envelope> {
