@@ -7,11 +7,23 @@ use crate::{Envelope, Error};
 // Support for manipulating assertions.
 
 impl Envelope {
-    pub fn add_assertion(self: Rc<Self>, assertion: Rc<Self>) -> Rc<Self> {
-        self.add_assertion_opt(Some(assertion), false).unwrap()
+    pub fn add_assertion_envelope(self: Rc<Self>, assertion_envelope: Rc<Self>) -> Rc<Self> {
+        self.add_assertion_envelope_salted(assertion_envelope, false).unwrap()
     }
 
-    pub fn add_assertion_opt(self: Rc<Self>, assertion: Option<Rc<Self>>, salted: bool) -> Result<Rc<Self>, Error> {
+    pub fn add_assertion_envelope_salted(self: Rc<Self>, assertion_envelope: Rc<Self>, salted: bool) -> Result<Rc<Self>, Error> {
+        self.add_optional_assertion_envelope_salted(Some(assertion_envelope), salted)
+    }
+
+    pub fn add_assertion_envelopes(self: Rc<Self>, assertions: &[Rc<Self>]) -> Rc<Self> {
+        assertions.iter().fold(self, |acc, assertion| acc.add_assertion_envelope(assertion.clone()))
+    }
+
+    pub fn add_optional_assertion_envelope(self: Rc<Self>, assertion: Option<Rc<Self>>) -> Rc<Self> {
+        self.add_optional_assertion_envelope_salted(assertion, false).unwrap()
+    }
+
+    pub fn add_optional_assertion_envelope_salted(self: Rc<Self>, assertion: Option<Rc<Self>>, salted: bool) -> Result<Rc<Self>, Error> {
         match assertion {
             Some(assertion) => {
                 if !assertion.is_subject_assertion() && !assertion.is_subject_obscured() {
@@ -40,12 +52,12 @@ impl Envelope {
         }
     }
 
-    pub fn add_assertion_with_predobj_salted(self: Rc<Self>, predicate: Rc<Self>, object: Rc<Self>, salted: bool) -> Rc<Self> {
-        let assertion = Self::new_assertion_with_predobj(predicate, object);
-        self.add_assertion_opt(Some(assertion), salted).unwrap()
+    pub fn add_assertion_salted(self: Rc<Self>, predicate: Rc<Self>, object: Rc<Self>, salted: bool) -> Rc<Self> {
+        let assertion = Self::new_assertion(predicate, object);
+        self.add_optional_assertion_envelope_salted(Some(assertion), salted).unwrap()
     }
 
-    pub fn add_assertion_with_predobj(self: Rc<Self>, predicate: Rc<Self>, object: Rc<Self>) -> Rc<Self> {
-        self.add_assertion_with_predobj_salted(predicate, object, false)
+    pub fn add_assertion(self: Rc<Self>, predicate: Rc<Self>, object: Rc<Self>) -> Rc<Self> {
+        self.add_assertion_salted(predicate, object, false)
     }
 }

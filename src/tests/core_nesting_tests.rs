@@ -11,21 +11,21 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     let a = "A".enclose();
     let b = "B".enclose();
 
-    let knows_bob = Envelope::new_assertion_with_predobj(knows.clone(), bob.clone());
+    let knows_bob = Envelope::new_assertion(knows.clone(), bob.clone());
     assert_eq!(knows_bob.format(),
     indoc! {r#"
     "knows": "Bob"
     "#}.trim()
     );
 
-    let ab = Envelope::new_assertion_with_predobj(a, b);
+    let ab = Envelope::new_assertion(a, b);
     assert_eq!(ab.format(),
     indoc! {r#"
     "A": "B"
     "#}.trim()
     );
 
-    let knows_ab_bob = Envelope::new_assertion_with_predobj(knows.clone().add_assertion(ab.clone()), bob.clone()).check_encoding()?;
+    let knows_ab_bob = Envelope::new_assertion(knows.clone().add_assertion_envelope(ab.clone()), bob.clone()).check_encoding()?;
     assert_eq!(knows_ab_bob.format(),
     indoc! {r#"
     "knows" [
@@ -35,7 +35,7 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     "#}.trim()
     );
 
-    let knows_bob_ab = Envelope::new_assertion_with_predobj(knows.clone(), bob.clone().add_assertion(ab.clone())).check_encoding()?;
+    let knows_bob_ab = Envelope::new_assertion(knows.clone(), bob.clone().add_assertion_envelope(ab.clone())).check_encoding()?;
     assert_eq!(knows_bob_ab.format(),
     indoc! {r#"
     "knows": "Bob" [
@@ -45,7 +45,7 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     );
 
     let knows_bob_enclose_ab = knows_bob.clone()
-        .add_assertion(ab.clone())
+        .add_assertion_envelope(ab.clone())
         .check_encoding()?;
     assert_eq!(knows_bob_enclose_ab.format(),
     indoc! {r#"
@@ -58,7 +58,7 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     );
 
     let alice_knows_bob = alice.clone()
-        .add_assertion(knows_bob)
+        .add_assertion_envelope(knows_bob)
         .check_encoding()?;
     assert_eq!(alice_knows_bob.format(),
     indoc! {r#"
@@ -69,7 +69,7 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     );
 
     let alice_ab_knows_bob = alice_knows_bob
-        .add_assertion(ab.clone())
+        .add_assertion_envelope(ab.clone())
         .check_encoding()?;
     assert_eq!(alice_ab_knows_bob.format(),
     indoc! {r#"
@@ -81,7 +81,7 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     );
 
     let alice_knows_ab_bob = alice.clone()
-        .add_assertion(Envelope::new_assertion_with_predobj(knows.clone().add_assertion(ab.clone()), bob.clone()))
+        .add_assertion_envelope(Envelope::new_assertion(knows.clone().add_assertion_envelope(ab.clone()), bob.clone()))
         .check_encoding()?;
     assert_eq!(alice_knows_ab_bob.format(),
     indoc! {r#"
@@ -95,7 +95,7 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     );
 
     let alice_knows_bob_ab = alice.clone()
-        .add_assertion(Envelope::new_assertion_with_predobj(knows.clone(), bob.clone().add_assertion(ab.clone())))
+        .add_assertion_envelope(Envelope::new_assertion(knows.clone(), bob.clone().add_assertion_envelope(ab.clone())))
         .check_encoding()?;
     assert_eq!(alice_knows_bob_ab.format(),
     indoc! {r#"
@@ -108,7 +108,7 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     );
 
     let alice_knows_ab_bob_ab = alice.clone()
-        .add_assertion(Envelope::new_assertion_with_predobj(knows.clone().add_assertion(ab.clone()), bob.clone().add_assertion(ab.clone())))
+        .add_assertion_envelope(Envelope::new_assertion(knows.clone().add_assertion_envelope(ab.clone()), bob.clone().add_assertion_envelope(ab.clone())))
         .check_encoding()?;
     assert_eq!(alice_knows_ab_bob_ab.format(),
     indoc! {r#"
@@ -124,8 +124,8 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     );
 
     let alice_ab_knows_ab_bob_ab = alice.clone()
-        .add_assertion(ab.clone())
-        .add_assertion(Envelope::new_assertion_with_predobj(knows.clone().add_assertion(ab.clone()), bob.clone().add_assertion(ab.clone())))
+        .add_assertion_envelope(ab.clone())
+        .add_assertion_envelope(Envelope::new_assertion(knows.clone().add_assertion_envelope(ab.clone()), bob.clone().add_assertion_envelope(ab.clone())))
         .check_encoding()?;
     assert_eq!(alice_ab_knows_ab_bob_ab.format(),
     indoc! {r#"
@@ -142,8 +142,8 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
     );
 
     let alice_ab_knows_ab_bob_ab_enclose_ab = alice
-        .add_assertion(ab.clone())
-        .add_assertion(Envelope::new_assertion_with_predobj(knows.add_assertion(ab.clone()), bob.add_assertion(ab.clone())).add_assertion(ab))
+        .add_assertion_envelope(ab.clone())
+        .add_assertion_envelope(Envelope::new_assertion(knows.add_assertion_envelope(ab.clone()), bob.add_assertion_envelope(ab.clone())).add_assertion_envelope(ab))
         .check_encoding()?;
     assert_eq!(alice_ab_knows_ab_bob_ab_enclose_ab.format(),
     indoc! {r#"
@@ -254,11 +254,11 @@ fn test_nesting_twice() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_assertions_on_all_parts_of_envelope() -> Result<(), Box<dyn Error>> {
     let predicate = "predicate".enclose()
-        .add_assertion_with_predobj("predicate-predicate".enclose(), "predicate-object".enclose());
+        .add_assertion("predicate-predicate".enclose(), "predicate-object".enclose());
     let object = "object".enclose()
-        .add_assertion_with_predobj("object-predicate".enclose(), "object-object".enclose());
+        .add_assertion("object-predicate".enclose(), "object-object".enclose());
     let envelope = "subject".enclose()
-        .add_assertion_with_predobj(predicate, object)
+        .add_assertion(predicate, object)
         .check_encoding()?;
 
     let expected_format = indoc! {r#"
@@ -278,8 +278,8 @@ fn test_assertions_on_all_parts_of_envelope() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_assertion_on_bare_assertion() -> Result<(), Box<dyn Error>> {
-    let envelope = Envelope::new_assertion_with_predobj("predicate".enclose(), "object".enclose())
-        .add_assertion_with_predobj("assertion-predicate".enclose(), "assertion-object".enclose());
+    let envelope = Envelope::new_assertion("predicate".enclose(), "object".enclose())
+        .add_assertion("assertion-predicate".enclose(), "assertion-object".enclose());
     let expected_format = indoc! {r#"
     {
         "predicate": "object"

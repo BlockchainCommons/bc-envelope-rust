@@ -95,7 +95,7 @@ impl Envelope {
 }
 
 impl Envelope {
-    pub fn new_assertion_with_predobj(predicate: Rc<Self>, object: Rc<Self>) -> Rc<Self> {
+    pub fn new_assertion(predicate: Rc<Self>, object: Rc<Self>) -> Rc<Self> {
         Rc::new(Self::new_with_assertion(Assertion::new(predicate, object)))
     }
 }

@@ -16,15 +16,19 @@ impl Envelope {
     /// - Returns: The signed envelope.
     pub fn sign_with_using<D>(
         self: Rc<Self>,
-        _private_keys: &PrivateKeyBase,
-        _note: Option<&str>,
-        _tag: D,
-        _rng: &mut impl RandomNumberGenerator
+        private_keys: &PrivateKeyBase,
+        note: Option<&str>,
+        tag: D,
+        rng: &mut impl RandomNumberGenerator
     ) -> Rc<Self>
     where
         D: AsRef<[u8]>,
     {
-        todo!()
+        let mut assertions: Vec<Rc<Envelope>> = vec![];
+        if let Some(note) = note {
+            assertions.push(Self::new_assertion(known_value_registry::NOTE.enclose(), note.enclose()));
+        }
+        self.sign_with_uncovered_assertions_using(private_keys, &assertions, tag, rng)
     }
 
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
@@ -56,14 +60,16 @@ impl Envelope {
     /// - Returns: The signed envelope.
     pub fn sign_with_keys_using<D>(
         self: Rc<Self>,
-        _private_keys: &[PrivateKeyBase],
-        _tag: D,
-        _rng: &mut impl RandomNumberGenerator
+        private_keys_array: &[PrivateKeyBase],
+        tag: D,
+        rng: &mut impl RandomNumberGenerator
     ) -> Rc<Self>
     where
-        D: AsRef<[u8]>,
+        D: AsRef<[u8]> + Clone,
     {
-        todo!()
+        private_keys_array.iter().fold(self, |envelope, private_key| {
+            envelope.sign_with_using(private_key, None, tag.clone(), rng)
+        })
     }
 
     /// Creates several signatures for the envelope's subject and returns a new envelope with additional `verifiedBy: Signature` assertions.
@@ -74,14 +80,14 @@ impl Envelope {
     /// - Returns: The signed envelope.
     pub fn sign_with_keys<D>(
         self: Rc<Self>,
-        private_keys: &[PrivateKeyBase],
+        private_keys_array: &[PrivateKeyBase],
         tag: D,
     ) -> Rc<Self>
     where
-        D: AsRef<[u8]>,
+        D: AsRef<[u8]> + Clone,
     {
         let mut rng = SecureRandomNumberGenerator;
-        self.sign_with_keys_using(private_keys, tag, &mut rng)
+        self.sign_with_keys_using(private_keys_array, tag, &mut rng)
     }
 
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
@@ -94,15 +100,21 @@ impl Envelope {
     /// - Returns: The signed envelope.
     pub fn sign_with_uncovered_assertions_using<D>(
         self: Rc<Self>,
-        _private_keys: &PrivateKeyBase,
-        _uncovered_assertions: &[Rc<Self>],
-        _tag: D,
-        _rng: &mut impl RandomNumberGenerator
+        private_keys: &PrivateKeyBase,
+        uncovered_assertions: &[Rc<Self>],
+        tag: D,
+        rng: &mut impl RandomNumberGenerator
     ) -> Rc<Self>
     where
         D: AsRef<[u8]>,
     {
-        todo!()
+        let signing_private_key = private_keys.signing_private_key();
+        let digest = *self.clone().subject().digest().data();
+        let signature = signing_private_key
+            .schnorr_sign_using(digest, tag, rng)
+            .enclose()
+            .add_assertion_envelopes(uncovered_assertions);
+        self.add_assertion(known_value_registry::VERIFIED_BY.enclose(), signature)
     }
 
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
@@ -134,15 +146,6 @@ impl Envelope {
     ///   - note: An optional note to be added to the `Signature`.
     ///
     /// - Returns: The new assertion envelope.
-    /*```swift
-    static func verifiedBy(signature: Signature, note: String? = nil) -> Envelope {
-        Envelope(
-            .verifiedBy,
-            Envelope(signature)
-                .addAssertion(if: note != nil, .note, note!)
-        )
-    }
-    ```*/
     pub fn verified_by_signature(
         self: Rc<Self>,
         signature: &Signature,
@@ -150,9 +153,9 @@ impl Envelope {
     ) -> Rc<Self> {
         let verified_by = known_value_registry::VERIFIED_BY.enclose();
         let signature = enclose_cbor(signature);
-        let mut envelope = Envelope::new_assertion_with_predobj(verified_by, signature);
+        let mut envelope = Envelope::new_assertion(verified_by, signature);
         if let Some(note) = note {
-            envelope = envelope.add_assertion_with_predobj(known_value_registry::NOTE.enclose(), note.enclose());
+            envelope = envelope.add_assertion(known_value_registry::NOTE.enclose(), note.enclose());
         }
         envelope
     }

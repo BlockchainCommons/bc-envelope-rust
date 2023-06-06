@@ -7,18 +7,18 @@ fn basic_envelope() -> Rc<Envelope> {
 }
 
 fn assertion_envelope() -> Rc<Envelope> {
-    Envelope::new_assertion_with_predobj("knows".enclose(), "Bob".enclose())
+    Envelope::new_assertion("knows".enclose(), "Bob".enclose())
 }
 
 fn single_assertion_envelope() -> Rc<Envelope> {
     "Alice".enclose()
-        .add_assertion_with_predobj("knows".enclose(), "Bob".enclose())
+        .add_assertion("knows".enclose(), "Bob".enclose())
 }
 
 fn double_assertion_envelope() -> Rc<Envelope> {
     "Alice".enclose()
-        .add_assertion_with_predobj("knows".enclose(), "Bob".enclose())
-        .add_assertion_with_predobj("knows".enclose(), "Carol".enclose())
+        .add_assertion("knows".enclose(), "Bob".enclose())
+        .add_assertion("knows".enclose(), "Carol".enclose())
 }
 
 #[test]
@@ -393,7 +393,7 @@ fn test_digests() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_target_reveal() -> Result<(), Box<dyn Error>> {
     let e1 = double_assertion_envelope()
-        .add_assertion_with_predobj("livesAt".enclose(), "123 Main St.".enclose());
+        .add_assertion("livesAt".enclose(), "123 Main St.".enclose());
     assert_eq!(e1.format(),
     indoc! {r#"
     "Alice" [
@@ -430,7 +430,7 @@ fn test_target_reveal() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_targeted_remove() -> Result<(), Box<dyn Error>> {
     let e1 = double_assertion_envelope()
-        .add_assertion_with_predobj("livesAt".enclose(), "123 Main St.".enclose());
+        .add_assertion("livesAt".enclose(), "123 Main St.".enclose());
     assert_eq!(e1.format(),
     indoc! {r#"
     "Alice" [

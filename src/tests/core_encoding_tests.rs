@@ -49,11 +49,11 @@ fn test_2() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_3() -> Result<(), Box<dyn Error>> {
-    let e1 = Envelope::new_assertion_with_predobj("A".enclose(), "B".enclose());
-    let e2 = Envelope::new_assertion_with_predobj("C".enclose(), "D".enclose());
-    let e3 = Envelope::new_assertion_with_predobj("E".enclose(), "F".enclose());
+    let e1 = Envelope::new_assertion("A".enclose(), "B".enclose());
+    let e2 = Envelope::new_assertion("C".enclose(), "D".enclose());
+    let e3 = Envelope::new_assertion("E".enclose(), "F".enclose());
 
-    let e4 = e2.add_assertion(e3);
+    let e4 = e2.add_assertion_envelope(e3);
     assert_eq!(e4.format(),
         indoc! {r#"
         {
@@ -99,7 +99,7 @@ fn test_3() -> Result<(), Box<dyn Error>> {
         );
     });
 
-    let e5 = e1.add_assertion(e4).check_encoding()?;
+    let e5 = e1.add_assertion_envelope(e4).check_encoding()?;
 
     assert_eq!(e5.format(),
         indoc! {r#"

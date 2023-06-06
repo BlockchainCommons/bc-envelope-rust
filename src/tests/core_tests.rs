@@ -13,17 +13,17 @@ fn known_value_envelope() -> Rc<Envelope> {
 }
 
 fn assertion_envelope() -> Rc<Envelope> {
-    Envelope::new_assertion_with_predobj("knows".enclose(), "Bob".enclose())
+    Envelope::new_assertion("knows".enclose(), "Bob".enclose())
 }
 
 fn single_assertion_envelope() -> Rc<Envelope> {
     "Alice".enclose()
-        .add_assertion_with_predobj("knows".enclose(), "Bob".enclose())
+        .add_assertion("knows".enclose(), "Bob".enclose())
 }
 
 fn double_assertion_envelope() -> Rc<Envelope> {
     single_assertion_envelope()
-        .add_assertion_with_predobj("knows".enclose(), "Carol".enclose())
+        .add_assertion("knows".enclose(), "Carol".enclose())
 }
 
 fn wrapped_envelope() -> Rc<Envelope> {
@@ -175,7 +175,7 @@ fn test_assertion_subject() -> Result<(), Box<dyn Error>> {
     "#}.trim()
     );
 
-    assert_eq!(e.digest(), Envelope::new_assertion_with_predobj("knows".enclose(), "Bob".enclose()).digest());
+    assert_eq!(e.digest(), Envelope::new_assertion("knows".enclose(), "Bob".enclose()).digest());
 
     Ok(())
 }
@@ -347,11 +347,11 @@ fn test_double_wrapped() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_assertion_with_assertions() -> Result<(), Box<dyn Error>> {
-    let a = Envelope::new_assertion_with_predobj(1.enclose(), 2.enclose())
-        .add_assertion_with_predobj(3.enclose(), 4.enclose())
-        .add_assertion_with_predobj(5.enclose(), 6.enclose());
+    let a = Envelope::new_assertion(1.enclose(), 2.enclose())
+        .add_assertion(3.enclose(), 4.enclose())
+        .add_assertion(5.enclose(), 6.enclose());
     let e = 7.enclose()
-        .add_assertion(a);
+        .add_assertion_envelope(a);
     assert_eq!(e.format(),
     indoc! {r#"
     7 [
