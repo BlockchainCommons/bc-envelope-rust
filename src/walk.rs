@@ -42,16 +42,16 @@ impl Envelope {
         let parent = visit(self.clone(), level, incoming_edge, parent);
         let next_level = level + 1;
         match &*self {
-            Envelope::Node { subject, assertions, .. } => {
+            Self::Node { subject, assertions, .. } => {
                 subject.clone()._walk_structure(next_level, EdgeType::Subject, parent.clone(), visit);
                 for assertion in assertions {
                     assertion.clone()._walk_structure(next_level, EdgeType::Assertion, parent.clone(), visit);
                 }
             },
-            Envelope::Wrapped { envelope, .. } => {
+            Self::Wrapped { envelope, .. } => {
                 envelope.clone()._walk_structure(next_level, EdgeType::Wrapped, parent, visit);
             },
-            Envelope::Assertion(assertion) => {
+            Self::Assertion(assertion) => {
                 assertion.predicate()._walk_structure(next_level, EdgeType::Predicate, parent.clone(), visit);
                 assertion.object()._walk_structure(next_level, EdgeType::Object, parent, visit);
             },
@@ -68,16 +68,16 @@ impl Envelope {
         let parent = visit(self.clone(), level, EdgeType::None, parent);
         let next_level = level + 1;
         match &*self {
-            Envelope::Node { subject, assertions, .. } => {
+            Self::Node { subject, assertions, .. } => {
                 subject.clone()._walk_tree(next_level, parent.clone(), visit);
                 for assertion in assertions {
                     assertion.clone()._walk_tree(next_level, parent.clone(), visit);
                 }
             },
-            Envelope::Wrapped { envelope, .. } => {
+            Self::Wrapped { envelope, .. } => {
                 envelope.clone()._walk_tree(next_level, parent, visit);
             },
-            Envelope::Assertion(assertion) => {
+            Self::Assertion(assertion) => {
                 assertion.predicate()._walk_tree(next_level, parent.clone(), visit);
                 assertion.object()._walk_tree(next_level, parent, visit);
             },

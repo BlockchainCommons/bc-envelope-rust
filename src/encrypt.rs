@@ -3,7 +3,7 @@ use std::{rc::Rc, borrow::Cow};
 use bc_components::{SymmetricKey, Nonce, Digest, DigestProvider, tags_registry::LEAF};
 use dcbor::{CBOREncodable, CBORTaggedDecodable, CBORTaggedEncodable, CBOR, tagged_value};
 
-use crate::{Envelope, Error, envelope::new_envelope_with_unchecked_assertions};
+use crate::{Envelope, Error};
 
 impl Envelope {
     /// Returns a new envelope with its subject encrypted.
@@ -22,11 +22,11 @@ impl Envelope {
     }
 
     pub fn encrypt_subject_opt(self: Rc<Self>, key: &SymmetricKey, test_nonce: Option<Nonce>) -> Result<Rc<Self>, Error> {
-        let result: Rc<Envelope>;
+        let result: Rc<Self>;
         let original_digest: Cow<Digest>;
 
         match &*self {
-            Envelope::Node { subject, assertions, digest: envelope_digest } => {
+            Self::Node { subject, assertions, digest: envelope_digest } => {
                 if subject.is_encrypted() {
                     return Err(Error::AlreadyEncrypted);
                 }
@@ -34,45 +34,45 @@ impl Envelope {
                 let digest = subject.digest();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
                 let encrypted_subject = Rc::new(Self::new_with_encrypted(encrypted_message)?);
-                result = Rc::new(new_envelope_with_unchecked_assertions(encrypted_subject, assertions.clone()));
+                result = Rc::new(Self::new_with_unchecked_assertions(encrypted_subject, assertions.clone()));
                 original_digest = Cow::Borrowed(envelope_digest);
             }
-            Envelope::Leaf { cbor, digest } => {
+            Self::Leaf { cbor, digest } => {
                 let encoded_cbor = tagged_value(LEAF, cbor.clone()).cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = Cow::Borrowed(digest);
             }
-            Envelope::Wrapped { digest, .. } => {
+            Self::Wrapped { digest, .. } => {
                 let encoded_cbor = self.untagged_cbor().cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = Cow::Borrowed(digest);
             }
-            Envelope::KnownValue { value, digest } => {
+            Self::KnownValue { value, digest } => {
                 let encoded_cbor = value.cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = Cow::Borrowed(digest);
             }
-            Envelope::Assertion(assertion) => {
+            Self::Assertion(assertion) => {
                 let digest = assertion.digest();
                 let encoded_cbor = assertion.cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
                 result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = digest;
             }
-            Envelope::Encrypted { .. } => {
+            Self::Encrypted { .. } => {
                 return Err(Error::AlreadyEncrypted);
             }
-            Envelope::Compressed(compressed) => {
+            Self::Compressed(compressed) => {
                 let digest = compressed.digest();
                 let encoded_cbor = compressed.tagged_cbor().cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
                 result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = digest;
             }
-            Envelope::Elided { .. } => {
+            Self::Elided { .. } => {
                 return Err(Error::AlreadyElided);
             }
         }
@@ -82,7 +82,7 @@ impl Envelope {
 
     pub fn decrypt_subject(self: Rc<Self>, key: &SymmetricKey) -> Result<Rc<Self>, Error> {
         match &*self.clone().subject() {
-            Envelope::Encrypted(message) => {
+            Self::Encrypted(message) => {
                 let encoded_cbor = key.decrypt(message).map_err(Error::CryptoError)?;
                 let subject_digest = message.opt_digest().ok_or(Error::MissingDigest)?;
                 let cbor = CBOR::from_data(&encoded_cbor).map_err(Error::CBORError)?;
@@ -91,8 +91,8 @@ impl Envelope {
                     return Err(Error::InvalidDigest);
                 }
                 match &*self {
-                    Envelope::Node { assertions, digest, .. } => {
-                        let result = Rc::new(new_envelope_with_unchecked_assertions(result_subject, assertions.clone()));
+                    Self::Node { assertions, digest, .. } => {
+                        let result = Rc::new(Self::new_with_unchecked_assertions(result_subject, assertions.clone()));
                         if *result.digest() != *digest {
                             return Err(Error::InvalidDigest);
                         }

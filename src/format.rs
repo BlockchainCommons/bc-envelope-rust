@@ -450,7 +450,7 @@ impl EnvelopeFormat for KnownValue {
  impl Envelope {
     fn description(&self, context: Option<&FormatContext>) -> String {
         match self {
-            Envelope::Node { subject, assertions, .. } => {
+            Self::Node { subject, assertions, .. } => {
                 let assertions = assertions
                     .iter()
                     .map(|a| a.to_string())
@@ -459,13 +459,13 @@ impl EnvelopeFormat for KnownValue {
                     .flanked_by("[", "]");
                 format!(".node({}, {})", subject, assertions)
             }
-            Envelope::Leaf { cbor, .. } => format!(".cbor({})", cbor.format_item(context.unwrap_or(&FormatContext::default()))),
-            Envelope::Wrapped { envelope, .. } => format!(".wrapped({})", envelope),
-            Envelope::KnownValue { value, .. } => format!(".knownValue({})", value),
-            Envelope::Assertion(assertion) => format!(".assertion({}, {})", assertion.predicate(), assertion.object()),
-            Envelope::Encrypted(_) => ".encrypted".to_string(),
-            Envelope::Compressed(_) => ".compressed".to_string(),
-            Envelope::Elided(_) => ".elided".to_string()
+            Self::Leaf { cbor, .. } => format!(".cbor({})", cbor.format_item(context.unwrap_or(&FormatContext::default()))),
+            Self::Wrapped { envelope, .. } => format!(".wrapped({})", envelope),
+            Self::KnownValue { value, .. } => format!(".knownValue({})", value),
+            Self::Assertion(assertion) => format!(".assertion({}, {})", assertion.predicate(), assertion.object()),
+            Self::Encrypted(_) => ".encrypted".to_string(),
+            Self::Compressed(_) => ".compressed".to_string(),
+            Self::Elided(_) => ".elided".to_string()
         }
     }
 }

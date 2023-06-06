@@ -14,14 +14,14 @@ impl DigestProvider for Envelope {
     /// and unelided forms. See <doc:Diffing> for more information.
     fn digest(&self) -> Cow<Digest> {
         match self {
-            Envelope::Node { digest, .. } => Cow::Borrowed(digest),
-            Envelope::Leaf { digest, .. } => Cow::Borrowed(digest),
-            Envelope::Wrapped { digest, .. } => Cow::Borrowed(digest),
-            Envelope::KnownValue { digest, .. } => Cow::Borrowed(digest),
-            Envelope::Assertion(assertion) => assertion.digest(),
-            Envelope::Encrypted(encrypted_message) => encrypted_message.digest(),
-            Envelope::Compressed(compressed) => compressed.digest(),
-            Envelope::Elided(digest) => Cow::Borrowed(digest),
+            Self::Node { digest, .. } => Cow::Borrowed(digest),
+            Self::Leaf { digest, .. } => Cow::Borrowed(digest),
+            Self::Wrapped { digest, .. } => Cow::Borrowed(digest),
+            Self::KnownValue { digest, .. } => Cow::Borrowed(digest),
+            Self::Assertion(assertion) => assertion.digest(),
+            Self::Encrypted(encrypted_message) => encrypted_message.digest(),
+            Self::Compressed(compressed) => compressed.digest(),
+            Self::Elided(digest) => Cow::Borrowed(digest),
         }
     }
 }
@@ -98,9 +98,9 @@ impl Envelope {
         let visitor = |envelope: Rc<Self>, _: usize, _: EdgeType, _: Option<&()>| -> _ {
             // Add a discriminator to the image for the obscured cases.
             match &*envelope {
-                Envelope::Encrypted(_) => image.borrow_mut().push(0),
-                Envelope::Elided(_) => image.borrow_mut().push(1),
-                Envelope::Compressed(_) => image.borrow_mut().push(2),
+                Self::Encrypted(_) => image.borrow_mut().push(0),
+                Self::Elided(_) => image.borrow_mut().push(1),
+                Self::Compressed(_) => image.borrow_mut().push(2),
                 _ => {}
             }
             image.borrow_mut().extend_from_slice(envelope.digest().data());

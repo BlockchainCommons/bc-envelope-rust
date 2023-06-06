@@ -40,7 +40,7 @@ impl Envelope {
     pub fn from_cbor_encodable(cbor_encodable: &dyn CBOREncodable) -> Rc<Self> {
         let cbor = cbor_encodable.cbor();
         let digest = Digest::from_image(&cbor.cbor_data());
-        Rc::new(Envelope::Leaf {
+        Rc::new(Self::Leaf {
             cbor,
             digest,
         })
@@ -153,23 +153,24 @@ impl Enclosable for i64 {
     }
 }
 
-pub fn new_envelope_with_unchecked_assertions(subject: Rc<Envelope>, unchecked_assertions: Vec<Rc<Envelope>>) -> Envelope {
-    assert!(!unchecked_assertions.is_empty());
-    let mut sorted_assertions = unchecked_assertions;
-    sorted_assertions.sort_by(|a, b| a.digest().cmp(&b.digest()));
-    let mut digests = vec![subject.digest().into_owned()];
-    digests.extend(sorted_assertions.iter().map(|a| a.digest().into_owned()));
-    let digest = Digest::from_digests(&digests);
-    Envelope::Node { subject, assertions: sorted_assertions, digest }
-}
-
 /// Internal constructors
 impl Envelope {
+
+    pub(crate) fn new_with_unchecked_assertions(subject: Rc<Self>, unchecked_assertions: Vec<Rc<Self>>) -> Self {
+        assert!(!unchecked_assertions.is_empty());
+        let mut sorted_assertions = unchecked_assertions;
+        sorted_assertions.sort_by(|a, b| a.digest().cmp(&b.digest()));
+        let mut digests = vec![subject.digest().into_owned()];
+        digests.extend(sorted_assertions.iter().map(|a| a.digest().into_owned()));
+        let digest = Digest::from_digests(&digests);
+        Self::Node { subject, assertions: sorted_assertions, digest }
+    }
+
     pub(crate) fn new_with_assertions(subject: Rc<Self>, assertions: Vec<Rc<Self>>) -> Result<Self, Error> {
         if !assertions.iter().all(|a| a.is_subject_assertion() || a.is_subject_obscured()) {
             return Err(Error::InvalidFormat);
         }
-        Ok(new_envelope_with_unchecked_assertions(subject, assertions))
+        Ok(Self::new_with_unchecked_assertions(subject, assertions))
     }
 
     pub(crate) fn new_with_assertion(assertion: Assertion) -> Self {

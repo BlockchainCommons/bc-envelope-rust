@@ -10,7 +10,7 @@ impl Envelope {
     /// For an envelope with no assertions, returns the same envelope.
     pub fn subject(self: Rc<Self>) -> Rc<Self> {
         match &*self {
-            Envelope::Node { subject, .. } => subject.clone(),
+            Self::Node { subject, .. } => subject.clone(),
             _ => self,
         }
     }
@@ -18,7 +18,7 @@ impl Envelope {
     /// The envelope's assertions.
     pub fn assertions(self: Rc<Self>) -> Vec<Rc<Self>> {
         match &*self {
-            Envelope::Node { assertions, .. } => assertions.clone(),
+            Self::Node { assertions, .. } => assertions.clone(),
             _ => vec![],
         }
     }
@@ -26,7 +26,7 @@ impl Envelope {
     /// `true` if the envelope has at least one assertion, `false` otherwise.
     pub fn has_assertions(&self) -> bool {
         match self {
-            Envelope::Node { assertions, .. } => !assertions.is_empty(),
+            Self::Node { assertions, .. } => !assertions.is_empty(),
             _ => false,
         }
     }
@@ -34,7 +34,7 @@ impl Envelope {
     /// If the envelope's subject is an assertion return it, else return `None`.
     pub fn assertion(self: Rc<Self>) -> Option<Rc<Self>> {
         match &*self {
-            Envelope::Assertion(_) => Some(self),
+            Self::Assertion(_) => Some(self),
             _ => None,
         }
     }
@@ -42,7 +42,7 @@ impl Envelope {
     /// The envelope's predicate, or `None` if the envelope is not an assertion.
     pub fn predicate(self: Rc<Self>) -> Option<Rc<Self>> {
         match &*self {
-            Envelope::Assertion(assertion) => Some(assertion.predicate()),
+            Self::Assertion(assertion) => Some(assertion.predicate()),
             _ => None,
         }
     }
@@ -50,7 +50,7 @@ impl Envelope {
     /// The envelope's object, or `None` if the envelope is not an assertion.
     pub fn object(self: Rc<Self>) -> Option<Rc<Self>> {
         match &*self {
-            Envelope::Assertion(assertion) => Some(assertion.object()),
+            Self::Assertion(assertion) => Some(assertion.object()),
             _ => None,
         }
     }
@@ -58,7 +58,7 @@ impl Envelope {
     /// The envelope's leaf CBOR object, or `None` if the envelope is not a leaf.
     pub fn leaf(&self) -> Option<&CBOR> {
         match self {
-            Envelope::Leaf { cbor, .. } => Some(cbor),
+            Self::Leaf { cbor, .. } => Some(cbor),
             _ => None,
         }
     }
@@ -66,7 +66,7 @@ impl Envelope {
     /// The envelope's `KnownValue`, or `None` if the envelope is not case `::KnownValue`.
     pub fn known_value(&self) -> Option<&KnownValue> {
         match self {
-            Envelope::KnownValue { value, .. } => Some(value),
+            Self::KnownValue { value, .. } => Some(value),
             _ => None,
         }
     }
@@ -75,42 +75,42 @@ impl Envelope {
 impl Envelope {
     /// `true` if the envelope is case `::Leaf`, `false` otherwise.
     pub fn is_leaf(&self) -> bool {
-        matches!(self, Envelope::Leaf { .. })
+        matches!(self, Self::Leaf { .. })
     }
 
     /// `true` if the envelope is case `::Node`, `false` otherwise.
     pub fn is_node(&self) -> bool {
-        matches!(self, Envelope::Node { .. })
+        matches!(self, Self::Node { .. })
     }
 
     /// `true` if the envelope is case `::Wrapped`, `false` otherwise.
     pub fn is_wrapped(&self) -> bool {
-        matches!(self, Envelope::Wrapped { .. })
+        matches!(self, Self::Wrapped { .. })
     }
 
     /// `true` if the envelope is case `::KnownValue`, `false` otherwise.
     pub fn is_known_value(&self) -> bool {
-        matches!(self, Envelope::KnownValue { .. })
+        matches!(self, Self::KnownValue { .. })
     }
 
     /// `true` if the envelope is case `::Assertion`, `false` otherwise.
     pub fn is_assertion(&self) -> bool {
-        matches!(self, Envelope::Assertion(_))
+        matches!(self, Self::Assertion(_))
     }
 
     /// `true` if the envelope is case `::Encrypted`, `false` otherwise.
     pub fn is_encrypted(&self) -> bool {
-        matches!(self, Envelope::Encrypted(_))
+        matches!(self, Self::Encrypted(_))
     }
 
     /// `true` if the envelope is case `::Compressed`, `false` otherwise.
     pub fn is_compressed(&self) -> bool {
-        matches!(self, Envelope::Compressed(_))
+        matches!(self, Self::Compressed(_))
     }
 
     /// `true` if the envelope is case `::Elided`, `false` otherwise.
     pub fn is_elided(&self) -> bool {
-        matches!(self, Envelope::Elided(_))
+        matches!(self, Self::Elided(_))
     }
 }
 
@@ -118,8 +118,8 @@ impl Envelope {
     /// `true` if the subject of the envelope is an assertion, `false` otherwise.
     pub fn is_subject_assertion(&self) -> bool {
         match self {
-            Envelope::Assertion(_) => true,
-            Envelope::Node { subject, .. } => subject.is_subject_assertion(),
+            Self::Assertion(_) => true,
+            Self::Node { subject, .. } => subject.is_subject_assertion(),
             _ => false,
         }
     }
@@ -127,8 +127,8 @@ impl Envelope {
     /// `true` if the subject of the envelope has been encrypted, `false` otherwise.
     pub fn is_subject_encrypted(&self) -> bool {
         match self {
-            Envelope::Encrypted(_) => true,
-            Envelope::Node { subject, .. } => subject.is_subject_encrypted(),
+            Self::Encrypted(_) => true,
+            Self::Node { subject, .. } => subject.is_subject_encrypted(),
             _ => false,
         }
     }
@@ -136,8 +136,8 @@ impl Envelope {
     /// `true` if the subject of the envelope has been compressed, `false` otherwise.
     pub fn is_subject_compressed(&self) -> bool {
         match self {
-            Envelope::Compressed(_) => true,
-            Envelope::Node { subject, .. } => subject.is_subject_compressed(),
+            Self::Compressed(_) => true,
+            Self::Node { subject, .. } => subject.is_subject_compressed(),
             _ => false,
         }
     }
@@ -145,8 +145,8 @@ impl Envelope {
     /// `true` if the subject of the envelope has been elided, `false` otherwise.
     pub fn is_subject_elided(&self) -> bool {
         match self {
-            Envelope::Elided(_) => true,
-            Envelope::Node { subject, .. } => subject.is_subject_elided(),
+            Self::Elided(_) => true,
+            Self::Node { subject, .. } => subject.is_subject_elided(),
             _ => false,
         }
     }
@@ -164,19 +164,19 @@ impl Envelope {
     ///
     /// Internal elements include `.node`, `.wrapped`, and `.assertion`.
     pub fn is_internal(&self) -> bool {
-        matches!(self, Envelope::Node { .. } | Envelope::Wrapped { .. } | Envelope::Assertion(_))
+        matches!(self, Self::Node { .. } | Self::Wrapped { .. } | Self::Assertion(_))
     }
 
     /// `true` if the envelope is encrypted, elided, or compressed; `false` otherwise.
     pub fn is_obscured(&self) -> bool {
-        matches!(self, Envelope::Encrypted(_) | Envelope::Compressed(_) | Envelope::Elided(_))
+        matches!(self, Self::Encrypted(_) | Self::Compressed(_) | Self::Elided(_))
     }
 }
 
 impl Envelope {
     /// Returns the envelope's subject, decoded as the given type.
     ///
-    /// If the encoded type doesn't match the given type, returns `EnvelopeError::InvalidFormat`.
+    /// If the encoded type doesn't match the given type, returns `Error::InvalidFormat`.
     pub fn extract_subject<T>(&self) -> Result<Rc<T>, Error>
     where
         T: Any + CBORDecodable,
@@ -196,14 +196,14 @@ impl Envelope {
         }
 
         match self {
-            Envelope::Wrapped { envelope, .. } => extract_type::<T, Envelope>(&**envelope),
-            Envelope::Node { subject, .. } => subject.extract_subject::<T>(),
-            Envelope::Leaf { cbor, .. } => Ok(Rc::new(T::from_cbor(cbor).map_err(Error::CBORError)?)),
-            Envelope::KnownValue { value, .. } => extract_type::<T, KnownValue>(value),
-            Envelope::Assertion(assertion) => extract_type::<T, Assertion>(assertion),
-            Envelope::Encrypted(encrypted_message) => extract_type::<T, EncryptedMessage>(encrypted_message),
-            Envelope::Compressed(compressed) => extract_type::<T, Compressed>(compressed),
-            Envelope::Elided(digest) => extract_type::<T, Digest>(digest),
+            Self::Wrapped { envelope, .. } => extract_type::<T, Self>(&**envelope),
+            Self::Node { subject, .. } => subject.extract_subject::<T>(),
+            Self::Leaf { cbor, .. } => Ok(Rc::new(T::from_cbor(cbor).map_err(Error::CBORError)?)),
+            Self::KnownValue { value, .. } => extract_type::<T, KnownValue>(value),
+            Self::Assertion(assertion) => extract_type::<T, Assertion>(assertion),
+            Self::Encrypted(encrypted_message) => extract_type::<T, EncryptedMessage>(encrypted_message),
+            Self::Compressed(compressed) => extract_type::<T, Compressed>(compressed),
+            Self::Elided(digest) => extract_type::<T, Digest>(digest),
         }
     }
 }
@@ -225,7 +225,7 @@ impl Envelope {
 
     /// Returns all assertions with the given predicate.
     pub fn assertions_with_predicate_leaf(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Vec<Rc<Self>> {
-        self.assertions_with_predicate(Envelope::from_cbor_encodable(predicate))
+        self.assertions_with_predicate(Self::from_cbor_encodable(predicate))
     }
 
     /// Returns all assertions with the given predicate.
@@ -253,7 +253,7 @@ impl Envelope {
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
     pub fn assertion_with_predicate_leaf(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Rc<Self>, Error> {
-        self.assertion_with_predicate(Envelope::from_cbor_encodable(predicate))
+        self.assertion_with_predicate(Self::from_cbor_encodable(predicate))
     }
 
     /// Returns the assertion with the given predicate.
@@ -276,7 +276,7 @@ impl Envelope {
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
     pub fn extract_object_for_predicate_leaf(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Rc<Self>, Error> {
-        self.extract_object_for_predicate(Envelope::from_cbor_encodable(predicate))
+        self.extract_object_for_predicate(Self::from_cbor_encodable(predicate))
     }
 
     /// Returns the object of the assertion with the given predicate.
@@ -303,7 +303,7 @@ impl Envelope {
     pub fn extract_object_cbor<T>(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Rc<T>, Error>
         where T: CBORDecodable + 'static
     {
-        self.extract_object(Envelope::from_cbor_encodable(predicate))
+        self.extract_object(Self::from_cbor_encodable(predicate))
     }
 
     /// Returns the object of the assertion with the given predicate.
@@ -325,7 +325,7 @@ impl Envelope {
 
     /// Returns the objects of all assertions with the matching predicate.
     pub fn extract_objects_for_predicate_leaf(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Vec<Rc<Self>> {
-        self.extract_objects_for_predicate(Envelope::from_cbor_encodable(predicate))
+        self.extract_objects_for_predicate(Self::from_cbor_encodable(predicate))
     }
 
     /// Returns the objects of all assertions with the matching predicate.
@@ -348,7 +348,7 @@ impl Envelope {
     pub fn extract_objects_cbor<T>(self: Rc<Self>, predicate: &dyn CBOREncodable) -> Result<Vec<Rc<T>>, Error>
         where T: CBORDecodable
     {
-        self.extract_objects(Envelope::from_cbor_encodable(predicate))
+        self.extract_objects(Self::from_cbor_encodable(predicate))
     }
 
     /// Returns the objects of all assertions with the matching predicate.
