@@ -250,7 +250,7 @@ impl EnvelopeSummary for CBOR {
         match self {
             CBOR::Unsigned(n) => Ok(n.to_string()),
             CBOR::Negative(n) => Ok(n.to_string()),
-            CBOR::Bytes(data) => Ok(format!("Bytes({})", data.len())),
+            CBOR::ByteString(data) => Ok(format!("Bytes({})", data.len())),
             CBOR::Text(string) => {
                 let string = if string.len() > max_length {
                     format!("{}…", string.chars().take(max_length).collect::<String>())
