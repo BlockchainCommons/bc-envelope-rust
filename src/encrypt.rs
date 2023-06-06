@@ -1,7 +1,7 @@
 use std::{rc::Rc, borrow::Cow};
 
 use bc_components::{SymmetricKey, Nonce, Digest, DigestProvider, tags_registry::LEAF};
-use dcbor::{CBOREncodable, CBORTaggedDecodable, CBORTaggedEncodable, CBOR, tagged};
+use dcbor::{CBOREncodable, CBORTaggedDecodable, CBORTaggedEncodable, CBOR, tagged_value};
 
 use crate::{Envelope, Error, envelope::new_envelope_with_unchecked_assertions};
 
@@ -38,7 +38,7 @@ impl Envelope {
                 original_digest = Cow::Borrowed(envelope_digest);
             }
             Envelope::Leaf { cbor, digest } => {
-                let encoded_cbor = tagged(LEAF, cbor.clone()).cbor_data();
+                let encoded_cbor = tagged_value(LEAF, cbor.clone()).cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = Cow::Borrowed(digest);

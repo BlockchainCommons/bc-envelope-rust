@@ -1,6 +1,6 @@
-use std::{rc::Rc, borrow::Cow};
+use std::{rc::Rc};
 
-use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider, Digest};
+use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider};
 use bc_crypto::{RandomNumberGenerator, SecureRandomNumberGenerator};
 
 use crate::{Envelope, Error, known_value_registry, envelope::Enclosable};
@@ -16,10 +16,10 @@ impl Envelope {
     /// - Returns: The signed envelope.
     pub fn sign_with_using<D>(
         self: Rc<Self>,
-        private_keys: &PrivateKeyBase,
-        note: Option<&str>,
-        tag: D,
-        rng: &mut impl RandomNumberGenerator
+        _private_keys: &PrivateKeyBase,
+        _note: Option<&str>,
+        _tag: D,
+        _rng: &mut impl RandomNumberGenerator
     ) -> Rc<Self>
     where
         D: AsRef<[u8]>,
@@ -56,9 +56,9 @@ impl Envelope {
     /// - Returns: The signed envelope.
     pub fn sign_with_keys_using<D>(
         self: Rc<Self>,
-        private_keys: &[PrivateKeyBase],
-        tag: D,
-        rng: &mut impl RandomNumberGenerator
+        _private_keys: &[PrivateKeyBase],
+        _tag: D,
+        _rng: &mut impl RandomNumberGenerator
     ) -> Rc<Self>
     where
         D: AsRef<[u8]>,
@@ -94,10 +94,10 @@ impl Envelope {
     /// - Returns: The signed envelope.
     pub fn sign_with_uncovered_assertions_using<D>(
         self: Rc<Self>,
-        private_keys: &PrivateKeyBase,
-        uncovered_assertions: &[Rc<Self>],
-        tag: D,
-        rng: &mut impl RandomNumberGenerator
+        _private_keys: &PrivateKeyBase,
+        _uncovered_assertions: &[Rc<Self>],
+        _tag: D,
+        _rng: &mut impl RandomNumberGenerator
     ) -> Rc<Self>
     where
         D: AsRef<[u8]>,
@@ -145,8 +145,8 @@ impl Envelope {
     ```*/
     pub fn verified_by_signature(
         self: Rc<Self>,
-        signature: &Signature,
-        note: Option<&str>
+        _signature: &Signature,
+        _note: Option<&str>
     ) -> Rc<Self> {
         // let verified_by = Self::new(known_value_registry::VERIFIED_BY);
         // let signature = Self::new(signature);

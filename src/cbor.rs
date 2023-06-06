@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use bc_components::{tags_registry, Digest, EncryptedMessage, Compressed};
 use bc_ur::{UREncodable, URDecodable, URCodable};
-use dcbor::{CBORTagged, CBOREncodable, CBORDecodable, CBOR, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable, Tag};
+use dcbor::{CBORTagged, CBOREncodable, CBORDecodable, CBOR, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable, Tag, tagged_value};
 use crate::{Envelope, Assertion, KnownValue};
 
 /// Support for CBOR encoding and decoding of ``Envelope``.
@@ -46,8 +46,8 @@ impl CBORTaggedEncodable for Envelope {
                 }
                 CBOR::Array(result)
             }
-            Envelope::Leaf { cbor, digest: _ } => CBOR::Tagged(tags_registry::LEAF, Box::new(cbor.clone())),
-            Envelope::Wrapped { envelope, digest: _ } => CBOR::Tagged(tags_registry::WRAPPED_ENVELOPE, Box::new(envelope.untagged_cbor())),
+            Envelope::Leaf { cbor, digest: _ } => tagged_value(tags_registry::LEAF, cbor.clone()),
+            Envelope::Wrapped { envelope, digest: _ } => tagged_value(tags_registry::WRAPPED_ENVELOPE, envelope.untagged_cbor()),
             Envelope::KnownValue { value, digest: _ } => value.tagged_cbor(),
             Envelope::Assertion(assertion) => assertion.tagged_cbor(),
             Envelope::Encrypted(encrypted_message) => encrypted_message.tagged_cbor(),
