@@ -2,9 +2,8 @@ use std::{rc::Rc};
 
 use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider};
 use bc_crypto::{RandomNumberGenerator, SecureRandomNumberGenerator};
-use dcbor::CBOREncodable;
 
-use crate::{Envelope, Error, known_value_registry, Enclosable};
+use crate::{Envelope, Error, known_value_registry, Enclosable, enclose_cbor};
 
 impl Envelope {
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
@@ -150,7 +149,7 @@ impl Envelope {
         note: Option<&str>
     ) -> Rc<Self> {
         let verified_by = known_value_registry::VERIFIED_BY.enclose();
-        let signature = signature.cbor().enclose();
+        let signature = enclose_cbor(signature);
         let mut envelope = Envelope::new_assertion_with_predobj(verified_by, signature);
         if let Some(note) = note {
             envelope = envelope.add_assertion_with_predobj(known_value_registry::NOTE.enclose(), note.enclose());

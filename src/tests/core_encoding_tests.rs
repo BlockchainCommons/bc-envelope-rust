@@ -1,12 +1,11 @@
-use dcbor::CBOREncodable;
 use indoc::indoc;
 use std::error::Error;
 use bc_components::Digest;
-use crate::{Envelope, with_format_context, Enclosable};
+use crate::{Envelope, with_format_context, Enclosable, enclose_cbor};
 
 #[test]
 fn test_digest() -> Result<(), Box<dyn Error>> {
-    Digest::from_image(&"Hello.".as_bytes()).cbor().enclose().check_encoding()?;
+    enclose_cbor(&Digest::from_image(&"Hello.".as_bytes())).check_encoding()?;
 
     Ok(())
 }
@@ -31,7 +30,7 @@ fn test_1() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_2() -> Result<(), Box<dyn Error>> {
     let array: Vec<u64> = vec![1, 2, 3];
-    let e = array.cbor().enclose();
+    let e = enclose_cbor(&array);
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
