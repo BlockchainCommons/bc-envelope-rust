@@ -4,7 +4,7 @@ use crate::{Envelope, Error};
 impl Envelope {
     /// Return a new envelope which wraps the current envelope.
     pub fn wrap_envelope(self: Rc<Self>) -> Rc<Self> {
-        Envelope::new_wrapped(self)
+        Rc::new(Envelope::new_wrapped(self))
     }
 
     /// Unwraps and returns the inner envelope.

@@ -1,7 +1,7 @@
 use std::{rc::Rc, borrow::Cow};
 
 use bc_components::{SymmetricKey, Nonce, Digest, DigestProvider, tags_registry::LEAF};
-use dcbor::{CBOREncodable, CBORTaggedDecodable, CBORTaggedEncodable, CBOR};
+use dcbor::{CBOREncodable, CBORTaggedDecodable, CBORTaggedEncodable, CBOR, tagged};
 
 use crate::{Envelope, Error, envelope::new_envelope_with_unchecked_assertions};
 
@@ -33,33 +33,33 @@ impl Envelope {
                 let encoded_cbor = subject.cbor_data();
                 let digest = subject.digest();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
-                let encrypted_subject = Self::new_with_encrypted(encrypted_message)?;
-                result = new_envelope_with_unchecked_assertions(encrypted_subject, assertions.clone());
+                let encrypted_subject = Rc::new(Self::new_with_encrypted(encrypted_message)?);
+                result = Rc::new(new_envelope_with_unchecked_assertions(encrypted_subject, assertions.clone()));
                 original_digest = Cow::Borrowed(envelope_digest);
             }
             Envelope::Leaf { cbor, digest } => {
-                let encoded_cbor = CBOR::Tagged(LEAF, Rc::new(cbor.clone())).cbor_data();
+                let encoded_cbor = tagged(LEAF, cbor.clone()).cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
-                result = Self::new_with_encrypted(encrypted_message)?;
+                result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = Cow::Borrowed(digest);
             }
             Envelope::Wrapped { digest, .. } => {
                 let encoded_cbor = self.untagged_cbor().cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
-                result = Self::new_with_encrypted(encrypted_message)?;
+                result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = Cow::Borrowed(digest);
             }
             Envelope::KnownValue { value, digest } => {
                 let encoded_cbor = value.cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
-                result = Self::new_with_encrypted(encrypted_message)?;
+                result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = Cow::Borrowed(digest);
             }
             Envelope::Assertion(assertion) => {
                 let digest = assertion.digest();
                 let encoded_cbor = assertion.cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
-                result = Self::new_with_encrypted(encrypted_message)?;
+                result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = digest;
             }
             Envelope::Encrypted { .. } => {
@@ -69,7 +69,7 @@ impl Envelope {
                 let digest = compressed.digest();
                 let encoded_cbor = compressed.tagged_cbor().cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
-                result = Self::new_with_encrypted(encrypted_message)?;
+                result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = digest;
             }
             Envelope::Elided { .. } => {
@@ -86,13 +86,13 @@ impl Envelope {
                 let encoded_cbor = key.decrypt(message).map_err(Error::CryptoError)?;
                 let subject_digest = message.opt_digest().ok_or(Error::MissingDigest)?;
                 let cbor = CBOR::from_data(&encoded_cbor).map_err(Error::CBORError)?;
-                let result_subject = Self::from_untagged_cbor(&cbor).map_err(Error::CBORError)?.subject();
+                let result_subject = Rc::new(Self::from_untagged_cbor(&cbor).map_err(Error::CBORError)?).subject();
                 if *result_subject.digest() != subject_digest {
                     return Err(Error::InvalidDigest);
                 }
                 match &*self {
                     Envelope::Node { assertions, digest, .. } => {
-                        let result = new_envelope_with_unchecked_assertions(result_subject, assertions.clone());
+                        let result = Rc::new(new_envelope_with_unchecked_assertions(result_subject, assertions.clone()));
                         if *result.digest() != *digest {
                             return Err(Error::InvalidDigest);
                         }

@@ -13,6 +13,7 @@ mod queries;
 mod salt;
 mod string_utils;
 mod wrap;
+mod signature;
 
 mod elide;
 pub use elide::ObscureAction;

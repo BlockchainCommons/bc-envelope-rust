@@ -1,15 +1,15 @@
-use crate::Envelope;
+use crate::{Envelope, envelope::Enclosable};
 use std::error::Error;
 use indoc::indoc;
 
 #[test]
 fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
-    let alice = Envelope::new("Alice");
-    let knows = Envelope::new("knows");
-    let bob = Envelope::new("Bob");
+    let alice = "Alice".enclose();
+    let knows = "knows".enclose();
+    let bob = "Bob".enclose();
 
-    let a = Envelope::new("A");
-    let b = Envelope::new("B");
+    let a = "A".enclose();
+    let b = "B".enclose();
 
     let knows_bob = Envelope::new_assertion_with_predobj(knows.clone(), bob.clone());
     assert_eq!(knows_bob.format(),
@@ -168,7 +168,7 @@ fn test_predicate_enclosures() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_nesting_plaintext() -> Result<(), Box<dyn Error>> {
-    let envelope = Envelope::new("Hello.");
+    let envelope = "Hello.".enclose();
 
     let expected_format = indoc! {r#"
     "Hello."
@@ -188,7 +188,7 @@ fn test_nesting_plaintext() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_nesting_once() -> Result<(), Box<dyn Error>> {
-    let envelope = Envelope::new("Hello.")
+    let envelope = "Hello.".enclose()
         .wrap_envelope()
         .check_encoding()?;
 
@@ -199,7 +199,7 @@ fn test_nesting_once() -> Result<(), Box<dyn Error>> {
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
 
-    let elided_envelope = Envelope::new("Hello.")
+    let elided_envelope = "Hello.".enclose()
         .elide()
         .wrap_envelope()
         .check_encoding()?;
@@ -218,7 +218,7 @@ fn test_nesting_once() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_nesting_twice() -> Result<(), Box<dyn Error>> {
-    let envelope = Envelope::new("Hello.")
+    let envelope = "Hello.".enclose()
         .wrap_envelope()
         .wrap_envelope()
         .check_encoding()?;
@@ -253,11 +253,11 @@ fn test_nesting_twice() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_assertions_on_all_parts_of_envelope() -> Result<(), Box<dyn Error>> {
-    let predicate = Envelope::new("predicate")
+    let predicate = "predicate".enclose()
         .add_assertion_with_predobj("predicate-predicate", "predicate-object");
-    let object = Envelope::new("object")
+    let object = "object".enclose()
         .add_assertion_with_predobj("object-predicate", "object-object");
-    let envelope = Envelope::new("subject")
+    let envelope = "subject".enclose()
         .add_assertion_with_predobj(predicate, object)
         .check_encoding()?;
 

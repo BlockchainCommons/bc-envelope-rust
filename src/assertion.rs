@@ -3,7 +3,7 @@ use std::{rc::Rc, any::{Any, TypeId}, borrow::Cow};
 use bc_components::{Digest, DigestProvider, tags_registry};
 use dcbor::{CBORTagged, Tag, CBOR, CBOREncodable, CBORDecodable, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
 
-use crate::envelope::{Envelope, IntoEnvelope};
+use crate::envelope::{Envelope, Enclosable};
 
 /// Represents an assertion.
 #[derive(Clone, Debug)]
@@ -15,21 +15,23 @@ pub struct Assertion {
 
 impl Assertion {
     /// Creates an assertion and calculates its digest.
-    pub fn new<P: IntoEnvelope, O: IntoEnvelope>(predicate: P, object: O) -> Self {
-        let p = if TypeId::of::<P>() == TypeId::of::<Rc<Envelope>>() {
+    pub fn new<P: Enclosable + 'static, O: Enclosable + 'static>(predicate: P, object: O) -> Self {
+        let p_type = TypeId::of::<P>();
+        let p = if p_type == TypeId::of::<Rc<Envelope>>() {
             (&predicate as &dyn Any).downcast_ref::<Rc<Envelope>>().unwrap().clone()
-        } else if TypeId::of::<P>() == TypeId::of::<Envelope>() {
+        } else if p_type == TypeId::of::<Envelope>() {
             Rc::new((&predicate as &dyn Any).downcast_ref::<Envelope>().unwrap().clone())
         } else {
-            Envelope::new(predicate)
+            predicate.enclose()
         };
 
-        let o = if TypeId::of::<O>() == TypeId::of::<Rc<Envelope>>() {
+        let o_type = TypeId::of::<O>();
+        let o = if o_type == TypeId::of::<Rc<Envelope>>() {
             (&object as &dyn Any).downcast_ref::<Rc<Envelope>>().unwrap().clone()
-        } else if TypeId::of::<O>() == TypeId::of::<Envelope>() {
+        } else if o_type == TypeId::of::<Envelope>() {
             Rc::new((&object as &dyn Any).downcast_ref::<Envelope>().unwrap().clone())
         } else {
-            Envelope::new(object)
+            object.enclose()
         };
 
         let digest = Digest::from_digests(&[p.digest().into_owned(), o.digest().into_owned()]);
@@ -80,7 +82,7 @@ impl CBOREncodable for Assertion {
 }
 
 impl CBORDecodable for Assertion {
-    fn from_cbor(cbor: &CBOR) -> Result<Rc<Self>, dcbor::Error> {
+    fn from_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
         Self::from_tagged_cbor(cbor)
     }
 }
@@ -94,12 +96,12 @@ impl CBORTaggedEncodable for Assertion {
 }
 
 impl CBORTaggedDecodable for Assertion {
-    fn from_untagged_cbor(cbor: &CBOR) -> Result<Rc<Self>, dcbor::Error> {
-        let array: Rc<Vec<Envelope>> = Vec::<Envelope>::from_cbor(cbor)?;
+    fn from_untagged_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
+        let array: Vec<Envelope> = Vec::<Envelope>::from_cbor(cbor)?;
         if array.len() != 2 {
             return Err(dcbor::Error::InvalidFormat);
         }
-        Ok(Rc::new(Self::new(array[0].clone(), array[1].clone())))
+        Ok(Self::new(array[0].clone(), array[1].clone()))
     }
 }
 

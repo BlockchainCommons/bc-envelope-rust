@@ -1,15 +1,16 @@
 use std::error::Error;
 use std::rc::Rc;
-use crate::{Envelope, with_format_context, KnownValue, known_value_registry};
+use crate::{Envelope, with_format_context, KnownValue, known_value_registry, envelope::Enclosable};
 use bc_components::DigestProvider;
+use dcbor::CBOREncodable;
 use indoc::indoc;
 
 fn basic_envelope() -> Rc<Envelope> {
-    Envelope::new("Hello.")
+    "Hello.".enclose()
 }
 
 fn known_value_envelope() -> Rc<Envelope> {
-    Envelope::new(known_value_registry::NOTE)
+    known_value_registry::NOTE.enclose()
 }
 
 fn assertion_envelope() -> Rc<Envelope> {
@@ -17,7 +18,7 @@ fn assertion_envelope() -> Rc<Envelope> {
 }
 
 fn single_assertion_envelope() -> Rc<Envelope> {
-    Envelope::new("Alice")
+    "Alice".enclose()
         .add_assertion_with_predobj("knows", "Bob")
 }
 
@@ -27,16 +28,16 @@ fn double_assertion_envelope() -> Rc<Envelope> {
 }
 
 fn wrapped_envelope() -> Rc<Envelope> {
-    Envelope::new(basic_envelope())
+    basic_envelope().enclose()
 }
 
 fn double_wrapped_envelope() -> Rc<Envelope> {
-    Envelope::new(wrapped_envelope())
+    wrapped_envelope().enclose()
 }
 
 #[test]
 fn test_int_subject() -> Result<(), Box<dyn Error>> {
-    let e = Envelope::new_leaf(42).check_encoding()?;
+    let e = 42.enclose().check_encoding()?;
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -63,7 +64,7 @@ fn test_int_subject() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_negative_int_subject() -> Result<(), Box<dyn Error>> {
-    let e = Envelope::new_leaf(-42).check_encoding()?;
+    let e = (-42).enclose().check_encoding()?;
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -350,7 +351,7 @@ fn test_assertion_with_assertions() -> Result<(), Box<dyn Error>> {
     let a = Envelope::new_assertion_with_predobj(1, 2)
         .add_assertion_with_predobj(3, 4)
         .add_assertion_with_predobj(5, 6);
-    let e = Envelope::new(7)
+    let e = 7.enclose()
         .add_assertion(a);
     assert_eq!(e.format(),
     indoc! {r#"
@@ -371,7 +372,7 @@ fn test_assertion_with_assertions() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_digest_leaf() -> Result<(), Box<dyn Error>> {
     let digest = basic_envelope().digest().into_owned();
-    let e = Envelope::new(digest).check_encoding()?;
+    let e = digest.cbor().enclose().check_encoding()?;
     assert_eq!(e.format(),
     indoc! {r#"
     Digest(8cc96cdb)

@@ -1,15 +1,15 @@
 use std::error::Error;
 use std::rc::Rc;
-use crate::{Envelope, known_value_registry};
+use crate::{Envelope, known_value_registry, envelope::Enclosable};
 use bc_components::{DigestProvider, SymmetricKey, Nonce, EncryptedMessage};
 use hex_literal::hex;
 
 fn basic_envelope() -> Rc<Envelope> {
-    Envelope::new("Hello.")
+    "Hello.".enclose()
 }
 
 fn known_value_envelope() -> Rc<Envelope> {
-    Envelope::new(known_value_registry::NOTE)
+    known_value_registry::NOTE.enclose()
 }
 
 fn assertion_envelope() -> Rc<Envelope> {
@@ -17,7 +17,7 @@ fn assertion_envelope() -> Rc<Envelope> {
 }
 
 fn single_assertion_envelope() -> Rc<Envelope> {
-    Envelope::new("Alice")
+    "Alice".enclose()
         .add_assertion_with_predobj("knows", "Bob")
 }
 
@@ -27,11 +27,11 @@ fn double_assertion_envelope() -> Rc<Envelope> {
 }
 
 fn wrapped_envelope() -> Rc<Envelope> {
-    Envelope::new(basic_envelope())
+    basic_envelope().enclose()
 }
 
 fn double_wrapped_envelope() -> Rc<Envelope> {
-    Envelope::new(wrapped_envelope())
+    wrapped_envelope().enclose()
 }
 
 fn symmetric_key() -> SymmetricKey {
@@ -75,3 +75,10 @@ fn test_encrypted() {
     encrypted_test(single_assertion_envelope()).unwrap();
     encrypted_test(double_assertion_envelope()).unwrap();
 }
+
+// #[test]
+// fn test_sign_wrap_encrypt() {
+//     let e1 = basic_envelope();
+//     let e2 =
+//         e1.sign(alice_private_keys())
+// }

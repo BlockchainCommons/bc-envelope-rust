@@ -18,7 +18,7 @@ impl Envelope {
     pub fn elide(self: Rc<Self>) -> Rc<Self> {
         match *self {
             Envelope::Elided(_) => self.clone(),
-            _ => Envelope::new_elided(self.digest().into_owned())
+            _ => Rc::new(Envelope::new_elided(self.digest().into_owned()))
         }
     }
 }
@@ -180,7 +180,7 @@ impl Envelope {
                 ObscureAction::Elide => self.elide(),
                 ObscureAction::Encrypt(key) => {
                     let message = key.encrypt(self.tagged_cbor().cbor_data(), Some((&self_digest).into()), None::<Nonce>);
-                    Envelope::new_with_encrypted(message).unwrap()
+                    Rc::new(Envelope::new_with_encrypted(message).unwrap())
                 },
                 ObscureAction::Compress => self.compress(),
             }
@@ -189,7 +189,7 @@ impl Envelope {
             let object = assertion.object().elide_set_with_action(target, is_revealing, action);
             let elided_assertion = Assertion::new(predicate, object);
             assert!(&elided_assertion == assertion);
-            Envelope::new_with_assertion(elided_assertion)
+            Rc::new(Envelope::new_with_assertion(elided_assertion))
         } else if let Envelope::Node { subject, assertions, ..} = &*self {
             let elided_subject = subject.clone().elide_set_with_action(target, is_revealing, action);
             assert!(elided_subject.digest() == subject.digest());
@@ -198,11 +198,11 @@ impl Envelope {
                 assert!(elided_assertion.digest() == assertion.digest());
                 elided_assertion
             }).collect();
-            new_envelope_with_unchecked_assertions(elided_subject, elided_assertions)
+            Rc::new(new_envelope_with_unchecked_assertions(elided_subject, elided_assertions))
         } else if let Envelope::Wrapped { envelope, .. } = &*self {
             let elided_envelope = envelope.clone().elide_set_with_action(target, is_revealing, action);
             assert!(elided_envelope.digest() == envelope.digest());
-            Envelope::new_wrapped(elided_envelope)
+            Rc::new(Envelope::new_wrapped(elided_envelope))
         } else {
             self
         }

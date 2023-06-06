@@ -1,4 +1,4 @@
-use std::{rc::Rc, any::{Any, TypeId}};
+use std::rc::Rc;
 use bc_components::{Digest, Compressed, EncryptedMessage, DigestProvider};
 use dcbor::{CBOR, CBOREncodable};
 use crate::{assertion::Assertion, KnownValue, Error};
@@ -47,135 +47,185 @@ impl Envelope {
     }
 }
 
-pub trait IntoEnvelope: Any + Clone + CBOREncodable {
-    fn into_envelope(self) -> Rc<Envelope>;
+pub trait Enclosable {
+    fn enclose(self) -> Rc<Envelope>;
 }
 
-impl<T> IntoEnvelope for T
-    where T: Any + Clone + CBOREncodable
-{
-    fn into_envelope(self) -> Rc<Envelope> {
-        Envelope::new(self)
+impl Enclosable for Rc<Envelope> {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_wrapped(self))
     }
 }
 
-pub fn new_envelope_with_unchecked_assertions(subject: Rc<Envelope>, unchecked_assertions: Vec<Rc<Envelope>>) -> Rc<Envelope> {
+impl Enclosable for Envelope {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_wrapped(Rc::new(self)))
+    }
+}
+
+impl Enclosable for KnownValue {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_with_known_value(self))
+    }
+}
+
+impl Enclosable for Assertion {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_with_assertion(self))
+    }
+}
+
+impl Enclosable for EncryptedMessage {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_with_encrypted(self).unwrap())
+    }
+}
+
+impl Enclosable for Compressed {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_with_compressed(self).unwrap())
+    }
+}
+
+impl Enclosable for CBOR {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(self))
+    }
+}
+
+impl Enclosable for &str {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(CBOR::Text(self.to_string())))
+    }
+}
+
+impl Enclosable for u8 {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(self.cbor()))
+    }
+}
+
+impl Enclosable for u16 {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(self.cbor()))
+    }
+}
+
+impl Enclosable for u32 {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(self.cbor()))
+    }
+}
+
+impl Enclosable for u64 {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(self.cbor()))
+    }
+}
+
+impl Enclosable for usize {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(self.cbor()))
+    }
+}
+
+impl Enclosable for i8 {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(self.cbor()))
+    }
+}
+
+impl Enclosable for i16 {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(self.cbor()))
+    }
+}
+
+impl Enclosable for i32 {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(self.cbor()))
+    }
+}
+
+impl Enclosable for i64 {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(self.cbor()))
+    }
+}
+
+pub fn new_envelope_with_unchecked_assertions(subject: Rc<Envelope>, unchecked_assertions: Vec<Rc<Envelope>>) -> Envelope {
     assert!(!unchecked_assertions.is_empty());
     let mut sorted_assertions = unchecked_assertions;
     sorted_assertions.sort_by(|a, b| a.digest().cmp(&b.digest()));
     let mut digests = vec![subject.digest().into_owned()];
     digests.extend(sorted_assertions.iter().map(|a| a.digest().into_owned()));
     let digest = Digest::from_digests(&digests);
-    Rc::new(Envelope::Node { subject, assertions: sorted_assertions, digest })
+    Envelope::Node { subject, assertions: sorted_assertions, digest }
 }
 
 /// Internal constructors
 impl Envelope {
-    pub(crate) fn new_with_assertions(subject: Rc<Self>, assertions: Vec<Rc<Self>>) -> Result<Rc<Self>, Error> {
+    pub(crate) fn new_with_assertions(subject: Rc<Self>, assertions: Vec<Rc<Self>>) -> Result<Self, Error> {
         if !assertions.iter().all(|a| a.is_subject_assertion() || a.is_subject_obscured()) {
             return Err(Error::InvalidFormat);
         }
         Ok(new_envelope_with_unchecked_assertions(subject, assertions))
     }
 
-    pub(crate) fn new_with_assertion(assertion: Assertion) -> Rc<Self> {
-        Rc::new(Self::Assertion(assertion))
+    pub(crate) fn new_with_assertion(assertion: Assertion) -> Self {
+        Self::Assertion(assertion)
     }
 
-    pub(crate) fn new_with_known_value(value: KnownValue) -> Rc<Self> {
+    pub(crate) fn new_with_known_value(value: KnownValue) -> Self {
         let digest = value.digest().into_owned();
-        Rc::new(Self::KnownValue { value, digest })
+        Self::KnownValue { value, digest }
     }
 
-    pub(crate) fn new_with_encrypted(encrypted_message: EncryptedMessage) -> Result<Rc<Self>, Error> {
+    pub(crate) fn new_with_encrypted(encrypted_message: EncryptedMessage) -> Result<Self, Error> {
         if !encrypted_message.has_digest() {
             return Err(Error::MissingDigest);
         }
-        Ok(Rc::new(Self::Encrypted(encrypted_message)))
+        Ok(Self::Encrypted(encrypted_message))
     }
 
-    pub(crate) fn new_with_compressed(compressed: Compressed) -> Result<Rc<Self>, Error> {
+    pub(crate) fn new_with_compressed(compressed: Compressed) -> Result<Self, Error> {
         if !compressed.has_digest() {
             return Err(Error::MissingDigest);
         }
-        Ok(Rc::new(Self::Compressed(compressed)))
+        Ok(Self::Compressed(compressed))
     }
 
-    pub(crate) fn new_elided(digest: Digest) -> Rc<Self> {
-        Rc::new(Self::Elided(digest))
+    pub(crate) fn new_elided(digest: Digest) -> Self {
+        Self::Elided(digest)
     }
 
-    pub(crate) fn new_leaf<T: CBOREncodable>(cbor: T) -> Rc<Self> {
+    pub(crate) fn new_leaf<T: CBOREncodable>(cbor: T) -> Self {
         let cbor = cbor.cbor();
         let digest = Digest::from_image(&cbor.cbor_data());
-        Rc::new(Self::Leaf { cbor, digest })
+        Self::Leaf { cbor, digest }
     }
 
-    pub(crate) fn new_wrapped(envelope: Rc<Self>) -> Rc<Self> {
+    pub(crate) fn new_wrapped(envelope: Rc<Self>) -> Self {
         let digest = Digest::from_digests(&[envelope.digest().into_owned()]);
-        Rc::new(Self::Wrapped { envelope, digest })
+        Self::Wrapped { envelope, digest }
     }
 }
 
 impl Envelope {
-    /// Create an envelope with the given subject.
-    ///
-    /// If the subject is another `Envelope`, a wrapped envelope is created.
-    /// If the subject is a `KnownValue`, a known value envelope is created.
-    /// If the subject is an `Assertion`, an assertion envelope is created.
-    /// If the subject is an `EncryptedMessage`, with a properly declared `Digest`, then an encrypted Envelope is created.
-    /// If the subject is a `Compressed`, with a properly declared `Digest`, then a compressed Envelope is created.
-    /// If the subject is any type conforming to `CBOREncodable`, then a leaf envelope is created.
-    /// Any other type passed as `subject` is a programmer error and results in a panic.
-    pub fn new<S: IntoEnvelope>(subject: S) -> Rc<Self> {
-        if TypeId::of::<S>() == TypeId::of::<Rc<Self>>() {
-            return Self::new_wrapped((&subject as &dyn Any).downcast_ref::<Rc<Self>>().unwrap().clone())
-        }
-
-        if TypeId::of::<S>() == TypeId::of::<Envelope>() {
-            return Self::new_wrapped(Rc::new((&subject as &dyn Any).downcast_ref::<Envelope>().unwrap().clone()))
-        }
-
-        if TypeId::of::<S>() == TypeId::of::<KnownValue>() {
-            let known_value = (&subject as &dyn Any).downcast_ref::<KnownValue>().unwrap().clone();
-            return Self::new_with_known_value(known_value)
-        }
-
-        if TypeId::of::<S>() == TypeId::of::<Assertion>() {
-            let assertion = (&subject as &dyn Any).downcast_ref::<Assertion>().unwrap().clone();
-            return Self::new_with_assertion(assertion)
-        }
-
-        if TypeId::of::<S>() == TypeId::of::<EncryptedMessage>() {
-            let encrypted_message = (&subject as &dyn Any).downcast_ref::<EncryptedMessage>().unwrap().clone();
-            return Self::new_with_encrypted(encrypted_message).unwrap()
-        }
-
-        if TypeId::of::<S>() == TypeId::of::<Compressed>() {
-            let compressed = (&subject as &dyn Any).downcast_ref::<Compressed>().unwrap().clone();
-            return Self::new_with_compressed(compressed).unwrap()
-        }
-
-        let a = &subject;
-        let cbor_encodable = a as &dyn CBOREncodable;
-        let cbor = cbor_encodable.cbor();
-        Self::new_leaf(cbor)
-    }
-
-    pub fn new_assertion_with_predobj<P: IntoEnvelope, O: IntoEnvelope>(predicate: P, object: O) -> Rc<Self> {
-        Self::new_with_assertion(Assertion::new(predicate, object))
+    pub fn new_assertion_with_predobj<P: Enclosable + 'static, O: Enclosable + 'static>(predicate: P, object: O) -> Rc<Self> {
+        Rc::new(Self::new_with_assertion(Assertion::new(predicate, object)))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use bc_components::{DigestProvider, Compressed};
-    use crate::{Envelope, KnownValue, Assertion};
+    use crate::{Envelope, KnownValue, Assertion, envelope::Enclosable};
 
     #[test]
     fn test_any_envelope() {
         let e1 = Envelope::new_leaf("Hello");
-        let e2 = Envelope::new("Hello");
+        let e2 = "Hello".enclose();
         assert_eq!(e1.format(), e2.format());
         assert_eq!(e1.digest(), e2.digest());
     }
@@ -184,7 +234,7 @@ mod tests {
     fn test_any_known_value() {
         let known_value = KnownValue::new(100);
         let e1 = Envelope::new_with_known_value(known_value.clone());
-        let e2 = Envelope::new(known_value);
+        let e2 = known_value.enclose();
         assert_eq!(e1.format(), e2.format());
         assert_eq!(e1.digest(), e2.digest());
     }
@@ -193,7 +243,7 @@ mod tests {
     fn test_any_assertion() {
         let assertion = Assertion::new("knows", "Bob");
         let e1 = Envelope::new_with_assertion(assertion.clone());
-        let e2 = Envelope::new(assertion);
+        let e2 = assertion.enclose();
         assert_eq!(e1.format(), e2.format());
         assert_eq!(e1.digest(), e2.digest());
     }
@@ -209,7 +259,7 @@ mod tests {
         let digest = data.digest().into_owned();
         let compressed = Compressed::from_uncompressed_data(data, Some(digest));
         let e1 = Envelope::new_with_compressed(compressed.clone()).unwrap();
-        let e2 = Envelope::new(compressed);
+        let e2 = compressed.enclose();
         assert_eq!(e1.format(), e2.format());
         assert_eq!(e1.digest(), e2.digest());
     }
@@ -217,7 +267,7 @@ mod tests {
     #[test]
     fn test_any_cbor_encodable() {
         let e1 = Envelope::new_leaf(1);
-        let e2 = Envelope::new(1);
+        let e2 = 1.enclose();
         assert_eq!(e1.format(), e2.format());
         assert_eq!(e1.digest(), e2.digest());
     }

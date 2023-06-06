@@ -12,6 +12,7 @@ pub enum Error {
     NotCompressed,
     NotEncrypted,
     NotWrapped,
+    UnverifiedSignature,
     CBORError(dcbor::Error),
     CryptoError(bc_crypto::Error),
 }

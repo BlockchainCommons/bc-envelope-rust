@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use bc_components::tags_registry;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
 
@@ -117,16 +115,16 @@ impl CBORTaggedEncodable for Function {
 }
 
 impl CBORDecodable for Function {
-    fn from_cbor(cbor: &CBOR) -> Result<Rc<Self>, dcbor::Error> {
+    fn from_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
         Self::from_tagged_cbor(cbor)
     }
 }
 
 impl CBORTaggedDecodable for Function {
-    fn from_untagged_cbor(untagged_cbor: &CBOR) -> Result<Rc<Self>, dcbor::Error> {
+    fn from_untagged_cbor(untagged_cbor: &CBOR) -> Result<Self, dcbor::Error> {
         match untagged_cbor {
-            CBOR::Unsigned(value) => Ok(Rc::new(Self::new_known(*value, None))),
-            CBOR::Text(name) => Ok(Rc::new(Self::new_named(name.clone()))),
+            CBOR::Unsigned(value) => Ok(Self::new_known(*value, None)),
+            CBOR::Text(name) => Ok(Self::new_named(name.clone())),
             _ => Err(dcbor::Error::InvalidFormat),
         }
     }
