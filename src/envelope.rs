@@ -35,124 +35,6 @@ pub enum Envelope {
     Elided(Digest),
 }
 
-impl Envelope {
-    /// Create an Envelope from a &dyn CBOREncodable
-    pub fn from_cbor_encodable(cbor_encodable: &dyn CBOREncodable) -> Rc<Self> {
-        let cbor = cbor_encodable.cbor();
-        let digest = Digest::from_image(&cbor.cbor_data());
-        Rc::new(Self::Leaf {
-            cbor,
-            digest,
-        })
-    }
-}
-
-pub trait Enclosable {
-    fn enclose(self) -> Rc<Envelope>;
-}
-
-impl Enclosable for Rc<Envelope> {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_wrapped(self))
-    }
-}
-
-impl Enclosable for Envelope {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_wrapped(Rc::new(self)))
-    }
-}
-
-impl Enclosable for KnownValue {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_with_known_value(self))
-    }
-}
-
-impl Enclosable for Assertion {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_with_assertion(self))
-    }
-}
-
-impl Enclosable for EncryptedMessage {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_with_encrypted(self).unwrap())
-    }
-}
-
-impl Enclosable for Compressed {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_with_compressed(self).unwrap())
-    }
-}
-
-impl Enclosable for CBOR {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self))
-    }
-}
-
-impl Enclosable for &str {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(CBOR::Text(self.to_string())))
-    }
-}
-
-impl Enclosable for u8 {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
-    }
-}
-
-impl Enclosable for u16 {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
-    }
-}
-
-impl Enclosable for u32 {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
-    }
-}
-
-impl Enclosable for u64 {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
-    }
-}
-
-impl Enclosable for usize {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
-    }
-}
-
-impl Enclosable for i8 {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
-    }
-}
-
-impl Enclosable for i16 {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
-    }
-}
-
-impl Enclosable for i32 {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
-    }
-}
-
-impl Enclosable for i64 {
-    fn enclose(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
-    }
-}
-
 /// Internal constructors
 impl Envelope {
 
@@ -221,7 +103,7 @@ impl Envelope {
 #[cfg(test)]
 mod tests {
     use bc_components::{DigestProvider, Compressed};
-    use crate::{Envelope, KnownValue, Assertion, envelope::Enclosable};
+    use crate::{Envelope, KnownValue, Assertion, Enclosable};
 
     #[test]
     fn test_any_envelope() {

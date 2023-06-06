@@ -1,5 +1,5 @@
 use std::error::Error;
-use crate::{known_value, envelope::Enclosable};
+use crate::{known_value, Enclosable};
 use bc_components::DigestProvider;
 use bc_crypto::{fake_random_data, make_fake_random_number_generator, RandomNumberGenerator};
 use bc_ur::UREncodable;

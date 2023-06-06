@@ -2,7 +2,7 @@ use dcbor::CBOREncodable;
 use indoc::indoc;
 use std::error::Error;
 use bc_components::Digest;
-use crate::{Envelope, with_format_context, envelope::Enclosable};
+use crate::{Envelope, with_format_context, Enclosable};
 
 #[test]
 fn test_digest() -> Result<(), Box<dyn Error>> {

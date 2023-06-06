@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::rc::Rc;
-use crate::{Envelope, known_value_registry, envelope::Enclosable};
+use crate::{Envelope, known_value_registry, Enclosable};
 use bc_components::{DigestProvider, SymmetricKey, Nonce, EncryptedMessage};
 use hex_literal::hex;
 

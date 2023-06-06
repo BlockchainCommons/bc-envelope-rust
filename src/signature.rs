@@ -4,7 +4,7 @@ use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, 
 use bc_crypto::{RandomNumberGenerator, SecureRandomNumberGenerator};
 use dcbor::CBOREncodable;
 
-use crate::{Envelope, Error, known_value_registry, envelope::Enclosable};
+use crate::{Envelope, Error, known_value_registry, Enclosable};
 
 impl Envelope {
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.

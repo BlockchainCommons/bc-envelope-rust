@@ -1,4 +1,4 @@
-use crate::{Envelope, envelope::Enclosable};
+use crate::{Envelope, Enclosable};
 use std::error::Error;
 use indoc::indoc;
 

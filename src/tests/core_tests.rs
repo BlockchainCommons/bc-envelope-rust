@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::rc::Rc;
-use crate::{Envelope, with_format_context, KnownValue, known_value_registry, envelope::Enclosable};
+use crate::{Envelope, with_format_context, KnownValue, known_value_registry, Enclosable};
 use bc_components::DigestProvider;
 use dcbor::CBOREncodable;
 use indoc::indoc;

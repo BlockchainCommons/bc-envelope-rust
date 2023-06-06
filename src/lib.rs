@@ -15,6 +15,9 @@ mod string_utils;
 mod wrap;
 mod signature;
 
+mod enclose;
+pub use enclose::{Enclosable, enclose_cbor};
+
 mod elide;
 pub use elide::ObscureAction;
 
