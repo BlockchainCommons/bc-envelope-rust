@@ -16,6 +16,9 @@ mod signature;
 mod string_utils;
 mod wrap;
 
+mod sskr;
+pub use sskr::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret};
+
 mod enclose;
 pub use enclose::{Enclosable, enclose_cbor};
 

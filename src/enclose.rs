@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use bc_components::{EncryptedMessage, Compressed, Signature, SealedMessage};
+use bc_components::{EncryptedMessage, Compressed, Signature, SealedMessage, SSKRShare};
 use dcbor::{CBOREncodable, CBOR};
 
 use crate::{Envelope, KnownValue, Assertion};
@@ -115,14 +115,20 @@ impl Enclosable for i64 {
     }
 }
 
-impl Enclosable for Signature {
+impl Enclosable for &Signature {
     fn enclose(self) -> Rc<Envelope> {
-        enclose_cbor(&self)
+        enclose_cbor(self)
     }
 }
 
-impl Enclosable for SealedMessage {
+impl Enclosable for &SealedMessage {
     fn enclose(self) -> Rc<Envelope> {
-        enclose_cbor(&self)
+        enclose_cbor(self)
+    }
+}
+
+impl Enclosable for &SSKRShare {
+    fn enclose(self) -> Rc<Envelope> {
+        enclose_cbor(self)
     }
 }

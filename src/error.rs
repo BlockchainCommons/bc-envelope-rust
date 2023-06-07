@@ -8,6 +8,7 @@ pub enum Error {
     InvalidFormat,
     InvalidKey,
     InvalidRecipient,
+    InvalidShares,
     MissingDigest,
     NonexistentPredicate,
     NotCompressed,
@@ -16,6 +17,7 @@ pub enum Error {
     UnverifiedSignature,
     CBORError(dcbor::Error),
     CryptoError(bc_crypto::Error),
+    SSKRError(bc_components::SSKRError),
 }
 
 impl std::fmt::Display for Error {
