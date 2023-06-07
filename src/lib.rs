@@ -56,6 +56,8 @@ pub use known_parameters::KnownParameters;
 
 #[cfg(test)]
 mod tests {
+    mod test_data;
+    use test_data::*;
     mod check_encoding;
     mod type_tests;
     mod core_tests;
@@ -63,6 +65,7 @@ mod tests {
     mod core_encoding_tests;
     mod elision_tests;
     mod encrypted_tests;
+    mod crypto_tests;
 
     use bc_crypto::hash::sha256;
 

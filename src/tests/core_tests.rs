@@ -1,38 +1,8 @@
 use std::error::Error;
-use std::rc::Rc;
 use crate::{Envelope, with_format_context, KnownValue, known_value_registry, Enclosable, enclose_cbor};
 use bc_components::DigestProvider;
 use indoc::indoc;
-
-fn basic_envelope() -> Rc<Envelope> {
-    "Hello.".enclose()
-}
-
-fn known_value_envelope() -> Rc<Envelope> {
-    known_value_registry::NOTE.enclose()
-}
-
-fn assertion_envelope() -> Rc<Envelope> {
-    Envelope::new_assertion("knows".enclose(), "Bob".enclose())
-}
-
-fn single_assertion_envelope() -> Rc<Envelope> {
-    "Alice".enclose()
-        .add_assertion("knows".enclose(), "Bob".enclose())
-}
-
-fn double_assertion_envelope() -> Rc<Envelope> {
-    single_assertion_envelope()
-        .add_assertion("knows".enclose(), "Carol".enclose())
-}
-
-fn wrapped_envelope() -> Rc<Envelope> {
-    basic_envelope().enclose()
-}
-
-fn double_wrapped_envelope() -> Rc<Envelope> {
-    wrapped_envelope().enclose()
-}
+use super::*;
 
 #[test]
 fn test_int_subject() -> Result<(), Box<dyn Error>> {
@@ -90,7 +60,7 @@ fn test_negative_int_subject() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_cbor_encodable_subject() -> Result<(), Box<dyn Error>> {
-    let e = basic_envelope().check_encoding()?;
+    let e = hello_envelope().check_encoding()?;
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
@@ -109,7 +79,7 @@ fn test_cbor_encodable_subject() -> Result<(), Box<dyn Error>> {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<String>()?, "Hello.");
+    assert_eq!(*e.extract_subject::<String>()?, PLAINTEXT_HELLO);
 
     Ok(())
 }
@@ -370,7 +340,7 @@ fn test_assertion_with_assertions() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_digest_leaf() -> Result<(), Box<dyn Error>> {
-    let digest = basic_envelope().digest().into_owned();
+    let digest = hello_envelope().digest().into_owned();
     let e = enclose_cbor(&digest).check_encoding()?;
     assert_eq!(e.format(),
     indoc! {r#"
