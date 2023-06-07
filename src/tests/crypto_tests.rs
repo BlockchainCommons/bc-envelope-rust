@@ -153,7 +153,8 @@ fn sign_then_encrypt() {
     let envelope = hello_envelope()
         .sign_with(&alice_private_keys())
         .check_encoding().unwrap()
-        .wrap_envelope().check_encoding().unwrap()
+        .wrap_envelope()
+        .check_encoding().unwrap()
         .encrypt_subject(&key).unwrap()
         .check_encoding().unwrap();
     let ur = envelope.ur();
@@ -170,7 +171,8 @@ fn sign_then_encrypt() {
         .check_encoding().unwrap()
         .decrypt_subject(&key).unwrap()
         .check_encoding().unwrap()
-        .unwrap_envelope().unwrap().check_encoding().unwrap()
+        .unwrap_envelope().unwrap()
+        .check_encoding().unwrap()
         .verify_signature_from(&alice_public_keys());
 
     // Bob reads the message.
@@ -324,59 +326,6 @@ fn test_visible_signature_multi_recipient() {
     assert!(received_envelope.decrypt_to_recipient(&alice_private_keys()).is_err());
 }
 
-/*```swift
-    func testHiddenSignatureMultiRecipient() throws {
-        // Alice signs a message, and then encloses it in another envelope before
-        // encrypting it so that it can only be decrypted by Bob or Carol. This hides
-        // Alice's signature, and requires recipients to decrypt the subject before they
-        // are able to validate the signature.
-        let contentKey = SymmetricKey()
-        let envelope = try Envelope(plaintextHello)
-            .sign(with: alicePrivateKeys)
-            .wrap()
-            .encryptSubject(with: contentKey)
-            .addRecipient(bobPublicKeys, contentKey: contentKey)
-            .addRecipient(carolPublicKeys, contentKey: contentKey).checkEncoding()
-        let ur = envelope.ur
-
-        let expectedFormat =
-        """
-        ENCRYPTED [
-            hasRecipient: SealedMessage
-            hasRecipient: SealedMessage
-        ]
-        """
-        XCTAssertEqual(envelope.format(), expectedFormat)
-
-        // Alice ➡️ ☁️ ➡️ Bob
-        // Alice ➡️ ☁️ ➡️ Carol
-
-        // The envelope is received
-        let receivedEnvelope = try Envelope(ur: ur)
-
-        // Bob decrypts the envelope, then extracts the inner envelope and validates
-        // Alice's signature, then reads the message
-        let bobReceivedPlaintext = try receivedEnvelope
-            .decrypt(to: bobPrivateKeys)
-            .unwrap().checkEncoding()
-            .verifySignature(from: alicePublicKeys)
-            .extractSubject(String.self)
-        XCTAssertEqual(bobReceivedPlaintext, plaintextHello)
-
-        // Carol decrypts the envelope, then extracts the inner envelope and validates
-        // Alice's signature, then reads the message
-        let carolReceivedPlaintext = try receivedEnvelope
-            .decrypt(to: carolPrivateKeys)
-            .unwrap().checkEncoding()
-            .verifySignature(from: alicePublicKeys)
-            .extractSubject(String.self)
-        XCTAssertEqual(carolReceivedPlaintext, plaintextHello)
-
-        // Alice didn't encrypt it to herself, so she can't read it.
-        XCTAssertThrowsError(try receivedEnvelope.decrypt(to: alicePrivateKeys))
-    }
-``` */
-
 #[test]
 fn test_hidden_signature_multi_recipient() {
     // Alice signs a message, and then encloses it in another envelope before
@@ -411,7 +360,8 @@ fn test_hidden_signature_multi_recipient() {
     // Alice's signature, then reads the message
     let bob_received_plaintext = received_envelope.clone()
         .decrypt_to_recipient(&bob_private_keys()).unwrap()
-        .unwrap_envelope().unwrap().check_encoding().unwrap()
+        .unwrap_envelope().unwrap()
+        .check_encoding().unwrap()
         .verify_signature_from(&alice_public_keys()).unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(*bob_received_plaintext, PLAINTEXT_HELLO);
@@ -420,7 +370,8 @@ fn test_hidden_signature_multi_recipient() {
     // Alice's signature, then reads the message
     let carol_received_plaintext = received_envelope.clone()
         .decrypt_to_recipient(&carol_private_keys()).unwrap()
-        .unwrap_envelope().unwrap().check_encoding().unwrap()
+        .unwrap_envelope().unwrap()
+        .check_encoding().unwrap()
         .verify_signature_from(&alice_public_keys()).unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(*carol_received_plaintext, PLAINTEXT_HELLO);
