@@ -7,6 +7,7 @@ pub enum Error {
     InvalidDigest,
     InvalidFormat,
     InvalidKey,
+    InvalidRecipient,
     MissingDigest,
     NonexistentPredicate,
     NotCompressed,

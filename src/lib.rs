@@ -10,10 +10,11 @@ mod function_registry;
 mod known_value_registry;
 mod parameter_registry;
 mod queries;
+mod recipient;
 mod salt;
+mod signature;
 mod string_utils;
 mod wrap;
-mod signature;
 
 mod enclose;
 pub use enclose::{Enclosable, enclose_cbor};
