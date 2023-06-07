@@ -5,8 +5,10 @@ use dcbor::{CBOREncodable, CBOR};
 
 use crate::{Envelope, KnownValue, Assertion};
 
-pub fn enclose_cbor(cbor_encodable: &dyn CBOREncodable) -> Rc<Envelope> {
-    cbor_encodable.cbor().enclose()
+impl Envelope {
+    pub fn enclose_cbor(cbor_encodable: &dyn CBOREncodable) -> Rc<Envelope> {
+        cbor_encodable.cbor().enclose()
+    }
 }
 
 pub trait Enclosable {
@@ -117,18 +119,18 @@ impl Enclosable for i64 {
 
 impl Enclosable for &Signature {
     fn enclose(self) -> Rc<Envelope> {
-        enclose_cbor(self)
+        Envelope::enclose_cbor(self)
     }
 }
 
 impl Enclosable for &SealedMessage {
     fn enclose(self) -> Rc<Envelope> {
-        enclose_cbor(self)
+        Envelope::enclose_cbor(self)
     }
 }
 
 impl Enclosable for &SSKRShare {
     fn enclose(self) -> Rc<Envelope> {
-        enclose_cbor(self)
+        Envelope::enclose_cbor(self)
     }
 }

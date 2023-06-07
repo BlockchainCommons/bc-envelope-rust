@@ -1,5 +1,5 @@
 use std::error::Error;
-use crate::{Envelope, with_format_context, KnownValue, known_value_registry, Enclosable, enclose_cbor};
+use crate::{Envelope, with_format_context, KnownValue, known_value_registry, Enclosable};
 use bc_components::DigestProvider;
 use indoc::indoc;
 use super::test_data::*;
@@ -341,7 +341,7 @@ fn test_assertion_with_assertions() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_digest_leaf() -> Result<(), Box<dyn Error>> {
     let digest = hello_envelope().digest().into_owned();
-    let e = enclose_cbor(&digest).check_encoding()?;
+    let e = Envelope::enclose_cbor(&digest).check_encoding()?;
     assert_eq!(e.format(),
     indoc! {r#"
     Digest(8cc96cdb)

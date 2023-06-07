@@ -50,12 +50,12 @@ impl Envelope {
     }
 }
 
-trait EnvelopeFormat {
+pub trait EnvelopeFormat {
     fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem;
 }
 
 #[derive(Debug, Clone, Eq)]
-enum EnvelopeFormatItem {
+pub enum EnvelopeFormatItem {
     Begin(String),
     End(String),
     Item(String),

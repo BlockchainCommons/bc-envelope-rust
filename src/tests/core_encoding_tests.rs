@@ -1,11 +1,11 @@
 use indoc::indoc;
 use std::error::Error;
 use bc_components::Digest;
-use crate::{Envelope, with_format_context, Enclosable, enclose_cbor};
+use crate::{Envelope, with_format_context, Enclosable};
 
 #[test]
 fn test_digest() -> Result<(), Box<dyn Error>> {
-    enclose_cbor(&Digest::from_image(&"Hello.".as_bytes())).check_encoding()?;
+   Envelope::enclose_cbor(&Digest::from_image(&"Hello.".as_bytes())).check_encoding()?;
 
     Ok(())
 }
@@ -30,7 +30,7 @@ fn test_1() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_2() -> Result<(), Box<dyn Error>> {
     let array: Vec<u64> = vec![1, 2, 3];
-    let e = enclose_cbor(&array);
+    let e = Envelope::enclose_cbor(&array);
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),

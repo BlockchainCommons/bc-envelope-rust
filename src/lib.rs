@@ -5,7 +5,6 @@ mod cbor;
 mod compress;
 mod digest;
 mod encrypt;
-mod format;
 mod function_registry;
 mod known_value_registry;
 mod parameter_registry;
@@ -16,11 +15,14 @@ mod signature;
 mod string_utils;
 mod wrap;
 
+mod format;
+pub use format::{EnvelopeFormat, EnvelopeFormatItem};
+
 mod sskr;
 pub use sskr::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret};
 
 mod enclose;
-pub use enclose::{Enclosable, enclose_cbor};
+pub use enclose::Enclosable;
 
 mod elide;
 pub use elide::ObscureAction;
@@ -61,6 +63,8 @@ pub use known_parameters::KnownParameters;
 #[cfg(test)]
 mod tests {
     pub mod test_data;
+    mod seed;
+    pub use seed::Seed;
 
     mod check_encoding;
     mod type_tests;

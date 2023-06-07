@@ -1,5 +1,5 @@
 use std::error::Error;
-use crate::{known_value, Enclosable, enclose_cbor};
+use crate::{known_value, Enclosable, Envelope};
 use bc_components::DigestProvider;
 use bc_crypto::{fake_random_data, make_fake_random_number_generator, RandomNumberGenerator};
 use bc_ur::UREncodable;
@@ -18,7 +18,7 @@ fn test_known_value() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_date() -> Result<(), Box<dyn Error>> {
     let date = Date::new_from_string("2018-01-07").unwrap();
-    let envelope = enclose_cbor(&date).check_encoding()?;
+    let envelope = Envelope::enclose_cbor(&date).check_encoding()?;
     assert_eq!(envelope.format(), "2018-01-07");
     Ok(())
 }

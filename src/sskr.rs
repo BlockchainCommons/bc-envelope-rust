@@ -80,33 +80,6 @@ impl Envelope {
     }
 }
 
-/*```swift
-    /// Creates a new envelope resulting from the joining a set of envelopes split by SSKR.
-    ///
-    /// Given a set of envelopes that are ostensibly all part of the same SSKR split,
-    /// this method attempts to reconstuct the original envelope subject. It will try
-    /// all present `sskrShare: SSKRShare` assertions, grouped by split ID, to achieve a
-    /// threshold of shares. If it can do so successfully the initializer succeeeds.
-    ///
-    /// - Parameter envelopes: The envelopes to be joined.
-    ///
-    /// - Throws: Throws an exception if no quorum of shares can be found to reconstruct
-    /// the original envelope.
-    init(shares envelopes: [Envelope]) throws {
-        guard !envelopes.isEmpty else {
-            throw EnvelopeError.invalidShares
-        }
-        for shares in try Self.shares(in: envelopes).values {
-            guard let contentKey = try? SymmetricKey(SSKRCombine(shares: shares)) else {
-                continue
-            }
-            self = try envelopes.first!.decryptSubject(with: contentKey).subject
-            return
-        }
-        throw EnvelopeError.invalidShares
-    }
-```*/
-
 impl Envelope {
     /// Creates a new envelope resulting from the joining a set of envelopes split by SSKR.
     ///
