@@ -57,8 +57,8 @@ pub use known_parameters::KnownParameters;
 
 #[cfg(test)]
 mod tests {
-    mod test_data;
-    use test_data::*;
+    pub mod test_data;
+
     mod check_encoding;
     mod type_tests;
     mod core_tests;

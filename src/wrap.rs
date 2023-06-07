@@ -11,7 +11,7 @@ impl Envelope {
     ///
     /// Returns an error if this is not a wrapped envelope.
     pub fn unwrap_envelope(self: Rc<Self>) -> Result<Rc<Self>, Error> {
-        match &*self {
+        match &*self.subject() {
             Self::Wrapped { envelope, .. } => Ok(envelope.clone()),
             _ => Err(Error::NotWrapped),
         }

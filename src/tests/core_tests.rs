@@ -2,7 +2,7 @@ use std::error::Error;
 use crate::{Envelope, with_format_context, KnownValue, known_value_registry, Enclosable, enclose_cbor};
 use bc_components::DigestProvider;
 use indoc::indoc;
-use super::*;
+use super::test_data::*;
 
 #[test]
 fn test_int_subject() -> Result<(), Box<dyn Error>> {

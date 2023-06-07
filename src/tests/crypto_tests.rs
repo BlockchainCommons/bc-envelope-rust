@@ -5,8 +5,7 @@ use bc_ur::{UREncodable, URDecodable};
 use indoc::indoc;
 
 use crate::Envelope;
-
-use super::*;
+use super::test_data::*;
 
 #[test]
 fn plaintext() {
@@ -180,40 +179,6 @@ fn sign_then_encrypt() {
     assert_eq!(*received_plaintext, PLAINTEXT_HELLO);
 }
 
-/*```swift
-    func testEncryptThenSign() throws {
-        // Alice and Bob have agreed to use this key.
-        let key = SymmetricKey()
-
-        let envelope = try Envelope(plaintextHello)
-            .encryptSubject(with: key).checkEncoding()
-            .sign(with: alicePrivateKeys).checkEncoding()
-        let ur = envelope.ur
-
-        let expectedFormat =
-        """
-        ENCRYPTED [
-            verifiedBy: Signature
-        ]
-        """
-        XCTAssertEqual(envelope.format(), expectedFormat)
-
-//        print(envelope.taggedCBOR.diagnostic())
-//        print(envelope.taggedCBOR.hex())
-//        print(envelope.ur)
-
-        // Alice ➡️ ☁️ ➡️ Bob
-
-        // Bob receives the envelope, validates Alice's signature, then decrypts the message.
-        let receivedPlaintext = try Envelope(ur: ur).checkEncoding()
-            .verifySignature(from: alicePublicKeys)
-            .decryptSubject(with: key).checkEncoding()
-            .extractSubject(String.self)
-        // Bob reads the message.
-        XCTAssertEqual(receivedPlaintext, plaintextHello)
-    }
-``` */
-
 #[test]
 fn test_encrypt_then_sign() {
     // Alice and Bob have agreed to use this key.
@@ -267,4 +232,199 @@ fn test_encrypt_then_sign() {
         .extract_subject::<String>().unwrap();
     // Bob reads the message.
     assert_eq!(*received_plaintext, PLAINTEXT_HELLO);
+}
+
+#[test]
+fn test_multi_recipient() {
+    // Alice encrypts a message so that it can only be decrypted by Bob or Carol.
+    let content_key = SymmetricKey::new();
+    let envelope = hello_envelope()
+        .encrypt_subject(&content_key).unwrap()
+        .add_recipient(&bob_public_keys(), &content_key)
+        .add_recipient(&carol_public_keys(), &content_key)
+        .check_encoding().unwrap();
+    let ur = envelope.ur();
+
+    let expected_format = indoc! {r#"
+    ENCRYPTED [
+        hasRecipient: SealedMessage
+        hasRecipient: SealedMessage
+    ]
+    "#}.trim();
+    assert_eq!(envelope.format(), expected_format);
+
+    // Alice ➡️ ☁️ ➡️ Bob
+    // Alice ➡️ ☁️ ➡️ Carol
+
+    // The envelope is received
+    let received_envelope = Rc::new(Envelope::from_ur(&ur).unwrap());
+
+    // Bob decrypts and reads the message
+    let bob_received_plaintext = received_envelope.clone()
+        .decrypt_to_recipient(&bob_private_keys()).unwrap()
+        .check_encoding().unwrap()
+        .extract_subject::<String>().unwrap();
+    assert_eq!(*bob_received_plaintext, PLAINTEXT_HELLO);
+
+    // Carol decrypts and reads the message
+    let carol_received_plaintext = received_envelope.clone()
+        .decrypt_to_recipient(&carol_private_keys()).unwrap()
+        .check_encoding().unwrap()
+        .extract_subject::<String>().unwrap();
+    assert_eq!(*carol_received_plaintext, PLAINTEXT_HELLO);
+
+    // Alice didn't encrypt it to herself, so she can't read it.
+    assert!(received_envelope.decrypt_to_recipient(&alice_private_keys()).is_err());
+}
+
+#[test]
+fn test_visible_signature_multi_recipient() {
+    // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
+    let content_key = SymmetricKey::new();
+    let envelope = hello_envelope()
+        .sign_with(&alice_private_keys())
+        .encrypt_subject(&content_key).unwrap()
+        .add_recipient(&bob_public_keys(), &content_key)
+        .add_recipient(&carol_public_keys(), &content_key)
+        .check_encoding().unwrap();
+    let ur = envelope.ur();
+
+    let expected_format = indoc! {r#"
+    ENCRYPTED [
+        hasRecipient: SealedMessage
+        hasRecipient: SealedMessage
+        verifiedBy: Signature
+    ]
+    "#}.trim();
+    assert_eq!(envelope.format(), expected_format);
+
+    // Alice ➡️ ☁️ ➡️ Bob
+    // Alice ➡️ ☁️ ➡️ Carol
+
+    // The envelope is received
+    let received_envelope = Rc::new(Envelope::from_ur(&ur).unwrap());
+
+    // Bob validates Alice's signature, then decrypts and reads the message
+    let bob_received_plaintext = received_envelope.clone()
+        .verify_signature_from(&alice_public_keys()).unwrap()
+        .decrypt_to_recipient(&bob_private_keys()).unwrap()
+        .check_encoding().unwrap()
+        .extract_subject::<String>().unwrap();
+    assert_eq!(*bob_received_plaintext, PLAINTEXT_HELLO);
+
+    // Carol validates Alice's signature, then decrypts and reads the message
+    let carol_received_plaintext = received_envelope.clone()
+        .verify_signature_from(&alice_public_keys()).unwrap()
+        .decrypt_to_recipient(&carol_private_keys()).unwrap()
+        .check_encoding().unwrap()
+        .extract_subject::<String>().unwrap();
+    assert_eq!(*carol_received_plaintext, PLAINTEXT_HELLO);
+
+    // Alice didn't encrypt it to herself, so she can't read it.
+    assert!(received_envelope.decrypt_to_recipient(&alice_private_keys()).is_err());
+}
+
+/*```swift
+    func testHiddenSignatureMultiRecipient() throws {
+        // Alice signs a message, and then encloses it in another envelope before
+        // encrypting it so that it can only be decrypted by Bob or Carol. This hides
+        // Alice's signature, and requires recipients to decrypt the subject before they
+        // are able to validate the signature.
+        let contentKey = SymmetricKey()
+        let envelope = try Envelope(plaintextHello)
+            .sign(with: alicePrivateKeys)
+            .wrap()
+            .encryptSubject(with: contentKey)
+            .addRecipient(bobPublicKeys, contentKey: contentKey)
+            .addRecipient(carolPublicKeys, contentKey: contentKey).checkEncoding()
+        let ur = envelope.ur
+
+        let expectedFormat =
+        """
+        ENCRYPTED [
+            hasRecipient: SealedMessage
+            hasRecipient: SealedMessage
+        ]
+        """
+        XCTAssertEqual(envelope.format(), expectedFormat)
+
+        // Alice ➡️ ☁️ ➡️ Bob
+        // Alice ➡️ ☁️ ➡️ Carol
+
+        // The envelope is received
+        let receivedEnvelope = try Envelope(ur: ur)
+
+        // Bob decrypts the envelope, then extracts the inner envelope and validates
+        // Alice's signature, then reads the message
+        let bobReceivedPlaintext = try receivedEnvelope
+            .decrypt(to: bobPrivateKeys)
+            .unwrap().checkEncoding()
+            .verifySignature(from: alicePublicKeys)
+            .extractSubject(String.self)
+        XCTAssertEqual(bobReceivedPlaintext, plaintextHello)
+
+        // Carol decrypts the envelope, then extracts the inner envelope and validates
+        // Alice's signature, then reads the message
+        let carolReceivedPlaintext = try receivedEnvelope
+            .decrypt(to: carolPrivateKeys)
+            .unwrap().checkEncoding()
+            .verifySignature(from: alicePublicKeys)
+            .extractSubject(String.self)
+        XCTAssertEqual(carolReceivedPlaintext, plaintextHello)
+
+        // Alice didn't encrypt it to herself, so she can't read it.
+        XCTAssertThrowsError(try receivedEnvelope.decrypt(to: alicePrivateKeys))
+    }
+``` */
+
+#[test]
+fn test_hidden_signature_multi_recipient() {
+    // Alice signs a message, and then encloses it in another envelope before
+    // encrypting it so that it can only be decrypted by Bob or Carol. This hides
+    // Alice's signature, and requires recipients to decrypt the subject before they
+    // are able to validate the signature.
+    let content_key = SymmetricKey::new();
+    let envelope = hello_envelope()
+        .sign_with(&alice_private_keys())
+        .wrap_envelope()
+        .encrypt_subject(&content_key).unwrap()
+        .add_recipient(&bob_public_keys(), &content_key)
+        .add_recipient(&carol_public_keys(), &content_key)
+        .check_encoding().unwrap();
+    let ur = envelope.ur();
+
+    let expected_format = indoc! {r#"
+    ENCRYPTED [
+        hasRecipient: SealedMessage
+        hasRecipient: SealedMessage
+    ]
+    "#}.trim();
+    assert_eq!(envelope.format(), expected_format);
+
+    // Alice ➡️ ☁️ ➡️ Bob
+    // Alice ➡️ ☁️ ➡️ Carol
+
+    // The envelope is received
+    let received_envelope = Rc::new(Envelope::from_ur(&ur).unwrap());
+
+    // Bob decrypts the envelope, then extracts the inner envelope and validates
+    // Alice's signature, then reads the message
+    let bob_received_plaintext = received_envelope.clone()
+        .decrypt_to_recipient(&bob_private_keys()).unwrap()
+        .unwrap_envelope().unwrap().check_encoding().unwrap()
+        .verify_signature_from(&alice_public_keys()).unwrap()
+        .extract_subject::<String>().unwrap();
+    assert_eq!(*bob_received_plaintext, PLAINTEXT_HELLO);
+
+    // Carol decrypts the envelope, then extracts the inner envelope and validates
+    // Alice's signature, then reads the message
+    let carol_received_plaintext = received_envelope.clone()
+        .decrypt_to_recipient(&carol_private_keys()).unwrap()
+        .unwrap_envelope().unwrap().check_encoding().unwrap()
+        .verify_signature_from(&alice_public_keys()).unwrap()
+        .extract_subject::<String>().unwrap();
+    assert_eq!(*carol_received_plaintext, PLAINTEXT_HELLO);
+
+    // Alice didn't encrypt it to herself, so she can't read it.
+    assert!(received_envelope.decrypt_to_recipient(&alice_private_keys()).is_err());
 }
