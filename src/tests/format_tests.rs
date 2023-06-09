@@ -622,3 +622,163 @@ fn test_credential() {
     "#}.trim());
     assert_eq!(credential.elements_count(), credential.tree_format(false, None).split('\n').count());
 }
+
+#[test]
+fn test_redacted_credential() {
+    let credential = credential();
+    let mut target = HashSet::new();
+    target.insert(credential.digest().into_owned());
+    for assertion in credential.clone().assertions() {
+        target.extend(assertion.deep_digests());
+    }
+    target.insert(credential.clone().subject().digest().into_owned());
+    let content = credential.clone().subject().unwrap_envelope().unwrap();
+    target.insert(content.digest().into_owned());
+    target.insert(content.clone().subject().digest().into_owned());
+
+    target.extend(content.clone().assertion_with_predicate("firstName".enclose()).unwrap().shallow_digests());
+    target.extend(content.clone().assertion_with_predicate("lastName".enclose()).unwrap().shallow_digests());
+    target.extend(content.clone().assertion_with_predicate_known_value(known_value_registry::IS_A).unwrap().shallow_digests());
+    target.extend(content.clone().assertion_with_predicate_known_value(known_value_registry::ISSUER).unwrap().shallow_digests());
+    target.extend(content.clone().assertion_with_predicate("subject".enclose()).unwrap().shallow_digests());
+    target.extend(content.assertion_with_predicate("expirationDate".enclose()).unwrap().shallow_digests());
+    let redacted_credential = credential.elide_revealing_set(&target);
+    let mut rng = make_fake_random_number_generator();
+    let warranty = redacted_credential
+        .wrap_envelope()
+        .add_assertion("employeeHiredDate".enclose(), Date::new_from_string("2022-01-01").unwrap().enclose())
+        .add_assertion("employeeStatus".enclose(), "active".enclose())
+        .wrap_envelope()
+        .add_assertion(known_value_registry::NOTE.enclose(), "Signed by Employer Corp.".enclose())
+        .sign_with_using(&bob_private_keys(), &mut rng)
+        .check_encoding().unwrap();
+    assert_eq!(warranty.format(), indoc! {r#"
+    {
+        {
+            {
+                CID(4676635a) [
+                    "expirationDate": 2028-01-01
+                    "firstName": "James"
+                    "lastName": "Maxwell"
+                    "subject": "RF and Microwave Engineering"
+                    isA: "Certificate of Completion"
+                    issuer: "Example Electrical Engineering Board"
+                    ELIDED (7)
+                ]
+            } [
+                note: "Signed by Example Electrical Engineering Board"
+                verifiedBy: Signature
+            ]
+        } [
+            "employeeHiredDate": 2022-01-01
+            "employeeStatus": "active"
+        ]
+    } [
+        note: "Signed by Employer Corp."
+        verifiedBy: Signature
+    ]
+    "#}.trim());
+    assert_eq!(warranty.clone().tree_format(false, None), indoc! {r#"
+    ed7529fe NODE
+        9222bb56 subj WRAPPED
+            2d6a7024 subj NODE
+                5063b615 subj WRAPPED
+                    31ff6d6b subj NODE
+                        5886e784 subj WRAPPED
+                            c9860567 subj NODE
+                                5fb45cf1 subj CID(4676635a)
+                                1f9ff098 ELIDED
+                                36c254d0 ASSERTION
+                                    6e5d379f pred "expirationDate"
+                                    639ae9bf obj 2028-01-01
+                                3c114201 ASSERTION
+                                    5f82a16a pred "lastName"
+                                    fe4d5230 obj "Maxwell"
+                                4a9b2e4d ELIDED
+                                5171cbaf ELIDED
+                                54b3e1e7 ELIDED
+                                5dc6d4e3 ASSERTION
+                                    4395643b pred "firstName"
+                                    d6d0b768 obj "James"
+                                68895d8e ELIDED
+                                8ec5e912 ELIDED
+                                922c859a ASSERTION
+                                    96f0167d pred isA
+                                    051beee6 obj "Certificate of Completion"
+                                caf5ced3 ASSERTION
+                                    8e4e62eb pred "subject"
+                                    202c10ef obj "RF and Microwave Engineering"
+                                d61e0984 ELIDED
+                                ebcbf71f ASSERTION
+                                    fde30b5c pred issuer
+                                    f8489ac1 obj "Example Electrical Engineering Board"
+                        55b14b17 ASSERTION
+                            49a5f41b pred note
+                            f106bad1 obj "Signed by Example Electrical Engineering…"
+                        9902b6e6 ASSERTION
+                            9d7ba9eb pred verifiedBy
+                            4b4c0a2e obj Signature
+                4c159c16 ASSERTION
+                    e1ae011e pred "employeeHiredDate"
+                    13b5a817 obj 2022-01-01
+                e071508b ASSERTION
+                    d03e7352 pred "employeeStatus"
+                    1d7a790d obj "active"
+        16639289 ASSERTION
+            9d7ba9eb pred verifiedBy
+            c82b0b88 obj Signature
+        8f255569 ASSERTION
+            49a5f41b pred note
+            f59806d2 obj "Signed by Employer Corp."
+    "#}.trim());
+    assert_eq!(warranty.clone().tree_format(true, None), indoc! {r#"
+    WRAPPED
+        WRAPPED
+            WRAPPED
+                CID(4676635a)
+                    ELIDED
+                    ASSERTION
+                        "expirationDate"
+                        2028-01-01
+                    ASSERTION
+                        "lastName"
+                        "Maxwell"
+                    ELIDED
+                    ELIDED
+                    ELIDED
+                    ASSERTION
+                        "firstName"
+                        "James"
+                    ELIDED
+                    ELIDED
+                    ASSERTION
+                        isA
+                        "Certificate of Completion"
+                    ASSERTION
+                        "subject"
+                        "RF and Microwave Engineering"
+                    ELIDED
+                    ASSERTION
+                        issuer
+                        "Example Electrical Engineering Board"
+                ASSERTION
+                    note
+                    "Signed by Example Electrical Engineering…"
+                ASSERTION
+                    verifiedBy
+                    Signature
+            ASSERTION
+                "employeeHiredDate"
+                2022-01-01
+            ASSERTION
+                "employeeStatus"
+                "active"
+        ASSERTION
+            verifiedBy
+            Signature
+        ASSERTION
+            note
+            "Signed by Employer Corp."
+    "#}.trim());
+    assert_eq!(warranty.elements_count(), warranty.tree_format(false, None).split('\n').count());
+}
