@@ -24,42 +24,6 @@ fn test_compress() {
     assert_eq!(uncompressed.structural_digest(), original.structural_digest());
 }
 
-/*```swift
-    func testCompressSubject() throws {
-        var rng = makeFakeRandomNumberGenerator()
-        let original = Envelope("Alice")
-            .addAssertion(.note, source)
-            .wrap()
-            .sign(with: alicePrivateKeys, using: &rng)
-        XCTAssertEqual(original.cborData.count, 482)
-        XCTAssertEqual(original.treeFormat(context: formatContext), """
-        5e71d9ec NODE
-            b2d791c3 subj WRAPPED
-                14881a1f subj NODE
-                    13941b48 subj "Alice"
-                    2a23230d ASSERTION
-                        49a5f41b pred note
-                        27bd67e6 obj "Lorem ipsum dolor sit amet consectetur a…"
-            f1cbc460 ASSERTION
-                9d7ba9eb pred verifiedBy
-                e44578ed obj Signature
-        """
-        )
-        let compressed = try original.compressSubject().checkEncoding(knownTags: knownTags)
-        XCTAssertEqual(compressed.cborData.count, 395)
-        XCTAssertEqual(compressed.treeFormat(context: formatContext), """
-        5e71d9ec NODE
-            b2d791c3 subj COMPRESSED
-            f1cbc460 ASSERTION
-                9d7ba9eb pred verifiedBy
-                e44578ed obj Signature
-        """
-        )
-        let uncompressed = try compressed.uncompressSubject().checkEncoding(knownTags: knownTags)
-        XCTAssertEqual(uncompressed.digest, original.digest)
-        XCTAssertEqual(uncompressed.structuralDigest, original.structuralDigest)
-```*/
-
 #[test]
 fn test_compress_subject() {
     let mut rng = make_fake_random_number_generator();
@@ -69,7 +33,7 @@ fn test_compress_subject() {
         .sign_with_using(&alice_private_keys(), &mut rng);
     assert_eq!(original.cbor_data().len(), 482);
     with_format_context!(|context| {
-        let s = original.clone().tree_format(false, context);
+        let s = original.clone().tree_format(false, Some(context));
         assert_eq!(s, indoc! {r#"
         1f87e614 NODE
             9065b9d5 subj WRAPPED
@@ -86,7 +50,7 @@ fn test_compress_subject() {
     let compresssed = original.clone().compress_subject().unwrap().check_encoding().unwrap();
     assert_eq!(compresssed.cbor_data().len(), 391);
     with_format_context!(|context| {
-        let s = compresssed.clone().tree_format(false, context);
+        let s = compresssed.clone().tree_format(false, Some(context));
         assert_eq!(s, indoc! {r#"
         1f87e614 NODE
             9065b9d5 subj COMPRESSED

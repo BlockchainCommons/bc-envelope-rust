@@ -23,10 +23,10 @@ impl EdgeType {
     }
 }
 
-pub type Visitor<'a, Parent> = dyn Fn(Rc<Envelope>, usize, EdgeType, Parent) -> Parent + 'a;
+pub type Visitor<'a, Parent> = dyn Fn(Rc<Envelope>, usize, EdgeType, Option<Parent>) -> Option<Parent> + 'a;
 
 impl Envelope {
-    pub fn walk<Parent: Default + Clone>(self: Rc<Self>, hide_nodes: bool, visit: &Visitor<Parent>) {
+    pub fn walk<Parent: Clone>(self: Rc<Self>, hide_nodes: bool, visit: &Visitor<Parent>) {
         if hide_nodes {
             self.walk_tree(visit);
         } else {
@@ -34,11 +34,11 @@ impl Envelope {
         }
     }
 
-    fn walk_structure<Parent: Default + Clone>(self: Rc<Self>, visit: &Visitor<Parent>) {
-        self._walk_structure(0, EdgeType::None, Default::default(), visit);
+    fn walk_structure<Parent: Clone>(self: Rc<Self>, visit: &Visitor<Parent>) {
+        self._walk_structure(0, EdgeType::None, None, visit);
     }
 
-    fn _walk_structure<Parent: Clone>(self: Rc<Self>, level: usize, incoming_edge: EdgeType, parent: Parent, visit: &Visitor<Parent>) {
+    fn _walk_structure<Parent: Clone>(self: Rc<Self>, level: usize, incoming_edge: EdgeType, parent: Option<Parent>, visit: &Visitor<Parent>) {
         let parent = visit(self.clone(), level, incoming_edge, parent);
         let next_level = level + 1;
         match &*self {
@@ -59,29 +59,35 @@ impl Envelope {
         }
     }
 
-    fn walk_tree<Parent: Default + Clone>(self: Rc<Self>, visit: &Visitor<Parent>)
+    fn walk_tree<Parent: Clone>(self: Rc<Self>, visit: &Visitor<Parent>)
     {
-        self._walk_tree(0, Default::default(), visit);
+        self._walk_tree(0, None, visit);
     }
 
-    fn _walk_tree<Parent: Clone>(self: Rc<Self>, level: usize, parent: Parent, visit: &Visitor<Parent>) {
-        let parent = visit(self.clone(), level, EdgeType::None, parent);
-        let next_level = level + 1;
+    fn _walk_tree<Parent: Clone>(self: Rc<Self>, level: usize, parent: Option<Parent>, visit: &Visitor<Parent>) -> Option<Parent> {
+        let mut parent = parent;
+        let mut subject_level = level;
+        if !self.is_node() {
+            parent = visit(self.clone(), level, EdgeType::None, parent);
+            subject_level = level + 1;
+        }
         match &*self {
             Self::Node { subject, assertions, .. } => {
-                subject.clone()._walk_tree(next_level, parent.clone(), visit);
+                let assertion_parent = subject.clone()._walk_tree(subject_level, parent.clone(), visit);
+                let assertion_level = subject_level + 1;
                 for assertion in assertions {
-                    assertion.clone()._walk_tree(next_level, parent.clone(), visit);
+                    assertion.clone()._walk_tree(assertion_level, assertion_parent.clone(), visit);
                 }
             },
             Self::Wrapped { envelope, .. } => {
-                envelope.clone()._walk_tree(next_level, parent, visit);
+                envelope.clone()._walk_tree(subject_level, parent.clone(), visit);
             },
             Self::Assertion(assertion) => {
-                assertion.predicate()._walk_tree(next_level, parent.clone(), visit);
-                assertion.object()._walk_tree(next_level, parent, visit);
+                assertion.predicate()._walk_tree(subject_level, parent.clone(), visit);
+                assertion.object()._walk_tree(subject_level, parent.clone(), visit);
             },
             _ => {},
         }
+        parent
     }
 }

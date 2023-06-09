@@ -1,26 +1,23 @@
-use std::error::Error;
-use crate::{known_value, Enclosable, Envelope};
+use crate::{known_value, Enclosable};
 use bc_components::DigestProvider;
 use bc_crypto::{fake_random_data, make_fake_random_number_generator, RandomNumberGenerator};
 use bc_ur::UREncodable;
 use dcbor::Date;
 
 #[test]
-fn test_known_value() -> Result<(), Box<dyn Error>> {
-    let envelope = known_value::VERIFIED_BY.enclose().check_encoding()?;
+fn test_known_value() {
+    let envelope = known_value::VERIFIED_BY.enclose().check_encoding().unwrap();
     assert_eq!(format!("{}", envelope), ".knownValue(verifiedBy)");
     assert_eq!(format!("{:?}", envelope.digest()), "Digest(9d7ba9eb8986332bf3e6f3f96b36d937176d95b556441b18612b9c06edc9b7e1)");
     assert_eq!(envelope.format(), "verifiedBy");
     assert_eq!(format!("{}", envelope.ur_string()), "ur:envelope/tpsgaxtystteve");
-    Ok(())
 }
 
 #[test]
-fn test_date() -> Result<(), Box<dyn Error>> {
+fn test_date() {
     let date = Date::new_from_string("2018-01-07").unwrap();
-    let envelope = Envelope::enclose_cbor(&date).check_encoding()?;
+    let envelope = date.enclose().check_encoding().unwrap();
     assert_eq!(envelope.format(), "2018-01-07");
-    Ok(())
 }
 
 #[test]

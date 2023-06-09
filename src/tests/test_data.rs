@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::{Envelope, Enclosable, known_value_registry};
-use bc_components::{PrivateKeyBase, PublicKeyBase};
+use bc_components::{PrivateKeyBase, PublicKeyBase, SymmetricKey, Nonce};
 use hex_literal::hex;
 
 pub const PLAINTEXT_HELLO: &str = "Hello.";
@@ -47,5 +47,5 @@ pub fn carol_public_keys() -> PublicKeyBase { carol_private_keys().public_keys()
 // pub fn state_private_keys() -> PrivateKeyBase { PrivateKeyBase::from_data(&state_seed()) }
 // pub fn state_public_keys() -> PublicKeyBase { state_private_keys().public_keys() }
 
-// pub fn fake_content_key() -> SymmetricKey { SymmetricKey::from_data(hex!("526afd95b2229c5381baec4a1788507a3c4a566ca5cce64543b46ad12aff0035")) }
-// pub fn fake_nonce() -> Nonce { Nonce::from_data(hex!("4d785658f36c22fb5aed3ac0"))}
+pub fn fake_content_key() -> SymmetricKey { SymmetricKey::from_data(hex!("526afd95b2229c5381baec4a1788507a3c4a566ca5cce64543b46ad12aff0035")) }
+pub fn fake_nonce() -> Nonce { Nonce::from_data(hex!("4d785658f36c22fb5aed3ac0"))}

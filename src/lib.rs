@@ -75,6 +75,7 @@ mod tests {
     mod crypto_tests;
     mod elision_tests;
     mod encrypted_tests;
+    mod format_tests;
     mod type_tests;
 
     use bc_crypto::hash::sha256;
