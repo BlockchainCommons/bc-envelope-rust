@@ -48,8 +48,8 @@ impl Envelope {
     /// SSKR group, and the elements of each inner array are the envelope with a unique
     /// `sskrShare: SSKRShare` assertion added to each.
     pub fn sskr_split_using(self: Rc<Self>, spec: &SSKRSpec, content_key: &SymmetricKey, test_rng: &mut impl RandomNumberGenerator) -> Result<Vec<Vec<Rc<Envelope>>>, Error> {
-        let master_secret = SSKRSecret::new(content_key).map_err(Error::SSKRError)?;
-        let shares = sskr_generate_using(spec, &master_secret, test_rng).map_err(Error::SSKRError)?;
+        let master_secret = SSKRSecret::new(content_key)?;
+        let shares = sskr_generate_using(spec, &master_secret, test_rng)?;
         let mut result: Vec<Vec<Rc<Envelope>>> = Vec::new();
         for group in shares {
             let mut group_result: Vec<Rc<Envelope>> = Vec::new();

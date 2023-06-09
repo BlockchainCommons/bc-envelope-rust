@@ -198,7 +198,7 @@ impl Envelope {
         match self {
             Self::Wrapped { envelope, .. } => extract_type::<T, Self>(&**envelope),
             Self::Node { subject, .. } => subject.extract_subject::<T>(),
-            Self::Leaf { cbor, .. } => Ok(Rc::new(T::from_cbor(cbor).map_err(Error::CBORError)?)),
+            Self::Leaf { cbor, .. } => Ok(Rc::new(T::from_cbor(cbor)?)),
             Self::KnownValue { value, .. } => extract_type::<T, KnownValue>(value),
             Self::Assertion(assertion) => extract_type::<T, Assertion>(assertion),
             Self::Encrypted(encrypted_message) => extract_type::<T, EncryptedMessage>(encrypted_message),

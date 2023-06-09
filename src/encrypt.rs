@@ -83,10 +83,10 @@ impl Envelope {
     pub fn decrypt_subject(self: Rc<Self>, key: &SymmetricKey) -> Result<Rc<Self>, Error> {
         match &*self.clone().subject() {
             Self::Encrypted(message) => {
-                let encoded_cbor = key.decrypt(message).map_err(Error::CryptoError)?;
+                let encoded_cbor = key.decrypt(message)?;
                 let subject_digest = message.opt_digest().ok_or(Error::MissingDigest)?;
-                let cbor = CBOR::from_data(&encoded_cbor).map_err(Error::CBORError)?;
-                let result_subject = Rc::new(Self::from_untagged_cbor(&cbor).map_err(Error::CBORError)?).subject();
+                let cbor = CBOR::from_data(&encoded_cbor)?;
+                let result_subject = Rc::new(Self::from_untagged_cbor(&cbor)?).subject();
                 if *result_subject.digest() != subject_digest {
                     return Err(Error::InvalidDigest);
                 }

@@ -38,7 +38,7 @@ impl Envelope {
     /// - Returns: The new envelope.
     pub fn add_recipient_opt(self: Rc<Self>, recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<&[u8]>, test_nonce: Option<&Nonce>) -> Rc<Self> {
         let assertion = Self::make_has_recipient(recipient, content_key, test_key_material, test_nonce);
-        self.add_assertion_envelope(assertion)
+        self.add_assertion_envelope(assertion).unwrap()
     }
 
     /// Returns an array of `SealedMessage`s from all of the envelope's `hasRecipient` assertions.
@@ -116,7 +116,7 @@ impl Envelope {
     pub fn decrypt_to_recipient(self: Rc<Self>, recipient: &PrivateKeyBase) -> Result<Rc<Self>, Error> {
         let sealed_messages = self.clone().recipients()?;
         let content_key_data = Self::first_plaintext_in_sealed_messages(&sealed_messages, recipient)?;
-        let content_key = SymmetricKey::from_tagged_cbor_data(&content_key_data).map_err(Error::CBORError)?;
+        let content_key = SymmetricKey::from_tagged_cbor_data(&content_key_data)?;
         self.decrypt_subject(&content_key)
     }
 }

@@ -53,7 +53,7 @@ fn test_3() -> Result<(), Box<dyn Error>> {
     let e2 = Envelope::new_assertion("C".enclose(), "D".enclose());
     let e3 = Envelope::new_assertion("E".enclose(), "F".enclose());
 
-    let e4 = e2.add_assertion_envelope(e3);
+    let e4 = e2.add_assertion_envelope(e3).unwrap();
     assert_eq!(e4.format(),
         indoc! {r#"
         {
@@ -99,7 +99,7 @@ fn test_3() -> Result<(), Box<dyn Error>> {
         );
     });
 
-    let e5 = e1.add_assertion_envelope(e4).check_encoding()?;
+    let e5 = e1.add_assertion_envelope(e4).unwrap().check_encoding()?;
 
     assert_eq!(e5.format(),
         indoc! {r#"

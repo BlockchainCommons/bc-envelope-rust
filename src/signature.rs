@@ -61,6 +61,14 @@ impl Envelope {
         self.sign_with_opt_using(private_keys, note, tag, &mut rng)
     }
 
+    pub fn sign_with_using(
+        self: Rc<Self>,
+        private_keys: &PrivateKeyBase,
+        rng: &mut impl RandomNumberGenerator
+    ) -> Rc<Self> {
+        self.sign_with_opt_using(private_keys, None, [], rng)
+    }
+
     pub fn sign_with_keys(
         self: Rc<Self>,
         private_keys_array: &[&PrivateKeyBase],
@@ -130,7 +138,8 @@ impl Envelope {
         let signature = signing_private_key
             .schnorr_sign_using(digest, tag, rng)
             .enclose()
-            .add_assertion_envelopes(uncovered_assertions);
+            .add_assertion_envelopes(uncovered_assertions)
+            .unwrap();
         self.add_assertion(known_value_registry::VERIFIED_BY.enclose(), signature)
     }
 

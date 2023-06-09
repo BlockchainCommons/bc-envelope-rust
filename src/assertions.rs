@@ -7,20 +7,24 @@ use crate::{Envelope, Error};
 // Support for manipulating assertions.
 
 impl Envelope {
-    pub fn add_assertion_envelope(self: Rc<Self>, assertion_envelope: Rc<Self>) -> Rc<Self> {
-        self.add_assertion_envelope_salted(assertion_envelope, false).unwrap()
+    pub fn add_assertion_envelope(self: Rc<Self>, assertion_envelope: Rc<Self>) -> Result<Rc<Self>, Error> {
+        self.add_assertion_envelope_salted(assertion_envelope, false)
     }
 
     pub fn add_assertion_envelope_salted(self: Rc<Self>, assertion_envelope: Rc<Self>, salted: bool) -> Result<Rc<Self>, Error> {
         self.add_optional_assertion_envelope_salted(Some(assertion_envelope), salted)
     }
 
-    pub fn add_assertion_envelopes(self: Rc<Self>, assertions: &[Rc<Self>]) -> Rc<Self> {
-        assertions.iter().fold(self, |acc, assertion| acc.add_assertion_envelope(assertion.clone()))
+    pub fn add_assertion_envelopes(self: Rc<Self>, assertions: &[Rc<Self>]) -> Result<Rc<Self>, Error> {
+        let mut e = self;
+        for assertion in assertions {
+            e = e.add_assertion_envelope(assertion.clone())?;
+        }
+        Ok(e)
     }
 
-    pub fn add_optional_assertion_envelope(self: Rc<Self>, assertion: Option<Rc<Self>>) -> Rc<Self> {
-        self.add_optional_assertion_envelope_salted(assertion, false).unwrap()
+    pub fn add_optional_assertion_envelope(self: Rc<Self>, assertion: Option<Rc<Self>>) -> Result<Rc<Self>, Error> {
+        self.add_optional_assertion_envelope_salted(assertion, false)
     }
 
     pub fn add_optional_assertion_envelope_salted(self: Rc<Self>, assertion: Option<Rc<Self>>, salted: bool) -> Result<Rc<Self>, Error> {
@@ -59,5 +63,71 @@ impl Envelope {
 
     pub fn add_assertion(self: Rc<Self>, predicate: Rc<Self>, object: Rc<Self>) -> Rc<Self> {
         self.add_assertion_salted(predicate, object, false)
+    }
+}
+
+/*```swift
+public extension Envelope {
+    /// Returns a new envelope with the given assertion removed. If the assertion does
+    /// not exist, returns the same envelope.
+    func removeAssertion(_ target: DigestProvider) -> Envelope {
+        var assertions = self.assertions
+        let target = target.digest
+        if let index = assertions.firstIndex(where: { $0.digest == target }) {
+            assertions.remove(at: index)
+        }
+        if assertions.isEmpty {
+            return subject
+        } else {
+            return Envelope(subject: subject, uncheckedAssertions: assertions)
+        }
+    }
+
+    /// Returns a new envelope with the given assertion replaced by the provided one. If
+    /// the targeted assertion does not exist, returns the same envelope.
+    func replaceAssertion(_ assertion: DigestProvider, with newAssertion: Envelope) throws -> Envelope {
+        var e = self
+        e = e.removeAssertion(assertion)
+        e = try e.addAssertion(newAssertion)
+        return e
+    }
+
+    /// Returns a new envelope with its subject replaced by the provided one.
+    func replaceSubject(with subject: Envelope) -> Envelope {
+        assertions.reduce(into: subject) {
+            try! $0 = $0.addAssertion($1)
+        }
+    }
+}
+``` */
+
+impl Envelope {
+    /// Returns a new envelope with the given assertion removed. If the assertion does
+    /// not exist, returns the same envelope.
+    pub fn remove_assertion(self: Rc<Self>, target: Rc<Self>) -> Rc<Self> {
+        let assertions = self.clone().assertions();
+        let target = target.digest();
+        if let Some(index) = assertions.iter().position(|a| a.digest() == target) {
+            let mut assertions = assertions.clone();
+            assertions.remove(index);
+            if assertions.is_empty() {
+                self.subject()
+            } else {
+                Rc::new(Self::new_with_unchecked_assertions(self.subject(), assertions))
+            }
+        } else {
+            self
+        }
+    }
+
+    /// Returns a new envelope with the given assertion replaced by the provided one. If
+    /// the targeted assertion does not exist, returns the same envelope.
+    pub fn replace_assertion(self: Rc<Self>, assertion: Rc<Self>, new_assertion: Rc<Self>) -> Result<Rc<Self>, Error> {
+        self.remove_assertion(assertion).add_assertion_envelope(new_assertion)
+    }
+
+    /// Returns a new envelope with its subject replaced by the provided one.
+    pub fn replace_subject(self: Rc<Self>, subject: Rc<Self>) -> Rc<Self> {
+        self.assertions().iter().fold(subject, |e, a| e.add_assertion_envelope(a.clone()).unwrap())
     }
 }

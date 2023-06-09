@@ -84,12 +84,12 @@ impl CBORTaggedDecodable for Envelope {
                     },
                     tags_registry::ENCRYPTED_VALUE => {
                         let encrypted = EncryptedMessage::from_untagged_cbor(item)?;
-                        let envelope = Envelope::new_with_encrypted(encrypted).map_err(|_| dcbor::Error::InvalidFormat)?;
+                        let envelope = Envelope::new_with_encrypted(encrypted)?;
                         Ok(envelope)
                     },
                     tags_registry::COMPRESSED_VALUE => {
                         let compressed = Compressed::from_untagged_cbor(item)?;
-                        let envelope = Envelope::new_with_compressed(compressed).map_err(|_| dcbor::Error::InvalidFormat)?;
+                        let envelope = Envelope::new_with_compressed(compressed)?;
                         Ok(envelope)
                     },
                     tags_registry::DIGEST_VALUE => {
@@ -116,7 +116,7 @@ impl CBORTaggedDecodable for Envelope {
                     .into_iter
                     ().map(Rc::new
                     ).collect();
-                Ok(Envelope::new_with_assertions(subject, assertions).map_err(|_| dcbor::Error::InvalidFormat)?)
+                Ok(Envelope::new_with_assertions(subject, assertions)?)
             }
             _ => Err(dcbor::Error::InvalidFormat),
         }

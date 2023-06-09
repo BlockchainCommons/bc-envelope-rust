@@ -182,7 +182,7 @@ impl Envelope {
                     let message = key.encrypt(self.tagged_cbor().cbor_data(), Some((&self_digest).into()), None::<Nonce>);
                     Rc::new(Self::new_with_encrypted(message).unwrap())
                 },
-                ObscureAction::Compress => self.compress(),
+                ObscureAction::Compress => self.compress().unwrap(),
             }
         } else if let Self::Assertion(assertion) = &*self {
             let predicate = assertion.predicate().elide_set_with_action(target, is_revealing, action);

@@ -13,6 +13,7 @@ mod recipient;
 mod salt;
 mod signature;
 mod string_utils;
+mod tree_format;
 mod wrap;
 
 mod format;
@@ -67,13 +68,14 @@ mod tests {
     pub use seed::Seed;
 
     mod check_encoding;
-    mod type_tests;
-    mod core_tests;
-    mod core_nesting_tests;
+    mod compression_tests;
     mod core_encoding_tests;
+    mod core_nesting_tests;
+    mod core_tests;
+    mod crypto_tests;
     mod elision_tests;
     mod encrypted_tests;
-    mod crypto_tests;
+    mod type_tests;
 
     use bc_crypto::hash::sha256;
 

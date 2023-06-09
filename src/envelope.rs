@@ -37,7 +37,6 @@ pub enum Envelope {
 
 /// Internal constructors
 impl Envelope {
-
     pub(crate) fn new_with_unchecked_assertions(subject: Rc<Self>, unchecked_assertions: Vec<Rc<Self>>) -> Self {
         assert!(!unchecked_assertions.is_empty());
         let mut sorted_assertions = unchecked_assertions;
