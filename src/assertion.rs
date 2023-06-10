@@ -3,7 +3,7 @@ use std::{rc::Rc, borrow::Cow};
 use bc_components::{Digest, DigestProvider, tags_registry};
 use dcbor::{CBORTagged, Tag, CBOR, CBOREncodable, CBORDecodable, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
 
-use crate::envelope::Envelope;
+use crate::{envelope::Envelope, IntoEnvelope};
 
 /// Represents an assertion.
 #[derive(Clone, Debug)]
@@ -15,7 +15,13 @@ pub struct Assertion {
 
 impl Assertion {
     /// Creates an assertion and calculates its digest.
-    pub fn new(predicate: Rc<Envelope>, object: Rc<Envelope>) -> Self {
+    pub fn new<P, O>(predicate: P, object: O) -> Self
+    where
+        P: IntoEnvelope,
+        O: IntoEnvelope,
+    {
+        let predicate = predicate.into_envelope();
+        let object = object.into_envelope();
         let digest = Digest::from_digests(&[predicate.digest().into_owned(), object.digest().into_owned()]);
         Self {
             predicate,

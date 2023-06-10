@@ -37,10 +37,10 @@ fn test_envelope_non_correlation() {
 #[test]
 fn test_predicate_correlation() {
     let e1 = "Foo".into_envelope()
-        .add_assertion("note".into_envelope(), "Bar".into_envelope())
+        .add_assertion("note", "Bar")
         .check_encoding().unwrap();
     let e2 = "Baz".into_envelope()
-        .add_assertion("note".into_envelope(), "Quux".into_envelope())
+        .add_assertion("note", "Quux")
         .check_encoding().unwrap();
 
     let e1_expected_format = indoc! {r#"

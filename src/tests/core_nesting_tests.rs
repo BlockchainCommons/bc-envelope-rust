@@ -245,9 +245,9 @@ fn test_nesting_twice() {
 #[test]
 fn test_assertions_on_all_parts_of_envelope() {
     let predicate = "predicate".into_envelope()
-        .add_assertion("predicate-predicate".into_envelope(), "predicate-object".into_envelope());
+        .add_assertion("predicate-predicate", "predicate-object");
     let object = "object".into_envelope()
-        .add_assertion("object-predicate".into_envelope(), "object-object".into_envelope());
+        .add_assertion("object-predicate", "object-object");
     let envelope = "subject".into_envelope()
         .add_assertion(predicate, object)
         .check_encoding().unwrap();
@@ -267,8 +267,8 @@ fn test_assertions_on_all_parts_of_envelope() {
 
 #[test]
 fn test_assertion_on_bare_assertion() {
-    let envelope = Envelope::new_assertion("predicate".into_envelope(), "object".into_envelope())
-        .add_assertion("assertion-predicate".into_envelope(), "assertion-object".into_envelope());
+    let envelope = Envelope::new_assertion("predicate", "object")
+        .add_assertion("assertion-predicate", "assertion-object");
     let expected_format = indoc! {r#"
     {
         "predicate": "object"

@@ -182,3 +182,9 @@ impl IntoEnvelope for Salt {
         Envelope::cbor_into_envelope(&self)
     }
 }
+
+impl IntoEnvelope for SealedMessage {
+    fn into_envelope(self) -> Rc<Envelope> {
+        Envelope::cbor_into_envelope(&self)
+    }
+}

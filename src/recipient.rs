@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{Envelope, known_value_registry, IntoEnvelope, Error};
+use crate::{Envelope, known_value_registry, Error};
 
 use bc_components::{SealedMessage, PublicKeyBase, SymmetricKey, Nonce, PrivateKeyBase};
 use dcbor::{CBOREncodable, CBORTaggedDecodable};
@@ -18,9 +18,7 @@ impl Envelope {
     fn make_has_recipient(recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<&[u8]>, test_nonce: Option<&Nonce>) -> Rc<Self>
     {
         let sealed_message = SealedMessage::new_opt(content_key.cbor_data(), recipient, None, test_key_material, test_nonce);
-        let pred = known_value_registry::HAS_RECIPIENT.into_envelope();
-        let obj = sealed_message.into_envelope();
-        Self::new_assertion(pred, obj)
+        Self::new_assertion(known_value_registry::HAS_RECIPIENT, sealed_message)
     }
 
     pub fn add_recipient(self: Rc<Self>, recipient: &PublicKeyBase, content_key: &SymmetricKey) -> Rc<Self> {
@@ -46,7 +44,7 @@ impl Envelope {
     /// - Throws: Throws an exception if any `hasRecipient` assertions do not have a `SealedMessage` as their object.
     pub fn recipients(self: Rc<Self>) -> Result<Vec<Rc<SealedMessage>>, Error> {
         self
-            .assertions_with_predicate(known_value_registry::HAS_RECIPIENT.into_envelope())
+            .assertions_with_predicate(known_value_registry::HAS_RECIPIENT)
             .into_iter()
             .filter(|assertion| {
                 !assertion.clone().object().unwrap().is_obscured()

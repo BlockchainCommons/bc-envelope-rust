@@ -136,7 +136,7 @@ fn test_assertion_subject() {
     "#}.trim()
     );
 
-    assert_eq!(e.digest(), Envelope::new_assertion("knows".into_envelope(), "Bob".into_envelope()).digest());
+    assert_eq!(e.digest(), Envelope::new_assertion("knows", "Bob").digest());
 }
 
 #[test]
@@ -298,9 +298,9 @@ fn test_double_wrapped() {
 
 #[test]
 fn test_assertion_with_assertions() {
-    let a = Envelope::new_assertion(1.into_envelope(), 2.into_envelope())
-        .add_assertion(3.into_envelope(), 4.into_envelope())
-        .add_assertion(5.into_envelope(), 6.into_envelope());
+    let a = Envelope::new_assertion(1, 2)
+        .add_assertion(3, 4)
+        .add_assertion(5, 6);
     let e = 7.into_envelope()
         .add_assertion_envelope(a)
         .unwrap();

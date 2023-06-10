@@ -13,25 +13,25 @@ fn known_value_envelope() -> Rc<Envelope> {
 }
 
 fn assertion_envelope() -> Rc<Envelope> {
-    Envelope::new_assertion("knows".into_envelope(), "Bob".into_envelope())
+    Envelope::new_assertion("knows", "Bob")
 }
 
 fn single_assertion_envelope() -> Rc<Envelope> {
     "Alice".into_envelope()
-        .add_assertion("knows".into_envelope(), "Bob".into_envelope())
+        .add_assertion("knows", "Bob")
 }
 
 fn double_assertion_envelope() -> Rc<Envelope> {
     single_assertion_envelope()
-        .add_assertion("knows".into_envelope(), "Carol".into_envelope())
+        .add_assertion("knows", "Carol")
 }
 
 fn wrapped_envelope() -> Rc<Envelope> {
-    basic_envelope().into_envelope()
+    basic_envelope().wrap_envelope()
 }
 
 fn double_wrapped_envelope() -> Rc<Envelope> {
-    wrapped_envelope().into_envelope()
+    wrapped_envelope().wrap_envelope()
 }
 
 fn symmetric_key() -> SymmetricKey {

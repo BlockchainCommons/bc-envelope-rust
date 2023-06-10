@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use bc_components::DigestProvider;
 
-use crate::{Envelope, Error};
+use crate::{Envelope, Error, IntoEnvelope};
 
 // Support for manipulating assertions.
 
@@ -27,7 +27,11 @@ impl Envelope {
         self.add_optional_assertion_envelope_salted(assertion, false)
     }
 
-    pub fn add_optional_assertion(self: Rc<Self>, predicate: Rc<Self>, object: Option<Rc<Self>>) -> Rc<Self> {
+    pub fn add_optional_assertion<P, O>(self: Rc<Self>, predicate: P, object: Option<O>) -> Rc<Self>
+    where
+        P: IntoEnvelope,
+        O: IntoEnvelope,
+    {
         if let Some(object) = object {
             self.add_assertion_envelope(Self::new_assertion(predicate, object)).unwrap()
         } else {
@@ -64,12 +68,20 @@ impl Envelope {
         }
     }
 
-    pub fn add_assertion_salted(self: Rc<Self>, predicate: Rc<Self>, object: Rc<Self>, salted: bool) -> Rc<Self> {
+    pub fn add_assertion_salted<P, O>(self: Rc<Self>, predicate: P, object: O, salted: bool) -> Rc<Self>
+    where
+        P: IntoEnvelope,
+        O: IntoEnvelope,
+    {
         let assertion = Self::new_assertion(predicate, object);
         self.add_optional_assertion_envelope_salted(Some(assertion), salted).unwrap()
     }
 
-    pub fn add_assertion(self: Rc<Self>, predicate: Rc<Self>, object: Rc<Self>) -> Rc<Self> {
+    pub fn add_assertion<P, O>(self: Rc<Self>, predicate: P, object: O) -> Rc<Self>
+    where
+        P: IntoEnvelope,
+        O: IntoEnvelope,
+    {
         self.add_assertion_salted(predicate, object, false)
     }
 }

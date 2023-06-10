@@ -28,7 +28,7 @@ fn test_compress() {
 fn test_compress_subject() {
     let mut rng = make_fake_random_number_generator();
     let original = "Alice".into_envelope()
-        .add_assertion(NOTE.into_envelope(), source().into_envelope())
+        .add_assertion(NOTE, source())
         .wrap_envelope()
         .sign_with_using(&alice_private_keys(), &mut rng);
     assert_eq!(original.cbor_data().len(), 482);

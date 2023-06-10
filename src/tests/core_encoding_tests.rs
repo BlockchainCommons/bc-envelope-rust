@@ -49,9 +49,9 @@ fn test_2() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_3() -> Result<(), Box<dyn Error>> {
-    let e1 = Envelope::new_assertion("A".into_envelope(), "B".into_envelope());
-    let e2 = Envelope::new_assertion("C".into_envelope(), "D".into_envelope());
-    let e3 = Envelope::new_assertion("E".into_envelope(), "F".into_envelope());
+    let e1 = Envelope::new_assertion("A", "B");
+    let e2 = Envelope::new_assertion("C", "D");
+    let e3 = Envelope::new_assertion("E", "F");
 
     let e4 = e2.add_assertion_envelope(e3).unwrap();
     assert_eq!(e4.format(),

@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use bc_components::{Digest, Compressed, EncryptedMessage, DigestProvider};
 use dcbor::{CBOR, CBOREncodable};
-use crate::{assertion::Assertion, KnownValue, Error};
+use crate::{assertion::Assertion, KnownValue, Error, IntoEnvelope};
 
 /// A flexible container for structured data.
 ///
@@ -94,7 +94,11 @@ impl Envelope {
 }
 
 impl Envelope {
-    pub fn new_assertion(predicate: Rc<Self>, object: Rc<Self>) -> Rc<Self> {
+    pub fn new_assertion<P, O>(predicate: P, object: O) -> Rc<Self>
+    where
+        P: IntoEnvelope,
+        O: IntoEnvelope,
+    {
         Rc::new(Self::new_with_assertion(Assertion::new(predicate, object)))
     }
 }
@@ -123,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_any_assertion() {
-        let assertion = Assertion::new("knows".into_envelope(), "Bob".into_envelope());
+        let assertion = Assertion::new("knows", "Bob");
         let e1 = Envelope::new_with_assertion(assertion.clone());
         let e2 = assertion.into_envelope();
         assert_eq!(e1.format(), e2.format());

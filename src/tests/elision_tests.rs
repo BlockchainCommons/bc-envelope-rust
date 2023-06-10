@@ -7,18 +7,18 @@ fn basic_envelope() -> Rc<Envelope> {
 }
 
 fn assertion_envelope() -> Rc<Envelope> {
-    Envelope::new_assertion("knows".into_envelope(), "Bob".into_envelope())
+    Envelope::new_assertion("knows", "Bob")
 }
 
 fn single_assertion_envelope() -> Rc<Envelope> {
     "Alice".into_envelope()
-        .add_assertion("knows".into_envelope(), "Bob".into_envelope())
+        .add_assertion("knows", "Bob")
 }
 
 fn double_assertion_envelope() -> Rc<Envelope> {
     "Alice".into_envelope()
-        .add_assertion("knows".into_envelope(), "Bob".into_envelope())
-        .add_assertion("knows".into_envelope(), "Carol".into_envelope())
+        .add_assertion("knows", "Bob")
+        .add_assertion("knows", "Carol")
 }
 
 #[test]
@@ -393,7 +393,7 @@ fn test_digests() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_target_reveal() -> Result<(), Box<dyn Error>> {
     let e1 = double_assertion_envelope()
-        .add_assertion("livesAt".into_envelope(), "123 Main St.".into_envelope());
+        .add_assertion("livesAt", "123 Main St.");
     assert_eq!(e1.format(),
     indoc! {r#"
     "Alice" [
@@ -430,7 +430,7 @@ fn test_target_reveal() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_targeted_remove() -> Result<(), Box<dyn Error>> {
     let e1 = double_assertion_envelope()
-        .add_assertion("livesAt".into_envelope(), "123 Main St.".into_envelope());
+        .add_assertion("livesAt", "123 Main St.");
     assert_eq!(e1.format(),
     indoc! {r#"
     "Alice" [

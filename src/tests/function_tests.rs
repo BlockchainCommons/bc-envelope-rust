@@ -8,8 +8,8 @@ use crate::{function_registry, parameter_registry, IntoEnvelope, Envelope, with_
 
 fn two_plus_three() -> Rc<Envelope> {
     function_registry::ADD.into_envelope()
-        .add_parameter(parameter_registry::LHS, 2.into_envelope())
-        .add_parameter(parameter_registry::RHS, 3.into_envelope())
+        .add_parameter(parameter_registry::LHS, 2)
+        .add_parameter(parameter_registry::RHS, 3)
 }
 
 #[test]
@@ -28,8 +28,8 @@ fn test_known() {
 #[test]
 fn test_named() {
     let envelope = Function::new_named("foo").into_envelope()
-        .add_parameter(Parameter::new_named("bar"), 2.into_envelope())
-        .add_parameter(Parameter::new_named("baz"), 3.into_envelope());
+        .add_parameter(Parameter::new_named("bar"), 2)
+        .add_parameter(Parameter::new_named("baz"), 3);
     with_format_context!(|context| {
         assert_eq!(envelope.format_opt(Some(context)), indoc! {r#"
         «"foo"» [
@@ -55,21 +55,21 @@ fn test_request() {
             ]
             "#}.trim());
 
-        let response_envelope = Envelope::new_response(&request_id, 5.into_envelope());
+        let response_envelope = Envelope::new_response(&request_id, 5);
         assert_eq!(response_envelope.format_opt(Some(context)), indoc! {r#"
             response(CID(c66be27d)) [
                 result: 5
             ]
             "#}.trim());
 
-        let error_response = Envelope::new_error_response_with_id(request_id, "Internal Server Error".into_envelope());
+        let error_response = Envelope::new_error_response_with_id(request_id, "Internal Server Error");
         assert_eq!(error_response.format_opt(Some(context)), indoc! {r#"
             response(CID(c66be27d)) [
                 error: "Internal Server Error"
             ]
             "#}.trim());
 
-        let unknown_error_response = Envelope::new_error_response(Some("Decryption failure".into_envelope()));
+        let unknown_error_response = Envelope::new_error_response(Some("Decryption failure"));
         assert_eq!(unknown_error_response.format_opt(Some(context)), indoc! {r#"
             response("unknown") [
                 error: "Decryption failure"
