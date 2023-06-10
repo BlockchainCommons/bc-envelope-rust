@@ -412,7 +412,7 @@ fn test_target_reveal() -> Result<(), Box<dyn Error>> {
     // Reveal everything about one of the assertions
     target.extend(assertion_envelope().deep_digests());
     // Reveal the specific `livesAt` assertion
-    target.extend(e1.clone().assertion_with_predicate_leaf(&"livesAt")?.deep_digests());
+    target.extend(e1.clone().assertion_with_predicate("livesAt")?.deep_digests());
     let e2 = e1.elide_revealing_set(&target).check_encoding()?;
     assert_eq!(e2.format(),
     indoc! {r#"
@@ -457,7 +457,7 @@ fn test_targeted_remove() -> Result<(), Box<dyn Error>> {
 
     let mut target3 = HashSet::new();
     // Hide one of the assertions by finding its predicate
-    target3.extend(e1.clone().assertion_with_predicate_leaf(&"livesAt")?.deep_digests());
+    target3.extend(e1.clone().assertion_with_predicate("livesAt")?.deep_digests());
     let e3 = e1.clone().elide_removing_set(&target3).check_encoding()?;
     assert_eq!(e3.format(),
     indoc! {r#"

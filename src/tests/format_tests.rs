@@ -638,8 +638,8 @@ fn test_redacted_credential() {
 
     target.extend(content.clone().assertion_with_predicate("firstName".into_envelope()).unwrap().shallow_digests());
     target.extend(content.clone().assertion_with_predicate("lastName".into_envelope()).unwrap().shallow_digests());
-    target.extend(content.clone().assertion_with_predicate_known_value(known_value_registry::IS_A).unwrap().shallow_digests());
-    target.extend(content.clone().assertion_with_predicate_known_value(known_value_registry::ISSUER).unwrap().shallow_digests());
+    target.extend(content.clone().assertion_with_predicate(known_value_registry::IS_A).unwrap().shallow_digests());
+    target.extend(content.clone().assertion_with_predicate(known_value_registry::ISSUER).unwrap().shallow_digests());
     target.extend(content.clone().assertion_with_predicate("subject".into_envelope()).unwrap().shallow_digests());
     target.extend(content.assertion_with_predicate("expirationDate".into_envelope()).unwrap().shallow_digests());
     let redacted_credential = credential.elide_revealing_set(&target);

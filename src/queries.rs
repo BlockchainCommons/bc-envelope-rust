@@ -243,10 +243,13 @@ impl Envelope {
     /// Returns the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn assertion_with_predicate(
+    pub fn assertion_with_predicate<P>(
         self: Rc<Self>,
-        predicate: Rc<Self>,
-    ) -> Result<Rc<Self>, Error> {
+        predicate: P,
+    ) -> Result<Rc<Self>, Error>
+    where
+        P: IntoEnvelope,
+    {
         let a = self.assertions_with_predicate(predicate);
         if a.is_empty() {
             Err(Error::NonexistentPredicate)
@@ -256,99 +259,35 @@ impl Envelope {
             Err(Error::AmbiguousPredicate)
         }
     }
-
-    /// Returns the assertion with the given predicate.
-    ///
-    /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn assertion_with_predicate_leaf(
-        self: Rc<Self>,
-        predicate: &dyn CBOREncodable,
-    ) -> Result<Rc<Self>, Error> {
-        self.assertion_with_predicate(Envelope::cbor_into_envelope(predicate))
-    }
-
-    /// Returns the assertion with the given predicate.
-    ///
-    /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn assertion_with_predicate_known_value(
-        self: Rc<Self>,
-        predicate: KnownValue,
-    ) -> Result<Rc<Self>, Error> {
-        self.assertion_with_predicate(predicate.into_envelope())
-    }
 }
 
 impl Envelope {
     /// Returns the object of the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn object_for_predicate(self: Rc<Self>, predicate: Rc<Self>) -> Result<Rc<Self>, Error> {
+    pub fn object_for_predicate<P>(self: Rc<Self>, predicate: P) -> Result<Rc<Self>, Error>
+    where
+        P: IntoEnvelope,
+    {
         Ok(self.assertion_with_predicate(predicate)?.object().unwrap())
     }
 
     /// Returns the object of the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn object_for_predicate_leaf(
-        self: Rc<Self>,
-        predicate: &dyn CBOREncodable,
-    ) -> Result<Rc<Self>, Error> {
-        self.object_for_predicate(Envelope::cbor_into_envelope(predicate))
-    }
-
-    /// Returns the object of the assertion with the given predicate.
-    ///
-    /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn object_for_predicate_known_value(
-        self: Rc<Self>,
-        predicate: KnownValue,
-    ) -> Result<Rc<Self>, Error> {
-        self.object_for_predicate(predicate.into_envelope())
-    }
-
-    /// Returns the object of the assertion with the given predicate.
-    ///
-    /// Returns an error if there is no matching predicate or multiple matching predicates.
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_object_for_predicate<T>(
+    pub fn extract_object_for_predicate<T, P>(
         self: Rc<Self>,
-        predicate: Rc<Self>,
+        predicate: P,
     ) -> Result<Rc<T>, Error>
     where
         T: CBORDecodable + 'static,
+        P: IntoEnvelope,
     {
         self.assertion_with_predicate(predicate)?
             .object()
             .unwrap()
             .extract_subject()
-    }
-
-    /// Returns the object of the assertion with the given predicate.
-    ///
-    /// Returns an error if there is no matching predicate or multiple matching predicates.
-    /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_object_for_cbor_predicate<T>(
-        self: Rc<Self>,
-        predicate: &dyn CBOREncodable,
-    ) -> Result<Rc<T>, Error>
-    where
-        T: CBORDecodable + 'static,
-    {
-        self.extract_object_for_predicate(Envelope::cbor_into_envelope(predicate))
-    }
-
-    /// Returns the object of the assertion with the given predicate.
-    ///
-    /// Returns an error if there is no matching predicate or multiple matching predicates.
-    /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_object_for_known_value_predicate<T>(
-        self: Rc<Self>,
-        predicate: KnownValue,
-    ) -> Result<Rc<T>, Error>
-    where
-        T: CBORDecodable + 'static,
-    {
-        self.extract_object_for_predicate(predicate.into_envelope())
     }
 }
 
