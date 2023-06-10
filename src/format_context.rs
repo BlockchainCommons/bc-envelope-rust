@@ -1,4 +1,4 @@
-use bc_components::tags::KNOWN_TAGS;
+use bc_components::tags::TAGS;
 use dcbor::{TagsStore, Tag, TagsStoreTrait};
 use std::sync::{Once, Mutex};
 use crate::{known_values_store::KnownValuesStore, FunctionsStore, ParametersStore, known_value::KNOWN_VALUES, function::FUNCTIONS, parameter::PARAMETERS};
@@ -73,8 +73,8 @@ pub struct LazyFormatContext {
 impl LazyFormatContext {
     pub fn get(&self) -> std::sync::MutexGuard<Option<FormatContext>> {
         self.init.call_once(|| {
-            let known_tags_binding = KNOWN_TAGS.get();
-            let known_tags = known_tags_binding.as_ref().unwrap();
+            let tags_binding = TAGS.get();
+            let tags = tags_binding.as_ref().unwrap();
             let known_values_binding = KNOWN_VALUES.get();
             let known_values = known_values_binding.as_ref().unwrap();
             let functions_binding = FUNCTIONS.get();
@@ -82,7 +82,7 @@ impl LazyFormatContext {
             let parameters_binding = PARAMETERS.get();
             let parameters = parameters_binding.as_ref().unwrap();
 
-            let context = FormatContext::new(Some(known_tags), Some(known_values), Some(functions), Some(parameters));
+            let context = FormatContext::new(Some(tags), Some(known_values), Some(functions), Some(parameters));
             *self.data.lock().unwrap() = Some(context);
         });
         self.data.lock().unwrap()
