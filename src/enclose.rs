@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use bc_components::{EncryptedMessage, Compressed, Signature, SealedMessage, SSKRShare, Digest, CID};
+use bc_components::{EncryptedMessage, Compressed, Signature, SealedMessage, SSKRShare, Digest, CID, Salt};
 use dcbor::{CBOREncodable, CBOR, Date};
 
 use crate::{Envelope, KnownValue, Assertion};
@@ -148,6 +148,12 @@ impl Enclosable for CID {
 }
 
 impl Enclosable for Date {
+    fn enclose(self) -> Rc<Envelope> {
+        Envelope::enclose_cbor(&self)
+    }
+}
+
+impl Enclosable for Salt {
     fn enclose(self) -> Rc<Envelope> {
         Envelope::enclose_cbor(&self)
     }
