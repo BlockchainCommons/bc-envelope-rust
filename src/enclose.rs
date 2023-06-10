@@ -3,7 +3,7 @@ use std::rc::Rc;
 use bc_components::{EncryptedMessage, Compressed, Signature, SealedMessage, SSKRShare, Digest, CID, Salt};
 use dcbor::{CBOREncodable, CBOR, Date};
 
-use crate::{Envelope, KnownValue, Assertion};
+use crate::{Envelope, KnownValue, Assertion, Function, Parameter};
 
 impl Envelope {
     pub fn enclose_cbor(cbor_encodable: &dyn CBOREncodable) -> Rc<Envelope> {
@@ -54,6 +54,12 @@ impl Enclosable for Compressed {
 impl Enclosable for CBOR {
     fn enclose(self) -> Rc<Envelope> {
         Rc::new(Envelope::new_leaf(self))
+    }
+}
+
+impl Enclosable for &Box<CBOR> {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(self.as_ref().clone()))
     }
 }
 
@@ -112,6 +118,18 @@ impl Enclosable for i32 {
 }
 
 impl Enclosable for i64 {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(self.cbor()))
+    }
+}
+
+impl Enclosable for Function {
+    fn enclose(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_leaf(self.cbor()))
+    }
+}
+
+impl Enclosable for Parameter {
     fn enclose(self) -> Rc<Envelope> {
         Rc::new(Envelope::new_leaf(self.cbor()))
     }

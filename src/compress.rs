@@ -41,30 +41,6 @@ impl Envelope {
     }
 }
 
-/*```swift
-public extension Envelope {
-    /// Returns this envelope with its subject compressed.
-    ///
-    /// Returns the same envelope if its subject is already compressed.
-    func compressSubject() throws -> Envelope {
-        guard !subject.isCompressed else {
-            return self
-        }
-        return replaceSubject(with: try subject.compress())
-    }
-
-    /// Returs this envelope with its subject uncompressed.
-    ///
-    /// Returns the same envelope if its subject is already uncompressed.
-    func uncompressSubject() throws -> Envelope {
-        guard subject.isCompressed else {
-            return self
-        }
-        return try replaceSubject(with: subject.uncompress())
-    }
-}
-``` */
-
 impl Envelope {
     /// Returns this envelope with its subject compressed.
     ///

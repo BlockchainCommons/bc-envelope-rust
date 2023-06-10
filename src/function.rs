@@ -1,7 +1,7 @@
 use bc_components::tags_registry;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
 
-use crate::KnownFunctions;
+use crate::{KnownFunctions, string_utils::StringUtils};
 pub use crate::function_registry::*;
 
 #[derive(Clone, Debug, Eq)]
@@ -42,8 +42,8 @@ impl Function {
         Self::Known(value, name.map(FunctionName::Dynamic))
     }
 
-    pub fn new_named(name: String) -> Self {
-        Self::Named(FunctionName::Dynamic(name))
+    pub fn new_named(name: &str) -> Self {
+        Self::Named(FunctionName::Dynamic(name.into()))
     }
 
     pub const fn new_with_static_name(value: u64, name: &'static str) -> Self {
@@ -59,7 +59,7 @@ impl Function {
                     value.to_string()
                 }
             },
-            Self::Named(name) => name.value().to_string(),
+            Self::Named(name) => name.value().to_string().flanked_by("\"", "\""),
         }
     }
 }
@@ -91,7 +91,13 @@ impl From<u64> for Function {
 
 impl From<&str> for Function {
     fn from(name: &str) -> Self {
-        Self::new_named(name.to_string())
+        Self::new_named(name)
+    }
+}
+
+impl From<&Function> for Function {
+    fn from(function: &Function) -> Self {
+        function.clone()
     }
 }
 
@@ -124,7 +130,7 @@ impl CBORTaggedDecodable for Function {
     fn from_untagged_cbor(untagged_cbor: &CBOR) -> Result<Self, dcbor::Error> {
         match untagged_cbor {
             CBOR::Unsigned(value) => Ok(Self::new_known(*value, None)),
-            CBOR::Text(name) => Ok(Self::new_named(name.clone())),
+            CBOR::Text(name) => Ok(Self::new_named(name)),
             _ => Err(dcbor::Error::InvalidFormat),
         }
     }

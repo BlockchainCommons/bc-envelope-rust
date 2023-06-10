@@ -381,68 +381,6 @@ fn test_hidden_signature_multi_recipient() {
     assert!(received_envelope.decrypt_to_recipient(&alice_private_keys()).is_err());
 }
 
-/*```swift
-    func testSSKR() throws {
-        // Dan has a cryptographic seed he wants to backup using a social recovery scheme.
-        // The seed includes metadata he wants to back up also, making it too large to fit
-        // into a basic SSKR share.
-        var danSeed = Seed(data: ‡"59f2293a5bce7d4de59e71b4207ac5d2")!
-        danSeed.name = "Dark Purple Aqua Love"
-        danSeed.creationDate = try! Date(iso8601: "2021-02-24")
-        danSeed.note = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-
-        // Dan encrypts the seed and then splits the content key into a single group
-        // 2-of-3. This returns an array of arrays of Envelope, the outer arrays
-        // representing SSKR groups and the inner array elements each holding the encrypted
-        // seed and a single share.
-        let contentKey = SymmetricKey()
-        let seedEnvelope = Envelope(danSeed)
-        let encryptedSeedEnvelope = try seedEnvelope
-            .encryptSubject(with: contentKey)
-
-        let envelopes = encryptedSeedEnvelope
-            .split(groupThreshold: 1, groups: [(2, 3)], contentKey: contentKey)
-
-        // Flattening the array of arrays gives just a single array of all the envelopes
-        // to be distributed.
-        let sentEnvelopes = envelopes.flatMap { $0 }
-        let sentURs = sentEnvelopes.map { $0.ur }
-
-        let expectedFormat =
-        """
-        ENCRYPTED [
-            sskrShare: SSKRShare
-        ]
-        """
-        XCTAssertEqual(sentEnvelopes[0].format(), expectedFormat)
-
-        // Dan sends one envelope to each of Alice, Bob, and Carol.
-
-        // Dan ➡️ ☁️ ➡️ Alice
-        // Dan ➡️ ☁️ ➡️ Bob
-        // Dan ➡️ ☁️ ➡️ Carol
-
-        // let aliceEnvelope = try Envelope(ur: sentURs[0]) // UNRECOVERED
-        let bobEnvelope = try Envelope(ur: sentURs[1])
-        let carolEnvelope = try Envelope(ur: sentURs[2])
-
-        // At some future point, Dan retrieves two of the three envelopes so he can recover his seed.
-        let recoveredEnvelopes = [bobEnvelope, carolEnvelope]
-        let a = try Envelope(shares: recoveredEnvelopes)
-        let recoveredSeed = try a
-            .extractSubject(Seed.self)
-
-        // The recovered seed is correct.
-        XCTAssertEqual(danSeed.data, recoveredSeed.data)
-        XCTAssertEqual(danSeed.creationDate, recoveredSeed.creationDate)
-        XCTAssertEqual(danSeed.name, recoveredSeed.name)
-        XCTAssertEqual(danSeed.note, recoveredSeed.note)
-
-        // Attempting to recover with only one of the envelopes won't work.
-        XCTAssertThrowsError(try Envelope(shares: [bobEnvelope]))
-    }
-``` */
-
 #[test]
 fn test_sskr() {
     // Dan has a cryptographic seed he wants to backup using a social recovery scheme.

@@ -27,6 +27,14 @@ impl Envelope {
         self.add_optional_assertion_envelope_salted(assertion, false)
     }
 
+    pub fn add_optional_assertion(self: Rc<Self>, predicate: Rc<Self>, object: Option<Rc<Self>>) -> Rc<Self> {
+        if let Some(object) = object {
+            self.add_assertion_envelope(Self::new_assertion(predicate, object)).unwrap()
+        } else {
+            self
+        }
+    }
+
     pub fn add_optional_assertion_envelope_salted(self: Rc<Self>, assertion: Option<Rc<Self>>, salted: bool) -> Result<Rc<Self>, Error> {
         match assertion {
             Some(assertion) => {
@@ -65,41 +73,6 @@ impl Envelope {
         self.add_assertion_salted(predicate, object, false)
     }
 }
-
-/*```swift
-public extension Envelope {
-    /// Returns a new envelope with the given assertion removed. If the assertion does
-    /// not exist, returns the same envelope.
-    func removeAssertion(_ target: DigestProvider) -> Envelope {
-        var assertions = self.assertions
-        let target = target.digest
-        if let index = assertions.firstIndex(where: { $0.digest == target }) {
-            assertions.remove(at: index)
-        }
-        if assertions.isEmpty {
-            return subject
-        } else {
-            return Envelope(subject: subject, uncheckedAssertions: assertions)
-        }
-    }
-
-    /// Returns a new envelope with the given assertion replaced by the provided one. If
-    /// the targeted assertion does not exist, returns the same envelope.
-    func replaceAssertion(_ assertion: DigestProvider, with newAssertion: Envelope) throws -> Envelope {
-        var e = self
-        e = e.removeAssertion(assertion)
-        e = try e.addAssertion(newAssertion)
-        return e
-    }
-
-    /// Returns a new envelope with its subject replaced by the provided one.
-    func replaceSubject(with subject: Envelope) -> Envelope {
-        assertions.reduce(into: subject) {
-            try! $0 = $0.addAssertion($1)
-        }
-    }
-}
-``` */
 
 impl Envelope {
     /// Returns a new envelope with the given assertion removed. If the assertion does

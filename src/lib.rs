@@ -5,6 +5,7 @@ mod cbor;
 mod compress;
 mod digest;
 mod encrypt;
+mod expression;
 mod function_registry;
 mod known_value_registry;
 mod parameter_registry;
@@ -76,6 +77,7 @@ mod tests {
     mod elision_tests;
     mod encrypted_tests;
     mod format_tests;
+    mod function_tests;
     mod non_correlation_tests;
     mod obscuring_tests;
     mod type_tests;

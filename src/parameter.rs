@@ -1,7 +1,7 @@
 use bc_components::tags_registry;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
 pub use crate::parameter_registry::*;
-use crate::KnownParameters;
+use crate::{KnownParameters, string_utils::StringUtils};
 
 #[derive(Clone, Debug, Eq)]
 pub enum ParameterName {
@@ -41,8 +41,8 @@ impl Parameter {
         Self::Known(value, name.map(ParameterName::Dynamic))
     }
 
-    pub fn new_named(name: String) -> Self {
-        Self::Named(ParameterName::Dynamic(name))
+    pub fn new_named(name: &str) -> Self {
+        Self::Named(ParameterName::Dynamic(name.into()))
     }
 
     pub const fn new_with_static_name(value: u64, name: &'static str) -> Self {
@@ -58,7 +58,7 @@ impl Parameter {
                     value.to_string()
                 }
             },
-            Self::Named(name) => name.value().to_string(),
+            Self::Named(name) => name.value().to_string().flanked_by("\"", "\""),
         }
     }
 }
@@ -90,7 +90,13 @@ impl From<u64> for Parameter {
 
 impl From<&str> for Parameter {
     fn from(name: &str) -> Self {
-        Self::new_named(name.to_string())
+        Self::new_named(name)
+    }
+}
+
+impl From<&Parameter> for Parameter {
+    fn from(parameter: &Parameter) -> Self {
+        parameter.clone()
     }
 }
 
@@ -123,7 +129,7 @@ impl CBORTaggedDecodable for Parameter {
     fn from_untagged_cbor(untagged_cbor: &CBOR) -> Result<Self, dcbor::Error> {
         match untagged_cbor {
             CBOR::Unsigned(value) => Ok(Self::new_known(*value, None)),
-            CBOR::Text(name) => Ok(Self::new_named(name.clone())),
+            CBOR::Text(name) => Ok(Self::new_named(name)),
             _ => Err(dcbor::Error::InvalidFormat),
         }
     }
