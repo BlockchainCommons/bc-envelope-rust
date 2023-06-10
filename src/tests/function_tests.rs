@@ -61,5 +61,19 @@ fn test_request() {
                 result: 5
             ]
             "#}.trim());
+
+        let error_response = Envelope::new_error_response_with_id(request_id, "Internal Server Error".enclose());
+        assert_eq!(error_response.format_opt(Some(context)), indoc! {r#"
+            response(CID(c66be27d)) [
+                error: "Internal Server Error"
+            ]
+            "#}.trim());
+
+        let unknown_error_response = Envelope::new_error_response(Some("Decryption failure".enclose()));
+        assert_eq!(unknown_error_response.format_opt(Some(context)), indoc! {r#"
+            response("unknown") [
+                error: "Decryption failure"
+            ]
+            "#}.trim());
     });
 }

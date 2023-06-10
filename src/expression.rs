@@ -113,7 +113,7 @@ impl Envelope {
     }
 
     /// Creates an envelope with a `CID` subject and a `error: value` assertion.
-    pub fn new_error<C>(response_id: C, error: Rc<Self>) -> Rc<Self>
+    pub fn new_error_response_with_id<C>(response_id: C, error: Rc<Self>) -> Rc<Self>
     where
         C: AsRef<CID>,
     {
@@ -128,7 +128,7 @@ impl Envelope {
     /// Used for an immediate response to a request without a proper ID, for example
     /// when a encrypted request envelope is received and the decryption fails, making
     /// it impossible to extract the request ID.
-    pub fn new_error_without_id(error: Option<Rc<Self>>) -> Rc<Self> {
+    pub fn new_error_response(error: Option<Rc<Self>>) -> Rc<Self> {
         if let Some(error) = error {
             CBOR::tagged_value(tags_registry::RESPONSE, "unknown").enclose()
                 .add_assertion(known_value_registry::ERROR.enclose(), error)
