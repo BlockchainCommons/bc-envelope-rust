@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use crate::Parameter;
 
  #[derive(Clone, Debug)]
- pub struct KnownParameters {
+ pub struct ParametersStore {
      dict: HashMap<Parameter, String>,
  }
 
- impl KnownParameters {
+ impl ParametersStore {
     pub fn new<T>(parameters: T) -> Self
     where
         T: IntoIterator<Item = Parameter>,
@@ -51,7 +51,7 @@ use crate::Parameter;
     }
 }
 
-impl Default for KnownParameters {
+impl Default for ParametersStore {
     fn default() -> Self {
         Self::new([])
     }

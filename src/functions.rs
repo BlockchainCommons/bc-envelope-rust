@@ -1,5 +1,5 @@
 use std::sync::{Once, Mutex};
-use crate::{Function, KnownFunctions};
+use crate::{Function, FunctionsStore};
 use paste::paste;
 
 #[macro_export]
@@ -19,13 +19,13 @@ function_constant!(DIV, 4, "div");
 
 pub struct LazyFunctions {
     init: Once,
-    data: Mutex<Option<KnownFunctions>>,
+    data: Mutex<Option<FunctionsStore>>,
 }
 
 impl LazyFunctions {
-    pub fn get(&self) -> std::sync::MutexGuard<'_, Option<KnownFunctions>> {
+    pub fn get(&self) -> std::sync::MutexGuard<'_, Option<FunctionsStore>> {
         self.init.call_once(|| {
-            let m = KnownFunctions::new([
+            let m = FunctionsStore::new([
                 ADD,
                 SUB,
                 MUL,

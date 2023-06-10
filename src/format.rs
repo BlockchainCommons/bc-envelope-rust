@@ -2,7 +2,7 @@ use std::error::Error;
 
 use bc_components::{Digest, CID, URI, UUID, DigestProvider};
 use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable, Date};
-use crate::{Envelope, FormatContext, Assertion, KnownValue, string_utils::StringUtils, KnownValues, KnownFunctions, Function, Parameter, KnownParameters};
+use crate::{Envelope, FormatContext, Assertion, KnownValue, string_utils::StringUtils, KnownValuesStore, FunctionsStore, Function, Parameter, ParametersStore};
 use bc_components::tags_registry;
 
 /// Support for the various text output formats for ``Envelope``.
@@ -274,7 +274,7 @@ impl EnvelopeSummary for CBOR {
                     tags_registry::ENVELOPE_VALUE => Ok("Envelope".to_string()),
                     tags_registry::KNOWN_VALUE_VALUE => {
                         if let CBOR::Unsigned(raw_value) = &**untagged_cbor {
-                            Ok(KnownValues::known_value_for_raw_value(*raw_value, Some(context.known_values()))
+                            Ok(KnownValuesStore::known_value_for_raw_value(*raw_value, Some(context.known_values()))
                                 .to_string())
                         } else {
                             Ok("<not a known value>".to_string())
@@ -309,11 +309,11 @@ impl EnvelopeSummary for CBOR {
                     },
                     tags_registry::FUNCTION_VALUE => {
                         let f = Function::from_untagged_cbor(untagged_cbor)?;
-                        Ok(KnownFunctions::name_for_function(&f, Some(context.functions())).flanked_by("«", "»"))
+                        Ok(FunctionsStore::name_for_function(&f, Some(context.functions())).flanked_by("«", "»"))
                     },
                     tags_registry::PARAMETER_VALUE => {
                         let p = Parameter::from_untagged_cbor(untagged_cbor)?;
-                        Ok(KnownParameters::name_for_parameter(&p, Some(context.parameters())).flanked_by("❰", "❱"))
+                        Ok(ParametersStore::name_for_parameter(&p, Some(context.parameters())).flanked_by("❰", "❱"))
                     },
                     tags_registry::REQUEST_VALUE => {
                         Ok(Envelope::new(untagged_cbor).format_opt(Some(context)).flanked_by("request(", ")"))

@@ -1,6 +1,6 @@
 use std::{collections::HashSet, rc::Rc};
 
-use crate::{IntoEnvelope, Envelope, known_value_registry};
+use crate::{IntoEnvelope, Envelope, known_values};
 
 use bc_components::{SymmetricKey, Digest, DigestProvider, CID};
 use bc_crypto::make_fake_random_number_generator;
@@ -328,25 +328,25 @@ fn test_complex_metadata() {
     // assertions are returned depends on who resolves the CID and when it is
     // resolved. In other words, the referent of a CID is mutable.
     let author = Envelope::new(CID::from_data(hex!("9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")))
-        .add_assertion(known_value_registry::DEREFERENCE_VIA, "LibraryOfCongress")
-        .add_assertion(known_value_registry::HAS_NAME, "Ayn Rand")
+        .add_assertion(known_values::DEREFERENCE_VIA, "LibraryOfCongress")
+        .add_assertion(known_values::HAS_NAME, "Ayn Rand")
         .check_encoding().unwrap();
 
     // Assertions made on a literal value are considered part of the same set of
     // assertions made on the digest of that value.
     let name_en = Envelope::new("Atlas Shrugged")
-        .add_assertion(known_value_registry::LANGUAGE, "en");
+        .add_assertion(known_values::LANGUAGE, "en");
 
     let name_es = Envelope::new("La rebelión de Atlas")
-        .add_assertion(known_value_registry::LANGUAGE, "es");
+        .add_assertion(known_values::LANGUAGE, "es");
 
     let work = Envelope::new(CID::from_data(hex!("7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")))
-        .add_assertion(known_value_registry::IS_A, "novel")
+        .add_assertion(known_values::IS_A, "novel")
         .add_assertion("isbn", "9780451191144")
         .add_assertion("author", author)
-        .add_assertion(known_value_registry::DEREFERENCE_VIA, "LibraryOfCongress")
-        .add_assertion(known_value_registry::HAS_NAME, name_en)
-        .add_assertion(known_value_registry::HAS_NAME, name_es)
+        .add_assertion(known_values::DEREFERENCE_VIA, "LibraryOfCongress")
+        .add_assertion(known_values::HAS_NAME, name_en)
+        .add_assertion(known_values::HAS_NAME, name_es)
         .check_encoding().unwrap();
 
     let book_data = "This is the entire book “Atlas Shrugged” in EPUB format.";
@@ -355,7 +355,7 @@ fn test_complex_metadata() {
     let book_metadata = Envelope::new(Digest::from_image(&book_data))
         .add_assertion("work", work)
         .add_assertion("format", "EPUB")
-        .add_assertion(known_value_registry::DEREFERENCE_VIA, "IPFS")
+        .add_assertion(known_values::DEREFERENCE_VIA, "IPFS")
         .check_encoding().unwrap();
 
     assert_eq!(book_metadata.format(), indoc! {r#"
@@ -476,9 +476,9 @@ fn test_complex_metadata() {
 fn credential() -> Rc<Envelope> {
     let mut rng = make_fake_random_number_generator();
     Envelope::new(CID::from_data(hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")))
-        .add_assertion(known_value_registry::IS_A, "Certificate of Completion")
-        .add_assertion(known_value_registry::ISSUER, "Example Electrical Engineering Board")
-        .add_assertion(known_value_registry::CONTROLLER, "Example Electrical Engineering Board")
+        .add_assertion(known_values::IS_A, "Certificate of Completion")
+        .add_assertion(known_values::ISSUER, "Example Electrical Engineering Board")
+        .add_assertion(known_values::CONTROLLER, "Example Electrical Engineering Board")
         .add_assertion("firstName", "James")
         .add_assertion("lastName", "Maxwell")
         .add_assertion("issueDate", Date::new_from_string("2020-01-01").unwrap())
@@ -491,7 +491,7 @@ fn credential() -> Rc<Envelope> {
         .add_assertion("topics", vec!["Subject 1", "Subject 2"].cbor())
         .wrap_envelope()
         .sign_with_using(&alice_private_keys(), &mut rng)
-        .add_assertion(known_value_registry::NOTE, "Signed by Example Electrical Engineering Board")
+        .add_assertion(known_values::NOTE, "Signed by Example Electrical Engineering Board")
         .check_encoding().unwrap()
 }
 
@@ -638,8 +638,8 @@ fn test_redacted_credential() {
 
     target.extend(content.clone().assertion_with_predicate("firstName").unwrap().shallow_digests());
     target.extend(content.clone().assertion_with_predicate("lastName").unwrap().shallow_digests());
-    target.extend(content.clone().assertion_with_predicate(known_value_registry::IS_A).unwrap().shallow_digests());
-    target.extend(content.clone().assertion_with_predicate(known_value_registry::ISSUER).unwrap().shallow_digests());
+    target.extend(content.clone().assertion_with_predicate(known_values::IS_A).unwrap().shallow_digests());
+    target.extend(content.clone().assertion_with_predicate(known_values::ISSUER).unwrap().shallow_digests());
     target.extend(content.clone().assertion_with_predicate("subject").unwrap().shallow_digests());
     target.extend(content.assertion_with_predicate("expirationDate").unwrap().shallow_digests());
     let redacted_credential = credential.elide_revealing_set(&target);
@@ -649,7 +649,7 @@ fn test_redacted_credential() {
         .add_assertion("employeeHiredDate", Date::new_from_string("2022-01-01").unwrap())
         .add_assertion("employeeStatus", "active")
         .wrap_envelope()
-        .add_assertion(known_value_registry::NOTE, "Signed by Employer Corp.")
+        .add_assertion(known_values::NOTE, "Signed by Employer Corp.")
         .sign_with_using(&bob_private_keys(), &mut rng)
         .check_encoding().unwrap();
     assert_eq!(warranty.format(), indoc! {r#"

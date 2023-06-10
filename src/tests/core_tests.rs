@@ -1,4 +1,4 @@
-use crate::{Envelope, with_format_context, KnownValue, known_value_registry};
+use crate::{Envelope, with_format_context, KnownValue, known_values};
 use bc_components::DigestProvider;
 use indoc::indoc;
 use super::test_data::*;
@@ -99,7 +99,7 @@ fn test_known_value_subject() {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<KnownValue>().unwrap(), known_value_registry::NOTE);
+    assert_eq!(*e.extract_subject::<KnownValue>().unwrap(), known_values::NOTE);
 }
 
 #[test]

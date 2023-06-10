@@ -1,5 +1,5 @@
 use std::sync::{Once, Mutex};
-use crate::{Parameter, KnownParameters};
+use crate::{Parameter, ParametersStore};
 use paste::paste;
 
 #[macro_export]
@@ -18,13 +18,13 @@ parameter_constant!(RHS, 3, "rhs");
 
 pub struct LazyParameters {
     init: Once,
-    data: Mutex<Option<KnownParameters>>,
+    data: Mutex<Option<ParametersStore>>,
 }
 
 impl LazyParameters {
-    pub fn get(&self) -> std::sync::MutexGuard<'_, Option<KnownParameters>> {
+    pub fn get(&self) -> std::sync::MutexGuard<'_, Option<ParametersStore>> {
         self.init.call_once(|| {
-            let m = KnownParameters::new([
+            let m = ParametersStore::new([
                 BLANK,
                 LHS,
                 RHS,

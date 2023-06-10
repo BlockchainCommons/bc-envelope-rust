@@ -1,91 +1,155 @@
-use std::collections::HashMap;
+use std::sync::{Once, Mutex};
+use crate::{KnownValue, KnownValuesStore};
+use paste::paste;
 
-use crate::KnownValue;
-
-#[derive(Clone, Debug)]
-pub struct KnownValues {
-    known_values_by_raw_value: HashMap<u64, KnownValue>,
-    known_values_by_assigned_name: HashMap<String, KnownValue>,
+#[macro_export]
+macro_rules! known_value_constant {
+    ($const_name:ident, $value:expr, $name:expr) => {
+        paste! {
+            pub const [<$const_name _VALUE>]: u64 = $value;
+        }
+        pub const $const_name: KnownValue = KnownValue::new_with_static_name($value, $name);
+    };
 }
 
-impl KnownValues {
-    pub fn new<T>(known_values: T) -> Self
-    where
-        T: IntoIterator<Item = KnownValue>,
-    {
-        let mut known_values_by_raw_value = HashMap::new();
-        let mut known_values_by_assigned_name = HashMap::new();
-        for known_value in known_values {
-            Self::_insert(
-                known_value,
-                &mut known_values_by_raw_value,
-                &mut known_values_by_assigned_name,
-            );
-        }
-        Self {
-            known_values_by_raw_value,
-            known_values_by_assigned_name,
-        }
-    }
+// Predicate declaring the subject is known by the identifier object.
+known_value_constant!(ID, 1, "id");
 
-    pub fn insert(&mut self, known_value: KnownValue) {
-        Self::_insert(
-            known_value,
-            &mut self.known_values_by_raw_value,
-            &mut self.known_values_by_assigned_name,
-        );
-    }
+// Predicate declaring the subject is of a type identified by the object.
+known_value_constant!(IS_A, 2, "isA");
 
-    pub fn assigned_name(&self, known_value: &KnownValue) -> Option<&str> {
-        self.known_values_by_raw_value
-            .get(&known_value.value())
-            .and_then(|known_value| known_value.assigned_name())
-    }
+// Predicate declaring the subject is signed by the `Signature` object.
+known_value_constant!(VERIFIED_BY, 3, "verifiedBy");
 
-    pub fn name(&self, known_value: KnownValue) -> String {
-        self.assigned_name(&known_value)
-            .map(|name| name.to_string())
-            .unwrap_or_else(|| known_value.name())
-    }
+// Predicate declaring the subject is accompanied by a human-readable note object.
+known_value_constant!(NOTE, 4, "note");
 
-    pub fn known_value_named(&self, assigned_name: &str) -> Option<&KnownValue> {
-        self.known_values_by_assigned_name.get(assigned_name)
-    }
+// Predicate declaring the subject can be decrypted by the ephemeral key contained
+// in the `SealedMessage` object.
+known_value_constant!(HAS_RECIPIENT, 5, "hasRecipient");
 
-    pub fn known_value_for_raw_value(raw_value: u64, known_values: Option<&Self>) -> KnownValue {
-        known_values
-            .and_then(|known_values| known_values.known_values_by_raw_value.get(&raw_value))
-            .cloned()
-            .unwrap_or_else(|| KnownValue::new(raw_value))
-    }
+// Predicate declaring the subject can be decryped by a quorum of `SSKRShare`s
+// including the one in the object.
+known_value_constant!(SSKR_SHARE, 6, "sskrShare");
 
-    pub fn known_value_for_name(name: &str, known_values: Option<&Self>) -> Option<KnownValue> {
-        known_values
-            .and_then(|known_values| known_values.known_value_named(name))
-            .cloned()
-    }
+// Predicate declaring that the document is controlled by the party identified by
+// the object.
+known_value_constant!(CONTROLLER, 7, "controller");
 
-    pub fn name_for_known_value(known_value: KnownValue, known_values: Option<&Self>) -> String {
-        known_values
-            .and_then(|known_values| known_values.assigned_name(&known_value))
-            .map(|assigned_name| assigned_name.to_string())
-            .unwrap_or_else(|| known_value.name())
-    }
+// Predicate declaring that the party identified by the subject holds the private keys
+// to the `PublicKeyBase` object.
+known_value_constant!(PUBLIC_KEYS, 8, "publicKeys");
 
-    fn _insert(
-        known_value: KnownValue,
-        known_values_by_raw_value: &mut HashMap<u64, KnownValue>,
-        known_values_by_assigned_name: &mut HashMap<String, KnownValue>,
-    ) {
-        known_values_by_raw_value.insert(known_value.value(), known_value.clone());
-        if let Some(name) = known_value.assigned_name() {
-            known_values_by_assigned_name.insert(name.to_string(), known_value);
-        }
+// Predicate declaring that the content referenced by the subject can be
+// dereferenced using the information in the object.
+known_value_constant!(DEREFERENCE_VIA, 9, "dereferenceVia");
+
+// Predicate declaring that the entity referenced by the subject is specified in
+// the object.
+known_value_constant!(ENTITY, 10, "entity");
+
+// Predicate declaring that the entity referenced by the subject is known by the
+// name in the object.
+known_value_constant!(HAS_NAME, 11, "hasName");
+
+// Predicate declaring the the subject `String` is written in the language of the
+// ISO language code object.
+known_value_constant!(LANGUAGE, 12, "language");
+
+// Predicate declaring that the issuer of the object referenced in the subject is
+// the entity referenced in the object.
+known_value_constant!(ISSUER, 13, "issuer");
+
+// Predicate declaring that the holder of the credential or certificate referenced
+// in the subject is the entity referenced in the object.
+known_value_constant!(HOLDER, 14, "holder");
+
+// Predicate declaring that the object is random salt used to decorrelate the
+// digest of the subject.
+known_value_constant!(SALT, 15, "salt");
+
+// Predicate declaring a primary datestamp on the envelope.
+known_value_constant!(DATE, 16, "date");
+
+
+// Predicate declaring that the object is a set of edits using by the
+// `Envelope.transform(edits:)` method to transform a `source` envelope into a `target`
+// envelope.
+known_value_constant!(DIFF_EDITS, 20, "edits");
+
+
+// Predicate declaring that the object is the body (parameters of) a distributed
+// request identified by the subject.
+known_value_constant!(BODY, 100, "body");
+
+// Predicate declaring that the object is the success result of the request
+// identified by the subject.
+known_value_constant!(RESULT, 101, "result");
+
+// Predicate declaring that the object is the failure result of the request
+// identified by the subject.
+known_value_constant!(ERROR, 102, "error");
+
+// Object providing the success result of a request that has no other return value.
+known_value_constant!(OK, 103, "ok");
+
+// Object providing the "in processing" result of a request.
+known_value_constant!(PROCESSING, 104, "processing");
+
+pub struct LazyKnownValues {
+    init: Once,
+    data: Mutex<Option<KnownValuesStore>>,
+}
+
+impl LazyKnownValues {
+    pub fn get(&self) -> std::sync::MutexGuard<'_, Option<KnownValuesStore>> {
+        self.init.call_once(|| {
+            let m = KnownValuesStore::new([
+                ID,
+                IS_A,
+                VERIFIED_BY,
+                NOTE,
+                HAS_RECIPIENT,
+                SSKR_SHARE,
+                CONTROLLER,
+                PUBLIC_KEYS,
+                DEREFERENCE_VIA,
+                ENTITY,
+                HAS_NAME,
+                LANGUAGE,
+                ISSUER,
+                HOLDER,
+                SALT,
+                DATE,
+                DIFF_EDITS,
+                BODY,
+                RESULT,
+                ERROR,
+                OK,
+                PROCESSING,
+            ]);
+            *self.data.lock().unwrap() = Some(m);
+        });
+        self.data.lock().unwrap()
     }
 }
 
-impl Default for KnownValues {
-    fn default() -> Self {
-        Self::new([])
+pub static KNOWN_VALUES: LazyKnownValues = LazyKnownValues {
+    init: Once::new(),
+    data: Mutex::new(None),
+};
+
+#[cfg(test)]
+mod tests {
+    use crate::known_value::KNOWN_VALUES;
+
+    #[test]
+    fn test_1() {
+        use crate::*;
+        assert_eq!(known_value::IS_A.value(), 2);
+        assert_eq!(known_value::IS_A.name(), Some("isA").unwrap());
+        let binding = KNOWN_VALUES.get();
+        let known_values = binding.as_ref().unwrap();
+        assert_eq!(known_values.known_value_named("isA").unwrap().value(), 2);
     }
 }

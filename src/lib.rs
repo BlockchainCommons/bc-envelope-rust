@@ -6,9 +6,9 @@ mod compress;
 mod digest;
 mod encrypt;
 mod expression;
-mod function_registry;
-mod known_value_registry;
-mod parameter_registry;
+mod functions;
+mod known_values;
+mod parameters;
 mod queries;
 mod recipient;
 mod salt;
@@ -53,14 +53,14 @@ pub use function::Function;
 pub mod parameter;
 pub use parameter::Parameter;
 
-mod known_values;
-pub use known_values::KnownValues;
+mod known_values_store;
+pub use known_values_store::KnownValuesStore;
 
-mod known_functions;
-pub use known_functions::KnownFunctions;
+mod functions_store;
+pub use functions_store::FunctionsStore;
 
-mod known_parameters;
-pub use known_parameters::KnownParameters;
+mod parameters_store;
+pub use parameters_store::ParametersStore;
 
 #[cfg(test)]
 mod tests {

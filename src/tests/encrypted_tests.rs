@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::rc::Rc;
-use crate::{Envelope, known_value_registry};
+use crate::{Envelope, known_values};
 use bc_components::{DigestProvider, SymmetricKey, Nonce, EncryptedMessage};
 use hex_literal::hex;
 
@@ -9,7 +9,7 @@ fn basic_envelope() -> Rc<Envelope> {
 }
 
 fn known_value_envelope() -> Rc<Envelope> {
-    Envelope::new(known_value_registry::NOTE)
+    Envelope::new(known_values::NOTE)
 }
 
 fn assertion_envelope() -> Rc<Envelope> {

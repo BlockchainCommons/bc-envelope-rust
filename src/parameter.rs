@@ -1,7 +1,7 @@
 use bc_components::tags_registry;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
-pub use crate::parameter_registry::*;
-use crate::{KnownParameters, string_utils::StringUtils};
+pub use crate::parameters::*;
+use crate::{ParametersStore, string_utils::StringUtils};
 
 #[derive(Clone, Debug, Eq)]
 pub enum ParameterName {
@@ -136,10 +136,10 @@ impl CBORTaggedDecodable for Parameter {
 }
 
 impl Parameter {
-    fn description(&self, known_parameters: Option<&KnownParameters>) -> String {
+    fn description(&self, known_parameters: Option<&ParametersStore>) -> String {
         match self {
             Parameter::Known(_, _) => {
-                KnownParameters::name_for_parameter(self, known_parameters)
+                ParametersStore::name_for_parameter(self, known_parameters)
             },
             Parameter::Named(name) => {
                 format!("\"{}\"", name.value())

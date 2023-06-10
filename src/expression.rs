@@ -3,7 +3,7 @@ use std::rc::Rc;
 use bc_components::{tags_registry, CID};
 use dcbor::{CBOR, CBORDecodable};
 
-use crate::{known_value_registry, IntoEnvelope, Envelope, Function, Parameter, Error, KnownValue};
+use crate::{known_values, IntoEnvelope, Envelope, Function, Parameter, Error, KnownValue};
 
 /// Function Construction
 impl Envelope {
@@ -86,7 +86,7 @@ impl Envelope {
         B: IntoEnvelope,
     {
         Envelope::new(CBOR::tagged_value(tags_registry::REQUEST, request_id.as_ref()))
-            .add_assertion(known_value_registry::BODY, body)
+            .add_assertion(known_values::BODY, body)
     }
 }
 
@@ -99,7 +99,7 @@ impl Envelope {
         R: IntoEnvelope,
     {
         Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, response_id.as_ref()))
-            .add_assertion(known_value_registry::RESULT, result)
+            .add_assertion(known_values::RESULT, result)
     }
 
     /// Creates an envelope with a `CID` subject and a `result: value` assertion for each provided result.
@@ -112,7 +112,7 @@ impl Envelope {
 
         for result in results {
             envelope = envelope.add_assertion(
-                known_value_registry::RESULT,
+                known_values::RESULT,
                 result.clone(),
             );
         }
@@ -127,7 +127,7 @@ impl Envelope {
         E: IntoEnvelope,
     {
         Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, response_id.as_ref()))
-            .add_assertion(known_value_registry::ERROR, error)
+            .add_assertion(known_values::ERROR, error)
     }
 
     /// Creates an envelope with an `unknown` subject and a `error: value` assertion.
@@ -143,7 +143,7 @@ impl Envelope {
     {
         if let Some(error) = error {
             Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, "unknown"))
-                .add_assertion(known_value_registry::ERROR, error)
+                .add_assertion(known_values::ERROR, error)
         } else {
             Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, "unknown"))
         }
@@ -182,12 +182,12 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
     pub fn result(self: Rc<Self>) -> Result<Rc<Self>, Error> {
-        self.object_for_predicate(known_value_registry::RESULT)
+        self.object_for_predicate(known_values::RESULT)
     }
 
     /// Returns the objects of every `result` predicate.
     pub fn results(self: Rc<Self>) -> Vec<Rc<Self>> {
-        self.objects_for_predicate(known_value_registry::RESULT)
+        self.objects_for_predicate(known_values::RESULT)
     }
 
     /// Returns the object of the `result` predicate.
@@ -198,7 +198,7 @@ impl Envelope {
     where
         T: CBORDecodable + 'static,
     {
-        self.extract_object_for_predicate(known_value_registry::RESULT)
+        self.extract_object_for_predicate(known_values::RESULT)
     }
 
     /// Returns the objects of every `result` predicate.
@@ -208,14 +208,14 @@ impl Envelope {
     where
         T: CBORDecodable + 'static,
     {
-        self.extract_objects_for_predicate(known_value_registry::RESULT)
+        self.extract_objects_for_predicate(known_values::RESULT)
     }
 
     /// Checks whether the `result` predicate has the `KnownValue` `.ok`.
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
     pub fn is_result_ok(self: Rc<Self>) -> Result<bool, Error> {
-        self.extract_result::<KnownValue>().map(|v| *v == known_value_registry::OK)
+        self.extract_result::<KnownValue>().map(|v| *v == known_values::OK)
     }
 
     /// Returns the error value.
@@ -225,6 +225,6 @@ impl Envelope {
     where
         T: CBORDecodable + 'static,
     {
-        self.extract_object_for_predicate(known_value_registry::ERROR)
+        self.extract_object_for_predicate(known_values::ERROR)
     }
 }

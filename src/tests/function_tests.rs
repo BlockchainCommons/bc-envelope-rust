@@ -4,12 +4,12 @@ use bc_components::CID;
 use indoc::indoc;
 use hex_literal::hex;
 
-use crate::{function_registry, parameter_registry, Envelope, with_format_context, Function, Parameter};
+use crate::{functions, parameters, Envelope, with_format_context, Function, Parameter};
 
 fn two_plus_three() -> Rc<Envelope> {
-    Envelope::new(function_registry::ADD)
-        .add_parameter(parameter_registry::LHS, 2)
-        .add_parameter(parameter_registry::RHS, 3)
+    Envelope::new(functions::ADD)
+        .add_parameter(parameters::LHS, 2)
+        .add_parameter(parameters::RHS, 3)
 }
 
 #[test]

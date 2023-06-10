@@ -4,7 +4,7 @@ use bc_components::{tags_registry, DigestProvider, Digest};
 use dcbor::{CBOR, CBORTagged, Tag, CBOREncodable, CBORDecodable, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
 
 // Re-export everything from known_value_registry
-pub use crate::known_value_registry::*;
+pub use crate::known_values::*;
 
 #[derive(Debug, Clone)]
 enum KnownValueName {

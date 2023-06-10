@@ -1,8 +1,8 @@
 use bc_components::tags_registry;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
 
-use crate::{KnownFunctions, string_utils::StringUtils};
-pub use crate::function_registry::*;
+use crate::{FunctionsStore, string_utils::StringUtils};
+pub use crate::functions::*;
 
 #[derive(Clone, Debug, Eq)]
 pub enum FunctionName {
@@ -137,10 +137,10 @@ impl CBORTaggedDecodable for Function {
 }
 
 impl Function {
-    fn description(&self, known_functions: Option<&KnownFunctions>) -> String {
+    fn description(&self, known_functions: Option<&FunctionsStore>) -> String {
         match self {
             Function::Known(_, _) => {
-                KnownFunctions::name_for_function(self, known_functions)
+                FunctionsStore::name_for_function(self, known_functions)
             },
             Function::Named(name) => {
                 format!("\"{}\"", name.value())

@@ -1,4 +1,4 @@
-use crate::{known_value_registry, Envelope};
+use crate::{known_values, Envelope};
 use bc_crypto::make_fake_random_number_generator;
 use indoc::indoc;
 
@@ -73,7 +73,7 @@ fn test_add_salt() {
         .add_salt().check_encoding().unwrap()
         .wrap_envelope().check_encoding().unwrap()
         .add_assertion(
-            Envelope::new(known_value_registry::NOTE).add_salt().check_encoding().unwrap(),
+            Envelope::new(known_values::NOTE).add_salt().check_encoding().unwrap(),
             Envelope::new(source).add_salt().check_encoding().unwrap()
         ).check_encoding().unwrap();
     let e1_expected_format = indoc! {r#"

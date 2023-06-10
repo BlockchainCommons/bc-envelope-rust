@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use crate::Function;
 
 #[derive(Clone, Debug)]
-pub struct KnownFunctions {
+pub struct FunctionsStore {
     dict: HashMap<Function, String>,
 }
 
-impl KnownFunctions {
+impl FunctionsStore {
     pub fn new<T>(functions: T) -> Self
     where
         T: IntoIterator<Item = Function>,
@@ -51,7 +51,7 @@ impl KnownFunctions {
     }
 }
 
-impl Default for KnownFunctions {
+impl Default for FunctionsStore {
     fn default() -> Self {
         Self::new([])
     }

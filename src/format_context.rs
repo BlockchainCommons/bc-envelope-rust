@@ -1,22 +1,22 @@
 use bc_components::tags_registry::KNOWN_TAGS;
 use dcbor::{KnownTagsDict, Tag, KnownTags};
 use std::sync::{Once, Mutex};
-use crate::{known_values::KnownValues, KnownFunctions, KnownParameters, known_value::KNOWN_VALUES, function::FUNCTIONS, parameter::PARAMETERS};
+use crate::{known_values_store::KnownValuesStore, FunctionsStore, ParametersStore, known_value::KNOWN_VALUES, function::FUNCTIONS, parameter::PARAMETERS};
 
 #[derive(Clone, Debug)]
 pub struct FormatContext {
     tags: KnownTagsDict,
-    known_values: KnownValues,
-    functions: KnownFunctions,
-    parameters: KnownParameters,
+    known_values: KnownValuesStore,
+    functions: FunctionsStore,
+    parameters: ParametersStore,
 }
 
 impl FormatContext {
     pub fn new(
         tags: Option<&KnownTagsDict>,
-        known_values: Option<&KnownValues>,
-        functions: Option<&KnownFunctions>,
-        parameters: Option<&KnownParameters>,
+        known_values: Option<&KnownValuesStore>,
+        functions: Option<&FunctionsStore>,
+        parameters: Option<&ParametersStore>,
     ) -> Self {
         Self {
             tags: tags.cloned().unwrap_or_default(),
@@ -46,15 +46,15 @@ impl FormatContext {
         self.tags.tag_for_name(name)
     }
 
-    pub fn known_values(&self) -> &KnownValues {
+    pub fn known_values(&self) -> &KnownValuesStore {
         &self.known_values
     }
 
-    pub fn functions(&self) -> &KnownFunctions {
+    pub fn functions(&self) -> &FunctionsStore {
         &self.functions
     }
 
-    pub fn parameters(&self) -> &KnownParameters {
+    pub fn parameters(&self) -> &ParametersStore {
         &self.parameters
     }
 }
