@@ -33,9 +33,9 @@ impl FunctionsStore {
             .unwrap_or_else(|| function.name())
     }
 
-    pub fn name_for_function(function: &Function, known_functions: Option<&Self>) -> String {
-        known_functions
-            .and_then(|known_functions| known_functions.assigned_name(function))
+    pub fn name_for_function(function: &Function, functions: Option<&Self>) -> String {
+        functions
+            .and_then(|functions| functions.assigned_name(function))
             .map(|name| name.to_string())
             .unwrap_or_else(|| function.name())
     }

@@ -33,9 +33,9 @@ use crate::Parameter;
             .unwrap_or_else(|| parameter.name())
     }
 
-    pub fn name_for_parameter(parameter: &Parameter, known_parameters: Option<&Self>) -> String {
-        known_parameters
-            .and_then(|known_parameters| known_parameters.assigned_name(parameter))
+    pub fn name_for_parameter(parameter: &Parameter, parameters: Option<&Self>) -> String {
+        parameters
+            .and_then(|parameters| parameters.assigned_name(parameter))
             .map(|name| name.to_string())
             .unwrap_or_else(|| parameter.name())
     }

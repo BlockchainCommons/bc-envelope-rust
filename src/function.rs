@@ -137,10 +137,10 @@ impl CBORTaggedDecodable for Function {
 }
 
 impl Function {
-    fn description(&self, known_functions: Option<&FunctionsStore>) -> String {
+    fn description(&self, functions: Option<&FunctionsStore>) -> String {
         match self {
             Function::Known(_, _) => {
-                FunctionsStore::name_for_function(self, known_functions)
+                FunctionsStore::name_for_function(self, functions)
             },
             Function::Named(name) => {
                 format!("\"{}\"", name.value())

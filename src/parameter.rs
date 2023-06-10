@@ -136,10 +136,10 @@ impl CBORTaggedDecodable for Parameter {
 }
 
 impl Parameter {
-    fn description(&self, known_parameters: Option<&ParametersStore>) -> String {
+    fn description(&self, parameters: Option<&ParametersStore>) -> String {
         match self {
             Parameter::Known(_, _) => {
-                ParametersStore::name_for_parameter(self, known_parameters)
+                ParametersStore::name_for_parameter(self, parameters)
             },
             Parameter::Named(name) => {
                 format!("\"{}\"", name.value())
