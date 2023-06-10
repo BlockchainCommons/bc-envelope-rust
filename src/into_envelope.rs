@@ -51,87 +51,87 @@ impl IntoEnvelope for CBOR {
     }
 }
 
-impl IntoEnvelope for &dyn CBOREncodable {
+impl IntoEnvelope for &Box<CBOR> {
     fn into_envelope(self) -> Rc<Envelope> {
         self.cbor().into_envelope()
     }
 }
 
-impl IntoEnvelope for &Box<CBOR> {
-    fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.as_ref().clone()))
-    }
-}
-
 impl IntoEnvelope for &str {
     fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(CBOR::Text(self.to_string())))
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for u8 {
     fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for u16 {
     fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for u32 {
     fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for u64 {
     fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for usize {
     fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for i8 {
     fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for i16 {
     fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for i32 {
     fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for i64 {
     fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for Function {
     fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for Parameter {
     fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_leaf(self.cbor()))
+        self.cbor().into_envelope()
+    }
+}
+
+impl IntoEnvelope for Signature {
+    fn into_envelope(self) -> Rc<Envelope> {
+        self.cbor().into_envelope()
     }
 }
 

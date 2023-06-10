@@ -121,3 +121,9 @@ impl IntoEnvelope for &Seed {
         self.cbor().into_envelope()
     }
 }
+
+impl IntoEnvelope for Seed {
+    fn into_envelope(self) -> Rc<Envelope> {
+        self.cbor().into_envelope()
+    }
+}

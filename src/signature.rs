@@ -135,7 +135,7 @@ impl Envelope {
     {
         let signing_private_key = private_keys.signing_private_key();
         let digest = *self.clone().subject().digest().data();
-        let signature = Envelope::new(&signing_private_key.schnorr_sign_using(digest, tag, rng))
+        let signature = Envelope::new(signing_private_key.schnorr_sign_using(digest, tag, rng))
             .add_assertion_envelopes(uncovered_assertions)
             .unwrap();
         self.add_assertion(known_value_registry::VERIFIED_BY, signature)
