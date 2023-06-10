@@ -1,4 +1,4 @@
-use bc_components::tags_registry;
+use bc_components::tags;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
 
 use crate::{FunctionsStore, string_utils::StringUtils};
@@ -102,7 +102,7 @@ impl From<&Function> for Function {
 }
 
 impl CBORTagged for Function {
-    const CBOR_TAG: Tag = tags_registry::FUNCTION;
+    const CBOR_TAG: Tag = tags::FUNCTION;
 }
 
 impl CBOREncodable for Function {

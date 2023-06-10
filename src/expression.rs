@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use bc_components::{tags_registry, CID};
+use bc_components::{tags, CID};
 use dcbor::{CBOR, CBORDecodable};
 
 use crate::{known_values, IntoEnvelope, Envelope, Function, Parameter, Error, KnownValue};
@@ -85,7 +85,7 @@ impl Envelope {
         C: AsRef<CID>,
         B: IntoEnvelope,
     {
-        Envelope::new(CBOR::tagged_value(tags_registry::REQUEST, request_id.as_ref()))
+        Envelope::new(CBOR::tagged_value(tags::REQUEST, request_id.as_ref()))
             .add_assertion(known_values::BODY, body)
     }
 }
@@ -98,7 +98,7 @@ impl Envelope {
         C: AsRef<CID>,
         R: IntoEnvelope,
     {
-        Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, response_id.as_ref()))
+        Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()))
             .add_assertion(known_values::RESULT, result)
     }
 
@@ -108,7 +108,7 @@ impl Envelope {
         C: AsRef<CID>,
         R: IntoEnvelope + Clone,
     {
-        let mut envelope = Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, response_id.as_ref()));
+        let mut envelope = Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()));
 
         for result in results {
             envelope = envelope.add_assertion(
@@ -126,7 +126,7 @@ impl Envelope {
         C: AsRef<CID>,
         E: IntoEnvelope,
     {
-        Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, response_id.as_ref()))
+        Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()))
             .add_assertion(known_values::ERROR, error)
     }
 
@@ -142,10 +142,10 @@ impl Envelope {
         E: IntoEnvelope,
     {
         if let Some(error) = error {
-            Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, "unknown"))
+            Envelope::new(CBOR::tagged_value(tags::RESPONSE, "unknown"))
                 .add_assertion(known_values::ERROR, error)
         } else {
-            Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, "unknown"))
+            Envelope::new(CBOR::tagged_value(tags::RESPONSE, "unknown"))
         }
     }
 }

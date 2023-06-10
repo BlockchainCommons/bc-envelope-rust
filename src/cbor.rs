@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use bc_components::{tags_registry, Digest, EncryptedMessage, Compressed};
+use bc_components::{tags, Digest, EncryptedMessage, Compressed};
 use bc_ur::{UREncodable, URDecodable, URCodable};
 use dcbor::{CBORTagged, CBOREncodable, CBORDecodable, CBOR, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable, Tag};
 use crate::{Envelope, Assertion, KnownValue};
@@ -19,7 +19,7 @@ use crate::{Envelope, Assertion, KnownValue};
 /// * `.elided` is tagged with the `crypto-digest` tag.
 
 impl CBORTagged for Envelope {
-    const CBOR_TAG: Tag = tags_registry::ENVELOPE;
+    const CBOR_TAG: Tag = tags::ENVELOPE;
 }
 
 impl CBOREncodable for Envelope {
@@ -46,8 +46,8 @@ impl CBORTaggedEncodable for Envelope {
                 }
                 CBOR::Array(result)
             }
-            Envelope::Leaf { cbor, digest: _ } => CBOR::tagged_value(tags_registry::LEAF, cbor.clone()),
-            Envelope::Wrapped { envelope, digest: _ } => CBOR::tagged_value(tags_registry::WRAPPED_ENVELOPE, envelope.untagged_cbor()),
+            Envelope::Leaf { cbor, digest: _ } => CBOR::tagged_value(tags::LEAF, cbor.clone()),
+            Envelope::Wrapped { envelope, digest: _ } => CBOR::tagged_value(tags::WRAPPED_ENVELOPE, envelope.untagged_cbor()),
             Envelope::KnownValue { value, digest: _ } => value.tagged_cbor(),
             Envelope::Assertion(assertion) => assertion.tagged_cbor(),
             Envelope::Encrypted(encrypted_message) => encrypted_message.tagged_cbor(),
@@ -62,37 +62,37 @@ impl CBORTaggedDecodable for Envelope {
         match cbor {
             CBOR::Tagged(tag, item) => {
                 match tag.value() {
-                    tags_registry::LEAF_VALUE => {
+                    tags::LEAF_VALUE => {
                         let cbor = item.as_ref().clone();
                         Ok(Envelope::new_leaf(cbor))
                     },
-                    tags_registry::KNOWN_VALUE_VALUE => {
+                    tags::KNOWN_VALUE_VALUE => {
                         let known_value = KnownValue::from_untagged_cbor(item)?;
                         Ok(Envelope::new_with_known_value(known_value))
                     },
-                    tags_registry::WRAPPED_ENVELOPE_VALUE => {
+                    tags::WRAPPED_ENVELOPE_VALUE => {
                         let inner_envelope = Rc::new(Envelope::from_untagged_cbor(item)?);
                         Ok(Envelope::new_wrapped(inner_envelope))
                     },
-                    tags_registry::ASSERTION_VALUE => {
+                    tags::ASSERTION_VALUE => {
                         let assertion = Assertion::from_untagged_cbor(item)?;
                         Ok(Envelope::new_with_assertion(assertion))
                     },
-                    tags_registry::ENVELOPE_VALUE => {
+                    tags::ENVELOPE_VALUE => {
                         let envelope = Envelope::from_untagged_cbor(item)?;
                         Ok(envelope)
                     },
-                    tags_registry::ENCRYPTED_VALUE => {
+                    tags::ENCRYPTED_VALUE => {
                         let encrypted = EncryptedMessage::from_untagged_cbor(item)?;
                         let envelope = Envelope::new_with_encrypted(encrypted)?;
                         Ok(envelope)
                     },
-                    tags_registry::COMPRESSED_VALUE => {
+                    tags::COMPRESSED_VALUE => {
                         let compressed = Compressed::from_untagged_cbor(item)?;
                         let envelope = Envelope::new_with_compressed(compressed)?;
                         Ok(envelope)
                     },
-                    tags_registry::DIGEST_VALUE => {
+                    tags::DIGEST_VALUE => {
                         let digest = Digest::from_untagged_cbor(item)?;
                         let envelope = Envelope::new_elided(digest);
                         Ok(envelope)

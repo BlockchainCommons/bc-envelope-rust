@@ -1,6 +1,6 @@
 use std::{rc::Rc, borrow::Cow};
 
-use bc_components::{SymmetricKey, Nonce, Digest, DigestProvider, tags_registry::LEAF};
+use bc_components::{SymmetricKey, Nonce, Digest, DigestProvider, tags::LEAF};
 use dcbor::{CBOREncodable, CBORTaggedDecodable, CBORTaggedEncodable, CBOR};
 
 use crate::{Envelope, Error};

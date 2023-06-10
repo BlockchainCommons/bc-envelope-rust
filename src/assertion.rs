@@ -1,6 +1,6 @@
 use std::{borrow::Cow, rc::Rc};
 
-use bc_components::{tags_registry, Digest, DigestProvider};
+use bc_components::{tags, Digest, DigestProvider};
 use dcbor::{
     CBORCodable, CBORDecodable, CBOREncodable, CBORTagged, CBORTaggedCodable, CBORTaggedDecodable,
     CBORTaggedEncodable, Tag, CBOR,
@@ -66,7 +66,7 @@ impl DigestProvider for Assertion {
 }
 
 impl CBORTagged for Assertion {
-    const CBOR_TAG: Tag = tags_registry::ASSERTION;
+    const CBOR_TAG: Tag = tags::ASSERTION;
 }
 
 impl CBOREncodable for Assertion {

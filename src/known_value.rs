@@ -1,6 +1,6 @@
 use std::{fmt::{Formatter, Display}, borrow::Cow};
 
-use bc_components::{tags_registry, DigestProvider, Digest};
+use bc_components::{tags, DigestProvider, Digest};
 use dcbor::{CBOR, CBORTagged, Tag, CBOREncodable, CBORDecodable, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
 
 // Re-export everything from known_value_registry
@@ -99,7 +99,7 @@ impl DigestProvider for KnownValue {
 }
 
 impl CBORTagged for KnownValue {
-    const CBOR_TAG: Tag = tags_registry::KNOWN_VALUE;
+    const CBOR_TAG: Tag = tags::KNOWN_VALUE;
 }
 
 impl CBOREncodable for KnownValue {

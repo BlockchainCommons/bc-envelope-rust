@@ -3,7 +3,7 @@ use std::error::Error;
 use bc_components::{Digest, CID, URI, UUID, DigestProvider};
 use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable, Date};
 use crate::{Envelope, FormatContext, Assertion, KnownValue, string_utils::StringUtils, KnownValuesStore, FunctionsStore, Function, Parameter, ParametersStore};
-use bc_components::tags_registry;
+use bc_components::tags;
 
 /// Support for the various text output formats for ``Envelope``.
 impl Envelope {
@@ -271,8 +271,8 @@ impl EnvelopeSummary for CBOR {
             CBOR::Map(_) => Ok("Map".to_string()),
             CBOR::Tagged(tag, untagged_cbor) => {
                 match tag.value() {
-                    tags_registry::ENVELOPE_VALUE => Ok("Envelope".to_string()),
-                    tags_registry::KNOWN_VALUE_VALUE => {
+                    tags::ENVELOPE_VALUE => Ok("Envelope".to_string()),
+                    tags::KNOWN_VALUE_VALUE => {
                         if let CBOR::Unsigned(raw_value) = &**untagged_cbor {
                             Ok(KnownValuesStore::known_value_for_raw_value(*raw_value, Some(context.known_values()))
                                 .to_string())
@@ -280,13 +280,13 @@ impl EnvelopeSummary for CBOR {
                             Ok("<not a known value>".to_string())
                         }
                     },
-                    tags_registry::SIGNATURE_VALUE => Ok("Signature".to_string()),
-                    tags_registry::NONCE_VALUE => Ok("Nonce".to_string()),
-                    tags_registry::SALT_VALUE => Ok("Salt".to_string()),
-                    tags_registry::SEALED_MESSAGE_VALUE => Ok("SealedMessage".to_string()),
-                    tags_registry::SSKR_SHARE_VALUE => Ok("SSKRShare".to_string()),
-                    tags_registry::PUBLIC_KEYBASE_VALUE => Ok("PublicKeyBase".to_string()),
-                    tags_registry::DATE_VALUE => {
+                    tags::SIGNATURE_VALUE => Ok("Signature".to_string()),
+                    tags::NONCE_VALUE => Ok("Nonce".to_string()),
+                    tags::SALT_VALUE => Ok("Salt".to_string()),
+                    tags::SEALED_MESSAGE_VALUE => Ok("SealedMessage".to_string()),
+                    tags::SSKR_SHARE_VALUE => Ok("SSKRShare".to_string()),
+                    tags::PUBLIC_KEYBASE_VALUE => Ok("PublicKeyBase".to_string()),
+                    tags::DATE_VALUE => {
                         let date = Date::from_untagged_cbor(untagged_cbor)?;
                         let s = date.to_string();
                         if s.len() == 20 && s.ends_with("T00:00:00Z") {
@@ -295,30 +295,30 @@ impl EnvelopeSummary for CBOR {
                             Ok(s)
                         }
                     },
-                    tags_registry::CID_VALUE => {
+                    tags::CID_VALUE => {
                         Ok(CID::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("CID(", ")"))
                     },
-                    tags_registry::URI_VALUE => {
+                    tags::URI_VALUE => {
                         Ok(URI::from_untagged_cbor(untagged_cbor)?.to_string().flanked_by("URI(", ")"))
                     },
-                    tags_registry::UUID_VALUE => {
+                    tags::UUID_VALUE => {
                         Ok(UUID::from_untagged_cbor(untagged_cbor)?.to_string().flanked_by("UUID(", ")"))
                     },
-                    tags_registry::DIGEST_VALUE => {
+                    tags::DIGEST_VALUE => {
                         Ok(Digest::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("Digest(", ")"))
                     },
-                    tags_registry::FUNCTION_VALUE => {
+                    tags::FUNCTION_VALUE => {
                         let f = Function::from_untagged_cbor(untagged_cbor)?;
                         Ok(FunctionsStore::name_for_function(&f, Some(context.functions())).flanked_by("«", "»"))
                     },
-                    tags_registry::PARAMETER_VALUE => {
+                    tags::PARAMETER_VALUE => {
                         let p = Parameter::from_untagged_cbor(untagged_cbor)?;
                         Ok(ParametersStore::name_for_parameter(&p, Some(context.parameters())).flanked_by("❰", "❱"))
                     },
-                    tags_registry::REQUEST_VALUE => {
+                    tags::REQUEST_VALUE => {
                         Ok(Envelope::new(untagged_cbor).format_opt(Some(context)).flanked_by("request(", ")"))
                     },
-                    tags_registry::RESPONSE_VALUE => {
+                    tags::RESPONSE_VALUE => {
                         Ok(Envelope::new(untagged_cbor).format_opt(Some(context)).flanked_by("response(", ")"))
                     },
                     _ => {

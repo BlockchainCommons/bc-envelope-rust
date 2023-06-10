@@ -1,11 +1,11 @@
-use bc_components::tags_registry::KNOWN_TAGS;
-use dcbor::{KnownTagsDict, Tag, KnownTags};
+use bc_components::tags::KNOWN_TAGS;
+use dcbor::{TagsStore, Tag, TagsStoreTrait};
 use std::sync::{Once, Mutex};
 use crate::{known_values_store::KnownValuesStore, FunctionsStore, ParametersStore, known_value::KNOWN_VALUES, function::FUNCTIONS, parameter::PARAMETERS};
 
 #[derive(Clone, Debug)]
 pub struct FormatContext {
-    tags: KnownTagsDict,
+    tags: TagsStore,
     known_values: KnownValuesStore,
     functions: FunctionsStore,
     parameters: ParametersStore,
@@ -13,7 +13,7 @@ pub struct FormatContext {
 
 impl FormatContext {
     pub fn new(
-        tags: Option<&KnownTagsDict>,
+        tags: Option<&TagsStore>,
         known_values: Option<&KnownValuesStore>,
         functions: Option<&FunctionsStore>,
         parameters: Option<&ParametersStore>,
@@ -26,7 +26,7 @@ impl FormatContext {
         }
     }
 
-    pub fn tags(&self) -> &KnownTagsDict {
+    pub fn tags(&self) -> &TagsStore {
         &self.tags
     }
 

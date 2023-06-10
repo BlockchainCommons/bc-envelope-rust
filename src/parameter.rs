@@ -1,4 +1,4 @@
-use bc_components::tags_registry;
+use bc_components::tags;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
 pub use crate::parameters::*;
 use crate::{ParametersStore, string_utils::StringUtils};
@@ -101,7 +101,7 @@ impl From<&Parameter> for Parameter {
 }
 
 impl CBORTagged for Parameter {
-    const CBOR_TAG: Tag = tags_registry::PARAMETER;
+    const CBOR_TAG: Tag = tags::PARAMETER;
 }
 
 impl CBOREncodable for Parameter {

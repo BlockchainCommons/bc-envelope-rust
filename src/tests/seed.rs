@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use bc_components::tags_registry;
+use bc_components::tags;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
 use bc_ur::{UREncodable, URDecodable, URCodable};
 
@@ -64,7 +64,7 @@ impl Seed {
 }
 
 impl CBORTagged for Seed {
-    const CBOR_TAG: Tag = tags_registry::SEED;
+    const CBOR_TAG: Tag = tags::SEED;
 }
 
 impl CBOREncodable for Seed {
