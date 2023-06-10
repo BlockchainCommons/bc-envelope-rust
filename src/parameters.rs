@@ -35,7 +35,7 @@ impl LazyParameters {
     }
 }
 
-pub static PARAMETERS: LazyParameters = LazyParameters {
+pub static GLOBAL_PARAMETERS: LazyParameters = LazyParameters {
     init: Once::new(),
     data: Mutex::new(None),
 };

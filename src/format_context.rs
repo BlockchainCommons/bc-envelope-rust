@@ -1,7 +1,7 @@
-use bc_components::tags::TAGS;
+use bc_components::tags::GLOBAL_TAGS;
 use dcbor::{TagsStore, Tag, TagsStoreTrait};
 use std::sync::{Once, Mutex};
-use crate::{known_values_store::KnownValuesStore, FunctionsStore, ParametersStore, known_value::KNOWN_VALUES, function::FUNCTIONS, parameter::PARAMETERS};
+use crate::{known_values_store::KnownValuesStore, FunctionsStore, ParametersStore, known_value::KNOWN_VALUES, function::GLOBAL_FUNCTIONS, parameter::GLOBAL_PARAMETERS};
 
 #[derive(Clone, Debug)]
 pub struct FormatContext {
@@ -73,13 +73,13 @@ pub struct LazyFormatContext {
 impl LazyFormatContext {
     pub fn get(&self) -> std::sync::MutexGuard<Option<FormatContext>> {
         self.init.call_once(|| {
-            let tags_binding = TAGS.get();
+            let tags_binding = GLOBAL_TAGS.get();
             let tags = tags_binding.as_ref().unwrap();
             let known_values_binding = KNOWN_VALUES.get();
             let known_values = known_values_binding.as_ref().unwrap();
-            let functions_binding = FUNCTIONS.get();
+            let functions_binding = GLOBAL_FUNCTIONS.get();
             let functions = functions_binding.as_ref().unwrap();
-            let parameters_binding = PARAMETERS.get();
+            let parameters_binding = GLOBAL_PARAMETERS.get();
             let parameters = parameters_binding.as_ref().unwrap();
 
             let context = FormatContext::new(Some(tags), Some(known_values), Some(functions), Some(parameters));
@@ -89,7 +89,7 @@ impl LazyFormatContext {
     }
 }
 
-pub static FORMAT_CONTEXT: LazyFormatContext = LazyFormatContext {
+pub static GLOBAL_FORMAT_CONTEXT: LazyFormatContext = LazyFormatContext {
     init: Once::new(),
     data: Mutex::new(None),
 };
@@ -97,7 +97,7 @@ pub static FORMAT_CONTEXT: LazyFormatContext = LazyFormatContext {
 #[macro_export]
 macro_rules! with_format_context {
     ($action:expr) => {{
-        let binding = $crate::FORMAT_CONTEXT.get();
+        let binding = $crate::GLOBAL_FORMAT_CONTEXT.get();
         let context = &*binding.as_ref().unwrap();
         $action(context)
     }};

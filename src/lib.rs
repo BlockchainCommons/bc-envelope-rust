@@ -33,7 +33,7 @@ mod envelope;
 pub use crate::envelope::Envelope;
 
 mod format_context;
-pub use format_context::{FormatContext, FORMAT_CONTEXT};
+pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 
 mod error;
 pub use error::Error;

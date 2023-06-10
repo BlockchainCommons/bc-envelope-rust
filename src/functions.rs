@@ -37,7 +37,7 @@ impl LazyFunctions {
     }
 }
 
-pub static FUNCTIONS: LazyFunctions = LazyFunctions {
+pub static GLOBAL_FUNCTIONS: LazyFunctions = LazyFunctions {
     init: Once::new(),
     data: Mutex::new(None),
 };
