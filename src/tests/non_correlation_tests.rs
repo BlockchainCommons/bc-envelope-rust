@@ -1,10 +1,10 @@
-use crate::{Enclosable, known_value_registry};
+use crate::{IntoEnvelope, known_value_registry};
 use bc_crypto::make_fake_random_number_generator;
 use indoc::indoc;
 
 #[test]
 fn test_envelope_non_correlation() {
-    let e1 = "Hello.".enclose();
+    let e1 = "Hello.".into_envelope();
 
     // e1 correlates with its elision
     assert!(e1.clone().is_equivalent_to(e1.clone().elide()));
@@ -36,11 +36,11 @@ fn test_envelope_non_correlation() {
 
 #[test]
 fn test_predicate_correlation() {
-    let e1 = "Foo".enclose()
-        .add_assertion("note".enclose(), "Bar".enclose())
+    let e1 = "Foo".into_envelope()
+        .add_assertion("note".into_envelope(), "Bar".into_envelope())
         .check_encoding().unwrap();
-    let e2 = "Baz".enclose()
-        .add_assertion("note".enclose(), "Quux".enclose())
+    let e2 = "Baz".into_envelope()
+        .add_assertion("note".into_envelope(), "Quux".into_envelope())
         .check_encoding().unwrap();
 
     let e1_expected_format = indoc! {r#"
@@ -69,12 +69,12 @@ fn test_predicate_correlation() {
 #[test]
 fn test_add_salt() {
     let source = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
-    let e1 = "Alpha".enclose()
+    let e1 = "Alpha".into_envelope()
         .add_salt().check_encoding().unwrap()
         .wrap_envelope().check_encoding().unwrap()
         .add_assertion(
-            known_value_registry::NOTE.enclose().add_salt().check_encoding().unwrap(),
-            source.enclose().add_salt().check_encoding().unwrap()
+            known_value_registry::NOTE.into_envelope().add_salt().check_encoding().unwrap(),
+            source.into_envelope().add_salt().check_encoding().unwrap()
         ).check_encoding().unwrap();
     let e1_expected_format = indoc! {r#"
     {

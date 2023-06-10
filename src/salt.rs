@@ -1,6 +1,6 @@
 use std::{rc::Rc, ops::RangeInclusive};
 
-use crate::{Envelope, known_value_registry, Enclosable, Error};
+use crate::{Envelope, known_value_registry, IntoEnvelope, Error};
 
 use bc_components::Salt;
 use bc_crypto::{RandomNumberGenerator, SecureRandomNumberGenerator};
@@ -15,7 +15,7 @@ impl Envelope {
 
     /// Add the given Salt as an assertion
     pub fn add_salt_instance(self: Rc<Self>, salt: Salt) -> Rc<Self> {
-        self.add_assertion(known_value_registry::SALT.enclose(), salt.enclose())
+        self.add_assertion(known_value_registry::SALT.into_envelope(), salt.into_envelope())
     }
 
     /// Add a specified number of bytes of salt.

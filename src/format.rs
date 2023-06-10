@@ -2,7 +2,7 @@ use std::error::Error;
 
 use bc_components::{Digest, CID, URI, UUID, DigestProvider};
 use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable, Date};
-use crate::{Envelope, FormatContext, Assertion, KnownValue, string_utils::StringUtils, KnownValues, KnownFunctions, Function, Parameter, KnownParameters, Enclosable};
+use crate::{Envelope, FormatContext, Assertion, KnownValue, string_utils::StringUtils, KnownValues, KnownFunctions, Function, Parameter, KnownParameters, IntoEnvelope};
 use bc_components::tags_registry;
 
 /// Support for the various text output formats for ``Envelope``.
@@ -316,10 +316,10 @@ impl EnvelopeSummary for CBOR {
                         Ok(KnownParameters::name_for_parameter(&p, Some(context.parameters())).flanked_by("❰", "❱"))
                     },
                     tags_registry::REQUEST_VALUE => {
-                        Ok(untagged_cbor.enclose().format_opt(Some(context)).flanked_by("request(", ")"))
+                        Ok(untagged_cbor.into_envelope().format_opt(Some(context)).flanked_by("request(", ")"))
                     },
                     tags_registry::RESPONSE_VALUE => {
-                        Ok(untagged_cbor.enclose().format_opt(Some(context)).flanked_by("response(", ")"))
+                        Ok(untagged_cbor.into_envelope().format_opt(Some(context)).flanked_by("response(", ")"))
                     },
                     _ => {
                         let name = context.name_for_tag(tag);

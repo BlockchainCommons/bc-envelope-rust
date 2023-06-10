@@ -1,37 +1,37 @@
 use std::error::Error;
 use std::rc::Rc;
-use crate::{Envelope, known_value_registry, Enclosable};
+use crate::{Envelope, known_value_registry, IntoEnvelope};
 use bc_components::{DigestProvider, SymmetricKey, Nonce, EncryptedMessage};
 use hex_literal::hex;
 
 fn basic_envelope() -> Rc<Envelope> {
-    "Hello.".enclose()
+    "Hello.".into_envelope()
 }
 
 fn known_value_envelope() -> Rc<Envelope> {
-    known_value_registry::NOTE.enclose()
+    known_value_registry::NOTE.into_envelope()
 }
 
 fn assertion_envelope() -> Rc<Envelope> {
-    Envelope::new_assertion("knows".enclose(), "Bob".enclose())
+    Envelope::new_assertion("knows".into_envelope(), "Bob".into_envelope())
 }
 
 fn single_assertion_envelope() -> Rc<Envelope> {
-    "Alice".enclose()
-        .add_assertion("knows".enclose(), "Bob".enclose())
+    "Alice".into_envelope()
+        .add_assertion("knows".into_envelope(), "Bob".into_envelope())
 }
 
 fn double_assertion_envelope() -> Rc<Envelope> {
     single_assertion_envelope()
-        .add_assertion("knows".enclose(), "Carol".enclose())
+        .add_assertion("knows".into_envelope(), "Carol".into_envelope())
 }
 
 fn wrapped_envelope() -> Rc<Envelope> {
-    basic_envelope().enclose()
+    basic_envelope().into_envelope()
 }
 
 fn double_wrapped_envelope() -> Rc<Envelope> {
-    wrapped_envelope().enclose()
+    wrapped_envelope().into_envelope()
 }
 
 fn symmetric_key() -> SymmetricKey {

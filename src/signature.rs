@@ -3,7 +3,7 @@ use std::{rc::Rc};
 use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider};
 use bc_crypto::{RandomNumberGenerator, SecureRandomNumberGenerator};
 
-use crate::{Envelope, Error, known_value_registry, Enclosable};
+use crate::{Envelope, Error, known_value_registry, IntoEnvelope};
 
 impl Envelope {
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
@@ -36,7 +36,7 @@ impl Envelope {
     {
         let mut assertions: Vec<Rc<Envelope>> = vec![];
         if let Some(note) = note {
-            assertions.push(Self::new_assertion(known_value_registry::NOTE.enclose(), note.enclose()));
+            assertions.push(Self::new_assertion(known_value_registry::NOTE.into_envelope(), note.into_envelope()));
         }
         self.sign_with_uncovered_assertions_using(private_keys, &assertions, tag, rng)
     }
@@ -137,10 +137,10 @@ impl Envelope {
         let digest = *self.clone().subject().digest().data();
         let signature = signing_private_key
             .schnorr_sign_using(digest, tag, rng)
-            .enclose()
+            .into_envelope()
             .add_assertion_envelopes(uncovered_assertions)
             .unwrap();
-        self.add_assertion(known_value_registry::VERIFIED_BY.enclose(), signature)
+        self.add_assertion(known_value_registry::VERIFIED_BY.into_envelope(), signature)
     }
 
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
@@ -177,11 +177,11 @@ impl Envelope {
         signature: &Signature,
         note: Option<&str>
     ) -> Rc<Self> {
-        let verified_by = known_value_registry::VERIFIED_BY.enclose();
-        let signature = Envelope::enclose_cbor(signature);
+        let verified_by = known_value_registry::VERIFIED_BY.into_envelope();
+        let signature = Envelope::cbor_into_envelope(signature);
         let mut envelope = Envelope::new_assertion(verified_by, signature);
         if let Some(note) = note {
-            envelope = envelope.add_assertion(known_value_registry::NOTE.enclose(), note.enclose());
+            envelope = envelope.add_assertion(known_value_registry::NOTE.into_envelope(), note.into_envelope());
         }
         envelope
     }
@@ -193,7 +193,7 @@ impl Envelope {
     /// - Throws: Throws an exception if any `verifiedBy` assertion doesn't contain a
     /// valid `Signature` as its object.
     pub fn signatures(self: Rc<Self>) -> Result<Vec<Rc<Signature>>, Error> {
-        let verified_by = known_value_registry::VERIFIED_BY.enclose();
+        let verified_by = known_value_registry::VERIFIED_BY.into_envelope();
         self
             .assertions_with_predicate(verified_by).into_iter()
             .map(|assertion| assertion.object().unwrap().extract_subject::<Signature>())

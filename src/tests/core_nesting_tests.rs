@@ -1,14 +1,14 @@
-use crate::{Envelope, Enclosable};
+use crate::{Envelope, IntoEnvelope};
 use indoc::indoc;
 
 #[test]
 fn test_predicate_enclosures() {
-    let alice = "Alice".enclose();
-    let knows = "knows".enclose();
-    let bob = "Bob".enclose();
+    let alice = "Alice".into_envelope();
+    let knows = "knows".into_envelope();
+    let bob = "Bob".into_envelope();
 
-    let a = "A".enclose();
-    let b = "B".enclose();
+    let a = "A".into_envelope();
+    let b = "B".into_envelope();
 
     let knows_bob = Envelope::new_assertion(knows.clone(), bob.clone());
     assert_eq!(knows_bob.format(),
@@ -165,7 +165,7 @@ fn test_predicate_enclosures() {
 
 #[test]
 fn test_nesting_plaintext() {
-    let envelope = "Hello.".enclose();
+    let envelope = "Hello.".into_envelope();
 
     let expected_format = indoc! {r#"
     "Hello."
@@ -183,7 +183,7 @@ fn test_nesting_plaintext() {
 
 #[test]
 fn test_nesting_once() {
-    let envelope = "Hello.".enclose()
+    let envelope = "Hello.".into_envelope()
         .wrap_envelope()
         .check_encoding().unwrap();
 
@@ -194,7 +194,7 @@ fn test_nesting_once() {
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
 
-    let elided_envelope = "Hello.".enclose()
+    let elided_envelope = "Hello.".into_envelope()
         .elide()
         .wrap_envelope()
         .check_encoding().unwrap();
@@ -211,7 +211,7 @@ fn test_nesting_once() {
 
 #[test]
 fn test_nesting_twice() {
-    let envelope = "Hello.".enclose()
+    let envelope = "Hello.".into_envelope()
         .wrap_envelope()
         .wrap_envelope()
         .check_encoding().unwrap();
@@ -244,11 +244,11 @@ fn test_nesting_twice() {
 
 #[test]
 fn test_assertions_on_all_parts_of_envelope() {
-    let predicate = "predicate".enclose()
-        .add_assertion("predicate-predicate".enclose(), "predicate-object".enclose());
-    let object = "object".enclose()
-        .add_assertion("object-predicate".enclose(), "object-object".enclose());
-    let envelope = "subject".enclose()
+    let predicate = "predicate".into_envelope()
+        .add_assertion("predicate-predicate".into_envelope(), "predicate-object".into_envelope());
+    let object = "object".into_envelope()
+        .add_assertion("object-predicate".into_envelope(), "object-object".into_envelope());
+    let envelope = "subject".into_envelope()
         .add_assertion(predicate, object)
         .check_encoding().unwrap();
 
@@ -267,8 +267,8 @@ fn test_assertions_on_all_parts_of_envelope() {
 
 #[test]
 fn test_assertion_on_bare_assertion() {
-    let envelope = Envelope::new_assertion("predicate".enclose(), "object".enclose())
-        .add_assertion("assertion-predicate".enclose(), "assertion-object".enclose());
+    let envelope = Envelope::new_assertion("predicate".into_envelope(), "object".into_envelope())
+        .add_assertion("assertion-predicate".into_envelope(), "assertion-object".into_envelope());
     let expected_format = indoc! {r#"
     {
         "predicate": "object"

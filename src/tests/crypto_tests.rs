@@ -5,7 +5,7 @@ use bc_ur::{UREncodable, URDecodable};
 use indoc::indoc;
 use hex_literal::hex;
 
-use crate::{Envelope, Enclosable};
+use crate::{Envelope, IntoEnvelope};
 use super::{test_data::*, Seed};
 
 #[test]
@@ -396,7 +396,7 @@ fn test_sskr() {
     // representing SSKR groups and the inner array elements each holding the encrypted
     // seed and a single share.
     let content_key = SymmetricKey::new();
-    let seed_envelope = dan_seed.enclose();
+    let seed_envelope = dan_seed.into_envelope();
     let encrypted_seed_envelope = seed_envelope
         .encrypt_subject(&content_key).unwrap();
 

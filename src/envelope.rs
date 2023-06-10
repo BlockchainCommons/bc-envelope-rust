@@ -102,12 +102,12 @@ impl Envelope {
 #[cfg(test)]
 mod tests {
     use bc_components::{DigestProvider, Compressed};
-    use crate::{Envelope, KnownValue, Assertion, Enclosable};
+    use crate::{Envelope, KnownValue, Assertion, IntoEnvelope};
 
     #[test]
     fn test_any_envelope() {
         let e1 = Envelope::new_leaf("Hello");
-        let e2 = "Hello".enclose();
+        let e2 = "Hello".into_envelope();
         assert_eq!(e1.format(), e2.format());
         assert_eq!(e1.digest(), e2.digest());
     }
@@ -116,16 +116,16 @@ mod tests {
     fn test_any_known_value() {
         let known_value = KnownValue::new(100);
         let e1 = Envelope::new_with_known_value(known_value.clone());
-        let e2 = known_value.enclose();
+        let e2 = known_value.into_envelope();
         assert_eq!(e1.format(), e2.format());
         assert_eq!(e1.digest(), e2.digest());
     }
 
     #[test]
     fn test_any_assertion() {
-        let assertion = Assertion::new("knows".enclose(), "Bob".enclose());
+        let assertion = Assertion::new("knows".into_envelope(), "Bob".into_envelope());
         let e1 = Envelope::new_with_assertion(assertion.clone());
-        let e2 = assertion.enclose();
+        let e2 = assertion.into_envelope();
         assert_eq!(e1.format(), e2.format());
         assert_eq!(e1.digest(), e2.digest());
     }
@@ -141,7 +141,7 @@ mod tests {
         let digest = data.digest().into_owned();
         let compressed = Compressed::from_uncompressed_data(data, Some(digest));
         let e1 = Envelope::new_with_compressed(compressed.clone()).unwrap();
-        let e2 = compressed.enclose();
+        let e2 = compressed.into_envelope();
         assert_eq!(e1.format(), e2.format());
         assert_eq!(e1.digest(), e2.digest());
     }
@@ -149,7 +149,7 @@ mod tests {
     #[test]
     fn test_any_cbor_encodable() {
         let e1 = Envelope::new_leaf(1);
-        let e2 = 1.enclose();
+        let e2 = 1.into_envelope();
         assert_eq!(e1.format(), e2.format());
         assert_eq!(e1.digest(), e2.digest());
     }

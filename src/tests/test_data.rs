@@ -1,27 +1,27 @@
 use std::rc::Rc;
 
-use crate::{Envelope, Enclosable, known_value_registry};
+use crate::{Envelope, IntoEnvelope, known_value_registry};
 use bc_components::{PrivateKeyBase, PublicKeyBase, SymmetricKey, Nonce};
 use hex_literal::hex;
 
 pub const PLAINTEXT_HELLO: &str = "Hello.";
 
-pub fn hello_envelope() -> Rc<Envelope> { PLAINTEXT_HELLO.enclose() }
-pub fn known_value_envelope() -> Rc<Envelope> { known_value_registry::NOTE.enclose() }
-pub fn assertion_envelope() -> Rc<Envelope> { Envelope::new_assertion("knows".enclose(), "Bob".enclose()) }
+pub fn hello_envelope() -> Rc<Envelope> { PLAINTEXT_HELLO.into_envelope() }
+pub fn known_value_envelope() -> Rc<Envelope> { known_value_registry::NOTE.into_envelope() }
+pub fn assertion_envelope() -> Rc<Envelope> { Envelope::new_assertion("knows".into_envelope(), "Bob".into_envelope()) }
 
 pub fn single_assertion_envelope() -> Rc<Envelope> {
-    "Alice".enclose()
-        .add_assertion("knows".enclose(), "Bob".enclose())
+    "Alice".into_envelope()
+        .add_assertion("knows".into_envelope(), "Bob".into_envelope())
 }
 
 pub fn double_assertion_envelope() -> Rc<Envelope> {
     single_assertion_envelope()
-        .add_assertion("knows".enclose(), "Carol".enclose())
+        .add_assertion("knows".into_envelope(), "Carol".into_envelope())
 }
 
-pub fn wrapped_envelope() -> Rc<Envelope> { hello_envelope().enclose() }
-pub fn double_wrapped_envelope() -> Rc<Envelope> { wrapped_envelope().enclose() }
+pub fn wrapped_envelope() -> Rc<Envelope> { hello_envelope().wrap_envelope() }
+pub fn double_wrapped_envelope() -> Rc<Envelope> { wrapped_envelope().wrap_envelope() }
 
 pub fn alice_seed() -> Vec<u8> { hex!("82f32c855d3d542256180810797e0073").into() }
 pub fn alice_private_keys() -> PrivateKeyBase { PrivateKeyBase::from_data(&alice_seed()) }

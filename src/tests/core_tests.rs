@@ -1,11 +1,11 @@
-use crate::{Envelope, with_format_context, KnownValue, known_value_registry, Enclosable};
+use crate::{Envelope, with_format_context, KnownValue, known_value_registry, IntoEnvelope};
 use bc_components::DigestProvider;
 use indoc::indoc;
 use super::test_data::*;
 
 #[test]
 fn test_int_subject() {
-    let e = 42.enclose().check_encoding().unwrap();
+    let e = 42.into_envelope().check_encoding().unwrap();
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -30,7 +30,7 @@ fn test_int_subject() {
 
 #[test]
 fn test_negative_int_subject() {
-    let e = (-42).enclose().check_encoding().unwrap();
+    let e = (-42).into_envelope().check_encoding().unwrap();
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -136,7 +136,7 @@ fn test_assertion_subject() {
     "#}.trim()
     );
 
-    assert_eq!(e.digest(), Envelope::new_assertion("knows".enclose(), "Bob".enclose()).digest());
+    assert_eq!(e.digest(), Envelope::new_assertion("knows".into_envelope(), "Bob".into_envelope()).digest());
 }
 
 #[test]
@@ -298,10 +298,10 @@ fn test_double_wrapped() {
 
 #[test]
 fn test_assertion_with_assertions() {
-    let a = Envelope::new_assertion(1.enclose(), 2.enclose())
-        .add_assertion(3.enclose(), 4.enclose())
-        .add_assertion(5.enclose(), 6.enclose());
-    let e = 7.enclose()
+    let a = Envelope::new_assertion(1.into_envelope(), 2.into_envelope())
+        .add_assertion(3.into_envelope(), 4.into_envelope())
+        .add_assertion(5.into_envelope(), 6.into_envelope());
+    let e = 7.into_envelope()
         .add_assertion_envelope(a)
         .unwrap();
     assert_eq!(e.format(),
@@ -321,7 +321,7 @@ fn test_assertion_with_assertions() {
 #[test]
 fn test_digest_leaf() {
     let digest = hello_envelope().digest().into_owned();
-    let e = Envelope::enclose_cbor(&digest).check_encoding().unwrap();
+    let e = Envelope::cbor_into_envelope(&digest).check_encoding().unwrap();
     assert_eq!(e.format(),
     indoc! {r#"
     Digest(8cc96cdb)

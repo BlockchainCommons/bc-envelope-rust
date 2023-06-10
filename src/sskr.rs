@@ -4,12 +4,12 @@ pub use bc_components::{SSKRShare, SSKRSpec, SSKRGroupSpec, SymmetricKey, SSKRSe
 use bc_components::{sskr_generate_using, sskr_combine};
 use bc_crypto::RandomNumberGenerator;
 
-use crate::{Envelope, known_value_registry, Enclosable, Error};
+use crate::{Envelope, known_value_registry, IntoEnvelope, Error};
 
 impl Envelope {
     /// Returns a new ``Envelope`` with a `sskrShare: SSKRShare` assertion added.
     fn add_sskr_share(self: Rc<Self>, share: &SSKRShare) -> Rc<Self> {
-        self.add_assertion(known_value_registry::SSKR_SHARE.enclose(), share.enclose())
+        self.add_assertion(known_value_registry::SSKR_SHARE.into_envelope(), share.into_envelope())
     }
 
     /// Splits the envelope into a set of SSKR shares.
@@ -67,7 +67,7 @@ impl Envelope {
     pub fn sskr_shares_in(envelopes: &[Rc<Envelope>]) -> Result<HashMap<u16, Vec<SSKRShare>>, Error> {
         let mut result: HashMap<u16, Vec<SSKRShare>> = HashMap::new();
         for envelope in envelopes {
-            for assertion in envelope.clone().assertions_with_predicate(known_value_registry::SSKR_SHARE.enclose()) {
+            for assertion in envelope.clone().assertions_with_predicate(known_value_registry::SSKR_SHARE.into_envelope()) {
                 let share = assertion.object().unwrap().extract_subject::<SSKRShare>()?;
                 let identifier = share.clone().identifier();
                 if result.get(&identifier).is_none() {

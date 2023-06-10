@@ -4,7 +4,7 @@ use bc_components::tags_registry;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
 use bc_ur::{UREncodable, URDecodable, URCodable};
 
-use crate::{Enclosable, Envelope};
+use crate::{IntoEnvelope, Envelope};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Seed {
@@ -116,8 +116,8 @@ impl URDecodable for Seed { }
 
 impl URCodable for Seed { }
 
-impl Enclosable for &Seed {
-    fn enclose(self) -> Rc<Envelope> {
-        Envelope::enclose_cbor(self)
+impl IntoEnvelope for &Seed {
+    fn into_envelope(self) -> Rc<Envelope> {
+        Envelope::cbor_into_envelope(self)
     }
 }

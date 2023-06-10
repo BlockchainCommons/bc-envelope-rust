@@ -1,6 +1,6 @@
 use std::{collections::HashSet, rc::Rc};
 
-use crate::{Enclosable, Envelope, known_value_registry};
+use crate::{IntoEnvelope, Envelope, known_value_registry};
 
 use bc_components::{SymmetricKey, Digest, DigestProvider, CID};
 use bc_crypto::make_fake_random_number_generator;
@@ -12,7 +12,7 @@ use hex_literal::hex;
 
 #[test]
 fn test_plaintext() {
-    let envelope = PLAINTEXT_HELLO.enclose();
+    let envelope = PLAINTEXT_HELLO.into_envelope();
     assert_eq!(envelope.format(), indoc! {r#"
     "Hello."
     "#}.trim());
@@ -28,7 +28,7 @@ fn test_plaintext() {
 #[test]
 fn test_signed_plaintext() {
     let mut rng = make_fake_random_number_generator();
-    let envelope = PLAINTEXT_HELLO.enclose()
+    let envelope = PLAINTEXT_HELLO.into_envelope()
         .sign_with_using(&alice_private_keys(), &mut rng);
     assert_eq!(envelope.format(), indoc! {r#"
     "Hello." [
@@ -53,8 +53,8 @@ fn test_signed_plaintext() {
 
 #[test]
 fn test_encrypt_subject() {
-    let envelope = "Alice".enclose()
-        .add_assertion("knows".enclose(), "Bob".enclose())
+    let envelope = "Alice".into_envelope()
+        .add_assertion("knows".into_envelope(), "Bob".into_envelope())
         .encrypt_subject(&SymmetricKey::new())
         .unwrap();
     assert_eq!(envelope.format(), indoc! {r#"
@@ -80,7 +80,7 @@ fn test_encrypt_subject() {
 
 #[test]
 fn test_top_level_assertion() {
-    let envelope = Envelope::new_assertion("knows".enclose(), "Bob".enclose());
+    let envelope = Envelope::new_assertion("knows".into_envelope(), "Bob".into_envelope());
     assert_eq!(envelope.format(), indoc! {r#"
     "knows": "Bob"
     "#}.trim());
@@ -99,9 +99,9 @@ fn test_top_level_assertion() {
 
 #[test]
 fn test_elided_object() {
-    let envelope = "Alice".enclose()
-        .add_assertion("knows".enclose(), "Bob".enclose());
-    let elided = envelope.elide_removing_target(&"Bob".enclose());
+    let envelope = "Alice".into_envelope()
+        .add_assertion("knows".into_envelope(), "Bob".into_envelope());
+    let elided = envelope.elide_removing_target(&"Bob".into_envelope());
     assert_eq!(elided.format(), indoc! {r#"
     "Alice" [
         "knows": ELIDED
@@ -126,9 +126,9 @@ fn test_elided_object() {
 #[test]
 fn test_signed_subject() {
     let mut rng = make_fake_random_number_generator();
-    let envelope = "Alice".enclose()
-        .add_assertion("knows".enclose(), "Bob".enclose())
-        .add_assertion("knows".enclose(), "Carol".enclose())
+    let envelope = "Alice".into_envelope()
+        .add_assertion("knows".into_envelope(), "Bob".into_envelope())
+        .add_assertion("knows".into_envelope(), "Carol".into_envelope())
         .sign_with_using(&alice_private_keys(), &mut rng);
     assert_eq!(envelope.format(), indoc! {r#"
     "Alice" [
@@ -193,9 +193,9 @@ fn test_signed_subject() {
 #[test]
 fn test_wrap_then_signed() {
     let mut rng = make_fake_random_number_generator();
-    let envelope = "Alice".enclose()
-        .add_assertion("knows".enclose(), "Bob".enclose())
-        .add_assertion("knows".enclose(), "Carol".enclose())
+    let envelope = "Alice".into_envelope()
+        .add_assertion("knows".into_envelope(), "Bob".into_envelope())
+        .add_assertion("knows".into_envelope(), "Carol".into_envelope())
         .wrap_envelope()
         .sign_with_using(&alice_private_keys(), &mut rng);
     assert_eq!(envelope.format(), indoc! {r#"
@@ -241,7 +241,7 @@ fn test_wrap_then_signed() {
 
 #[test]
 fn test_encrypt_to_recipients() {
-    let envelope = PLAINTEXT_HELLO.enclose()
+    let envelope = PLAINTEXT_HELLO.into_envelope()
         .encrypt_subject_opt(&fake_content_key(), Some(fake_nonce())).unwrap().check_encoding().unwrap()
         .add_recipient_opt(&bob_public_keys(), &fake_content_key(), Some(fake_content_key().data()), Some(&fake_nonce())).check_encoding().unwrap()
         .add_recipient_opt(&carol_public_keys(), &fake_content_key(), Some(fake_content_key().data()), Some(&fake_nonce())).check_encoding().unwrap();
@@ -275,11 +275,11 @@ fn test_encrypt_to_recipients() {
 
 #[test]
 fn test_assertion_positions() {
-    let predicate = "predicate".enclose()
-        .add_assertion("predicate-predicate".enclose(), "predicate-object".enclose());
-    let object = "object".enclose()
-        .add_assertion("object-predicate".enclose(), "object-object".enclose());
-    let envelope = "subject".enclose()
+    let predicate = "predicate".into_envelope()
+        .add_assertion("predicate-predicate".into_envelope(), "predicate-object".into_envelope());
+    let object = "object".into_envelope()
+        .add_assertion("object-predicate".into_envelope(), "object-object".into_envelope());
+    let envelope = "subject".into_envelope()
         .add_assertion(predicate, object)
         .check_encoding().unwrap();
     assert_eq!(envelope.format(), indoc! {r#"
@@ -327,35 +327,35 @@ fn test_complex_metadata() {
     // Assertions made about a CID are considered part of a distributed set. Which
     // assertions are returned depends on who resolves the CID and when it is
     // resolved. In other words, the referent of a CID is mutable.
-    let author = CID::from_data(hex!("9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")).enclose()
-        .add_assertion(known_value_registry::DEREFERENCE_VIA.enclose(), "LibraryOfCongress".enclose())
-        .add_assertion(known_value_registry::HAS_NAME.enclose(), "Ayn Rand".enclose())
+    let author = CID::from_data(hex!("9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")).into_envelope()
+        .add_assertion(known_value_registry::DEREFERENCE_VIA.into_envelope(), "LibraryOfCongress".into_envelope())
+        .add_assertion(known_value_registry::HAS_NAME.into_envelope(), "Ayn Rand".into_envelope())
         .check_encoding().unwrap();
 
     // Assertions made on a literal value are considered part of the same set of
     // assertions made on the digest of that value.
-    let name_en = "Atlas Shrugged".enclose()
-        .add_assertion(known_value_registry::LANGUAGE.enclose(), "en".enclose());
+    let name_en = "Atlas Shrugged".into_envelope()
+        .add_assertion(known_value_registry::LANGUAGE.into_envelope(), "en".into_envelope());
 
-    let name_es = "La rebelión de Atlas".enclose()
-        .add_assertion(known_value_registry::LANGUAGE.enclose(), "es".enclose());
+    let name_es = "La rebelión de Atlas".into_envelope()
+        .add_assertion(known_value_registry::LANGUAGE.into_envelope(), "es".into_envelope());
 
-    let work = CID::from_data(hex!("7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")).enclose()
-        .add_assertion(known_value_registry::IS_A.enclose(), "novel".enclose())
-        .add_assertion("isbn".enclose(), "9780451191144".enclose())
-        .add_assertion("author".enclose(), author)
-        .add_assertion(known_value_registry::DEREFERENCE_VIA.enclose(), "LibraryOfCongress".enclose())
-        .add_assertion(known_value_registry::HAS_NAME.enclose(), name_en)
-        .add_assertion(known_value_registry::HAS_NAME.enclose(), name_es)
+    let work = CID::from_data(hex!("7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")).into_envelope()
+        .add_assertion(known_value_registry::IS_A.into_envelope(), "novel".into_envelope())
+        .add_assertion("isbn".into_envelope(), "9780451191144".into_envelope())
+        .add_assertion("author".into_envelope(), author)
+        .add_assertion(known_value_registry::DEREFERENCE_VIA.into_envelope(), "LibraryOfCongress".into_envelope())
+        .add_assertion(known_value_registry::HAS_NAME.into_envelope(), name_en)
+        .add_assertion(known_value_registry::HAS_NAME.into_envelope(), name_es)
         .check_encoding().unwrap();
 
     let book_data = "This is the entire book “Atlas Shrugged” in EPUB format.";
     // Assertions made on a digest are considered associated with that specific binary
     // object and no other. In other words, the referent of a Digest is immutable.
-    let book_metadata = Digest::from_image(&book_data).enclose()
-        .add_assertion("work".enclose(), work)
-        .add_assertion("format".enclose(), "EPUB".enclose())
-        .add_assertion(known_value_registry::DEREFERENCE_VIA.enclose(), "IPFS".enclose())
+    let book_metadata = Digest::from_image(&book_data).into_envelope()
+        .add_assertion("work".into_envelope(), work)
+        .add_assertion("format".into_envelope(), "EPUB".into_envelope())
+        .add_assertion(known_value_registry::DEREFERENCE_VIA.into_envelope(), "IPFS".into_envelope())
         .check_encoding().unwrap();
 
     assert_eq!(book_metadata.format(), indoc! {r#"
@@ -475,23 +475,23 @@ fn test_complex_metadata() {
 
 fn credential() -> Rc<Envelope> {
     let mut rng = make_fake_random_number_generator();
-    CID::from_data(hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")).enclose()
-        .add_assertion(known_value_registry::IS_A.enclose(), "Certificate of Completion".enclose())
-        .add_assertion(known_value_registry::ISSUER.enclose(), "Example Electrical Engineering Board".enclose())
-        .add_assertion(known_value_registry::CONTROLLER.enclose(), "Example Electrical Engineering Board".enclose())
-        .add_assertion("firstName".enclose(), "James".enclose())
-        .add_assertion("lastName".enclose(), "Maxwell".enclose())
-        .add_assertion("issueDate".enclose(), Date::new_from_string("2020-01-01").unwrap().enclose())
-        .add_assertion("expirationDate".enclose(), Date::new_from_string("2028-01-01").unwrap().enclose())
-        .add_assertion("photo".enclose(), "This is James Maxwell's photo.".enclose())
-        .add_assertion("certificateNumber".enclose(), "123-456-789".enclose())
-        .add_assertion("subject".enclose(), "RF and Microwave Engineering".enclose())
-        .add_assertion("continuingEducationUnits".enclose(), 1.enclose())
-        .add_assertion("professionalDevelopmentHours".enclose(), 15.enclose())
-        .add_assertion("topics".enclose(), vec!["Subject 1", "Subject 2"].cbor().enclose())
-        .enclose()
+    CID::from_data(hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")).into_envelope()
+        .add_assertion(known_value_registry::IS_A.into_envelope(), "Certificate of Completion".into_envelope())
+        .add_assertion(known_value_registry::ISSUER.into_envelope(), "Example Electrical Engineering Board".into_envelope())
+        .add_assertion(known_value_registry::CONTROLLER.into_envelope(), "Example Electrical Engineering Board".into_envelope())
+        .add_assertion("firstName".into_envelope(), "James".into_envelope())
+        .add_assertion("lastName".into_envelope(), "Maxwell".into_envelope())
+        .add_assertion("issueDate".into_envelope(), Date::new_from_string("2020-01-01").unwrap().into_envelope())
+        .add_assertion("expirationDate".into_envelope(), Date::new_from_string("2028-01-01").unwrap().into_envelope())
+        .add_assertion("photo".into_envelope(), "This is James Maxwell's photo.".into_envelope())
+        .add_assertion("certificateNumber".into_envelope(), "123-456-789".into_envelope())
+        .add_assertion("subject".into_envelope(), "RF and Microwave Engineering".into_envelope())
+        .add_assertion("continuingEducationUnits".into_envelope(), 1.into_envelope())
+        .add_assertion("professionalDevelopmentHours".into_envelope(), 15.into_envelope())
+        .add_assertion("topics".into_envelope(), vec!["Subject 1", "Subject 2"].cbor().into_envelope())
+        .wrap_envelope()
         .sign_with_using(&alice_private_keys(), &mut rng)
-        .add_assertion(known_value_registry::NOTE.enclose(), "Signed by Example Electrical Engineering Board".enclose())
+        .add_assertion(known_value_registry::NOTE.into_envelope(), "Signed by Example Electrical Engineering Board".into_envelope())
         .check_encoding().unwrap()
 }
 
@@ -636,20 +636,20 @@ fn test_redacted_credential() {
     target.insert(content.digest().into_owned());
     target.insert(content.clone().subject().digest().into_owned());
 
-    target.extend(content.clone().assertion_with_predicate("firstName".enclose()).unwrap().shallow_digests());
-    target.extend(content.clone().assertion_with_predicate("lastName".enclose()).unwrap().shallow_digests());
+    target.extend(content.clone().assertion_with_predicate("firstName".into_envelope()).unwrap().shallow_digests());
+    target.extend(content.clone().assertion_with_predicate("lastName".into_envelope()).unwrap().shallow_digests());
     target.extend(content.clone().assertion_with_predicate_known_value(known_value_registry::IS_A).unwrap().shallow_digests());
     target.extend(content.clone().assertion_with_predicate_known_value(known_value_registry::ISSUER).unwrap().shallow_digests());
-    target.extend(content.clone().assertion_with_predicate("subject".enclose()).unwrap().shallow_digests());
-    target.extend(content.assertion_with_predicate("expirationDate".enclose()).unwrap().shallow_digests());
+    target.extend(content.clone().assertion_with_predicate("subject".into_envelope()).unwrap().shallow_digests());
+    target.extend(content.assertion_with_predicate("expirationDate".into_envelope()).unwrap().shallow_digests());
     let redacted_credential = credential.elide_revealing_set(&target);
     let mut rng = make_fake_random_number_generator();
     let warranty = redacted_credential
         .wrap_envelope()
-        .add_assertion("employeeHiredDate".enclose(), Date::new_from_string("2022-01-01").unwrap().enclose())
-        .add_assertion("employeeStatus".enclose(), "active".enclose())
+        .add_assertion("employeeHiredDate".into_envelope(), Date::new_from_string("2022-01-01").unwrap().into_envelope())
+        .add_assertion("employeeStatus".into_envelope(), "active".into_envelope())
         .wrap_envelope()
-        .add_assertion(known_value_registry::NOTE.enclose(), "Signed by Employer Corp.".enclose())
+        .add_assertion(known_value_registry::NOTE.into_envelope(), "Signed by Employer Corp.".into_envelope())
         .sign_with_using(&bob_private_keys(), &mut rng)
         .check_encoding().unwrap();
     assert_eq!(warranty.format(), indoc! {r#"

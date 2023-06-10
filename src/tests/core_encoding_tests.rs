@@ -1,18 +1,18 @@
 use indoc::indoc;
 use std::error::Error;
 use bc_components::Digest;
-use crate::{Envelope, with_format_context, Enclosable};
+use crate::{Envelope, with_format_context, IntoEnvelope};
 
 #[test]
 fn test_digest() -> Result<(), Box<dyn Error>> {
-   Envelope::enclose_cbor(&Digest::from_image(&"Hello.".as_bytes())).check_encoding()?;
+   Envelope::cbor_into_envelope(&Digest::from_image(&"Hello.".as_bytes())).check_encoding()?;
 
     Ok(())
 }
 
 #[test]
 fn test_1() -> Result<(), Box<dyn Error>> {
-    let e = "Hello.".enclose();
+    let e = "Hello.".into_envelope();
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -30,7 +30,7 @@ fn test_1() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_2() -> Result<(), Box<dyn Error>> {
     let array: Vec<u64> = vec![1, 2, 3];
-    let e = Envelope::enclose_cbor(&array);
+    let e = Envelope::cbor_into_envelope(&array);
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -49,9 +49,9 @@ fn test_2() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_3() -> Result<(), Box<dyn Error>> {
-    let e1 = Envelope::new_assertion("A".enclose(), "B".enclose());
-    let e2 = Envelope::new_assertion("C".enclose(), "D".enclose());
-    let e3 = Envelope::new_assertion("E".enclose(), "F".enclose());
+    let e1 = Envelope::new_assertion("A".into_envelope(), "B".into_envelope());
+    let e2 = Envelope::new_assertion("C".into_envelope(), "D".into_envelope());
+    let e3 = Envelope::new_assertion("E".into_envelope(), "F".into_envelope());
 
     let e4 = e2.add_assertion_envelope(e3).unwrap();
     assert_eq!(e4.format(),

@@ -23,8 +23,8 @@ pub use format::{EnvelopeFormat, EnvelopeFormatItem};
 mod sskr;
 pub use sskr::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret};
 
-mod enclose;
-pub use enclose::Enclosable;
+mod into_envelope;
+pub use into_envelope::IntoEnvelope;
 
 mod elide;
 pub use elide::ObscureAction;
