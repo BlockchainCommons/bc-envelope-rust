@@ -118,6 +118,6 @@ impl URCodable for Seed { }
 
 impl IntoEnvelope for &Seed {
     fn into_envelope(self) -> Rc<Envelope> {
-        Envelope::cbor_into_envelope(self)
+        self.cbor().into_envelope()
     }
 }

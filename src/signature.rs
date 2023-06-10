@@ -178,7 +178,7 @@ impl Envelope {
         note: Option<&str>
     ) -> Rc<Self> {
         let verified_by = known_value_registry::VERIFIED_BY;
-        let signature = Envelope::cbor_into_envelope(signature);
+        let signature = signature.into_envelope();
         let mut envelope = Envelope::new_assertion(verified_by, signature);
         if let Some(note) = note {
             envelope = envelope.add_assertion(known_value_registry::NOTE, note);

@@ -5,12 +5,6 @@ use dcbor::{CBOREncodable, CBOR, Date};
 
 use crate::{Envelope, KnownValue, Assertion, Function, Parameter};
 
-impl Envelope {
-    pub fn cbor_into_envelope(cbor_encodable: &dyn CBOREncodable) -> Rc<Envelope> {
-        cbor_encodable.cbor().into_envelope()
-    }
-}
-
 pub trait IntoEnvelope {
     fn into_envelope(self) -> Rc<Envelope>;
 }
@@ -143,48 +137,48 @@ impl IntoEnvelope for Parameter {
 
 impl IntoEnvelope for &Signature {
     fn into_envelope(self) -> Rc<Envelope> {
-        Envelope::cbor_into_envelope(self)
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for &SealedMessage {
     fn into_envelope(self) -> Rc<Envelope> {
-        Envelope::cbor_into_envelope(self)
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for &SSKRShare {
     fn into_envelope(self) -> Rc<Envelope> {
-        Envelope::cbor_into_envelope(self)
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for &Digest {
     fn into_envelope(self) -> Rc<Envelope> {
-        Envelope::cbor_into_envelope(self)
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for CID {
     fn into_envelope(self) -> Rc<Envelope> {
-        Envelope::cbor_into_envelope(&self)
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for Date {
     fn into_envelope(self) -> Rc<Envelope> {
-        Envelope::cbor_into_envelope(&self)
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for Salt {
     fn into_envelope(self) -> Rc<Envelope> {
-        Envelope::cbor_into_envelope(&self)
+        self.cbor().into_envelope()
     }
 }
 
 impl IntoEnvelope for SealedMessage {
     fn into_envelope(self) -> Rc<Envelope> {
-        Envelope::cbor_into_envelope(&self)
+        self.cbor().into_envelope()
     }
 }
