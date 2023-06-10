@@ -6,7 +6,7 @@ use crate::{Envelope, with_format_context};
 
 #[test]
 fn test_digest() {
-   Envelope::new(&Digest::from_image(&"Hello.".as_bytes())).check_encoding().unwrap();
+   Envelope::new(Digest::from_image(&"Hello.".as_bytes())).check_encoding().unwrap();
 }
 
 #[test]

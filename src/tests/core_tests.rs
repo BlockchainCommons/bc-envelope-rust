@@ -321,7 +321,7 @@ fn test_assertion_with_assertions() {
 #[test]
 fn test_digest_leaf() {
     let digest = hello_envelope().digest().into_owned();
-    let e = Envelope::new(&digest).check_encoding().unwrap();
+    let e = Envelope::new(digest).check_encoding().unwrap();
     assert_eq!(e.format(),
     indoc! {r#"
     Digest(8cc96cdb)

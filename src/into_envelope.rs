@@ -63,122 +63,42 @@ impl IntoEnvelope for &str {
     }
 }
 
-impl IntoEnvelope for u8 {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
+/// A macro that implements IntoEnvelope for a type and its reference.
+#[macro_export]
+macro_rules! impl_into_envelope {
+    ($type:ty) => {
+        impl IntoEnvelope for $type {
+            fn into_envelope(self) -> Rc<Envelope> {
+                self.cbor().into_envelope()
+            }
+        }
+
+        impl<'a> IntoEnvelope for &'a $type {
+            fn into_envelope(self) -> Rc<Envelope> {
+                self.cbor().into_envelope()
+            }
+        }
+    };
 }
 
-impl IntoEnvelope for u16 {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
+impl_into_envelope!(u8);
+impl_into_envelope!(u16);
+impl_into_envelope!(u32);
+impl_into_envelope!(u64);
+impl_into_envelope!(usize);
+impl_into_envelope!(i8);
+impl_into_envelope!(i16);
+impl_into_envelope!(i32);
+impl_into_envelope!(i64);
+impl_into_envelope!(bool);
 
-impl IntoEnvelope for u32 {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
+impl_into_envelope!(Function);
+impl_into_envelope!(Parameter);
 
-impl IntoEnvelope for u64 {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for usize {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for i8 {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for i16 {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for i32 {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for i64 {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for Function {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for Parameter {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for Signature {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for &Signature {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for &SealedMessage {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for &SSKRShare {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for &Digest {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for CID {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for Date {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for Salt {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
-
-impl IntoEnvelope for SealedMessage {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
-    }
-}
+impl_into_envelope!(Signature);
+impl_into_envelope!(SealedMessage);
+impl_into_envelope!(SSKRShare);
+impl_into_envelope!(Digest);
+impl_into_envelope!(CID);
+impl_into_envelope!(Date);
+impl_into_envelope!(Salt);

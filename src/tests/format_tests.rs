@@ -352,7 +352,7 @@ fn test_complex_metadata() {
     let book_data = "This is the entire book “Atlas Shrugged” in EPUB format.";
     // Assertions made on a digest are considered associated with that specific binary
     // object and no other. In other words, the referent of a Digest is immutable.
-    let book_metadata = Envelope::new(&Digest::from_image(&book_data))
+    let book_metadata = Envelope::new(Digest::from_image(&book_data))
         .add_assertion("work", work)
         .add_assertion("format", "EPUB")
         .add_assertion(known_value_registry::DEREFERENCE_VIA, "IPFS")
