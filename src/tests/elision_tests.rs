@@ -3,7 +3,7 @@ use crate::{Envelope, with_format_context, IntoEnvelope};
 use indoc::indoc;
 
 fn basic_envelope() -> Rc<Envelope> {
-    "Hello.".into_envelope()
+    Envelope::new("Hello.")
 }
 
 fn assertion_envelope() -> Rc<Envelope> {
@@ -11,12 +11,12 @@ fn assertion_envelope() -> Rc<Envelope> {
 }
 
 fn single_assertion_envelope() -> Rc<Envelope> {
-    "Alice".into_envelope()
+    Envelope::new("Alice")
         .add_assertion("knows", "Bob")
 }
 
 fn double_assertion_envelope() -> Rc<Envelope> {
-    "Alice".into_envelope()
+    Envelope::new("Alice")
         .add_assertion("knows", "Bob")
         .add_assertion("knows", "Carol")
 }

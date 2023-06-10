@@ -1,15 +1,15 @@
 use std::error::Error;
 use std::rc::Rc;
-use crate::{Envelope, known_value_registry, IntoEnvelope};
+use crate::{Envelope, known_value_registry};
 use bc_components::{DigestProvider, SymmetricKey, Nonce, EncryptedMessage};
 use hex_literal::hex;
 
 fn basic_envelope() -> Rc<Envelope> {
-    "Hello.".into_envelope()
+    Envelope::new("Hello.")
 }
 
 fn known_value_envelope() -> Rc<Envelope> {
-    known_value_registry::NOTE.into_envelope()
+    Envelope::new(known_value_registry::NOTE)
 }
 
 fn assertion_envelope() -> Rc<Envelope> {
@@ -17,7 +17,7 @@ fn assertion_envelope() -> Rc<Envelope> {
 }
 
 fn single_assertion_envelope() -> Rc<Envelope> {
-    "Alice".into_envelope()
+    Envelope::new("Alice")
         .add_assertion("knows", "Bob")
 }
 

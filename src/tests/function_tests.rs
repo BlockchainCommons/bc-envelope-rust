@@ -4,10 +4,10 @@ use bc_components::CID;
 use indoc::indoc;
 use hex_literal::hex;
 
-use crate::{function_registry, parameter_registry, IntoEnvelope, Envelope, with_format_context, Function, Parameter};
+use crate::{function_registry, parameter_registry, Envelope, with_format_context, Function, Parameter};
 
 fn two_plus_three() -> Rc<Envelope> {
-    function_registry::ADD.into_envelope()
+    Envelope::new(function_registry::ADD)
         .add_parameter(parameter_registry::LHS, 2)
         .add_parameter(parameter_registry::RHS, 3)
 }
@@ -27,7 +27,7 @@ fn test_known() {
 
 #[test]
 fn test_named() {
-    let envelope = Function::new_named("foo").into_envelope()
+    let envelope = Envelope::new(Function::new_named("foo"))
         .add_parameter(Parameter::new_named("bar"), 2)
         .add_parameter(Parameter::new_named("baz"), 3);
     with_format_context!(|context| {

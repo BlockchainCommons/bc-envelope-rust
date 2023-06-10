@@ -225,7 +225,7 @@ impl Envelope {
     where
         P: IntoEnvelope,
     {
-        let predicate = predicate.into_envelope();
+        let predicate = Envelope::new(predicate);
         self.assertions()
             .into_iter()
             .filter(|assertion| {

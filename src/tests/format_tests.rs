@@ -12,7 +12,7 @@ use hex_literal::hex;
 
 #[test]
 fn test_plaintext() {
-    let envelope = PLAINTEXT_HELLO.into_envelope();
+    let envelope = Envelope::new(PLAINTEXT_HELLO);
     assert_eq!(envelope.format(), indoc! {r#"
     "Hello."
     "#}.trim());
@@ -28,7 +28,7 @@ fn test_plaintext() {
 #[test]
 fn test_signed_plaintext() {
     let mut rng = make_fake_random_number_generator();
-    let envelope = PLAINTEXT_HELLO.into_envelope()
+    let envelope = Envelope::new(PLAINTEXT_HELLO)
         .sign_with_using(&alice_private_keys(), &mut rng);
     assert_eq!(envelope.format(), indoc! {r#"
     "Hello." [
@@ -53,7 +53,7 @@ fn test_signed_plaintext() {
 
 #[test]
 fn test_encrypt_subject() {
-    let envelope = "Alice".into_envelope()
+    let envelope = Envelope::new("Alice")
         .add_assertion("knows", "Bob")
         .encrypt_subject(&SymmetricKey::new())
         .unwrap();
@@ -99,7 +99,7 @@ fn test_top_level_assertion() {
 
 #[test]
 fn test_elided_object() {
-    let envelope = "Alice".into_envelope()
+    let envelope = Envelope::new("Alice")
         .add_assertion("knows", "Bob");
     let elided = envelope.elide_removing_target(&"Bob".into_envelope());
     assert_eq!(elided.format(), indoc! {r#"
@@ -126,7 +126,7 @@ fn test_elided_object() {
 #[test]
 fn test_signed_subject() {
     let mut rng = make_fake_random_number_generator();
-    let envelope = "Alice".into_envelope()
+    let envelope = Envelope::new("Alice")
         .add_assertion("knows", "Bob")
         .add_assertion("knows", "Carol")
         .sign_with_using(&alice_private_keys(), &mut rng);
@@ -193,7 +193,7 @@ fn test_signed_subject() {
 #[test]
 fn test_wrap_then_signed() {
     let mut rng = make_fake_random_number_generator();
-    let envelope = "Alice".into_envelope()
+    let envelope = Envelope::new("Alice")
         .add_assertion("knows", "Bob")
         .add_assertion("knows", "Carol")
         .wrap_envelope()
@@ -241,7 +241,7 @@ fn test_wrap_then_signed() {
 
 #[test]
 fn test_encrypt_to_recipients() {
-    let envelope = PLAINTEXT_HELLO.into_envelope()
+    let envelope = Envelope::new(PLAINTEXT_HELLO)
         .encrypt_subject_opt(&fake_content_key(), Some(fake_nonce())).unwrap().check_encoding().unwrap()
         .add_recipient_opt(&bob_public_keys(), &fake_content_key(), Some(fake_content_key().data()), Some(&fake_nonce())).check_encoding().unwrap()
         .add_recipient_opt(&carol_public_keys(), &fake_content_key(), Some(fake_content_key().data()), Some(&fake_nonce())).check_encoding().unwrap();
@@ -275,11 +275,11 @@ fn test_encrypt_to_recipients() {
 
 #[test]
 fn test_assertion_positions() {
-    let predicate = "predicate".into_envelope()
+    let predicate = Envelope::new("predicate")
         .add_assertion("predicate-predicate", "predicate-object");
-    let object = "object".into_envelope()
+    let object = Envelope::new("object")
         .add_assertion("object-predicate", "object-object");
-    let envelope = "subject".into_envelope()
+    let envelope = Envelope::new("subject")
         .add_assertion(predicate, object)
         .check_encoding().unwrap();
     assert_eq!(envelope.format(), indoc! {r#"
@@ -327,20 +327,20 @@ fn test_complex_metadata() {
     // Assertions made about a CID are considered part of a distributed set. Which
     // assertions are returned depends on who resolves the CID and when it is
     // resolved. In other words, the referent of a CID is mutable.
-    let author = CID::from_data(hex!("9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")).into_envelope()
+    let author = Envelope::new(CID::from_data(hex!("9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")))
         .add_assertion(known_value_registry::DEREFERENCE_VIA, "LibraryOfCongress")
         .add_assertion(known_value_registry::HAS_NAME, "Ayn Rand")
         .check_encoding().unwrap();
 
     // Assertions made on a literal value are considered part of the same set of
     // assertions made on the digest of that value.
-    let name_en = "Atlas Shrugged".into_envelope()
+    let name_en = Envelope::new("Atlas Shrugged")
         .add_assertion(known_value_registry::LANGUAGE, "en");
 
-    let name_es = "La rebelión de Atlas".into_envelope()
+    let name_es = Envelope::new("La rebelión de Atlas")
         .add_assertion(known_value_registry::LANGUAGE, "es");
 
-    let work = CID::from_data(hex!("7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")).into_envelope()
+    let work = Envelope::new(CID::from_data(hex!("7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")))
         .add_assertion(known_value_registry::IS_A, "novel")
         .add_assertion("isbn", "9780451191144")
         .add_assertion("author", author)
@@ -352,7 +352,7 @@ fn test_complex_metadata() {
     let book_data = "This is the entire book “Atlas Shrugged” in EPUB format.";
     // Assertions made on a digest are considered associated with that specific binary
     // object and no other. In other words, the referent of a Digest is immutable.
-    let book_metadata = Digest::from_image(&book_data).into_envelope()
+    let book_metadata = Envelope::new(&Digest::from_image(&book_data))
         .add_assertion("work", work)
         .add_assertion("format", "EPUB")
         .add_assertion(known_value_registry::DEREFERENCE_VIA, "IPFS")
@@ -475,7 +475,7 @@ fn test_complex_metadata() {
 
 fn credential() -> Rc<Envelope> {
     let mut rng = make_fake_random_number_generator();
-    CID::from_data(hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")).into_envelope()
+    Envelope::new(CID::from_data(hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")))
         .add_assertion(known_value_registry::IS_A, "Certificate of Completion")
         .add_assertion(known_value_registry::ISSUER, "Example Electrical Engineering Board")
         .add_assertion(known_value_registry::CONTROLLER, "Example Electrical Engineering Board")

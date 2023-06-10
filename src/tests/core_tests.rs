@@ -1,11 +1,11 @@
-use crate::{Envelope, with_format_context, KnownValue, known_value_registry, IntoEnvelope};
+use crate::{Envelope, with_format_context, KnownValue, known_value_registry};
 use bc_components::DigestProvider;
 use indoc::indoc;
 use super::test_data::*;
 
 #[test]
 fn test_int_subject() {
-    let e = 42.into_envelope().check_encoding().unwrap();
+    let e = Envelope::new(42).check_encoding().unwrap();
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -30,7 +30,7 @@ fn test_int_subject() {
 
 #[test]
 fn test_negative_int_subject() {
-    let e = (-42).into_envelope().check_encoding().unwrap();
+    let e = Envelope::new(-42).check_encoding().unwrap();
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -301,7 +301,7 @@ fn test_assertion_with_assertions() {
     let a = Envelope::new_assertion(1, 2)
         .add_assertion(3, 4)
         .add_assertion(5, 6);
-    let e = 7.into_envelope()
+    let e = Envelope::new(7)
         .add_assertion_envelope(a)
         .unwrap();
     assert_eq!(e.format(),
@@ -321,7 +321,7 @@ fn test_assertion_with_assertions() {
 #[test]
 fn test_digest_leaf() {
     let digest = hello_envelope().digest().into_owned();
-    let e = digest.into_envelope().check_encoding().unwrap();
+    let e = Envelope::new(&digest).check_encoding().unwrap();
     assert_eq!(e.format(),
     indoc! {r#"
     Digest(8cc96cdb)

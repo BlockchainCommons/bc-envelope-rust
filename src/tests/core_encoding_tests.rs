@@ -2,16 +2,16 @@ use dcbor::CBOREncodable;
 use indoc::indoc;
 use std::error::Error;
 use bc_components::Digest;
-use crate::{Envelope, with_format_context, IntoEnvelope};
+use crate::{Envelope, with_format_context};
 
 #[test]
 fn test_digest() {
-   Digest::from_image(&"Hello.".as_bytes()).into_envelope().check_encoding().unwrap();
+   Envelope::new(&Digest::from_image(&"Hello.".as_bytes())).check_encoding().unwrap();
 }
 
 #[test]
 fn test_1() -> Result<(), Box<dyn Error>> {
-    let e = "Hello.".into_envelope();
+    let e = Envelope::new("Hello.");
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
@@ -29,7 +29,7 @@ fn test_1() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_2() -> Result<(), Box<dyn Error>> {
     let array: Vec<u64> = vec![1, 2, 3];
-    let e = array.cbor().into_envelope();
+    let e = Envelope::new(array.cbor());
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),

@@ -3,7 +3,7 @@ use std::{rc::Rc};
 use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider};
 use bc_crypto::{RandomNumberGenerator, SecureRandomNumberGenerator};
 
-use crate::{Envelope, Error, known_value_registry, IntoEnvelope};
+use crate::{Envelope, Error, known_value_registry};
 
 impl Envelope {
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
@@ -135,9 +135,7 @@ impl Envelope {
     {
         let signing_private_key = private_keys.signing_private_key();
         let digest = *self.clone().subject().digest().data();
-        let signature = signing_private_key
-            .schnorr_sign_using(digest, tag, rng)
-            .into_envelope()
+        let signature = Envelope::new(&signing_private_key.schnorr_sign_using(digest, tag, rng))
             .add_assertion_envelopes(uncovered_assertions)
             .unwrap();
         self.add_assertion(known_value_registry::VERIFIED_BY, signature)
@@ -178,8 +176,7 @@ impl Envelope {
         note: Option<&str>
     ) -> Rc<Self> {
         let verified_by = known_value_registry::VERIFIED_BY;
-        let signature = signature.into_envelope();
-        let mut envelope = Envelope::new_assertion(verified_by, signature);
+        let mut envelope = Envelope::new_assertion(verified_by, Envelope::new(signature));
         if let Some(note) = note {
             envelope = envelope.add_assertion(known_value_registry::NOTE, note);
         }

@@ -2,7 +2,7 @@ use std::rc::Rc;
 use bc_components::{Compressed, DigestProvider};
 use dcbor::{CBOREncodable, CBORDecodable};
 
-use crate::{Envelope, Error, IntoEnvelope};
+use crate::{Envelope, Error};
 
 impl Envelope {
     /// Returns the compressed variant of this envelope.
@@ -13,7 +13,10 @@ impl Envelope {
             Envelope::Compressed(_) => Ok(self),
             Envelope::Encrypted(_) => Err(Error::AlreadyEncrypted),
             Envelope::Elided(_) => Err(Error::AlreadyElided),
-            _ => Ok(Compressed::from_uncompressed_data(self.cbor_data(), Some(self.digest().into_owned())).into_envelope()),
+            _ => {
+                let compressed = Compressed::from_uncompressed_data(self.cbor_data(), Some(self.digest().into_owned()));
+                Ok(Envelope::new(compressed))
+            },
         }
     }
 

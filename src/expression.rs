@@ -12,7 +12,7 @@ impl Envelope {
     where
         F: Into<Function>,
     {
-        function.into().into_envelope()
+        Envelope::new(function.into())
     }
 }
 
@@ -85,8 +85,7 @@ impl Envelope {
         C: AsRef<CID>,
         B: IntoEnvelope,
     {
-        CBOR::tagged_value(tags_registry::REQUEST, request_id.as_ref())
-            .into_envelope()
+        Envelope::new(CBOR::tagged_value(tags_registry::REQUEST, request_id.as_ref()))
             .add_assertion(known_value_registry::BODY, body)
     }
 }
@@ -99,7 +98,7 @@ impl Envelope {
         C: AsRef<CID>,
         R: IntoEnvelope,
     {
-        CBOR::tagged_value(tags_registry::RESPONSE, response_id.as_ref()).into_envelope()
+        Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, response_id.as_ref()))
             .add_assertion(known_value_registry::RESULT, result)
     }
 
@@ -109,7 +108,7 @@ impl Envelope {
         C: AsRef<CID>,
         R: IntoEnvelope + Clone,
     {
-        let mut envelope = CBOR::tagged_value(tags_registry::RESPONSE, response_id.as_ref()).into_envelope();
+        let mut envelope = Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, response_id.as_ref()));
 
         for result in results {
             envelope = envelope.add_assertion(
@@ -127,7 +126,7 @@ impl Envelope {
         C: AsRef<CID>,
         E: IntoEnvelope,
     {
-        CBOR::tagged_value(tags_registry::RESPONSE, response_id.as_ref()).into_envelope()
+        Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, response_id.as_ref()))
             .add_assertion(known_value_registry::ERROR, error)
     }
 
@@ -143,10 +142,10 @@ impl Envelope {
         E: IntoEnvelope,
     {
         if let Some(error) = error {
-            CBOR::tagged_value(tags_registry::RESPONSE, "unknown").into_envelope()
+            Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, "unknown"))
                 .add_assertion(known_value_registry::ERROR, error)
         } else {
-            CBOR::tagged_value(tags_registry::RESPONSE, "unknown").into_envelope()
+            Envelope::new(CBOR::tagged_value(tags_registry::RESPONSE, "unknown"))
         }
     }
 }

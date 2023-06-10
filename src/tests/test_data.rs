@@ -1,17 +1,17 @@
 use std::rc::Rc;
 
-use crate::{Envelope, IntoEnvelope, known_value_registry};
+use crate::{Envelope, known_value_registry};
 use bc_components::{PrivateKeyBase, PublicKeyBase, SymmetricKey, Nonce};
 use hex_literal::hex;
 
 pub const PLAINTEXT_HELLO: &str = "Hello.";
 
-pub fn hello_envelope() -> Rc<Envelope> { PLAINTEXT_HELLO.into_envelope() }
-pub fn known_value_envelope() -> Rc<Envelope> { known_value_registry::NOTE.into_envelope() }
+pub fn hello_envelope() -> Rc<Envelope> { Envelope::new(PLAINTEXT_HELLO) }
+pub fn known_value_envelope() -> Rc<Envelope> { Envelope::new(known_value_registry::NOTE) }
 pub fn assertion_envelope() -> Rc<Envelope> { Envelope::new_assertion("knows", "Bob") }
 
 pub fn single_assertion_envelope() -> Rc<Envelope> {
-    "Alice".into_envelope()
+    Envelope::new("Alice")
         .add_assertion("knows", "Bob")
 }
 

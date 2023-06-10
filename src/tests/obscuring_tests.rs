@@ -1,6 +1,6 @@
 use bc_components::SymmetricKey;
 
-use crate::IntoEnvelope;
+use crate::Envelope;
 
 use super::test_data::PLAINTEXT_HELLO;
 
@@ -18,7 +18,7 @@ use super::test_data::PLAINTEXT_HELLO;
 fn test_obscuring() {
     let key = SymmetricKey::new();
 
-    let envelope = PLAINTEXT_HELLO.into_envelope();
+    let envelope = Envelope::new(PLAINTEXT_HELLO);
     assert!(!envelope.is_obscured());
 
     let encrypted = envelope.clone().encrypt_subject(&key).unwrap();

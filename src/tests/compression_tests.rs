@@ -2,7 +2,7 @@ use bc_components::DigestProvider;
 use bc_crypto::make_fake_random_number_generator;
 use dcbor::CBOREncodable;
 use indoc::indoc;
-use crate::{IntoEnvelope, known_value::NOTE, with_format_context};
+use crate::{known_value::NOTE, with_format_context, Envelope};
 
 use super::test_data::alice_private_keys;
 
@@ -13,7 +13,7 @@ fn source() -> &'static str {
 
 #[test]
 fn test_compress() {
-    let original = source().into_envelope();
+    let original = Envelope::new(source());
     assert_eq!(original.cbor_data().len(), 371);
     let compressed = original.clone().compress().unwrap().check_encoding().unwrap();
     assert_eq!(compressed.cbor_data().len(), 282);
@@ -27,7 +27,7 @@ fn test_compress() {
 #[test]
 fn test_compress_subject() {
     let mut rng = make_fake_random_number_generator();
-    let original = "Alice".into_envelope()
+    let original = Envelope::new("Alice")
         .add_assertion(NOTE, source())
         .wrap_envelope()
         .sign_with_using(&alice_private_keys(), &mut rng);

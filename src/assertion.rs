@@ -1,7 +1,10 @@
-use std::{rc::Rc, borrow::Cow};
+use std::{borrow::Cow, rc::Rc};
 
-use bc_components::{Digest, DigestProvider, tags_registry};
-use dcbor::{CBORTagged, Tag, CBOR, CBOREncodable, CBORDecodable, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
+use bc_components::{tags_registry, Digest, DigestProvider};
+use dcbor::{
+    CBORCodable, CBORDecodable, CBOREncodable, CBORTagged, CBORTaggedCodable, CBORTaggedDecodable,
+    CBORTaggedEncodable, Tag, CBOR,
+};
 
 use crate::{envelope::Envelope, IntoEnvelope};
 
@@ -20,13 +23,16 @@ impl Assertion {
         P: IntoEnvelope,
         O: IntoEnvelope,
     {
-        let predicate = predicate.into_envelope();
-        let object = object.into_envelope();
-        let digest = Digest::from_digests(&[predicate.digest().into_owned(), object.digest().into_owned()]);
+        let predicate = Envelope::new(predicate);
+        let object = Envelope::new(object);
+        let digest = Digest::from_digests(&[
+            predicate.digest().into_owned(),
+            object.digest().into_owned(),
+        ]);
         Self {
             predicate,
             object,
-            digest
+            digest,
         }
     }
 
@@ -51,7 +57,7 @@ impl PartialEq for Assertion {
     }
 }
 
-impl Eq for Assertion { }
+impl Eq for Assertion {}
 
 impl DigestProvider for Assertion {
     fn digest(&self) -> Cow<Digest> {
@@ -75,7 +81,7 @@ impl CBORDecodable for Assertion {
     }
 }
 
-impl CBORCodable for Assertion { }
+impl CBORCodable for Assertion {}
 
 impl CBORTaggedEncodable for Assertion {
     fn untagged_cbor(&self) -> CBOR {
@@ -85,7 +91,10 @@ impl CBORTaggedEncodable for Assertion {
 
 impl CBORTaggedDecodable for Assertion {
     fn from_untagged_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
-        let array: Vec<Rc<Envelope>> = Vec::<Envelope>::from_cbor(cbor)?.into_iter().map(Rc::new).collect();
+        let array: Vec<Rc<Envelope>> = Vec::<Envelope>::from_cbor(cbor)?
+            .into_iter()
+            .map(Rc::new)
+            .collect();
         if array.len() != 2 {
             return Err(dcbor::Error::InvalidFormat);
         }
@@ -93,4 +102,4 @@ impl CBORTaggedDecodable for Assertion {
     }
 }
 
-impl CBORTaggedCodable for Assertion { }
+impl CBORTaggedCodable for Assertion {}
