@@ -57,6 +57,12 @@ impl IntoEnvelope for CBOR {
     }
 }
 
+impl IntoEnvelope for &dyn CBOREncodable {
+    fn into_envelope(self) -> Rc<Envelope> {
+        self.cbor().into_envelope()
+    }
+}
+
 impl IntoEnvelope for &Box<CBOR> {
     fn into_envelope(self) -> Rc<Envelope> {
         Rc::new(Envelope::new_leaf(self.as_ref().clone()))
