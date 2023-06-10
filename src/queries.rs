@@ -1,5 +1,5 @@
 use bc_components::{Compressed, Digest, DigestProvider, EncryptedMessage};
-use dcbor::{CBORDecodable, CBOREncodable, CBOR};
+use dcbor::{CBORDecodable, CBOR};
 use std::{
     any::{Any, TypeId},
     rc::Rc,
@@ -293,7 +293,10 @@ impl Envelope {
 
 impl Envelope {
     /// Returns the objects of all assertions with the matching predicate.
-    pub fn objects_for_predicate(self: Rc<Self>, predicate: Rc<Self>) -> Vec<Rc<Self>> {
+    pub fn objects_for_predicate<P>(self: Rc<Self>, predicate: P) -> Vec<Rc<Self>>
+    where
+        P: IntoEnvelope,
+    {
         self.assertions_with_predicate(predicate)
             .into_iter()
             .map(|a| a.object().unwrap())
@@ -301,61 +304,20 @@ impl Envelope {
     }
 
     /// Returns the objects of all assertions with the matching predicate.
-    pub fn objects_for_predicate_leaf(
-        self: Rc<Self>,
-        predicate: &dyn CBOREncodable,
-    ) -> Vec<Rc<Self>> {
-        self.objects_for_predicate(Envelope::cbor_into_envelope(predicate))
-    }
-
-    /// Returns the objects of all assertions with the matching predicate.
-    pub fn objects_for_predicate_known_value(
-        self: Rc<Self>,
-        predicate: KnownValue,
-    ) -> Vec<Rc<Self>> {
-        self.objects_for_predicate(predicate.into_envelope())
-    }
-
-    /// Returns the objects of all assertions with the matching predicate.
     ///
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_objects_for_predicate<T>(
+    pub fn extract_objects_for_predicate<T, P>(
         self: Rc<Self>,
-        predicate: Rc<Self>,
+        predicate: P,
     ) -> Result<Vec<Rc<T>>, Error>
     where
         T: CBORDecodable,
+        P: IntoEnvelope,
     {
         self.assertions_with_predicate(predicate)
             .into_iter()
             .map(|a| a.object().unwrap().extract_subject())
             .collect()
-    }
-
-    /// Returns the objects of all assertions with the matching predicate.
-    ///
-    /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_objects_for_cbor_predicate<T>(
-        self: Rc<Self>,
-        predicate: &dyn CBOREncodable,
-    ) -> Result<Vec<Rc<T>>, Error>
-    where
-        T: CBORDecodable,
-    {
-        self.extract_objects_for_predicate(Envelope::cbor_into_envelope(predicate))
-    }
-
-    /// Returns the objects of all assertions with the matching predicate.
-    ///
-    /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_objects_for_known_value_predicate<T>(
-        self: Rc<Self>,
-        predicate: KnownValue,
-    ) -> Result<Vec<Rc<T>>, Error>
-    where
-        T: CBORDecodable,
-    {
-        self.extract_objects_for_predicate(predicate.into_envelope())
     }
 }
 
