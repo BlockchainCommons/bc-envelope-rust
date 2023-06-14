@@ -60,7 +60,7 @@ impl PartialEq for Assertion {
 impl Eq for Assertion {}
 
 impl DigestProvider for Assertion {
-    fn digest(&self) -> Cow<Digest> {
+    fn digest(&self) -> Cow<'_, Digest> {
         Cow::Borrowed(&self.digest)
     }
 }

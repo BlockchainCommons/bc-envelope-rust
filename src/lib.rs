@@ -1,3 +1,5 @@
+#![doc(html_root_url = "https://docs.rs/bc-envelope/0.1.0")]
+#![warn(rust_2018_idioms)]
 #![feature(iter_intersperse)]
 
 mod assertions;

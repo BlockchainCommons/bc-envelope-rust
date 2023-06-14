@@ -12,7 +12,7 @@ impl DigestProvider for Envelope {
     /// This digest can be used to compare two envelopes for semantic equivalence, that
     /// is, the two envelopes would contain the same information in their unencrypted
     /// and unelided forms. See <doc:Diffing> for more information.
-    fn digest(&self) -> Cow<Digest> {
+    fn digest(&self) -> Cow<'_, Digest> {
         match self {
             Self::Node { digest, .. } => Cow::Borrowed(digest),
             Self::Leaf { digest, .. } => Cow::Borrowed(digest),

@@ -71,7 +71,7 @@ pub struct LazyFormatContext {
 }
 
 impl LazyFormatContext {
-    pub fn get(&self) -> std::sync::MutexGuard<Option<FormatContext>> {
+    pub fn get(&self) -> std::sync::MutexGuard<'_, Option<FormatContext>> {
         self.init.call_once(|| {
             let tags_binding = GLOBAL_TAGS.get();
             let tags = tags_binding.as_ref().unwrap();

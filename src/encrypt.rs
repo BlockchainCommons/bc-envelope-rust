@@ -23,7 +23,7 @@ impl Envelope {
 
     pub fn encrypt_subject_opt(self: Rc<Self>, key: &SymmetricKey, test_nonce: Option<Nonce>) -> Result<Rc<Self>, Error> {
         let result: Rc<Self>;
-        let original_digest: Cow<Digest>;
+        let original_digest: Cow<'_, Digest>;
 
         match &*self {
             Self::Node { subject, assertions, digest: envelope_digest } => {
