@@ -9,9 +9,10 @@ keywords = ["encoding", "cbor", "binary", "format", "serialization"]
 repository = "https://github.com/BlockchainCommons/bc-envelope-rust"
 readme = "README.md"
 categories = ["data-structures", "encoding"]
+documentation = "https://docs.rs/bc-envelope"
 
 [dependencies]
-dcbor = { path = "../bc-dcbor-rust" }
+dcbor = "0.7.0"
 bc-crypto = { path = "../bc-crypto-rust" }
 bc-components = { path = "../bc-components-rust" }
 bc-ur = { path = "../bc-ur-rust" }

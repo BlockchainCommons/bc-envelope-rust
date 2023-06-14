@@ -36,7 +36,7 @@ Blockchain Commons apps do not phone home and do not run ads. Some are available
 
 ## Status - Alpha
 
-Gordian Envelope  is currently under active development and in the alpha testing phase. It should not be used for production tasks until it has had further testing and auditing. See [Blockchain Commons' Development Phases](https://github.com/BlockchainCommons/Community/blob/master/release-path.md).
+Gordian Envelope is currently under active development and in the alpha testing phase. It should not be used for production tasks until it has had further testing and auditing. See [Blockchain Commons' Development Phases](https://github.com/BlockchainCommons/Community/blob/master/release-path.md).
 
 ### Version History
 
@@ -74,7 +74,7 @@ Libraries may be marked as `use` (the current version of the library is used), `
 
 ### Derived from ...
 
-This  Gordian Envelope project is either derived from or was inspired by:
+This Gordian Envelope project is either derived from or was inspired by:
 
 - [community/repo-name/](https://github.com/community/repo-name) — Repo that does what, by [developer](https://github.com/developer)  or from  [community](https://community.com).
 
