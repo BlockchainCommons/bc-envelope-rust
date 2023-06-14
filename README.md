@@ -6,11 +6,20 @@
 
 ---
 
-> ⚠️ This is a stub repo: no significant work has yet been done on the Rust implementation of Gordian Envelope. The main hub for Gordian Envelope information and development is [here](https://github.com/BlockchainCommons/Gordian/tree/master/Envelope).
-
----
+## Introduction
 
 The envelope protocol specifies a structured format for hierarchical binary data focused on the ability to transmit it in a privacy-focused way. Envelopes are designed to facilitate "smart documents" and have a number of unique features including: easy representation of a variety of semantic structures, a built-in Merkle-like digest tree, deterministic representation using CBOR, and the ability for the holder of a document to selectively encrypt or elide specific parts of a document without invalidating the document structure including the digest tree, or any cryptographic signatures that rely on it.
+
+## Getting Started
+
+```toml
+[dependencies]
+bc-envelope = "0.1.0"
+```
+
+## Specification
+
+## Related Projects
 
 ## Gordian Principles
 
