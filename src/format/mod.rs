@@ -1,8 +1,11 @@
 use std::error::Error;
 
+mod format_context;
+pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
+
 use bc_components::{Digest, CID, URI, UUID, DigestProvider};
 use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable, Date};
-use crate::{Envelope, FormatContext, Assertion, KnownValue, string_utils::StringUtils, KnownValuesStore, expressions::{Function, FunctionsStore, ParametersStore, Parameter}};
+use crate::{Envelope, Assertion, KnownValue, string_utils::StringUtils, KnownValuesStore, expressions::{Function, FunctionsStore, ParametersStore, Parameter}};
 use bc_components::tags;
 
 /// Support for the various text output formats for ``Envelope``.

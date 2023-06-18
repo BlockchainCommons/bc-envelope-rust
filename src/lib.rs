@@ -7,7 +7,6 @@ mod cbor;
 mod compress;
 mod digest;
 mod encrypt;
-mod known_values;
 mod queries;
 mod recipient;
 mod salt;
@@ -17,9 +16,7 @@ mod tree_format;
 mod wrap;
 
 pub mod expressions;
-
-mod format;
-pub use format::{EnvelopeFormat, EnvelopeFormatItem};
+pub mod format;
 
 mod sskr;
 pub use sskr::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret};
@@ -33,8 +30,10 @@ pub use elide::ObscureAction;
 mod envelope;
 pub use crate::envelope::Envelope;
 
-mod format_context;
-pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
+// pub use format::{EnvelopeFormat, EnvelopeFormatItem};
+
+// mod format_context;
+// pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 
 mod error;
 pub use error::Error;
@@ -44,6 +43,7 @@ pub mod walk;
 mod assertion;
 pub use assertion::Assertion;
 
+mod known_values;
 pub mod known_value;
 pub use known_value::KnownValue;
 

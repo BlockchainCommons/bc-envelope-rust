@@ -2,7 +2,7 @@ use std::{rc::Rc, collections::HashSet, cell::RefCell};
 
 use bc_components::{Digest, DigestProvider};
 
-use crate::{Envelope, FormatContext, walk::EdgeType};
+use crate::{Envelope, format::FormatContext, walk::EdgeType};
 
 impl Envelope {
     pub fn tree_format(self: Rc<Envelope>, hide_nodes: bool, context: Option<&FormatContext>) -> String {
