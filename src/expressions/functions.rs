@@ -40,6 +40,7 @@ impl LazyFunctions {
     }
 }
 
+/// The global shared store of known functions.
 pub static GLOBAL_FUNCTIONS: LazyFunctions = LazyFunctions {
     init: Once::new(),
     data: Mutex::new(None),

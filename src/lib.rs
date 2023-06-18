@@ -15,11 +15,24 @@ mod string_utils;
 mod tree_format;
 mod wrap;
 
+/// Types dealing with envelope expressions (and distributed function evaluation)
 pub mod expressions;
+
+/// Types dealing with formatting envelopes.
 pub mod format;
+
+/// Types dealing with known values.
 pub mod known_values;
+
+/// Types dealing with SSKR splitting.
 pub mod sskr;
+
+/// Types dealing with recursive walking of envelopes.
 pub mod walk;
+
+/// Types dealing with elision.
+///
+/// Actual functions for elision are on the [`Envelope`] type itself.
 pub mod elide;
 
 mod into_envelope;

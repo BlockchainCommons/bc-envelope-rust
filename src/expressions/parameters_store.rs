@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use super::Parameter;
 
- #[derive(Clone, Debug)]
+ /// A type that maps parameters to their assigned names.
+#[derive(Clone, Debug)]
  pub struct ParametersStore {
      dict: HashMap<Parameter, String>,
  }

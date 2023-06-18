@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use super::Function;
 
+/// A type that maps functions to their assigned names.
 #[derive(Clone, Debug)]
 pub struct FunctionsStore {
     dict: HashMap<Function, String>,

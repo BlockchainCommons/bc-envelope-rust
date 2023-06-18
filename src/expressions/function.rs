@@ -32,6 +32,7 @@ impl std::hash::Hash for FunctionName {
     }
 }
 
+/// A declared function.
  #[derive(Debug, Clone, Eq)]
 pub enum Function {
     Known(u64, Option<FunctionName>),
@@ -39,18 +40,24 @@ pub enum Function {
 }
 
 impl Function {
+    /// Creates a new function with a value and an optional name.
     pub fn new_known(value: u64, name: Option<String>) -> Self {
         Self::Known(value, name.map(FunctionName::Dynamic))
     }
 
+    /// Creates a new function with a name. This call cannot be used
+    /// to declare a function at compile-time.
     pub fn new_named(name: &str) -> Self {
         Self::Named(FunctionName::Dynamic(name.into()))
     }
 
+    /// Creates a new function with a value and a static name.
+    /// This call can be used to declare a function at compile-time.
     pub const fn new_with_static_name(value: u64, name: &'static str) -> Self {
         Self::Known(value, Some(FunctionName::Static(name)))
     }
 
+    /// Returns the name of the function.
     pub fn name(&self) -> String {
         match self {
             Self::Known(value, name) => {

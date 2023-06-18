@@ -1,7 +1,7 @@
 use std::{rc::Rc, collections::HashMap};
 
-pub use bc_components::{SSKRShare, SSKRSpec, SSKRGroupSpec, SymmetricKey, SSKRSecret};
-use bc_components::{sskr_generate_using, sskr_combine};
+pub use bc_components::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret};
+use bc_components::{sskr_generate_using, sskr_combine, SymmetricKey};
 use bc_crypto::RandomNumberGenerator;
 
 use crate::{Envelope, known_values, Error, impl_into_envelope};

@@ -5,12 +5,19 @@ use dcbor::{CBORTaggedEncodable, CBOREncodable};
 
 use crate::{Envelope, Assertion, Error};
 
+/// An action to perform on a target set in an envelope.
 pub enum ObscureAction {
+    /// Elide the target, leaving only its digest.
     Elide,
+
+    /// Encrypt the target using the specified key.
     Encrypt(SymmetricKey),
+
+    /// Compress the target.
     Compress,
 }
 
+/// High-Level Elision Functions
 impl Envelope {
     /// Returns the elided variant of this envelope.
     ///
@@ -21,10 +28,7 @@ impl Envelope {
             _ => Rc::new(Self::new_elided(self.digest().into_owned()))
         }
     }
-}
 
-/// High-Level Elision Functions
-impl Envelope {
     /// Returns a version of this envelope with elements in the `target` set elided.
     ///
     /// - Parameters:

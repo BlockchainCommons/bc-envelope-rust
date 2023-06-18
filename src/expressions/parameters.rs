@@ -36,6 +36,7 @@ impl LazyParameters {
     }
 }
 
+/// The global shared store of known parameters.
 pub static GLOBAL_PARAMETERS: LazyParameters = LazyParameters {
     init: Once::new(),
     data: Mutex::new(None),

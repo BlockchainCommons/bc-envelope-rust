@@ -31,6 +31,7 @@ impl std::hash::Hash for ParameterName {
     }
 }
 
+/// A declared parameter.
 #[derive(Clone, Debug, Eq)]
 pub enum Parameter {
     Known(u64, Option<ParameterName>),
@@ -38,18 +39,24 @@ pub enum Parameter {
 }
 
 impl Parameter {
+    /// Creates a new parameter with a value and an optional name.
     pub fn new_known(value: u64, name: Option<String>) -> Self {
         Self::Known(value, name.map(ParameterName::Dynamic))
     }
 
+    /// Creates a new parameter with a name. This call cannot be used
+    /// to declare a parameter at compile-time.
     pub fn new_named(name: &str) -> Self {
         Self::Named(ParameterName::Dynamic(name.into()))
     }
 
+    /// Creates a new parameter with a value and a static name.
+    /// This call can be used to declare a parameter at compile-time.
     pub const fn new_with_static_name(value: u64, name: &'static str) -> Self {
         Self::Known(value, Some(ParameterName::Static(name)))
     }
 
+    /// Returns the name of the parameter.
     pub fn name(&self) -> String {
         match self {
             Self::Known(value, name) => {
