@@ -1,6 +1,7 @@
 use std::sync::{Once, Mutex};
-use crate::{Parameter, ParametersStore};
 use paste::paste;
+
+use super::{Parameter, ParametersStore};
 
 #[macro_export]
 macro_rules! parameter_constant {

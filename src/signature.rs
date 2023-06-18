@@ -3,7 +3,7 @@ use std::{rc::Rc};
 use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider};
 use bc_crypto::{RandomNumberGenerator, SecureRandomNumberGenerator};
 
-use crate::{Envelope, Error, known_values};
+use crate::{Envelope, Error, known_values, impl_into_envelope};
 
 impl Envelope {
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
@@ -405,3 +405,5 @@ impl Envelope {
         Ok(self)
     }
 }
+
+impl_into_envelope!(Signature);

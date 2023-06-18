@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::Function;
+use super::Function;
 
 #[derive(Clone, Debug)]
 pub struct FunctionsStore {

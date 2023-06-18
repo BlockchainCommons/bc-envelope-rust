@@ -7,10 +7,7 @@ mod cbor;
 mod compress;
 mod digest;
 mod encrypt;
-mod expression;
-mod functions;
 mod known_values;
-mod parameters;
 mod queries;
 mod recipient;
 mod salt;
@@ -18,6 +15,8 @@ mod signature;
 mod string_utils;
 mod tree_format;
 mod wrap;
+
+pub mod expressions;
 
 mod format;
 pub use format::{EnvelopeFormat, EnvelopeFormatItem};
@@ -40,8 +39,7 @@ pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 mod error;
 pub use error::Error;
 
-mod walk;
-pub use walk::{EdgeType, Visitor};
+pub mod walk;
 
 mod assertion;
 pub use assertion::Assertion;
@@ -49,20 +47,8 @@ pub use assertion::Assertion;
 pub mod known_value;
 pub use known_value::KnownValue;
 
-pub mod function;
-pub use function::Function;
-
-pub mod parameter;
-pub use parameter::Parameter;
-
 mod known_values_store;
 pub use known_values_store::KnownValuesStore;
-
-mod functions_store;
-pub use functions_store::FunctionsStore;
-
-mod parameters_store;
-pub use parameters_store::ParametersStore;
 
 #[cfg(test)]
 mod tests {
@@ -79,7 +65,7 @@ mod tests {
     mod elision_tests;
     mod encrypted_tests;
     mod format_tests;
-    mod function_tests;
+    mod expressions_tests;
     mod non_correlation_tests;
     mod obscuring_tests;
     mod type_tests;

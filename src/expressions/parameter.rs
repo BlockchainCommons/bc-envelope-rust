@@ -1,7 +1,8 @@
 use bc_components::tags;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
-pub use crate::parameters::*;
-use crate::{ParametersStore, string_utils::StringUtils};
+use crate::{string_utils::StringUtils, impl_into_envelope};
+
+use super::ParametersStore;
 
 #[derive(Clone, Debug, Eq)]
 pub enum ParameterName {
@@ -153,3 +154,5 @@ impl std::fmt::Display for Parameter {
         write!(f, "{}", self.description(None))
     }
 }
+
+impl_into_envelope!(Parameter);

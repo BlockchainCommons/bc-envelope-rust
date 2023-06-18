@@ -2,7 +2,7 @@ use std::error::Error;
 
 use bc_components::{Digest, CID, URI, UUID, DigestProvider};
 use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable, Date};
-use crate::{Envelope, FormatContext, Assertion, KnownValue, string_utils::StringUtils, KnownValuesStore, FunctionsStore, Function, Parameter, ParametersStore};
+use crate::{Envelope, FormatContext, Assertion, KnownValue, string_utils::StringUtils, KnownValuesStore, expressions::{Function, FunctionsStore, ParametersStore, Parameter}};
 use bc_components::tags;
 
 /// Support for the various text output formats for ``Envelope``.

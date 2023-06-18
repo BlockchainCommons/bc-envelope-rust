@@ -3,8 +3,7 @@ use std::rc::Rc;
 use bc_components::CID;
 use indoc::indoc;
 use hex_literal::hex;
-
-use crate::{functions, parameters, Envelope, with_format_context, Function, Parameter};
+use crate::{Envelope, with_format_context, expressions::{functions, parameters, Function, Parameter}};
 
 fn two_plus_three() -> Rc<Envelope> {
     Envelope::new(functions::ADD)

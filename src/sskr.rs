@@ -4,7 +4,7 @@ pub use bc_components::{SSKRShare, SSKRSpec, SSKRGroupSpec, SymmetricKey, SSKRSe
 use bc_components::{sskr_generate_using, sskr_combine};
 use bc_crypto::RandomNumberGenerator;
 
-use crate::{Envelope, known_values, Error};
+use crate::{Envelope, known_values, Error, impl_into_envelope};
 
 impl Envelope {
     /// Returns a new ``Envelope`` with a `sskrShare: SSKRShare` assertion added.
@@ -110,3 +110,5 @@ impl Envelope {
         Err(Error::InvalidShares)
     }
 }
+
+impl_into_envelope!(SSKRShare);

@@ -2,7 +2,7 @@ use std::{collections::HashSet, cell::RefCell, rc::Rc, borrow::Cow};
 
 use bc_components::{Digest, DigestProvider};
 
-use crate::{envelope::Envelope, EdgeType};
+use crate::{envelope::Envelope, walk::EdgeType};
 
 /// Support for calculating the digests associated with `Envelope`.
 

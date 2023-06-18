@@ -3,7 +3,9 @@ use std::rc::Rc;
 use bc_components::{tags, CID};
 use dcbor::{CBOR, CBORDecodable};
 
-use crate::{known_values, IntoEnvelope, Envelope, Function, Parameter, Error, KnownValue};
+use crate::{known_values, IntoEnvelope, Envelope, Error, KnownValue};
+
+use super::{Function, Parameter};
 
 /// Function Construction
 impl Envelope {

@@ -1,8 +1,9 @@
 use bc_components::tags;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
 
-use crate::{FunctionsStore, string_utils::StringUtils};
-pub use crate::functions::*;
+use crate::string_utils::StringUtils;
+
+use super::FunctionsStore;
 
 #[derive(Clone, Debug, Eq)]
 pub enum FunctionName {

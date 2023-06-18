@@ -1,9 +1,9 @@
 use std::rc::Rc;
 
-use bc_components::{EncryptedMessage, Compressed, Signature, SealedMessage, SSKRShare, Digest, CID, Salt};
+use bc_components::{EncryptedMessage, Compressed, SealedMessage, Digest, CID, Salt};
 use dcbor::{CBOREncodable, CBOR, Date};
 
-use crate::{Envelope, KnownValue, Assertion, Function, Parameter};
+use crate::{Envelope, KnownValue, Assertion};
 
 pub trait IntoEnvelope {
     fn into_envelope(self) -> Rc<Envelope>;
@@ -67,15 +67,15 @@ impl IntoEnvelope for &str {
 #[macro_export]
 macro_rules! impl_into_envelope {
     ($type:ty) => {
-        impl IntoEnvelope for $type {
-            fn into_envelope(self) -> Rc<Envelope> {
-                self.cbor().into_envelope()
+        impl $crate::IntoEnvelope for $type {
+            fn into_envelope(self) -> std::rc::Rc<$crate::Envelope> {
+                <Self as dcbor::CBOREncodable>::cbor(&self).into_envelope()
             }
         }
 
-        impl<'a> IntoEnvelope for &'a $type {
-            fn into_envelope(self) -> Rc<Envelope> {
-                self.cbor().into_envelope()
+        impl<'a> $crate::IntoEnvelope for &'a $type {
+            fn into_envelope(self) -> std::rc::Rc<$crate::Envelope> {
+                <Self as dcbor::CBOREncodable>::cbor(&self).into_envelope()
             }
         }
     };
@@ -92,12 +92,7 @@ impl_into_envelope!(i32);
 impl_into_envelope!(i64);
 impl_into_envelope!(bool);
 
-impl_into_envelope!(Function);
-impl_into_envelope!(Parameter);
-
-impl_into_envelope!(Signature);
 impl_into_envelope!(SealedMessage);
-impl_into_envelope!(SSKRShare);
 impl_into_envelope!(Digest);
 impl_into_envelope!(CID);
 impl_into_envelope!(Date);

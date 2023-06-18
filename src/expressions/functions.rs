@@ -1,6 +1,9 @@
 use std::sync::{Once, Mutex};
-use crate::{Function, FunctionsStore};
 use paste::paste;
+
+use crate::impl_into_envelope;
+
+use super::{Function, FunctionsStore};
 
 #[macro_export]
 macro_rules! function_constant {
@@ -41,3 +44,5 @@ pub static GLOBAL_FUNCTIONS: LazyFunctions = LazyFunctions {
     init: Once::new(),
     data: Mutex::new(None),
 };
+
+impl_into_envelope!(Function);
