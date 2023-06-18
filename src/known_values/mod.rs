@@ -8,6 +8,7 @@ use std::sync::{Once, Mutex};
 use paste::paste;
 
 
+/// A macro that declares a known value at compile time.
 #[macro_export]
 macro_rules! known_value_constant {
     ($const_name:ident, $value:expr, $name:expr) => {

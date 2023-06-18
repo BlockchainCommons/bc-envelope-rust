@@ -5,6 +5,7 @@ use crate::impl_into_envelope;
 
 use super::{Function, FunctionsStore};
 
+/// A macro that declares a function at compile time.
 #[macro_export]
 macro_rules! function_constant {
     ($const_name:ident, $value:expr, $name:expr) => {

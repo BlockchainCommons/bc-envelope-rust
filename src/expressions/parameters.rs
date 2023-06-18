@@ -3,6 +3,7 @@ use paste::paste;
 
 use super::{Parameter, ParametersStore};
 
+/// A macro that declares a parameter at compile time.
 #[macro_export]
 macro_rules! parameter_constant {
     ($const_name:ident, $value:expr, $name:expr) => {

@@ -1,3 +1,4 @@
+/// Error returned when handling envelopes.
 #[derive(Debug)]
 pub enum Error {
     /// Compressed envelopes cannot be compressed again.

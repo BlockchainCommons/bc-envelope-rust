@@ -115,6 +115,7 @@ pub static GLOBAL_FORMAT_CONTEXT: LazyFormatContext = LazyFormatContext {
     data: Mutex::new(None),
 };
 
+/// A macro to access the global format context.
 #[macro_export]
 macro_rules! with_format_context {
     ($action:expr) => {{
