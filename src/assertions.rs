@@ -4,17 +4,47 @@ use bc_components::DigestProvider;
 
 use crate::{Envelope, Error, IntoEnvelope};
 
-// Support for manipulating assertions.
-
+/// Support for adding assertions.
 impl Envelope {
+    /// Returns the result of adding the given assertion to the envelope.
+    pub fn add_assertion<P, O>(self: Rc<Self>, predicate: P, object: O) -> Rc<Self>
+    where
+        P: IntoEnvelope,
+        O: IntoEnvelope,
+    {
+        self.add_assertion_salted(predicate, object, false)
+    }
+
+    /// Returns the result of adding the given assertion to the envelope, optionally salting it.
+    pub fn add_assertion_salted<P, O>(self: Rc<Self>, predicate: P, object: O, salted: bool) -> Rc<Self>
+    where
+        P: IntoEnvelope,
+        O: IntoEnvelope,
+    {
+        let assertion = Self::new_assertion(predicate, object);
+        self.add_optional_assertion_envelope_salted(Some(assertion), salted).unwrap()
+    }
+
+    /// Returns the result of adding the given assertion to the envelope.
+    ///
+    /// The assertion envelope must be a valid assertion envelope, or an
+    /// obscured variant (elided, encrypted, compressed) of one.
     pub fn add_assertion_envelope(self: Rc<Self>, assertion_envelope: Rc<Self>) -> Result<Rc<Self>, Error> {
         self.add_assertion_envelope_salted(assertion_envelope, false)
     }
 
+    /// Returns the result of adding the given assertion to the envelope, optionally salting it.
+    ///
+    /// The assertion envelope must be a valid assertion envelope, or an
+    /// obscured variant (elided, encrypted, compressed) of one.
     pub fn add_assertion_envelope_salted(self: Rc<Self>, assertion_envelope: Rc<Self>, salted: bool) -> Result<Rc<Self>, Error> {
         self.add_optional_assertion_envelope_salted(Some(assertion_envelope), salted)
     }
 
+    /// Returns the result of adding the given array of assertions to the envelope.
+    ///
+    /// Each assertion envelope must be a valid assertion envelope, or an
+    /// obscured variant (elided, encrypted, compressed) of one.
     pub fn add_assertion_envelopes(self: Rc<Self>, assertions: &[Rc<Self>]) -> Result<Rc<Self>, Error> {
         let mut e = self;
         for assertion in assertions {
@@ -23,10 +53,17 @@ impl Envelope {
         Ok(e)
     }
 
+    /// If the optional assertion is present, returns the result of adding it to
+    /// the envelope. Otherwise, returns the envelope unchanged.
+    ///
+    /// The assertion envelope must be a valid assertion envelope, or an
+    /// obscured variant (elided, encrypted, compressed) of one.
     pub fn add_optional_assertion_envelope(self: Rc<Self>, assertion: Option<Rc<Self>>) -> Result<Rc<Self>, Error> {
         self.add_optional_assertion_envelope_salted(assertion, false)
     }
 
+    /// If the optional object is present, returns the result of adding the
+    /// assertion to the envelope. Otherwise, returns the envelope unchanged.
     pub fn add_optional_assertion<P, O>(self: Rc<Self>, predicate: P, object: Option<O>) -> Rc<Self>
     where
         P: IntoEnvelope,
@@ -39,6 +76,11 @@ impl Envelope {
         }
     }
 
+    /// If the optional assertion is present, returns the result of adding it to
+    /// the envelope, optionally salting it. Otherwise, returns the envelope unchanged.
+    ///
+    /// The assertion envelope must be a valid assertion envelope, or an
+    /// obscured variant (elided, encrypted, compressed) of one.
     pub fn add_optional_assertion_envelope_salted(self: Rc<Self>, assertion: Option<Rc<Self>>, salted: bool) -> Result<Rc<Self>, Error> {
         match assertion {
             Some(assertion) => {
@@ -67,25 +109,9 @@ impl Envelope {
             None => Ok(self),
         }
     }
-
-    pub fn add_assertion_salted<P, O>(self: Rc<Self>, predicate: P, object: O, salted: bool) -> Rc<Self>
-    where
-        P: IntoEnvelope,
-        O: IntoEnvelope,
-    {
-        let assertion = Self::new_assertion(predicate, object);
-        self.add_optional_assertion_envelope_salted(Some(assertion), salted).unwrap()
-    }
-
-    pub fn add_assertion<P, O>(self: Rc<Self>, predicate: P, object: O) -> Rc<Self>
-    where
-        P: IntoEnvelope,
-        O: IntoEnvelope,
-    {
-        self.add_assertion_salted(predicate, object, false)
-    }
 }
 
+/// Support for removing or replacing assertions.
 impl Envelope {
     /// Returns a new envelope with the given assertion removed. If the assertion does
     /// not exist, returns the same envelope.

@@ -4,6 +4,7 @@ use dcbor::{CBOREncodable, CBORDecodable};
 
 use crate::{Envelope, Error};
 
+/// Support for compressing and uncompressing envelopes.
 impl Envelope {
     /// Returns the compressed variant of this envelope.
     ///
@@ -42,9 +43,7 @@ impl Envelope {
             Err(Error::NotCompressed)
         }
     }
-}
 
-impl Envelope {
     /// Returns this envelope with its subject compressed.
     ///
     /// Returns the same envelope if its subject is already compressed.

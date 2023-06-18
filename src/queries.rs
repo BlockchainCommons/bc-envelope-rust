@@ -7,6 +7,7 @@ use std::{
 
 use crate::{Assertion, Envelope, Error, IntoEnvelope, known_values::KnownValue};
 
+/// Support for various queries on envelopes.
 impl Envelope {
     /// The envelope's subject.
     ///
@@ -73,9 +74,7 @@ impl Envelope {
             _ => None,
         }
     }
-}
 
-impl Envelope {
     /// `true` if the envelope is case `::Leaf`, `false` otherwise.
     pub fn is_leaf(&self) -> bool {
         matches!(self, Self::Leaf { .. })
@@ -115,9 +114,7 @@ impl Envelope {
     pub fn is_elided(&self) -> bool {
         matches!(self, Self::Elided(_))
     }
-}
 
-impl Envelope {
     /// `true` if the subject of the envelope is an assertion, `false` otherwise.
     pub fn is_subject_assertion(&self) -> bool {
         match self {
@@ -160,9 +157,7 @@ impl Envelope {
     pub fn is_subject_obscured(&self) -> bool {
         self.is_subject_encrypted() || self.is_subject_compressed() || self.is_subject_elided()
     }
-}
 
-impl Envelope {
     /// `true` if the envelope is *internal*, that is, it has child elements, or `false` if it is a leaf node.
     ///
     /// Internal elements include `.node`, `.wrapped`, and `.assertion`.
@@ -180,9 +175,7 @@ impl Envelope {
             Self::Encrypted(_) | Self::Compressed(_) | Self::Elided(_)
         )
     }
-}
 
-impl Envelope {
     /// Returns the envelope's subject, decoded as the given type.
     ///
     /// If the encoded type doesn't match the given type, returns `Error::InvalidFormat`.
@@ -217,9 +210,7 @@ impl Envelope {
             Self::Elided(digest) => extract_type::<T, Digest>(digest),
         }
     }
-}
 
-impl Envelope {
     /// Returns all assertions with the given predicate. Match by comparing digests.
     pub fn assertions_with_predicate<P>(self: Rc<Self>, predicate: P) -> Vec<Rc<Self>>
     where
@@ -237,9 +228,7 @@ impl Envelope {
             })
             .collect()
     }
-}
 
-impl Envelope {
     /// Returns the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
@@ -259,9 +248,7 @@ impl Envelope {
             Err(Error::AmbiguousPredicate)
         }
     }
-}
 
-impl Envelope {
     /// Returns the object of the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
@@ -289,9 +276,7 @@ impl Envelope {
             .unwrap()
             .extract_subject()
     }
-}
 
-impl Envelope {
     /// Returns the objects of all assertions with the matching predicate.
     pub fn objects_for_predicate<P>(self: Rc<Self>, predicate: P) -> Vec<Rc<Self>>
     where
@@ -319,10 +304,7 @@ impl Envelope {
             .map(|a| a.object().unwrap().extract_subject())
             .collect()
     }
-}
 
-// The above Swift translated into Rust:
-impl Envelope {
     /// Returns the number of structural elements in the envelope, including itself.
     pub fn elements_count(&self) -> usize {
         let mut result = 0;

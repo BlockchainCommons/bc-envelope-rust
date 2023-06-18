@@ -28,6 +28,8 @@ pub mod known_values;
 pub mod sskr;
 
 /// Types dealing with recursive walking of envelopes.
+///
+/// The [`Envelope`] type itself has functions for walking envelopes.
 pub mod walk;
 
 /// Types dealing with elision.

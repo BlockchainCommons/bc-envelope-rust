@@ -4,6 +4,7 @@ use bc_components::{Digest, DigestProvider};
 
 use crate::{Envelope, format::FormatContext, walk::EdgeType};
 
+/// Support for tree-formatting envelopes.
 impl Envelope {
     pub fn tree_format(self: Rc<Envelope>, hide_nodes: bool, context: Option<&FormatContext>) -> String {
         self.tree_format_with_target(hide_nodes, &HashSet::new(), context)

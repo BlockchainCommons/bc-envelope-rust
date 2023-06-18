@@ -1,6 +1,7 @@
 use std::rc::Rc;
 use crate::{Envelope, Error};
 
+/// Support for wrapping and unwrapping envelopes.
 impl Envelope {
     /// Return a new envelope which wraps the current envelope.
     pub fn wrap_envelope(self: Rc<Self>) -> Rc<Self> {

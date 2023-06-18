@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use crate::Envelope;
 
+/// The type of incoming edge provided to the visitor.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum EdgeType {
     None,
@@ -23,8 +24,10 @@ impl EdgeType {
     }
 }
 
+/// A visitor function that is called for each node in the envelope.
 pub type Visitor<'a, Parent> = dyn Fn(Rc<Envelope>, usize, EdgeType, Option<Parent>) -> Option<Parent> + 'a;
 
+/// Functions for walking an envelope.
 impl Envelope {
     pub fn walk<Parent: Clone>(self: Rc<Self>, hide_nodes: bool, visit: &Visitor<'_, Parent>) {
         if hide_nodes {

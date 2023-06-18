@@ -20,6 +20,7 @@ function_constant!(SUB, 2, "sub");
 function_constant!(MUL, 3, "mul");
 function_constant!(DIV, 4, "div");
 
+#[doc(hidden)]
 pub struct LazyFunctions {
     init: Once,
     data: Mutex<Option<FunctionsStore>>,

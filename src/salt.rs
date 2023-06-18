@@ -6,6 +6,7 @@ use bc_components::Salt;
 use bc_crypto::{RandomNumberGenerator, SecureRandomNumberGenerator};
 use dcbor::{CBORTaggedEncodable, CBOREncodable};
 
+/// Support for decorrelation of envelopes using salt.
 impl Envelope {
     /// Add a number of bytes of salt generally proportionate to the size of the object being salted.
     pub fn add_salt(self: Rc<Self>) -> Rc<Self> {

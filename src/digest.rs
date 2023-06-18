@@ -26,6 +26,7 @@ impl DigestProvider for Envelope {
     }
 }
 
+/// Support for working with the digest tree of an `Envelope`.
 impl Envelope {
     /// Returns the set of digests contained in the envelope's elements, down to the
     /// specified level.
@@ -67,9 +68,7 @@ impl Envelope {
     pub fn shallow_digests(self: Rc<Self>) -> HashSet<Digest> {
         self.digests(2)
     }
-}
 
-impl Envelope {
     /// Produce a value that will necessarily be different if two envelopes differ
     /// structurally, even if they are semantically equivalent.
     ///
@@ -109,9 +108,7 @@ impl Envelope {
         self.walk(false, &visitor);
         Digest::from_image(&image.into_inner())
     }
-}
 
-impl Envelope {
     /// Tests two envelopes for semantic equivalence.
     ///
     /// Calling `e1.is_equivalent_to(e2)` has a complexity of `O(1)` and simply compares

@@ -36,16 +36,17 @@ impl Assertion {
         }
     }
 
-    // Returns the predicate of the assertion.
+    /// Returns the predicate of the assertion.
     pub fn predicate(&self) -> Rc<Envelope> {
         self.predicate.clone()
     }
 
-    // Returns the object of the assertion.
+    /// Returns the object of the assertion.
     pub fn object(&self) -> Rc<Envelope> {
         self.object.clone()
     }
 
+    /// Returns the digest of the assertion.
     pub fn digest_ref(&self) -> &Digest {
         &self.digest
     }

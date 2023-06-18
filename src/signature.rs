@@ -5,6 +5,7 @@ use bc_crypto::{RandomNumberGenerator, SecureRandomNumberGenerator};
 
 use crate::{Envelope, Error, known_values, impl_into_envelope};
 
+/// Support for signing envelopes and verifying signatures.
 impl Envelope {
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
     ///
@@ -16,6 +17,7 @@ impl Envelope {
         self.sign_with_opt(private_keys, None, [])
     }
 
+    #[doc(hidden)]
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
     ///
     /// - Parameters:
@@ -61,6 +63,7 @@ impl Envelope {
         self.sign_with_opt_using(private_keys, note, tag, &mut rng)
     }
 
+    #[doc(hidden)]
     pub fn sign_with_using(
         self: Rc<Self>,
         private_keys: &PrivateKeyBase,
@@ -94,6 +97,7 @@ impl Envelope {
         self.sign_with_keys_opt_using(private_keys_array, tag, &mut rng)
     }
 
+    #[doc(hidden)]
     /// Creates several signatures for the envelope's subject and returns a new envelope with additional `verifiedBy: Signature` assertions.
     ///
     /// - Parameters:
@@ -115,6 +119,7 @@ impl Envelope {
         })
     }
 
+    #[doc(hidden)]
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
     ///
     /// - Parameters:
@@ -160,9 +165,7 @@ impl Envelope {
         let mut rng = SecureRandomNumberGenerator;
         self.sign_with_uncovered_assertions_using(private_keys, uncovered_assertions, tag, &mut rng)
     }
-}
 
-impl Envelope {
     /// Convenience constructor for a `verifiedBy: Signature` assertion envelope.
     ///
     /// - Parameters:
@@ -182,9 +185,7 @@ impl Envelope {
         }
         envelope
     }
-}
 
-impl Envelope {
     /// An array of signatures from all of the envelope's `verifiedBy` predicates.
     ///
     /// - Throws: Throws an exception if any `verifiedBy` assertion doesn't contain a
@@ -333,7 +334,7 @@ impl Envelope {
     }
 }
 
-/// Internal methods
+#[doc(hidden)]
 impl Envelope {
     fn is_signature_from_key(
         self: Rc<Self>,

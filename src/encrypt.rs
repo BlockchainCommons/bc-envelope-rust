@@ -5,6 +5,7 @@ use dcbor::{CBOREncodable, CBORTaggedDecodable, CBORTaggedEncodable, CBOR};
 
 use crate::{Envelope, Error};
 
+/// Support for encrypting and decrypting envelopes.
 impl Envelope {
     /// Returns a new envelope with its subject encrypted.
     ///
@@ -21,6 +22,7 @@ impl Envelope {
         self.encrypt_subject_opt(key, None)
     }
 
+    #[doc(hidden)]
     pub fn encrypt_subject_opt(self: Rc<Self>, key: &SymmetricKey, test_nonce: Option<Nonce>) -> Result<Rc<Self>, Error> {
         let result: Rc<Self>;
         let original_digest: Cow<'_, Digest>;
@@ -80,6 +82,7 @@ impl Envelope {
         Ok(result)
     }
 
+    /// Returns a new envelope with its subject decrypted.
     pub fn decrypt_subject(self: Rc<Self>, key: &SymmetricKey) -> Result<Rc<Self>, Error> {
         match &*self.clone().subject() {
             Self::Encrypted(message) => {

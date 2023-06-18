@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use super::KnownValue;
 
+/// A type that maps between known values and their assigned names.
 #[derive(Clone, Debug)]
 pub struct KnownValuesStore {
     known_values_by_raw_value: HashMap<u64, KnownValue>,

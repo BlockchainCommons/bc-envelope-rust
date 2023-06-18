@@ -5,6 +5,7 @@ use crate::{Envelope, known_values, Error};
 use bc_components::{SealedMessage, PublicKeyBase, SymmetricKey, Nonce, PrivateKeyBase};
 use dcbor::{CBOREncodable, CBORTaggedDecodable};
 
+/// Support for public key encryption.
 impl Envelope {
     /// Convenience constructor for a `hasRecipient: SealedMessage` assertion.
     ///
@@ -54,9 +55,7 @@ impl Envelope {
             })
             .collect()
     }
-}
 
-impl Envelope {
     pub fn encrypt_subject_to_recipients(self: Rc<Self>, recipients: &[&PublicKeyBase]) -> Result<Rc<Self>, Error> {
         self.encrypt_subject_to_recipients_opt(recipients, None, None::<&Nonce>)
     }
@@ -89,9 +88,7 @@ impl Envelope {
     pub fn encrypt_subject_to_recipient_opt(self: Rc<Self>, recipient: &PublicKeyBase, test_key_material: Option<&[u8]>, test_nonce: Option<&Nonce>) -> Result<Rc<Self>, Error> {
         self.encrypt_subject_to_recipients_opt(&[recipient], test_key_material, test_nonce)
     }
-}
 
-impl Envelope {
     fn first_plaintext_in_sealed_messages(sealed_messages: &[Rc<SealedMessage>], private_keys: &PrivateKeyBase) -> Result<Vec<u8>, Error> {
         for sealed_message in sealed_messages {
             let a = sealed_message.decrypt(private_keys).ok();

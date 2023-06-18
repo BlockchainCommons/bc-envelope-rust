@@ -17,6 +17,7 @@ parameter_constant!(BLANK, 1, "_");
 parameter_constant!(LHS, 2, "lhs");
 parameter_constant!(RHS, 3, "rhs");
 
+#[doc(hidden)]
 pub struct LazyParameters {
     init: Once,
     data: Mutex<Option<ParametersStore>>,

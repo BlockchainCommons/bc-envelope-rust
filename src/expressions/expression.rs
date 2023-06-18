@@ -7,7 +7,7 @@ use crate::{IntoEnvelope, Envelope, Error, known_values::{self, KnownValue}};
 
 use super::{Function, Parameter};
 
-/// Function Construction
+/// Envelope Expressions: Function Construction
 impl Envelope {
     /// Creates an envelope with a `«function»` subject.
     pub fn new_function<F>(function: F) -> Rc<Self>
@@ -18,7 +18,7 @@ impl Envelope {
     }
 }
 
-/// Parameter Construction
+/// Envelope Expressions: Parameter Construction
 impl Envelope {
     /// Creates a new envelope containing a `❰parameter❱: value` assertion.
     ///
@@ -79,7 +79,7 @@ impl Envelope {
     }
 }
 
-/// Request Construction
+/// Envelope Expressions: Request Construction
 impl Envelope {
     /// Creates an envelope with a `CID` subject and a `body: «function»` assertion.
     pub fn new_request<C, B>(request_id: C, body: B) -> Rc<Self>
@@ -92,7 +92,7 @@ impl Envelope {
     }
 }
 
-/// Response Construction
+/// Envelope Expressions: Response Construction
 impl Envelope {
     /// Creates an envelope with a `CID` subject and a `result: value` assertion.
     pub fn new_response<C, R>(response_id: C, result: R) -> Rc<Self>
@@ -152,7 +152,7 @@ impl Envelope {
     }
 }
 
-/// Parameter Decoding
+/// Envelope Expressions: Parameter Decoding
 impl Envelope {
     /// Returns the argument for the given parameter.
     ///
@@ -178,7 +178,7 @@ impl Envelope {
     }
 }
 
-/// Result Decoding
+/// Envelope Expressions: Result Decoding
 impl Envelope {
     /// Returns the object of the `result` predicate.
     ///

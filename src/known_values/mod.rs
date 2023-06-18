@@ -102,6 +102,7 @@ known_value_constant!(OK, 103, "ok");
 // Object providing the "in processing" result of a request.
 known_value_constant!(PROCESSING, 104, "processing");
 
+#[doc(hidden)]
 pub struct LazyKnownValues {
     init: Once,
     data: Mutex<Option<KnownValuesStore>>,
