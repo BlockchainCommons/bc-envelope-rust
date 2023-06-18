@@ -53,10 +53,12 @@ impl Envelope {
     }
 }
 
+/// Implementers of this trait define how to be formatted in when output in envelope notation.
 pub trait EnvelopeFormat {
     fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem;
 }
 
+/// This type is returned by implementers of the [`EnvelopeFormat`] trait.
 #[derive(Debug, Clone, Eq)]
 pub enum EnvelopeFormatItem {
     Begin(String),

@@ -3,6 +3,26 @@ use dcbor::{TagsStore, Tag, TagsStoreTrait};
 use std::sync::{Once, Mutex};
 use crate::{expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNCTIONS, GLOBAL_PARAMETERS}, known_values::{KnownValuesStore, KNOWN_VALUES}};
 
+/// The envelope formatting functions take a `FormatContext` as an argument. This type
+/// defines information about CBOR tags, known values, functions and parameters that
+/// are used to annotate the output of the formatting functions.
+///
+/// The `with_format_context!` macro can be used to access the global format context:
+///
+/// ```
+/// # use bc_envelope::{Envelope, with_format_context};
+/// # use indoc::indoc;
+/// # let e = Envelope::new("Hello.");
+/// with_format_context!(|context| {
+///     assert_eq!(e.diagnostic_opt(true, Some(context)),
+///     indoc! {r#"
+///     200(   ; envelope
+///        24("Hello.")   ; leaf
+///     )
+///     "#}.trim()
+///     );
+/// });
+/// ```
 #[derive(Clone, Debug)]
 pub struct FormatContext {
     tags: TagsStore,
@@ -89,6 +109,7 @@ impl LazyFormatContext {
     }
 }
 
+/// Access using the `with_format_context!` macro.
 pub static GLOBAL_FORMAT_CONTEXT: LazyFormatContext = LazyFormatContext {
     init: Once::new(),
     data: Mutex::new(None),
