@@ -3,7 +3,7 @@ use std::rc::Rc;
 use bc_components::{EncryptedMessage, Compressed, SealedMessage, Digest, CID, Salt};
 use dcbor::{CBOREncodable, CBOR, Date};
 
-use crate::{Envelope, KnownValue, Assertion};
+use crate::{Envelope, Assertion, known_values::KnownValue};
 
 pub trait IntoEnvelope {
     fn into_envelope(self) -> Rc<Envelope>;

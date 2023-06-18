@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::KnownValue;
+use super::KnownValue;
 
 #[derive(Clone, Debug)]
 pub struct KnownValuesStore {

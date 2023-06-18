@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use bc_components::{Digest, Compressed, EncryptedMessage, DigestProvider};
 use dcbor::{CBOR, CBOREncodable};
-use crate::{assertion::Assertion, KnownValue, Error, IntoEnvelope};
+use crate::{assertion::Assertion, Error, IntoEnvelope, known_values::KnownValue};
 
 /// A flexible container for structured data.
 ///
@@ -113,7 +113,7 @@ impl Envelope {
 #[cfg(test)]
 mod tests {
     use bc_components::{DigestProvider, Compressed};
-    use crate::{Envelope, KnownValue, Assertion};
+    use crate::{Envelope, Assertion, known_values::KnownValue};
 
     #[test]
     fn test_any_envelope() {

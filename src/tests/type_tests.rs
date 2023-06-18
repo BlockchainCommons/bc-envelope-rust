@@ -1,4 +1,4 @@
-use crate::{known_value, Envelope};
+use crate::{Envelope, known_values};
 use bc_components::DigestProvider;
 use bc_crypto::{fake_random_data, make_fake_random_number_generator, RandomNumberGenerator};
 use bc_ur::UREncodable;
@@ -6,7 +6,7 @@ use dcbor::Date;
 
 #[test]
 fn test_known_value() {
-    let envelope = Envelope::new(known_value::VERIFIED_BY).check_encoding().unwrap();
+    let envelope = Envelope::new(known_values::VERIFIED_BY).check_encoding().unwrap();
     assert_eq!(format!("{}", envelope), ".knownValue(verifiedBy)");
     assert_eq!(format!("{:?}", envelope.digest()), "Digest(9d7ba9eb8986332bf3e6f3f96b36d937176d95b556441b18612b9c06edc9b7e1)");
     assert_eq!(envelope.format(), "verifiedBy");

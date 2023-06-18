@@ -17,38 +17,22 @@ mod wrap;
 
 pub mod expressions;
 pub mod format;
-
-mod sskr;
-pub use sskr::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret};
+pub mod known_values;
+pub mod sskr;
+pub mod walk;
+pub mod elide;
 
 mod into_envelope;
 pub use into_envelope::IntoEnvelope;
 
-mod elide;
-pub use elide::ObscureAction;
-
 mod envelope;
 pub use crate::envelope::Envelope;
-
-// pub use format::{EnvelopeFormat, EnvelopeFormatItem};
-
-// mod format_context;
-// pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 
 mod error;
 pub use error::Error;
 
-pub mod walk;
-
 mod assertion;
 pub use assertion::Assertion;
-
-mod known_values;
-pub mod known_value;
-pub use known_value::KnownValue;
-
-mod known_values_store;
-pub use known_values_store::KnownValuesStore;
 
 #[cfg(test)]
 mod tests {

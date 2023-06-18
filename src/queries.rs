@@ -5,7 +5,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::{Assertion, Envelope, Error, IntoEnvelope, KnownValue};
+use crate::{Assertion, Envelope, Error, IntoEnvelope, known_values::KnownValue};
 
 impl Envelope {
     /// The envelope's subject.

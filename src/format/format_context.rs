@@ -1,7 +1,7 @@
 use bc_components::tags::GLOBAL_TAGS;
 use dcbor::{TagsStore, Tag, TagsStoreTrait};
 use std::sync::{Once, Mutex};
-use crate::{known_values_store::KnownValuesStore, known_value::KNOWN_VALUES, expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNCTIONS, GLOBAL_PARAMETERS}};
+use crate::{expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNCTIONS, GLOBAL_PARAMETERS}, known_values::{KnownValuesStore, KNOWN_VALUES}};
 
 #[derive(Clone, Debug)]
 pub struct FormatContext {

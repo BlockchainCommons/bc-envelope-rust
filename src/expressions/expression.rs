@@ -3,7 +3,7 @@ use std::rc::Rc;
 use bc_components::{tags, CID};
 use dcbor::{CBOR, CBORDecodable};
 
-use crate::{known_values, IntoEnvelope, Envelope, Error, KnownValue};
+use crate::{IntoEnvelope, Envelope, Error, known_values::{self, KnownValue}};
 
 use super::{Function, Parameter};
 

@@ -2,7 +2,7 @@ use bc_components::DigestProvider;
 use bc_crypto::make_fake_random_number_generator;
 use dcbor::CBOREncodable;
 use indoc::indoc;
-use crate::{known_value::NOTE, with_format_context, Envelope};
+use crate::{known_values::NOTE, with_format_context, Envelope};
 
 use super::test_data::alice_private_keys;
 

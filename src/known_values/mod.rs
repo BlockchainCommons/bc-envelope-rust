@@ -1,6 +1,12 @@
+pub mod known_value;
+pub use known_value::KnownValue;
+
+mod known_values_store;
+pub use known_values_store::KnownValuesStore;
+
 use std::sync::{Once, Mutex};
-use crate::{KnownValue, KnownValuesStore};
 use paste::paste;
+
 
 #[macro_export]
 macro_rules! known_value_constant {
@@ -141,13 +147,12 @@ pub static KNOWN_VALUES: LazyKnownValues = LazyKnownValues {
 
 #[cfg(test)]
 mod tests {
-    use crate::known_value::KNOWN_VALUES;
+    use crate::known_values::{self, KNOWN_VALUES};
 
     #[test]
     fn test_1() {
-        use crate::*;
-        assert_eq!(known_value::IS_A.value(), 2);
-        assert_eq!(known_value::IS_A.name(), Some("isA").unwrap());
+        assert_eq!(known_values::IS_A.value(), 2);
+        assert_eq!(known_values::IS_A.name(), Some("isA").unwrap());
         let binding = KNOWN_VALUES.get();
         let known_values = binding.as_ref().unwrap();
         assert_eq!(known_values.known_value_named("isA").unwrap().value(), 2);

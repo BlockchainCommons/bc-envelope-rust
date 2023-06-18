@@ -1,4 +1,4 @@
-use crate::{Envelope, with_format_context, KnownValue, known_values};
+use crate::{Envelope, with_format_context, known_values::{self, KnownValue}};
 use bc_components::DigestProvider;
 use indoc::indoc;
 use super::test_data::*;
