@@ -35,7 +35,10 @@ pub enum Envelope {
     Elided(Digest),
 }
 
+/// Support for basic envelope creation.
 impl Envelope {
+    /// Creates an envelope with a `subject`, which
+    /// can be any instance that implements ``IntoEnvelope``.
     pub fn new<E>(subject: E) -> Rc<Self>
     where
         E: IntoEnvelope,
@@ -43,6 +46,8 @@ impl Envelope {
         subject.into_envelope()
     }
 
+    /// Creates an assertion envelope with a `predicate` and `object`,
+    /// each of which can be any instance that implements ``IntoEnvelope``.
     pub fn new_assertion<P, O>(predicate: P, object: O) -> Rc<Self>
     where
         P: IntoEnvelope,

@@ -6,6 +6,7 @@ use bc_crypto::RandomNumberGenerator;
 
 use crate::{Envelope, known_values, Error, impl_into_envelope};
 
+/// Support for splitting and combining envelopes using SSKR (Shamir's Secret Sharing).
 impl Envelope {
     /// Returns a new ``Envelope`` with a `sskrShare: SSKRShare` assertion added.
     fn add_sskr_share(self: Rc<Self>, share: &SSKRShare) -> Rc<Self> {
@@ -32,6 +33,7 @@ impl Envelope {
         self.sskr_split_using(spec, content_key, &mut rng)
     }
 
+    #[doc(hidden)]
     /// Splits the envelope into a set of SSKR shares.
     ///
     /// The envelope subject should already be encrypted by a specific `SymmetricKey`
@@ -61,10 +63,8 @@ impl Envelope {
         }
         Ok(result)
     }
-}
 
-impl Envelope {
-    pub fn sskr_shares_in(envelopes: &[Rc<Envelope>]) -> Result<HashMap<u16, Vec<SSKRShare>>, Error> {
+    fn sskr_shares_in(envelopes: &[Rc<Envelope>]) -> Result<HashMap<u16, Vec<SSKRShare>>, Error> {
         let mut result: HashMap<u16, Vec<SSKRShare>> = HashMap::new();
         for envelope in envelopes {
             for assertion in envelope.clone().assertions_with_predicate(known_values::SSKR_SHARE) {
@@ -78,9 +78,7 @@ impl Envelope {
         }
         Ok(result)
     }
-}
 
-impl Envelope {
     /// Creates a new envelope resulting from the joining a set of envelopes split by SSKR.
     ///
     /// Given a set of envelopes that are ostensibly all part of the same SSKR split,

@@ -17,7 +17,9 @@ pub enum ObscureAction {
     Compress,
 }
 
-/// High-Level Elision Functions
+/// Support for eliding elements from envelopes.
+///
+/// This includes eliding, encrypting and compressing (obscuring) elements.
 impl Envelope {
     /// Returns the elided variant of this envelope.
     ///
@@ -156,10 +158,7 @@ impl Envelope {
     pub fn elide_revealing_target(self: Rc<Self>, target: &dyn DigestProvider) -> Rc<Self> {
         self.elide_target(target, true)
     }
-}
 
-/// Utility Elision Functions
-impl Envelope {
     // Target Matches   isRevealing     elide
     // ----------------------------------------
     //     false           false        false
@@ -278,10 +277,7 @@ impl Envelope {
     pub fn elide_target(self: Rc<Self>, target: &dyn DigestProvider, is_revealing: bool) -> Rc<Self> {
         self.elide_target_with_action(target, is_revealing, &ObscureAction::Elide)
     }
-}
 
-/// Uneliding an Envelope
-impl Envelope {
     /// Returns the unelided variant of this envelope.
     ///
     /// Returns the same envelope if it is already unelided.

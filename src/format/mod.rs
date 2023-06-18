@@ -1,9 +1,11 @@
 use std::error::Error;
 
+mod tree_format;
+
 mod format_context;
 pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 
-use bc_components::{Digest, CID, URI, UUID, DigestProvider};
+use bc_components::{Digest, CID, URI, UUID};
 use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable, Date};
 use crate::{Envelope, Assertion, string_utils::StringUtils, expressions::{Function, FunctionsStore, ParametersStore, Parameter}, known_values::{KnownValuesStore, KnownValue}};
 use bc_components::tags;
@@ -478,24 +480,5 @@ impl EnvelopeFormat for KnownValue {
 impl std::fmt::Display for Envelope {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.description(None))
-    }
-}
-
-impl Envelope {
-    pub fn short_id(&self) -> String {
-        self.digest().short_description()
-    }
-
-    pub fn summary(&self, max_length: usize, context: &FormatContext) -> String {
-        match self {
-            Envelope::Node { .. } => "NODE".to_string(),
-            Envelope::Leaf { cbor, .. } => cbor.envelope_summary(max_length, context).unwrap(),
-            Envelope::Wrapped { .. } => "WRAPPED".to_string(),
-            Envelope::KnownValue { value, .. } => value.name(),
-            Envelope::Assertion(_) => "ASSERTION".to_string(),
-            Envelope::Encrypted(_) => "ENCRYPTED".to_string(),
-            Envelope::Compressed(_) => "COMPRESSED".to_string(),
-            Envelope::Elided(_) => "ELIDED".to_string(),
-        }
     }
 }

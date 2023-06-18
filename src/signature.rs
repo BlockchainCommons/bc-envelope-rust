@@ -186,7 +186,7 @@ impl Envelope {
         envelope
     }
 
-    /// An array of signatures from all of the envelope's `verifiedBy` predicates.
+    /// Returns an array of `Signature`s from all of the envelope's `verifiedBy` predicates.
     ///
     /// - Throws: Throws an exception if any `verifiedBy` assertion doesn't contain a
     /// valid `Signature` as its object.
@@ -198,7 +198,7 @@ impl Envelope {
             .collect()
     }
 
-    /// Checks whether the given signature is valid.
+    /// Returns whether the given signature is valid.
     ///
     /// - Parameters:
     ///   - signature: The `Signature` to be checked.
@@ -213,7 +213,7 @@ impl Envelope {
         self.is_signature_from_key(signature, public_keys.signing_public_key())
     }
 
-    /// Checks whether the given signature is valid.
+    /// Checks whether the given signature is valid for the given public key.
     ///
     /// Used for chaining a series of operations that include validating signatures.
     ///
@@ -233,7 +233,7 @@ impl Envelope {
         self.verify_signature_from_key(signature, public_keys.signing_public_key())
     }
 
-    /// Checks whether the envelope's subject has a valid signature.
+    /// Returns whether the envelope's subject has a valid signature from the given public key.
     ///
     /// - Parameters:
     ///   - publicKeys: The potential signer's `PublicKeyBase`.
@@ -249,7 +249,7 @@ impl Envelope {
         self.has_some_signature_from_key(public_keys.signing_public_key())
     }
 
-    /// Checks whether the envelope's subject has a valid signature.
+    /// Returns whether the envelope's subject has a valid signature from the given public key.
     ///
     /// Used for chaining a series of operations that include validating signatures.
     ///
@@ -275,7 +275,7 @@ impl Envelope {
         self.has_signatures_from_threshold(public_keys_array, None)
     }
 
-    /// Checks whether the envelope's subject has some threshold of signatures.
+    /// Returns whether the envelope's subject has some threshold of signatures.
     ///
     /// If `threshold` is `nil`, then *all* signers in `publicKeysArray` must have
     /// signed. If `threshold` is `1`, then at least one signer must have signed.
@@ -300,6 +300,7 @@ impl Envelope {
         self.has_signatures_from_keys_threshold(&public_keys, threshold)
     }
 
+    /// Checks whether the envelope's subject has a set of signatures.
     pub fn verify_signatures_from(
         self: Rc<Self>,
         public_keys_array: &[&PublicKeyBase],

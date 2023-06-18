@@ -35,6 +35,7 @@ impl Envelope {
         Self::new_assertion(param.into(), value)
     }
 
+    /// Optionally adds a `❰parameter❱: value` assertion to the envelope.
     pub fn new_optional_parameter<P, V>(param: P, value: Option<V>) -> Option<Rc<Self>>
     where
         P: Into<Parameter>,
@@ -59,7 +60,7 @@ impl Envelope {
             .unwrap()
     }
 
-    /// Adds a `❰parameter❱: value` assertion to the envelope.
+    /// Optionally adds a `❰parameter❱: value` assertion to the envelope.
     ///
     /// - Parameters:
     ///   - param: A ``Parameter``. This will be encoded as either an unsigned integer or a string.
@@ -105,7 +106,7 @@ impl Envelope {
     }
 
     /// Creates an envelope with a `CID` subject and a `result: value` assertion for each provided result.
-    pub fn new_response_with_results<C, R>(response_id: C, results: &[R]) -> Rc<Self>
+    pub fn new_response_with_result<C, R>(response_id: C, results: &[R]) -> Rc<Self>
     where
         C: AsRef<CID>,
         R: IntoEnvelope + Clone,
@@ -154,7 +155,7 @@ impl Envelope {
 
 /// Envelope Expressions: Parameter Decoding
 impl Envelope {
-    /// Returns the argument for the given parameter.
+    /// Returns the argument for the given parameter, decoded as the given type.
     ///
     /// - Throws: Throws an exception if there is not exactly one matching `parameter`,
     /// or if the parameter value is not the correct type.
@@ -166,7 +167,7 @@ impl Envelope {
         self.extract_object_for_predicate(param.into())
     }
 
-    /// Returns an array of arguments for the given parameter.
+    /// Returns an array of arguments for the given parameter, decoded as the given type.
     ///
     /// - Throws: Throws an exception if any of the parameter values are not the correct type.
     pub fn extract_objects_for_parameter<T, P>(self: Rc<Self>, param: P) -> Result<Vec<Rc<T>>, Error>
@@ -192,7 +193,7 @@ impl Envelope {
         self.objects_for_predicate(known_values::RESULT)
     }
 
-    /// Returns the object of the `result` predicate.
+    /// Returns the object of the `result` predicate, decoded as the given type.
     ///
     /// - Throws: Throws an exception if there is no `result` predicate, or if its
     /// object cannot be decoded to the specified `type`.
@@ -203,7 +204,7 @@ impl Envelope {
         self.extract_object_for_predicate(known_values::RESULT)
     }
 
-    /// Returns the objects of every `result` predicate.
+    /// Returns the objects of every `result` predicate, decoded as the given type.
     ///
     /// - Throws: Throws an if not all object cannot be decoded to the specified `type`.
     pub fn extract_results<T>(self: Rc<Self>) -> Result<Vec<Rc<T>>, Error>
@@ -213,14 +214,14 @@ impl Envelope {
         self.extract_objects_for_predicate(known_values::RESULT)
     }
 
-    /// Checks whether the `result` predicate has the `KnownValue` `.ok`.
+    /// Returns whether the `result` predicate has the `KnownValue` `.ok`.
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
     pub fn is_result_ok(self: Rc<Self>) -> Result<bool, Error> {
         self.extract_result::<KnownValue>().map(|v| *v == known_values::OK)
     }
 
-    /// Returns the error value.
+    /// Returns the error value, decoded as the given type.
     ///
     /// - Throws: Throws an exception if there is no `error` predicate.
     pub fn error<T>(self: Rc<Self>) -> Result<Rc<T>, Error>

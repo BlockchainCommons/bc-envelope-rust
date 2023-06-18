@@ -5,6 +5,7 @@ use dcbor::{CBOREncodable, CBOR, Date};
 
 use crate::{Envelope, Assertion, known_values::KnownValue};
 
+/// A type that can be converted into an envelope.
 pub trait IntoEnvelope {
     fn into_envelope(self) -> Rc<Envelope>;
 }

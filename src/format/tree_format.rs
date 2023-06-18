@@ -4,6 +4,8 @@ use bc_components::{Digest, DigestProvider};
 
 use crate::{Envelope, format::FormatContext, walk::EdgeType};
 
+use super::EnvelopeSummary;
+
 /// Support for tree-formatting envelopes.
 impl Envelope {
     pub fn tree_format(self: Rc<Envelope>, hide_nodes: bool, context: Option<&FormatContext>) -> String {
@@ -26,6 +28,25 @@ impl Envelope {
         self.walk(hide_nodes, &visitor);
         let elements = elements.borrow();
         elements.iter().map(|e| e.string(context.unwrap_or(&FormatContext::default()))).collect::<Vec<_>>().join("\n")
+    }
+}
+
+impl Envelope {
+    fn short_id(&self) -> String {
+        self.digest().short_description()
+    }
+
+    fn summary(&self, max_length: usize, context: &FormatContext) -> String {
+        match self {
+            Envelope::Node { .. } => "NODE".to_string(),
+            Envelope::Leaf { cbor, .. } => cbor.envelope_summary(max_length, context).unwrap(),
+            Envelope::Wrapped { .. } => "WRAPPED".to_string(),
+            Envelope::KnownValue { value, .. } => value.name(),
+            Envelope::Assertion(_) => "ASSERTION".to_string(),
+            Envelope::Encrypted(_) => "ENCRYPTED".to_string(),
+            Envelope::Compressed(_) => "COMPRESSED".to_string(),
+            Envelope::Elided(_) => "ELIDED".to_string(),
+        }
     }
 }
 

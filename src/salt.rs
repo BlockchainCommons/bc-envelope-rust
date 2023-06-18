@@ -27,6 +27,7 @@ impl Envelope {
         self.add_salt_with_len_using(count, &mut rng)
     }
 
+    #[doc(hidden)]
     /// Add a specified number of bytes of salt.
     ///
     /// Returns an error if the number of bytes is less than 8.
@@ -43,6 +44,7 @@ impl Envelope {
         self.add_salt_in_range_using(&range, &mut rng)
     }
 
+    #[doc(hidden)]
     /// Add a number of bytes of salt chosen randomly from the given range.
     ///
     /// Returns an error if the minimum number of bytes is less than 8.
@@ -51,6 +53,7 @@ impl Envelope {
         Ok(self.add_salt_instance(salt))
     }
 
+    #[doc(hidden)]
     /// Add a deterministic amount of salt.
     ///
     /// Only used for testing.

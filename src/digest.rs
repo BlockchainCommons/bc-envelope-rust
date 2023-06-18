@@ -59,12 +59,12 @@ impl Envelope {
         result.into_inner()
     }
 
-    /// The set of all digests in the envelope.
+    /// Returns the set of all digests in the envelope.
     pub fn deep_digests(self: Rc<Self>) -> HashSet<Digest> {
         self.digests(usize::MAX)
     }
 
-    /// The set of all digests in the envelope, down to its second level.
+    /// Returns the set of all digests in the envelope, down to its second level.
     pub fn shallow_digests(self: Rc<Self>) -> HashSet<Digest> {
         self.digests(2)
     }

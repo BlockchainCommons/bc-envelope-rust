@@ -57,7 +57,27 @@ pub enum Error {
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        let s = match self {
+            Error::AlreadyCompressed => "envelopes was already compressed".to_string(),
+            Error::AlreadyElided => "envelope was elided, so it cannot be compressed or encrypted".to_string(),
+            Error::AlreadyEncrypted => "envelope was already encrypted or compressed, so it cannot be encrypted".to_string(),
+            Error::AmbiguousPredicate => "more than one assertion matches the predicate".to_string(),
+            Error::InvalidDigest => "digest did not match".to_string(),
+            Error::InvalidFormat => "invalid format".to_string(),
+            Error::InvalidRecipient => "no recipient matches the given key".to_string(),
+            Error::InvalidShares => "the given SSKR shares were not correct".to_string(),
+            Error::MissingDigest => "a digest was expected but not found".to_string(),
+            Error::NonexistentPredicate => "no assertion matches the predicate".to_string(),
+            Error::NotCompressed => "cannot uncompress an envelope that was not compressed".to_string(),
+            Error::NotEncrypted => "cannot decrypt an envelope that was not encrypted".to_string(),
+            Error::NotWrapped => "cannot unwrap an envelope that was not wrapped".to_string(),
+            Error::UnverifiedSignature => "could not verify a signature".to_string(),
+            Error::CBORError(err) => format!("{}", err),
+            Error::CryptoError(err) => format!("{}", err),
+            Error::SSKRError(err) => format!("{}", err),
+            Error::CompressedError(err) => format!("{}", err),
+        };
+        f.write_str(&s)
     }
 }
 
@@ -88,7 +108,7 @@ impl From<bc_components::CompressedError> for Error {
 }
 
 impl From<Error> for dcbor::Error {
-    fn from(_value: Error) -> Self {
+    fn from(_e: Error) -> Self {
         dcbor::Error::InvalidFormat
     }
 }

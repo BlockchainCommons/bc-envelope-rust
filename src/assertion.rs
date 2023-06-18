@@ -9,6 +9,10 @@ use dcbor::{
 use crate::{envelope::Envelope, IntoEnvelope};
 
 /// Represents an assertion.
+///
+/// Generally you do not create an instance of this type directly, but
+/// instead use [`Envelope::new_assertion`], or the various functions
+/// on ``Envelope`` that create assertions.
 #[derive(Clone, Debug)]
 pub struct Assertion {
     predicate: Rc<Envelope>,

@@ -259,7 +259,7 @@ impl Envelope {
         Ok(self.assertion_with_predicate(predicate)?.object().unwrap())
     }
 
-    /// Returns the object of the assertion with the given predicate.
+    /// Returns the object of the assertion with the given predicate, decoded as the given type.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
     /// Returns an error if the encoded type doesn't match the given type.
@@ -288,7 +288,8 @@ impl Envelope {
             .collect()
     }
 
-    /// Returns the objects of all assertions with the matching predicate.
+    /// Returns the objects of all assertions with the matching predicate,
+    /// decoded as the given type.
     ///
     /// Returns an error if the encoded type doesn't match the given type.
     pub fn extract_objects_for_predicate<T, P>(

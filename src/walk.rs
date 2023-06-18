@@ -29,6 +29,10 @@ pub type Visitor<'a, Parent> = dyn Fn(Rc<Envelope>, usize, EdgeType, Option<Pare
 
 /// Functions for walking an envelope.
 impl Envelope {
+    /// Walk the envelope, calling the visitor function for each element.
+    ///
+    /// If `hide_nodes` is true, then the visitor function will not be called for nodes,
+    /// but only for the children of nodes.
     pub fn walk<Parent: Clone>(self: Rc<Self>, hide_nodes: bool, visit: &Visitor<'_, Parent>) {
         if hide_nodes {
             self.walk_tree(visit);
