@@ -52,7 +52,7 @@ impl CBORTaggedEncodable for Envelope {
             Envelope::Assertion(assertion) => assertion.tagged_cbor(),
             Envelope::Encrypted(encrypted_message) => encrypted_message.tagged_cbor(),
             Envelope::Compressed(compressed) => compressed.tagged_cbor(),
-            Envelope::Elided(digest) => digest.tagged_cbor(),
+            Envelope::Elided(digest) => digest.untagged_cbor(),
         }
     }
 }
@@ -92,12 +92,14 @@ impl CBORTaggedDecodable for Envelope {
                         let envelope = Envelope::new_with_compressed(compressed)?;
                         Ok(envelope)
                     },
-                    tags::DIGEST_VALUE => {
-                        let digest = Digest::from_untagged_cbor(item)?;
-                        let envelope = Envelope::new_elided(digest);
-                        Ok(envelope)
-                    },
                     _ => Err(dcbor::Error::InvalidFormat),
+                }
+            }
+            CBOR::ByteString(bytes) => {
+                if let Some(digest) = Digest::from_data_ref(bytes) {
+                    Ok(Envelope::new_elided(digest))
+                } else {
+                    Err(dcbor::Error::InvalidFormat)
                 }
             }
             CBOR::Array(elements) => {
