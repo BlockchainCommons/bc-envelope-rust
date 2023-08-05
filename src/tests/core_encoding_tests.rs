@@ -48,9 +48,9 @@ fn test_2() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_3() -> Result<(), Box<dyn Error>> {
-    let e1 = Envelope::new_assertion("A", "B");
-    let e2 = Envelope::new_assertion("C", "D");
-    let e3 = Envelope::new_assertion("E", "F");
+    let e1 = Envelope::new_assertion("A", "B").check_encoding()?;
+    let e2 = Envelope::new_assertion("C", "D").check_encoding()?;
+    let e3 = Envelope::new_assertion("E", "F").check_encoding()?;
 
     let e4 = e2.add_assertion_envelope(e3).unwrap();
     assert_eq!(e4.format(),
@@ -97,6 +97,8 @@ fn test_3() -> Result<(), Box<dyn Error>> {
         "#}.trim()
         );
     });
+
+    e4.clone().check_encoding()?;
 
     let e5 = e1.add_assertion_envelope(e4).unwrap().check_encoding()?;
 

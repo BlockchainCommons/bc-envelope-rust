@@ -5,7 +5,7 @@ use bc_ur::{UREncodable, URDecodable};
 use indoc::indoc;
 use hex_literal::hex;
 
-use crate::Envelope;
+use crate::{Envelope, known_values};
 use super::{test_data::*, Seed};
 
 #[test]
@@ -130,19 +130,46 @@ fn symmetric_encryption() {
     assert!(received_envelope.decrypt_subject(&SymmetricKey::new()).is_err());
 }
 
-#[test]
-fn encrypt_decrypt() {
+fn round_trip_test(envelope: Rc<Envelope>) {
     let key = SymmetricKey::new();
-    let plaintext_envelope = hello_envelope()
-        .check_encoding().unwrap();
-    let encrypted_envelope = plaintext_envelope.clone()
-        .encrypt_subject(&key).unwrap()
-        .check_encoding().unwrap();
-    assert!(plaintext_envelope.is_equivalent_to(encrypted_envelope.clone()));
-    let plaintext_envelope2 = encrypted_envelope.clone()
+    let plaintext_subject = envelope.check_encoding().unwrap();
+    let encrypted_subject = plaintext_subject.clone()
+        .encrypt_subject(&key).unwrap();
+    assert!(encrypted_subject.clone().is_equivalent_to(plaintext_subject.clone()));
+    let plaintext_subject2 = encrypted_subject.clone()
         .decrypt_subject(&key).unwrap()
         .check_encoding().unwrap();
-    assert!(encrypted_envelope.is_equivalent_to(plaintext_envelope2));
+    assert!(encrypted_subject.is_equivalent_to(plaintext_subject2.clone()));
+    assert!(plaintext_subject.is_identical_to(plaintext_subject2));
+}
+
+#[test]
+fn encrypt_decrypt() {
+    // leaf
+    let e = Envelope::new(PLAINTEXT_HELLO);
+    round_trip_test(e);
+
+    // node
+    let e = Envelope::new("Alice")
+        .add_assertion("knows", "Bob");
+    round_trip_test(e);
+
+    // wrapped
+    let e = Envelope::new("Alice")
+        .wrap_envelope();
+    round_trip_test(e);
+
+    // known value
+    let e = Envelope::new(known_values::IS_A);
+    round_trip_test(e);
+
+    // assertion
+    let e = Envelope::new_assertion("knows", "Bob");
+    round_trip_test(e);
+
+    // compressed
+    let e = Envelope::new(PLAINTEXT_HELLO).compress().unwrap();
+    round_trip_test(e);
 }
 
 #[test]

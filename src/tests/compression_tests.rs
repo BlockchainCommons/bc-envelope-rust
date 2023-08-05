@@ -48,7 +48,7 @@ fn test_compress_subject() {
         "#}.trim());
     });
     let compresssed = original.clone().compress_subject().unwrap().check_encoding().unwrap();
-    assert_eq!(compresssed.cbor_data().len(), 391);
+    assert_eq!(compresssed.cbor_data().len(), 390);
     with_format_context!(|context| {
         let s = compresssed.clone().tree_format(false, Some(context));
         assert_eq!(s, indoc! {r#"

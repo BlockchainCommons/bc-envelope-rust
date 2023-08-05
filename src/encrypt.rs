@@ -1,6 +1,6 @@
 use std::{rc::Rc, borrow::Cow};
 
-use bc_components::{SymmetricKey, Nonce, Digest, DigestProvider, tags::LEAF};
+use bc_components::{SymmetricKey, Nonce, Digest, DigestProvider, tags::{LEAF, ENVELOPE}};
 use dcbor::{CBOREncodable, CBORTaggedDecodable, CBORTaggedEncodable, CBOR};
 
 use crate::{Envelope, Error};
@@ -40,26 +40,26 @@ impl Envelope {
                 original_digest = Cow::Borrowed(envelope_digest);
             }
             Self::Leaf { cbor, digest } => {
-                let encoded_cbor = CBOR::tagged_value(LEAF, cbor.clone()).cbor_data();
+                let encoded_cbor = CBOR::tagged_value(ENVELOPE, CBOR::tagged_value(LEAF, cbor.clone())).cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = Cow::Borrowed(digest);
             }
             Self::Wrapped { digest, .. } => {
-                let encoded_cbor = self.untagged_cbor().cbor_data();
+                let encoded_cbor = self.tagged_cbor().cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = Cow::Borrowed(digest);
             }
             Self::KnownValue { value, digest } => {
-                let encoded_cbor = value.cbor_data();
+                let encoded_cbor = CBOR::tagged_value(ENVELOPE, value.tagged_cbor()).cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = Cow::Borrowed(digest);
             }
             Self::Assertion(assertion) => {
                 let digest = assertion.digest();
-                let encoded_cbor = assertion.cbor_data();
+                let encoded_cbor = CBOR::tagged_value(ENVELOPE, assertion.tagged_cbor()).cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
                 result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = digest;
@@ -69,7 +69,7 @@ impl Envelope {
             }
             Self::Compressed(compressed) => {
                 let digest = compressed.digest();
-                let encoded_cbor = compressed.tagged_cbor().cbor_data();
+                let encoded_cbor = CBOR::tagged_value(ENVELOPE, compressed.tagged_cbor()).cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
                 result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = digest;
@@ -89,7 +89,7 @@ impl Envelope {
                 let encoded_cbor = key.decrypt(message)?;
                 let subject_digest = message.opt_digest().ok_or(Error::MissingDigest)?;
                 let cbor = CBOR::from_data(&encoded_cbor)?;
-                let result_subject = Rc::new(Self::from_untagged_cbor(&cbor)?).subject();
+                let result_subject = Rc::new(Self::from_tagged_cbor(&cbor)?);
                 if *result_subject.digest() != subject_digest {
                     return Err(Error::InvalidDigest);
                 }

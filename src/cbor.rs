@@ -47,7 +47,7 @@ impl CBORTaggedEncodable for Envelope {
                 CBOR::Array(result)
             }
             Envelope::Leaf { cbor, digest: _ } => CBOR::tagged_value(tags::LEAF, cbor.clone()),
-            Envelope::Wrapped { envelope, digest: _ } => CBOR::tagged_value(tags::WRAPPED_ENVELOPE, envelope.untagged_cbor()),
+            Envelope::Wrapped { envelope, digest: _ } => envelope.tagged_cbor(),
             Envelope::KnownValue { value, digest: _ } => value.tagged_cbor(),
             Envelope::Assertion(assertion) => assertion.tagged_cbor(),
             Envelope::Encrypted(encrypted_message) => encrypted_message.tagged_cbor(),
@@ -70,17 +70,13 @@ impl CBORTaggedDecodable for Envelope {
                         let known_value = KnownValue::from_untagged_cbor(item)?;
                         Ok(Envelope::new_with_known_value(known_value))
                     },
-                    tags::WRAPPED_ENVELOPE_VALUE => {
-                        let inner_envelope = Rc::new(Envelope::from_untagged_cbor(item)?);
-                        Ok(Envelope::new_wrapped(inner_envelope))
-                    },
                     tags::ASSERTION_VALUE => {
                         let assertion = Assertion::from_untagged_cbor(item)?;
                         Ok(Envelope::new_with_assertion(assertion))
                     },
                     tags::ENVELOPE_VALUE => {
-                        let envelope = Envelope::from_untagged_cbor(item)?;
-                        Ok(envelope)
+                        let envelope = Rc::new(Envelope::from_tagged_cbor(cbor)?);
+                        Ok(Envelope::new_wrapped(envelope))
                     },
                     tags::ENCRYPTED_VALUE => {
                         let encrypted = EncryptedMessage::from_untagged_cbor(item)?;
@@ -115,9 +111,9 @@ impl CBORTaggedDecodable for Envelope {
                     .iter()
                     .map(Envelope::from_tagged_cbor)
                     .collect::<Result<Vec<Self>, dcbor::Error>>()?
-                    .into_iter
-                    ().map(Rc::new
-                    ).collect();
+                    .into_iter()
+                    .map(Rc::new)
+                    .collect();
                 Ok(Envelope::new_with_assertions(subject, assertions)?)
             }
             _ => Err(dcbor::Error::InvalidFormat),

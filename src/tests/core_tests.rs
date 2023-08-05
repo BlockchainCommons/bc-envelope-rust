@@ -246,7 +246,7 @@ fn test_wrapped() {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
         200(   ; envelope
-           203(   ; wrapped-envelope
+           200(   ; envelope
               24("Hello.")   ; leaf
            )
         )
@@ -273,8 +273,8 @@ fn test_double_wrapped() {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
         200(   ; envelope
-           203(   ; wrapped-envelope
-              203(   ; wrapped-envelope
+           200(   ; envelope
+              200(   ; envelope
                  24("Hello.")   ; leaf
               )
            )
