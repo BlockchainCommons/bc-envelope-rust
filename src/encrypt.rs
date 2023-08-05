@@ -52,7 +52,7 @@ impl Envelope {
                 original_digest = Cow::Borrowed(digest);
             }
             Self::KnownValue { value, digest } => {
-                let encoded_cbor = CBOR::tagged_value(ENVELOPE, value.tagged_cbor()).cbor_data();
+                let encoded_cbor = CBOR::tagged_value(ENVELOPE, value.untagged_cbor()).cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = Cow::Borrowed(digest);

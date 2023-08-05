@@ -31,7 +31,7 @@ fn test_compress_subject() {
         .add_assertion(NOTE, source())
         .wrap_envelope()
         .sign_with_using(&alice_private_keys(), &mut rng);
-    assert_eq!(original.cbor_data().len(), 478);
+    assert_eq!(original.cbor_data().len(), 474);
     with_format_context!(|context| {
         let s = original.clone().tree_format(false, Some(context));
         assert_eq!(s, indoc! {r#"
@@ -48,7 +48,7 @@ fn test_compress_subject() {
         "#}.trim());
     });
     let compresssed = original.clone().compress_subject().unwrap().check_encoding().unwrap();
-    assert_eq!(compresssed.cbor_data().len(), 390);
+    assert_eq!(compresssed.cbor_data().len(), 386);
     with_format_context!(|context| {
         let s = compresssed.clone().tree_format(false, Some(context));
         assert_eq!(s, indoc! {r#"

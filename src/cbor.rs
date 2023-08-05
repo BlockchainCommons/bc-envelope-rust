@@ -48,7 +48,7 @@ impl CBORTaggedEncodable for Envelope {
             }
             Envelope::Leaf { cbor, digest: _ } => CBOR::tagged_value(tags::LEAF, cbor.clone()),
             Envelope::Wrapped { envelope, digest: _ } => envelope.tagged_cbor(),
-            Envelope::KnownValue { value, digest: _ } => value.tagged_cbor(),
+            Envelope::KnownValue { value, digest: _ } => value.untagged_cbor(),
             Envelope::Assertion(assertion) => assertion.cbor(),
             Envelope::Encrypted(encrypted_message) => encrypted_message.tagged_cbor(),
             Envelope::Compressed(compressed) => compressed.tagged_cbor(),
@@ -66,10 +66,10 @@ impl CBORTaggedDecodable for Envelope {
                         let cbor = item.as_ref().clone();
                         Ok(Envelope::new_leaf(cbor))
                     },
-                    tags::KNOWN_VALUE_VALUE => {
-                        let known_value = KnownValue::from_untagged_cbor(item)?;
-                        Ok(Envelope::new_with_known_value(known_value))
-                    },
+                    // tags::KNOWN_VALUE_VALUE => {
+                    //     let known_value = KnownValue::from_untagged_cbor(item)?;
+                    //     Ok(Envelope::new_with_known_value(known_value))
+                    // },
                     tags::ENVELOPE_VALUE => {
                         let envelope = Rc::new(Envelope::from_tagged_cbor(cbor)?);
                         Ok(Envelope::new_wrapped(envelope))
@@ -115,6 +115,10 @@ impl CBORTaggedDecodable for Envelope {
             CBOR::Map(_) => {
                 let assertion = Assertion::from_cbor(cbor)?;
                 Ok(Envelope::new_with_assertion(assertion))
+            }
+            CBOR::Unsigned(value) => {
+                let known_value = KnownValue::new(*value);
+                Ok(Envelope::new_with_known_value(known_value))
             }
             _ => Err(dcbor::Error::InvalidFormat),
         }

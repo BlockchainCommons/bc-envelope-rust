@@ -84,9 +84,7 @@ fn test_known_value_subject() {
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
-           202(4)   ; known-value
-        )
+        200(4)   ; envelope
         "#}.trim()
         );
     });
