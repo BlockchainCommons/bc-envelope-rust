@@ -2,8 +2,7 @@ use std::{borrow::Cow, rc::Rc};
 
 use bc_components::{tags, Digest, DigestProvider};
 use dcbor::{
-    CBORCodable, CBORDecodable, CBOREncodable, CBORTagged, CBORTaggedCodable, CBORTaggedDecodable,
-    CBORTaggedEncodable, Tag, CBOR,
+    CBORCodable, CBORDecodable, CBOREncodable, CBORTagged, Tag, CBOR, Map,
 };
 
 use crate::{envelope::Envelope, IntoEnvelope};
@@ -76,35 +75,25 @@ impl CBORTagged for Assertion {
 
 impl CBOREncodable for Assertion {
     fn cbor(&self) -> CBOR {
-        self.tagged_cbor()
+        let mut map = Map::new();
+        map.insert(self.predicate.cbor(), self.object.cbor());
+        map.cbor()
     }
 }
 
 impl CBORDecodable for Assertion {
     fn from_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
-        Self::from_tagged_cbor(cbor)
+        if let CBOR::Map(map) = cbor {
+            if map.len() != 1 {
+                return Err(dcbor::Error::InvalidFormat);
+            }
+            let elem = map.iter().next().unwrap();
+            let predicate = Envelope::from_cbor(elem.0)?;
+            let object = Envelope::from_cbor(elem.1)?;
+            return Ok(Self::new(predicate, object));
+        }
+        Err(dcbor::Error::InvalidFormat)
     }
 }
 
 impl CBORCodable for Assertion {}
-
-impl CBORTaggedEncodable for Assertion {
-    fn untagged_cbor(&self) -> CBOR {
-        vec![self.predicate.cbor(), self.object.cbor()].cbor()
-    }
-}
-
-impl CBORTaggedDecodable for Assertion {
-    fn from_untagged_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
-        let array: Vec<Rc<Envelope>> = Vec::<Envelope>::from_cbor(cbor)?
-            .into_iter()
-            .map(Rc::new)
-            .collect();
-        if array.len() != 2 {
-            return Err(dcbor::Error::InvalidFormat);
-        }
-        Ok(Self::new(array[0].clone(), array[1].clone()))
-    }
-}
-
-impl CBORTaggedCodable for Assertion {}

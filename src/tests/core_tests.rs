@@ -115,16 +115,14 @@ fn test_assertion_subject() {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
         200(   ; envelope
-           201(   ; assertion
-              [
-                 200(   ; envelope
-                    24("knows")   ; leaf
-                 ),
-                 200(   ; envelope
-                    24("Bob")   ; leaf
-                 )
-              ]
-           )
+           {
+              200(   ; envelope
+                 24("knows")   ; leaf
+              ):
+              200(   ; envelope
+                 24("Bob")   ; leaf
+              )
+           }
         )
         "#}.trim()
         );
@@ -152,16 +150,14 @@ fn test_subject_with_assertion() {
                  24("Alice")   ; leaf
               ),
               200(   ; envelope
-                 201(   ; assertion
-                    [
-                       200(   ; envelope
-                          24("knows")   ; leaf
-                       ),
-                       200(   ; envelope
-                          24("Bob")   ; leaf
-                       )
-                    ]
-                 )
+                 {
+                    200(   ; envelope
+                       24("knows")   ; leaf
+                    ):
+                    200(   ; envelope
+                       24("Bob")   ; leaf
+                    )
+                 }
               )
            ]
         )
@@ -195,28 +191,24 @@ fn test_subject_with_two_assertions() {
                  24("Alice")   ; leaf
               ),
               200(   ; envelope
-                 201(   ; assertion
-                    [
-                       200(   ; envelope
-                          24("knows")   ; leaf
-                       ),
-                       200(   ; envelope
-                          24("Carol")   ; leaf
-                       )
-                    ]
-                 )
+                 {
+                    200(   ; envelope
+                       24("knows")   ; leaf
+                    ):
+                    200(   ; envelope
+                       24("Carol")   ; leaf
+                    )
+                 }
               ),
               200(   ; envelope
-                 201(   ; assertion
-                    [
-                       200(   ; envelope
-                          24("knows")   ; leaf
-                       ),
-                       200(   ; envelope
-                          24("Bob")   ; leaf
-                       )
-                    ]
-                 )
+                 {
+                    200(   ; envelope
+                       24("knows")   ; leaf
+                    ):
+                    200(   ; envelope
+                       24("Bob")   ; leaf
+                    )
+                 }
               )
            ]
         )

@@ -12,11 +12,11 @@ use crate::{Envelope, Assertion, known_values::KnownValue};
 /// * `.node` contains a CBOR array, the first element of which is the subject,
 /// followed by one or more assertions.
 /// * `.leaf` is tagged #6.24, which is the IANA tag for embedded CBOR.
-/// * `.wrapped` is tagged with the `wrapped-envelope` tag.
-/// * `.knownValue` is tagged with the `known-value` tag.
-/// * `.assertion` is tagged with the `assertion` tag.
+/// * `.wrapped` is tagged with the `envelope` tag.
+/// * `.assertion` is a single-element map `{predicate: object}`.
+/// * `.knownValue` is a 64-bit signed numeric value.
 /// * `.encrypted` is tagged with the `crypto-msg` tag.
-/// * `.elided` is tagged with the `crypto-digest` tag.
+/// * `.elided` is a byte string of length 32.
 
 impl CBORTagged for Envelope {
     const CBOR_TAG: Tag = tags::ENVELOPE;
@@ -49,7 +49,7 @@ impl CBORTaggedEncodable for Envelope {
             Envelope::Leaf { cbor, digest: _ } => CBOR::tagged_value(tags::LEAF, cbor.clone()),
             Envelope::Wrapped { envelope, digest: _ } => envelope.tagged_cbor(),
             Envelope::KnownValue { value, digest: _ } => value.tagged_cbor(),
-            Envelope::Assertion(assertion) => assertion.tagged_cbor(),
+            Envelope::Assertion(assertion) => assertion.cbor(),
             Envelope::Encrypted(encrypted_message) => encrypted_message.tagged_cbor(),
             Envelope::Compressed(compressed) => compressed.tagged_cbor(),
             Envelope::Elided(digest) => digest.untagged_cbor(),
@@ -69,10 +69,6 @@ impl CBORTaggedDecodable for Envelope {
                     tags::KNOWN_VALUE_VALUE => {
                         let known_value = KnownValue::from_untagged_cbor(item)?;
                         Ok(Envelope::new_with_known_value(known_value))
-                    },
-                    tags::ASSERTION_VALUE => {
-                        let assertion = Assertion::from_untagged_cbor(item)?;
-                        Ok(Envelope::new_with_assertion(assertion))
                     },
                     tags::ENVELOPE_VALUE => {
                         let envelope = Rc::new(Envelope::from_tagged_cbor(cbor)?);
@@ -115,6 +111,10 @@ impl CBORTaggedDecodable for Envelope {
                     .map(Rc::new)
                     .collect();
                 Ok(Envelope::new_with_assertions(subject, assertions)?)
+            }
+            CBOR::Map(_) => {
+                let assertion = Assertion::from_cbor(cbor)?;
+                Ok(Envelope::new_with_assertion(assertion))
             }
             _ => Err(dcbor::Error::InvalidFormat),
         }

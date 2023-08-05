@@ -31,7 +31,7 @@ fn test_compress_subject() {
         .add_assertion(NOTE, source())
         .wrap_envelope()
         .sign_with_using(&alice_private_keys(), &mut rng);
-    assert_eq!(original.cbor_data().len(), 482);
+    assert_eq!(original.cbor_data().len(), 478);
     with_format_context!(|context| {
         let s = original.clone().tree_format(false, Some(context));
         assert_eq!(s, indoc! {r#"

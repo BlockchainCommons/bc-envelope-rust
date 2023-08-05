@@ -59,7 +59,7 @@ impl Envelope {
             }
             Self::Assertion(assertion) => {
                 let digest = assertion.digest();
-                let encoded_cbor = CBOR::tagged_value(ENVELOPE, assertion.tagged_cbor()).cbor_data();
+                let encoded_cbor = CBOR::tagged_value(ENVELOPE, assertion.cbor()).cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
                 result = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 original_digest = digest;

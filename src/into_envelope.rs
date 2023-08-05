@@ -18,7 +18,7 @@ impl IntoEnvelope for Rc<Envelope> {
 
 impl IntoEnvelope for Envelope {
     fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_wrapped(Rc::new(self)))
+        Rc::new(self)
     }
 }
 
