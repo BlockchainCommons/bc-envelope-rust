@@ -1,5 +1,4 @@
-use std::{rc::Rc};
-
+use std::rc::Rc;
 use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider};
 use bc_crypto::{RandomNumberGenerator, SecureRandomNumberGenerator};
 

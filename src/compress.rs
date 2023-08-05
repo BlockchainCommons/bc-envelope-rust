@@ -56,7 +56,7 @@ impl Envelope {
         }
     }
 
-    /// Returs this envelope with its subject uncompressed.
+    /// Returns this envelope with its subject uncompressed.
     ///
     /// Returns the same envelope if its subject is already uncompressed.
     pub fn uncompress_subject(self: Rc<Self>) -> Result<Rc<Self>, Error> {

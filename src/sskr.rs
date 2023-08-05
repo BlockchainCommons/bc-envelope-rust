@@ -82,9 +82,9 @@ impl Envelope {
     /// Creates a new envelope resulting from the joining a set of envelopes split by SSKR.
     ///
     /// Given a set of envelopes that are ostensibly all part of the same SSKR split,
-    /// this method attempts to reconstuct the original envelope subject. It will try
+    /// this method attempts to reconstruct the original envelope subject. It will try
     /// all present `sskrShare: SSKRShare` assertions, grouped by split ID, to achieve a
-    /// threshold of shares. If it can do so successfully the initializer succeeeds.
+    /// threshold of shares. If it can do so successfully the initializer succeeds.
     ///
     /// - Parameter envelopes: The envelopes to be joined.
     ///

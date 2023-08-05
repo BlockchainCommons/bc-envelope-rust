@@ -162,7 +162,7 @@
 //! * [`Envelope::tree_format_with_target`] Formats an envelope in envelope tree
 //!   notation, highlighting a target set of elements.
 //!
-//! ### CBOR diagnostic notatoin
+//! ### CBOR diagnostic notation
 //!
 //! * [`Envelope::diagnostic`] Formats an envelope in CBOR diagnostic notation.
 //! * [`Envelope::diagnostic_opt`] Formats an envelope in CBOR diagnostic
@@ -262,9 +262,9 @@
 //! * [`Envelope::recipients`] Returns an array of `SealedMessage`s from all of
 //!   the envelope's `hasRecipient` assertions.
 //! * [`Envelope::encrypt_subject_to_recipients`] Returns an new envelope with
-//!   its subject encrypted and a `hasReceipient`
+//!   its subject encrypted and a `hasRecipient`
 //! * [`Envelope::encrypt_subject_to_recipient`] Returns a new envelope with its
-//!   subject encrypted and a `hasReceipient` assertion added for the
+//!   subject encrypted and a `hasRecipient` assertion added for the
 //!   `recipient`.
 //! * [`Envelope::decrypt_to_recipient`] Returns a new envelope with its subject
 //!   decrypted using the recipient's `PrivateKeyBase`.
@@ -276,7 +276,7 @@
 //!   envelope.
 //! * [`Envelope::compress_subject`] Returns this envelope with its subject
 //!   compressed.
-//! * [`Envelope::uncompress_subject`] Returs this envelope with its subject
+//! * [`Envelope::uncompress_subject`] Returns this envelope with its subject
 //!   uncompressed.
 //!
 //! # Eliding, Encrypting, or Compressing Parts of an Envelope

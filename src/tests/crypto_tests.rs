@@ -187,7 +187,7 @@ fn test_encrypt_then_sign() {
     // Alice and Bob have agreed to use this key.
     let key = SymmetricKey::new();
 
-    // Alice encryptes a plaintext message, then signs it.
+    // Alice encrypts a plaintext message, then signs it.
     //
     // It doesn't actually matter whether the `encrypt` or `sign` method comes first,
     // as the `encrypt` method transforms the `subject` into its `.encrypted` form,

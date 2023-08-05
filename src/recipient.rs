@@ -42,7 +42,7 @@ impl Envelope {
             .collect()
     }
 
-    /// Returns an new envelope with its subject encrypted and a `hasReceipient`
+    /// Returns an new envelope with its subject encrypted and a `hasRecipient`
     /// assertion added for each of the `recipients`.
     ///
     /// Generates an ephemeral symmetric key which is used to encrypt the subject and
@@ -68,7 +68,7 @@ impl Envelope {
         Ok(e)
     }
 
-    /// Returns a new envelope with its subject encrypted and a `hasReceipient`
+    /// Returns a new envelope with its subject encrypted and a `hasRecipient`
     /// assertion added for the `recipient`.
     ///
     /// Generates an ephemeral symmetric key which is used to encrypt the subject and

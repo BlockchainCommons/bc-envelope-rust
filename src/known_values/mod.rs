@@ -35,7 +35,7 @@ known_value_constant!(NOTE, 4, "note");
 // in the `SealedMessage` object.
 known_value_constant!(HAS_RECIPIENT, 5, "hasRecipient");
 
-// Predicate declaring the subject can be decryped by a quorum of `SSKRShare`s
+// Predicate declaring the subject can be decrypted by a quorum of `SSKRShare`s
 // including the one in the object.
 known_value_constant!(SSKR_SHARE, 6, "sskrShare");
 

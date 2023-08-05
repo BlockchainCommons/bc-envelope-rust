@@ -34,7 +34,7 @@ pub enum Error {
     /// Cannot uncompress an envelope that is not compressed.
     NotCompressed,
 
-    /// Cannot decrpt an envelope whose subject is not encrypted.
+    /// Cannot decrypt an envelope whose subject is not encrypted.
     NotEncrypted,
 
     /// Cannot unwrap an envelope that is not wrapped.
