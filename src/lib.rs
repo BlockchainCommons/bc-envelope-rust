@@ -21,7 +21,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bc-envelope = "0.1.0"
+//! bc-envelope = "0.2.0"
 //! ```
 //!
 //! ## Specification

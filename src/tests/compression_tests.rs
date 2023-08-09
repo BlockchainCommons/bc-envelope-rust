@@ -16,7 +16,7 @@ fn test_compress() {
     let original = Envelope::new(source());
     assert_eq!(original.cbor_data().len(), 371);
     let compressed = original.clone().compress().unwrap().check_encoding().unwrap();
-    assert_eq!(compressed.cbor_data().len(), 282);
+    assert_eq!(compressed.cbor_data().len(), 284);
 
     assert_eq!(original.digest(), compressed.digest());
     let uncompressed = compressed.uncompress().unwrap().check_encoding().unwrap();
@@ -35,28 +35,28 @@ fn test_compress_subject() {
     with_format_context!(|context| {
         let s = original.clone().tree_format(false, Some(context));
         assert_eq!(s, indoc! {r#"
-        1f87e614 NODE
-            9065b9d5 subj WRAPPED
-                4aa501b7 subj NODE
+        9ed291b0 NODE
+            d7183f04 subj WRAPPED
+                7f35e345 subj NODE
                     13941b48 subj "Alice"
-                    cb07a196 ASSERTION
-                        49a5f41b pred note
+                    9fb69539 ASSERTION
+                        0fcd6a39 pred note
                         e343c9b4 obj "Lorem ipsum dolor sit amet consectetur a…"
-            a689e27d ASSERTION
-                9d7ba9eb pred verifiedBy
-                051e3ce1 obj Signature
+            2f87ba42 ASSERTION
+                d0e39e78 pred verifiedBy
+                dd386db5 obj Signature
         "#}.trim());
     });
     let compresssed = original.clone().compress_subject().unwrap().check_encoding().unwrap();
-    assert_eq!(compresssed.cbor_data().len(), 386);
+    assert_eq!(compresssed.cbor_data().len(), 388);
     with_format_context!(|context| {
         let s = compresssed.clone().tree_format(false, Some(context));
         assert_eq!(s, indoc! {r#"
-        1f87e614 NODE
-            9065b9d5 subj COMPRESSED
-            a689e27d ASSERTION
-                9d7ba9eb pred verifiedBy
-                051e3ce1 obj Signature
+        9ed291b0 NODE
+            d7183f04 subj COMPRESSED
+            2f87ba42 ASSERTION
+                d0e39e78 pred verifiedBy
+                dd386db5 obj Signature
         "#}.trim());
     });
     let uncompressed = compresssed.uncompress_subject().unwrap().check_encoding().unwrap();

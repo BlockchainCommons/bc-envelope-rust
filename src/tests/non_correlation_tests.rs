@@ -1,4 +1,4 @@
-use crate::{known_values, Envelope};
+use crate::{known_values, Envelope, with_format_context};
 use bc_crypto::make_fake_random_number_generator;
 use indoc::indoc;
 
@@ -19,12 +19,34 @@ fn test_envelope_non_correlation() {
     ]
     "#}.trim());
 
+    with_format_context!(|context| {
+        assert_eq!(e2.clone().diagnostic_opt(true, Some(context)), indoc! {r#"
+        200(   ; envelope
+           [
+              200(   ; envelope
+                 24("Hello.")   ; leaf
+              ),
+              200(   ; envelope
+                 {
+                    200(15):   ; envelope
+                    200(   ; envelope
+                       24(   ; leaf
+                          40018(h'b559bbbf6cce2632')   ; salt
+                       )
+                    )
+                 }
+              )
+           ]
+        )
+        "#}.trim());
+    });
+
     assert_eq!(e2.clone().tree_format(false, None), indoc! {r#"
-    7b7212f5 NODE
+    4f0f2d55 NODE
         8cc96cdb subj "Hello."
-        425f48a1 ASSERTION
-            aa14a6e0 pred salt
-            ba8199d2 obj Salt
+        dd412f1d ASSERTION
+            618975ce pred salt
+            7915f200 obj Salt
     "#}.trim());
 
     // So even though its content is the same, it doesn't correlate.

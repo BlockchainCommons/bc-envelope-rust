@@ -1,8 +1,8 @@
 use std::{borrow::Cow, rc::Rc};
 
-use bc_components::{tags, Digest, DigestProvider};
+use bc_components::{Digest, DigestProvider};
 use dcbor::{
-    CBORCodable, CBORDecodable, CBOREncodable, CBORTagged, Tag, CBOR, Map,
+    CBORCodable, CBORDecodable, CBOREncodable, CBOR, Map,
 };
 
 use crate::{envelope::Envelope, IntoEnvelope};
@@ -67,10 +67,6 @@ impl DigestProvider for Assertion {
     fn digest(&self) -> Cow<'_, Digest> {
         Cow::Borrowed(&self.digest)
     }
-}
-
-impl CBORTagged for Assertion {
-    const CBOR_TAG: Tag = tags::ASSERTION;
 }
 
 impl CBOREncodable for Assertion {

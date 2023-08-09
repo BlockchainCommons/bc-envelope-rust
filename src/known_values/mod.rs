@@ -19,11 +19,11 @@ macro_rules! known_value_constant {
     };
 }
 
-// Predicate declaring the subject is known by the identifier object.
-known_value_constant!(ID, 1, "id");
-
 // Predicate declaring the subject is of a type identified by the object.
-known_value_constant!(IS_A, 2, "isA");
+known_value_constant!(IS_A, 1, "isA");
+
+// Predicate declaring the subject is known by the identifier object.
+known_value_constant!(ID, 2, "id");
 
 // Predicate declaring the subject is signed by the `Signature` object.
 known_value_constant!(VERIFIED_BY, 3, "verifiedBy");
@@ -153,10 +153,10 @@ mod tests {
 
     #[test]
     fn test_1() {
-        assert_eq!(known_values::IS_A.value(), 2);
+        assert_eq!(known_values::IS_A.value(), 1);
         assert_eq!(known_values::IS_A.name(), Some("isA").unwrap());
         let binding = KNOWN_VALUES.get();
         let known_values = binding.as_ref().unwrap();
-        assert_eq!(known_values.known_value_named("isA").unwrap().value(), 2);
+        assert_eq!(known_values.known_value_named("isA").unwrap().value(), 1);
     }
 }

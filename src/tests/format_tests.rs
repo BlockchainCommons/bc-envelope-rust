@@ -36,11 +36,11 @@ fn test_signed_plaintext() {
     ]
     "#}.trim());
     assert_eq!(envelope.clone().tree_format(false, None), indoc! {r#"
-    f987a100 NODE
+    509d8ab2 NODE
         8cc96cdb subj "Hello."
-        823a7958 ASSERTION
-            9d7ba9eb pred verifiedBy
-            93387377 obj Signature
+        f761face ASSERTION
+            d0e39e78 pred verifiedBy
+            0d868228 obj Signature
     "#}.trim());
     assert_eq!(envelope.clone().tree_format(true, None), indoc! {r#"
     "Hello."
@@ -138,17 +138,17 @@ fn test_signed_subject() {
     ]
     "#}.trim());
     assert_eq!(envelope.clone().tree_format(false, None), indoc! {r#"
-    6cd79bd6 NODE
+    98457ac2 NODE
         13941b48 subj "Alice"
         4012caf2 ASSERTION
             db7dd21c pred "knows"
             afb8122e obj "Carol"
+        6c31d926 ASSERTION
+            d0e39e78 pred verifiedBy
+            4ab15d8b obj Signature
         78d666eb ASSERTION
             db7dd21c pred "knows"
             13b74194 obj "Bob"
-        7cd7252e ASSERTION
-            9d7ba9eb pred verifiedBy
-            a83508b8 obj Signature
     "#}.trim());
     assert_eq!(envelope.clone().tree_format(true, None), indoc! {r#"
     "Alice"
@@ -156,11 +156,11 @@ fn test_signed_subject() {
             "knows"
             "Carol"
         ASSERTION
-            "knows"
-            "Bob"
-        ASSERTION
             verifiedBy
             Signature
+        ASSERTION
+            "knows"
+            "Bob"
     "#}.trim());
     assert_eq!(envelope.elements_count(), envelope.clone().tree_format(false, None).split('\n').count());
 
@@ -175,12 +175,12 @@ fn test_signed_subject() {
     ]
     "#}.trim());
     assert_eq!(elided.clone().tree_format(false, None), indoc! {r#"
-    6cd79bd6 NODE
+    98457ac2 NODE
         13941b48 subj "Alice"
         4012caf2 ELIDED
+        6c31d926 ELIDED
         78d666eb ELIDED
-        7cd7252e ELIDED
-    "#}.trim());
+"#}.trim());
     assert_eq!(elided.clone().tree_format(true, None), indoc! {r#"
     "Alice"
         ELIDED
@@ -209,7 +209,7 @@ fn test_wrap_then_signed() {
     ]
     "#}.trim());
     assert_eq!(envelope.clone().tree_format(false, None), indoc! {r#"
-    6a388c1d NODE
+    410ba52c NODE
         9e3b0673 subj WRAPPED
             b8d857f6 subj NODE
                 13941b48 subj "Alice"
@@ -219,9 +219,9 @@ fn test_wrap_then_signed() {
                 78d666eb ASSERTION
                     db7dd21c pred "knows"
                     13b74194 obj "Bob"
-        27435202 ASSERTION
-            9d7ba9eb pred verifiedBy
-            0bdbcecd obj Signature
+        73600f24 ASSERTION
+            d0e39e78 pred verifiedBy
+            d08ddb0d obj Signature
     "#}.trim());
     assert_eq!(envelope.clone().tree_format(true, None), indoc! {r#"
     WRAPPED
@@ -252,14 +252,14 @@ fn test_encrypt_to_recipients() {
     ]
     "#}.trim());
     assert_eq!(envelope.clone().tree_format(false, None), indoc! {r#"
-    9f130c09 NODE
+    310c90f6 NODE
         8cc96cdb subj ENCRYPTED
-        7137c3c2 ASSERTION
-            e41178b8 pred hasRecipient
-            b0925349 obj SealedMessage
-        fdb08145 ASSERTION
-            e41178b8 pred hasRecipient
-            b0e86e20 obj SealedMessage
+        93f3bf1d ASSERTION
+            943a35d1 pred hasRecipient
+            d3250f01 obj SealedMessage
+        bf724d53 ASSERTION
+            943a35d1 pred hasRecipient
+            78a28897 obj SealedMessage
     "#}.trim());
     assert_eq!(envelope.clone().tree_format(true, None), indoc! {r#"
     ENCRYPTED
@@ -381,50 +381,50 @@ fn test_complex_metadata() {
     "#}.trim());
 
     assert_eq!(book_metadata.clone().tree_format(false, None), indoc! {r#"
-    f41cbb59 NODE
-        5d3e9195 subj Digest(26d05af5)
-        05edf8ca ASSERTION
-            e25b9baf pred dereferenceVia
+    c93370e7 NODE
+        0c1e45b9 subj Digest(26d05af5)
+        83b00bef ASSERTION
+            cdb6a696 pred dereferenceVia
             15eac58f obj "IPFS"
         953cdab2 ASSERTION
             a9a86b03 pred "format"
             9536cfe0 obj "EPUB"
-        a3400534 ASSERTION
+        eec25a61 ASSERTION
             2ddb0b05 pred "work"
-            3d2c3a7f obj NODE
-                d8304d46 subj CID(7fb90a9d)
+            26681136 obj NODE
+                0c69be6e subj CID(7fb90a9d)
                 1786d8b5 ASSERTION
                     4019420b pred "isbn"
                     69ff76b1 obj "9780451191144"
-                1903fe89 ASSERTION
-                    9d0480e0 pred hasName
-                    61a11981 obj NODE
-                        5e825721 subj "La rebelión de Atlas"
-                        62ea333c ASSERTION
-                            65fa1c25 pred language
-                            b33e79c2 obj "es"
-                212af9fb ASSERTION
-                    96f0167d pred isA
+                5355d973 ASSERTION
+                    2be2d79b pred isA
                     6d7c7189 obj "novel"
-                21af9ce9 ASSERTION
+                63cd143a ASSERTION
+                    14ff9eac pred hasName
+                    29fa40b1 obj NODE
+                        5e825721 subj "La rebelión de Atlas"
+                        c8db157b ASSERTION
+                            60dfb783 pred language
+                            b33e79c2 obj "es"
+                7d6d5c1d ASSERTION
                     29c09059 pred "author"
-                    71bf6c35 obj NODE
-                        f4f77a81 subj CID(9c747ace)
-                        050a4539 ASSERTION
-                            9d0480e0 pred hasName
-                            98985bd5 obj "Ayn Rand"
-                        24b5a41b ASSERTION
-                            e25b9baf pred dereferenceVia
+                    1ba13788 obj NODE
+                        3c47e105 subj CID(9c747ace)
+                        9c10d60f ASSERTION
+                            cdb6a696 pred dereferenceVia
                             34a04547 obj "LibraryOfCongress"
-                24b5a41b ASSERTION
-                    e25b9baf pred dereferenceVia
+                        bff8435a ASSERTION
+                            14ff9eac pred hasName
+                            98985bd5 obj "Ayn Rand"
+                9c10d60f ASSERTION
+                    cdb6a696 pred dereferenceVia
                     34a04547 obj "LibraryOfCongress"
-                3d1f0148 ASSERTION
-                    9d0480e0 pred hasName
-                    fb15ce3e obj NODE
+                b722c07c ASSERTION
+                    14ff9eac pred hasName
+                    0cfacc06 obj NODE
                         e84c3091 subj "Atlas Shrugged"
-                        e6bd65c8 ASSERTION
-                            65fa1c25 pred language
+                        b80d3b05 ASSERTION
+                            60dfb783 pred language
                             6700869c obj "en"
     "#}.trim());
 
@@ -443,23 +443,23 @@ fn test_complex_metadata() {
                     "isbn"
                     "9780451191144"
                 ASSERTION
+                    isA
+                    "novel"
+                ASSERTION
                     hasName
                     "La rebelión de Atlas"
                         ASSERTION
                             language
                             "es"
                 ASSERTION
-                    isA
-                    "novel"
-                ASSERTION
                     "author"
                     CID(9c747ace)
                         ASSERTION
-                            hasName
-                            "Ayn Rand"
-                        ASSERTION
                             dereferenceVia
                             "LibraryOfCongress"
+                        ASSERTION
+                            hasName
+                            "Ayn Rand"
                 ASSERTION
                     dereferenceVia
                     "LibraryOfCongress"
@@ -521,10 +521,10 @@ fn test_credential() {
     ]
     "#}.trim());
     assert_eq!(credential.clone().tree_format(false, None), indoc! {r#"
-    31ff6d6b NODE
-        5886e784 subj WRAPPED
-            c9860567 subj NODE
-                5fb45cf1 subj CID(4676635a)
+    11d52de3 NODE
+        397a2d4c subj WRAPPED
+            8122ffa9 subj NODE
+                10d3de01 subj CID(4676635a)
                 1f9ff098 ASSERTION
                     9e3bff3a pred "certificateNumber"
                     21c21808 obj "123-456-789"
@@ -537,6 +537,9 @@ fn test_credential() {
                 4a9b2e4d ASSERTION
                     222afe69 pred "issueDate"
                     cb67f31d obj 2020-01-01
+                4d67bba0 ASSERTION
+                    2be2d79b pred isA
+                    051beee6 obj "Certificate of Completion"
                 5171cbaf ASSERTION
                     3976ef74 pred "photo"
                     231b8527 obj "This is James Maxwell's photo."
@@ -552,24 +555,21 @@ fn test_credential() {
                 8ec5e912 ASSERTION
                     2b191589 pred "continuingEducationUnits"
                     4bf5122f obj 1
-                922c859a ASSERTION
-                    96f0167d pred isA
-                    051beee6 obj "Certificate of Completion"
+                9b3d4785 ASSERTION
+                    af10ee92 pred controller
+                    f8489ac1 obj "Example Electrical Engineering Board"
                 caf5ced3 ASSERTION
                     8e4e62eb pred "subject"
                     202c10ef obj "RF and Microwave Engineering"
-                d61e0984 ASSERTION
-                    e665c567 pred controller
+                d3e0cc15 ASSERTION
+                    6dd16ba3 pred issuer
                     f8489ac1 obj "Example Electrical Engineering Board"
-                ebcbf71f ASSERTION
-                    fde30b5c pred issuer
-                    f8489ac1 obj "Example Electrical Engineering Board"
-        55b14b17 ASSERTION
-            49a5f41b pred note
+        52b10e0b ASSERTION
+            d0e39e78 pred verifiedBy
+            039ef97a obj Signature
+        e6d7fca0 ASSERTION
+            0fcd6a39 pred note
             f106bad1 obj "Signed by Example Electrical Engineering…"
-        9902b6e6 ASSERTION
-            9d7ba9eb pred verifiedBy
-            4b4c0a2e obj Signature
     "#}.trim());
     assert_eq!(credential.clone().tree_format(true, None), indoc! {r#"
     WRAPPED
@@ -587,6 +587,9 @@ fn test_credential() {
                 "issueDate"
                 2020-01-01
             ASSERTION
+                isA
+                "Certificate of Completion"
+            ASSERTION
                 "photo"
                 "This is James Maxwell's photo."
             ASSERTION
@@ -602,23 +605,20 @@ fn test_credential() {
                 "continuingEducationUnits"
                 1
             ASSERTION
-                isA
-                "Certificate of Completion"
+                controller
+                "Example Electrical Engineering Board"
             ASSERTION
                 "subject"
                 "RF and Microwave Engineering"
             ASSERTION
-                controller
-                "Example Electrical Engineering Board"
-            ASSERTION
                 issuer
                 "Example Electrical Engineering Board"
         ASSERTION
-            note
-            "Signed by Example Electrical Engineering…"
-        ASSERTION
             verifiedBy
             Signature
+        ASSERTION
+            note
+            "Signed by Example Electrical Engineering…"
     "#}.trim());
     assert_eq!(credential.elements_count(), credential.tree_format(false, None).split('\n').count());
 }
@@ -679,14 +679,14 @@ fn test_redacted_credential() {
     ]
     "#}.trim());
     assert_eq!(warranty.clone().tree_format(false, None), indoc! {r#"
-    ed7529fe NODE
-        9222bb56 subj WRAPPED
-            2d6a7024 subj NODE
-                5063b615 subj WRAPPED
-                    31ff6d6b subj NODE
-                        5886e784 subj WRAPPED
-                            c9860567 subj NODE
-                                5fb45cf1 subj CID(4676635a)
+    a816c8ce NODE
+        d4a527ac subj WRAPPED
+            3e2b6cab subj NODE
+                7506ccc6 subj WRAPPED
+                    11d52de3 subj NODE
+                        397a2d4c subj WRAPPED
+                            8122ffa9 subj NODE
+                                10d3de01 subj CID(4676635a)
                                 1f9ff098 ELIDED
                                 36c254d0 ASSERTION
                                     6e5d379f pred "expirationDate"
@@ -695,6 +695,9 @@ fn test_redacted_credential() {
                                     5f82a16a pred "lastName"
                                     fe4d5230 obj "Maxwell"
                                 4a9b2e4d ELIDED
+                                4d67bba0 ASSERTION
+                                    2be2d79b pred isA
+                                    051beee6 obj "Certificate of Completion"
                                 5171cbaf ELIDED
                                 54b3e1e7 ELIDED
                                 5dc6d4e3 ASSERTION
@@ -702,33 +705,30 @@ fn test_redacted_credential() {
                                     d6d0b768 obj "James"
                                 68895d8e ELIDED
                                 8ec5e912 ELIDED
-                                922c859a ASSERTION
-                                    96f0167d pred isA
-                                    051beee6 obj "Certificate of Completion"
+                                9b3d4785 ELIDED
                                 caf5ced3 ASSERTION
                                     8e4e62eb pred "subject"
                                     202c10ef obj "RF and Microwave Engineering"
-                                d61e0984 ELIDED
-                                ebcbf71f ASSERTION
-                                    fde30b5c pred issuer
+                                d3e0cc15 ASSERTION
+                                    6dd16ba3 pred issuer
                                     f8489ac1 obj "Example Electrical Engineering Board"
-                        55b14b17 ASSERTION
-                            49a5f41b pred note
+                        52b10e0b ASSERTION
+                            d0e39e78 pred verifiedBy
+                            039ef97a obj Signature
+                        e6d7fca0 ASSERTION
+                            0fcd6a39 pred note
                             f106bad1 obj "Signed by Example Electrical Engineering…"
-                        9902b6e6 ASSERTION
-                            9d7ba9eb pred verifiedBy
-                            4b4c0a2e obj Signature
                 4c159c16 ASSERTION
                     e1ae011e pred "employeeHiredDate"
                     13b5a817 obj 2022-01-01
                 e071508b ASSERTION
                     d03e7352 pred "employeeStatus"
                     1d7a790d obj "active"
-        16639289 ASSERTION
-            9d7ba9eb pred verifiedBy
-            c82b0b88 obj Signature
-        8f255569 ASSERTION
-            49a5f41b pred note
+        4054359a ASSERTION
+            d0e39e78 pred verifiedBy
+            0ea27c28 obj Signature
+        874aa7e1 ASSERTION
+            0fcd6a39 pred note
             f59806d2 obj "Signed by Employer Corp."
     "#}.trim());
     assert_eq!(warranty.clone().tree_format(true, None), indoc! {r#"
@@ -744,6 +744,9 @@ fn test_redacted_credential() {
                         "lastName"
                         "Maxwell"
                     ELIDED
+                    ASSERTION
+                        isA
+                        "Certificate of Completion"
                     ELIDED
                     ELIDED
                     ASSERTION
@@ -751,22 +754,19 @@ fn test_redacted_credential() {
                         "James"
                     ELIDED
                     ELIDED
-                    ASSERTION
-                        isA
-                        "Certificate of Completion"
+                    ELIDED
                     ASSERTION
                         "subject"
                         "RF and Microwave Engineering"
-                    ELIDED
                     ASSERTION
                         issuer
                         "Example Electrical Engineering Board"
                 ASSERTION
-                    note
-                    "Signed by Example Electrical Engineering…"
-                ASSERTION
                     verifiedBy
                     Signature
+                ASSERTION
+                    note
+                    "Signed by Example Electrical Engineering…"
             ASSERTION
                 "employeeHiredDate"
                 2022-01-01

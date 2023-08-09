@@ -89,7 +89,7 @@ fn test_known_value_subject() {
         );
     });
 
-    assert_eq!("Digest(49a5f41b242e76fa4ed7083f4fb3b9cab117f3437b38083b7375d6f19f199508)", e.digest().to_string());
+    assert_eq!("Digest(0fcd6a39d6ed37f2e2efa6a96214596f1b28a5cd42a5a27afc32162aaf821191)", e.digest().to_string());
 
     assert_eq!(e.format(),
     indoc! {r#"
@@ -318,14 +318,14 @@ fn test_digest_leaf() {
     "#}.trim()
     );
 
-    assert_eq!(e.digest().to_string(), "Digest(17db10e567ceb05522f0074c27c7d7796cac1d5ce20e45f405ab9063fdeeff1a)");
+    assert_eq!(e.digest().to_string(), "Digest(07b518af92a6196bc153752aabefedb34ff8e1a7d820c01ef978dfc3e7e52e05)");
 
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
         200(   ; envelope
            24(   ; leaf
-              204(   ; digest
+              40001(   ; digest
                  h'8cc96cdb771176e835114a0f8936690b41cfed0df22d014eedd64edaea945d59'
               )
            )

@@ -8,7 +8,7 @@ use dcbor::Date;
 fn test_known_value() {
     let envelope = Envelope::new(known_values::VERIFIED_BY).check_encoding().unwrap();
     assert_eq!(format!("{}", envelope), ".knownValue(verifiedBy)");
-    assert_eq!(format!("{:?}", envelope.digest()), "Digest(9d7ba9eb8986332bf3e6f3f96b36d937176d95b556441b18612b9c06edc9b7e1)");
+    assert_eq!(format!("{:?}", envelope.digest()), "Digest(d0e39e788c0d8f0343af4588db21d3d51381db454bdf710a9a1891aaa537693c)");
     assert_eq!(envelope.format(), "verifiedBy");
     assert_eq!(format!("{}", envelope.ur_string()), "ur:envelope/axgrbdrnem");
 }
