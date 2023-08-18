@@ -23,19 +23,13 @@ fn test_envelope_non_correlation() {
         assert_eq!(e2.clone().diagnostic_opt(true, Some(context)), indoc! {r#"
         200(   ; envelope
            [
-              200(   ; envelope
-                 24("Hello.")   ; leaf
-              ),
-              200(   ; envelope
-                 {
-                    200(15):   ; envelope
-                    200(   ; envelope
-                       24(   ; leaf
-                          40018(h'b559bbbf6cce2632')   ; salt
-                       )
-                    )
-                 }
-              )
+              24("Hello."),   ; leaf
+              {
+                 15:
+                 24(   ; leaf
+                    40018(h'b559bbbf6cce2632')   ; salt
+                 )
+              }
            ]
         )
         "#}.trim());

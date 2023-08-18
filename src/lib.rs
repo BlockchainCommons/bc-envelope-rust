@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/bc-envelope/0.2.1")]
+#![doc(html_root_url = "https://docs.rs/bc-envelope/0.3.0")]
 #![warn(rust_2018_idioms)]
 #![feature(iter_intersperse)]
 
@@ -21,7 +21,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bc-envelope = "0.2.1"
+//! bc-envelope = "0.3.0"
 //! ```
 //!
 //! ## Specification

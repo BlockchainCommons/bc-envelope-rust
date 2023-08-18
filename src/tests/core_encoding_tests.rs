@@ -68,26 +68,14 @@ fn test_3() -> Result<(), Box<dyn Error>> {
         indoc! {r#"
         200(   ; envelope
            [
-              200(   ; envelope
-                 {
-                    200(   ; envelope
-                       24("C")   ; leaf
-                    ):
-                    200(   ; envelope
-                       24("D")   ; leaf
-                    )
-                 }
-              ),
-              200(   ; envelope
-                 {
-                    200(   ; envelope
-                       24("E")   ; leaf
-                    ):
-                    200(   ; envelope
-                       24("F")   ; leaf
-                    )
-                 }
-              )
+              {
+                 24("C"):   ; leaf
+                 24("D")   ; leaf
+              },
+              {
+                 24("E"):   ; leaf
+                 24("F")   ; leaf
+              }
            ]
         )
         "#}.trim()
@@ -117,40 +105,20 @@ fn test_3() -> Result<(), Box<dyn Error>> {
         indoc! {r#"
         200(   ; envelope
            [
-              200(   ; envelope
+              {
+                 24("A"):   ; leaf
+                 24("B")   ; leaf
+              },
+              [
                  {
-                    200(   ; envelope
-                       24("A")   ; leaf
-                    ):
-                    200(   ; envelope
-                       24("B")   ; leaf
-                    )
+                    24("C"):   ; leaf
+                    24("D")   ; leaf
+                 },
+                 {
+                    24("E"):   ; leaf
+                    24("F")   ; leaf
                  }
-              ),
-              200(   ; envelope
-                 [
-                    200(   ; envelope
-                       {
-                          200(   ; envelope
-                             24("C")   ; leaf
-                          ):
-                          200(   ; envelope
-                             24("D")   ; leaf
-                          )
-                       }
-                    ),
-                    200(   ; envelope
-                       {
-                          200(   ; envelope
-                             24("E")   ; leaf
-                          ):
-                          200(   ; envelope
-                             24("F")   ; leaf
-                          )
-                       }
-                    )
-                 ]
-              )
+              ]
            ]
         )
         "#}.trim()

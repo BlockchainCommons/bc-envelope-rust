@@ -6,7 +6,7 @@ mod format_context;
 pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 
 use bc_components::{Digest, CID, URI, UUID};
-use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable, Date};
+use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable, Date, CBORTaggedEncodable};
 use crate::{Envelope, Assertion, string_utils::StringUtils, expressions::{Function, FunctionsStore, ParametersStore, Parameter}, known_values::{KnownValuesStore, KnownValue}};
 use bc_components::tags;
 
@@ -27,7 +27,7 @@ impl Envelope {
     /// See [RFC-8949 §8](https://www.rfc-editor.org/rfc/rfc8949.html#name-diagnostic-notation)
     /// for information on CBOR diagnostic notation.
     pub fn diagnostic_opt(&self, annotate: bool, context: Option<&FormatContext>) -> String {
-        self.cbor().diagnostic_opt(annotate, Some(context.unwrap_or(&FormatContext::default()).tags()))
+        self.tagged_cbor().diagnostic_opt(annotate, Some(context.unwrap_or(&FormatContext::default()).tags()))
     }
 
     /// Returns the CBOR diagnostic notation for this envelope.

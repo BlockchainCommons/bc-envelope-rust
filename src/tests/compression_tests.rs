@@ -14,9 +14,9 @@ fn source() -> &'static str {
 #[test]
 fn test_compress() {
     let original = Envelope::new(source());
-    assert_eq!(original.cbor_data().len(), 371);
+    assert_eq!(original.cbor_data().len(), 369);
     let compressed = original.clone().compress().unwrap().check_encoding().unwrap();
-    assert_eq!(compressed.cbor_data().len(), 284);
+    assert_eq!(compressed.cbor_data().len(), 282);
 
     assert_eq!(original.digest(), compressed.digest());
     let uncompressed = compressed.uncompress().unwrap().check_encoding().unwrap();
@@ -31,7 +31,7 @@ fn test_compress_subject() {
         .add_assertion(NOTE, source())
         .wrap_envelope()
         .sign_with_using(&alice_private_keys(), &mut rng);
-    assert_eq!(original.cbor_data().len(), 474);
+    assert_eq!(original.cbor_data().len(), 456);
     with_format_context!(|context| {
         let s = original.clone().tree_format(false, Some(context));
         assert_eq!(s, indoc! {r#"
@@ -47,10 +47,10 @@ fn test_compress_subject() {
                 dd386db5 obj Signature
         "#}.trim());
     });
-    let compresssed = original.clone().compress_subject().unwrap().check_encoding().unwrap();
-    assert_eq!(compresssed.cbor_data().len(), 388);
+    let compressed = original.clone().compress_subject().unwrap().check_encoding().unwrap();
+    assert_eq!(compressed.cbor_data().len(), 373);
     with_format_context!(|context| {
-        let s = compresssed.clone().tree_format(false, Some(context));
+        let s = compressed.clone().tree_format(false, Some(context));
         assert_eq!(s, indoc! {r#"
         9ed291b0 NODE
             d7183f04 subj COMPRESSED
@@ -59,7 +59,7 @@ fn test_compress_subject() {
                 dd386db5 obj Signature
         "#}.trim());
     });
-    let uncompressed = compresssed.uncompress_subject().unwrap().check_encoding().unwrap();
+    let uncompressed = compressed.uncompress_subject().unwrap().check_encoding().unwrap();
     assert_eq!(uncompressed.digest(), original.digest());
     assert_eq!(uncompressed.structural_digest(), original.structural_digest());
 }

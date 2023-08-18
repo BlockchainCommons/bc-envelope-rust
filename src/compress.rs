@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use bc_components::{Compressed, DigestProvider};
-use dcbor::{CBOREncodable, CBORDecodable};
+use dcbor::{CBOREncodable, CBORTaggedEncodable, CBORTaggedDecodable};
 
 use crate::{Envelope, Error};
 
@@ -15,7 +15,7 @@ impl Envelope {
             Envelope::Encrypted(_) => Err(Error::AlreadyEncrypted),
             Envelope::Elided(_) => Err(Error::AlreadyElided),
             _ => {
-                let compressed = Compressed::from_uncompressed_data(self.cbor_data(), Some(self.digest().into_owned()));
+                let compressed = Compressed::from_uncompressed_data(self.tagged_cbor().cbor_data(), Some(self.digest().into_owned()));
                 Ok(Envelope::new(compressed))
             },
         }
@@ -31,7 +31,7 @@ impl Envelope {
                     return Err(Error::InvalidDigest);
                 }
                 let a = compressed.uncompress()?;
-                let envelope = Rc::new(Envelope::from_cbor_data(&a)?);
+                let envelope = Rc::new(Envelope::from_tagged_cbor_data(&a)?);
                 if envelope.digest().as_ref() != digest {
                     return Err(Error::InvalidDigest);
                 }

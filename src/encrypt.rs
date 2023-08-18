@@ -32,7 +32,7 @@ impl Envelope {
                 if subject.is_encrypted() {
                     return Err(Error::AlreadyEncrypted);
                 }
-                let encoded_cbor = subject.cbor_data();
+                let encoded_cbor = subject.tagged_cbor().cbor_data();
                 let digest = subject.digest();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
                 let encrypted_subject = Rc::new(Self::new_with_encrypted(encrypted_message)?);

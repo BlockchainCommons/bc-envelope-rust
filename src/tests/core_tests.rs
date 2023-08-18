@@ -114,12 +114,8 @@ fn test_assertion_subject() {
         indoc! {r#"
         200(   ; envelope
            {
-              200(   ; envelope
-                 24("knows")   ; leaf
-              ):
-              200(   ; envelope
-                 24("Bob")   ; leaf
-              )
+              24("knows"):   ; leaf
+              24("Bob")   ; leaf
            }
         )
         "#}.trim()
@@ -144,19 +140,11 @@ fn test_subject_with_assertion() {
         indoc! {r#"
         200(   ; envelope
            [
-              200(   ; envelope
-                 24("Alice")   ; leaf
-              ),
-              200(   ; envelope
-                 {
-                    200(   ; envelope
-                       24("knows")   ; leaf
-                    ):
-                    200(   ; envelope
-                       24("Bob")   ; leaf
-                    )
-                 }
-              )
+              24("Alice"),   ; leaf
+              {
+                 24("knows"):   ; leaf
+                 24("Bob")   ; leaf
+              }
            ]
         )
         "#}.trim()
@@ -185,29 +173,15 @@ fn test_subject_with_two_assertions() {
         indoc! {r#"
         200(   ; envelope
            [
-              200(   ; envelope
-                 24("Alice")   ; leaf
-              ),
-              200(   ; envelope
-                 {
-                    200(   ; envelope
-                       24("knows")   ; leaf
-                    ):
-                    200(   ; envelope
-                       24("Carol")   ; leaf
-                    )
-                 }
-              ),
-              200(   ; envelope
-                 {
-                    200(   ; envelope
-                       24("knows")   ; leaf
-                    ):
-                    200(   ; envelope
-                       24("Bob")   ; leaf
-                    )
-                 }
-              )
+              24("Alice"),   ; leaf
+              {
+                 24("knows"):   ; leaf
+                 24("Carol")   ; leaf
+              },
+              {
+                 24("knows"):   ; leaf
+                 24("Bob")   ; leaf
+              }
            ]
         )
         "#}.trim()

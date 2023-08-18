@@ -24,13 +24,13 @@ impl CBORTagged for Envelope {
 
 impl CBOREncodable for Envelope {
     fn cbor(&self) -> CBOR {
-        self.tagged_cbor()
+        self.untagged_cbor()
     }
 }
 
 impl CBORDecodable for Envelope {
     fn from_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
-        Self::from_tagged_cbor(cbor)
+        Self::from_untagged_cbor(cbor)
     }
 }
 
@@ -40,9 +40,9 @@ impl CBORTaggedEncodable for Envelope {
     fn untagged_cbor(&self) -> CBOR {
         match self {
             Envelope::Node { subject, assertions, digest: _ } => {
-                let mut result = vec![subject.tagged_cbor()];
+                let mut result = vec![subject.untagged_cbor()];
                 for assertion in assertions {
-                    result.push(assertion.tagged_cbor());
+                    result.push(assertion.untagged_cbor());
                 }
                 CBOR::Array(result)
             }
@@ -98,14 +98,14 @@ impl CBORTaggedDecodable for Envelope {
                 if elements.len() < 2 {
                     return Err(dcbor::Error::InvalidFormat);
                 }
-                let subject = Rc::new(Envelope::from_tagged_cbor(&elements[0])?);
+                let subject = Rc::new(Envelope::from_untagged_cbor(&elements[0])?);
                 // let assertions = elements[1..].iter().map(Envelope::from_tagged_cbor).collect::<Result<Vec<Self>, dcbor::Error>>()?;
                 // let assertions: Vec<Rc<Envelope>> = assertions.into_iter().map(Rc::new).collect();
 
                 // The above two lines as a single line:
                 let assertions: Vec<Rc<Envelope>> = elements[1..]
                     .iter()
-                    .map(Envelope::from_tagged_cbor)
+                    .map(Envelope::from_untagged_cbor)
                     .collect::<Result<Vec<Self>, dcbor::Error>>()?
                     .into_iter()
                     .map(Rc::new)
