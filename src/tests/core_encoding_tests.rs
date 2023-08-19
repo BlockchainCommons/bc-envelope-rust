@@ -16,8 +16,8 @@ fn test_1() -> Result<(), Box<dyn Error>> {
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
-           24("Hello.")   ; leaf
+        200(   / envelope /
+           24("Hello.")   / leaf /
         )
         "#}.trim()
         );
@@ -34,8 +34,8 @@ fn test_2() -> Result<(), Box<dyn Error>> {
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
-           24(   ; leaf
+        200(   / envelope /
+           24(   / leaf /
               [1, 2, 3]
            )
         )
@@ -66,15 +66,15 @@ fn test_3() -> Result<(), Box<dyn Error>> {
     with_format_context!(|context| {
         assert_eq!(e4.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
+        200(   / envelope /
            [
               {
-                 24("C"):   ; leaf
-                 24("D")   ; leaf
+                 24("C"):   / leaf /
+                 24("D")   / leaf /
               },
               {
-                 24("E"):   ; leaf
-                 24("F")   ; leaf
+                 24("E"):   / leaf /
+                 24("F")   / leaf /
               }
            ]
         )
@@ -103,20 +103,20 @@ fn test_3() -> Result<(), Box<dyn Error>> {
     with_format_context!(|context| {
         assert_eq!(e5.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
+        200(   / envelope /
            [
               {
-                 24("A"):   ; leaf
-                 24("B")   ; leaf
+                 24("A"):   / leaf /
+                 24("B")   / leaf /
               },
               [
                  {
-                    24("C"):   ; leaf
-                    24("D")   ; leaf
+                    24("C"):   / leaf /
+                    24("D")   / leaf /
                  },
                  {
-                    24("E"):   ; leaf
-                    24("F")   ; leaf
+                    24("E"):   / leaf /
+                    24("F")   / leaf /
                  }
               ]
            ]

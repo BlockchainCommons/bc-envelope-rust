@@ -16,8 +16,8 @@ use crate::{expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNCTIONS, GLO
 /// with_format_context!(|context| {
 ///     assert_eq!(e.diagnostic_opt(true, Some(context)),
 ///     indoc! {r#"
-///     200(   ; envelope
-///        24("Hello.")   ; leaf
+///     200(   / envelope /
+///        24("Hello.")   / leaf /
 ///     )
 ///     "#}.trim()
 ///     );

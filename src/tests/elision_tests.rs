@@ -38,7 +38,7 @@ fn test_envelope_elision() -> Result<(), Box<dyn Error>> {
     with_format_context!(|context| {
         assert_eq!(e2.clone().diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
+        200(   / envelope /
            h'8cc96cdb771176e835114a0f8936690b41cfed0df22d014eedd64edaea945d59'
         )
         "#}.trim()

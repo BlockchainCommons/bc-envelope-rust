@@ -10,8 +10,8 @@ fn test_int_subject() {
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
-           24(42)   ; leaf
+        200(   / envelope /
+           24(42)   / leaf /
         )
         "#}.trim()
         );
@@ -35,8 +35,8 @@ fn test_negative_int_subject() {
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
-           24(-42)   ; leaf
+        200(   / envelope /
+           24(-42)   / leaf /
         )
         "#}.trim()
         );
@@ -59,8 +59,8 @@ fn test_cbor_encodable_subject() {
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
-           24("Hello.")   ; leaf
+        200(   / envelope /
+           24("Hello.")   / leaf /
         )
         "#}.trim()
         );
@@ -84,7 +84,7 @@ fn test_known_value_subject() {
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(4)   ; envelope
+        200(4)   / envelope /
         "#}.trim()
         );
     });
@@ -112,10 +112,10 @@ fn test_assertion_subject() {
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
+        200(   / envelope /
            {
-              24("knows"):   ; leaf
-              24("Bob")   ; leaf
+              24("knows"):   / leaf /
+              24("Bob")   / leaf /
            }
         )
         "#}.trim()
@@ -138,12 +138,12 @@ fn test_subject_with_assertion() {
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
+        200(   / envelope /
            [
-              24("Alice"),   ; leaf
+              24("Alice"),   / leaf /
               {
-                 24("knows"):   ; leaf
-                 24("Bob")   ; leaf
+                 24("knows"):   / leaf /
+                 24("Bob")   / leaf /
               }
            ]
         )
@@ -171,16 +171,16 @@ fn test_subject_with_two_assertions() {
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
+        200(   / envelope /
            [
-              24("Alice"),   ; leaf
+              24("Alice"),   / leaf /
               {
-                 24("knows"):   ; leaf
-                 24("Carol")   ; leaf
+                 24("knows"):   / leaf /
+                 24("Carol")   / leaf /
               },
               {
-                 24("knows"):   ; leaf
-                 24("Bob")   ; leaf
+                 24("knows"):   / leaf /
+                 24("Bob")   / leaf /
               }
            ]
         )
@@ -209,9 +209,9 @@ fn test_wrapped() {
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
-           200(   ; envelope
-              24("Hello.")   ; leaf
+        200(   / envelope /
+           200(   / envelope /
+              24("Hello.")   / leaf /
            )
         )
         "#}.trim()
@@ -236,10 +236,10 @@ fn test_double_wrapped() {
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
-           200(   ; envelope
-              200(   ; envelope
-                 24("Hello.")   ; leaf
+        200(   / envelope /
+           200(   / envelope /
+              200(   / envelope /
+                 24("Hello.")   / leaf /
               )
            )
         )
@@ -297,9 +297,9 @@ fn test_digest_leaf() {
     with_format_context!(|context| {
         assert_eq!(e.diagnostic_opt(true, Some(context)),
         indoc! {r#"
-        200(   ; envelope
-           24(   ; leaf
-              40001(   ; digest
+        200(   / envelope /
+           24(   / leaf /
+              40001(   / digest /
                  h'8cc96cdb771176e835114a0f8936690b41cfed0df22d014eedd64edaea945d59'
               )
            )
