@@ -2,7 +2,7 @@ use std::{collections::HashSet, rc::Rc};
 
 use crate::{IntoEnvelope, Envelope, known_values};
 
-use bc_components::{SymmetricKey, Digest, DigestProvider, CID};
+use bc_components::{SymmetricKey, Digest, DigestProvider, ARID};
 use bc_crypto::make_fake_random_number_generator;
 use dcbor::{CBOREncodable, Date};
 use indoc::indoc;
@@ -324,10 +324,10 @@ fn test_assertion_positions() {
 
 #[test]
 fn test_complex_metadata() {
-    // Assertions made about a CID are considered part of a distributed set. Which
-    // assertions are returned depends on who resolves the CID and when it is
-    // resolved. In other words, the referent of a CID is mutable.
-    let author = Envelope::new(CID::from_data(hex!("9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")))
+    // Assertions made about an ARID are considered part of a distributed set. Which
+    // assertions are returned depends on who resolves the ARID and when it is
+    // resolved. In other words, the referent of an ARID is mutable.
+    let author = Envelope::new(ARID::from_data(hex!("9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")))
         .add_assertion(known_values::DEREFERENCE_VIA, "LibraryOfCongress")
         .add_assertion(known_values::HAS_NAME, "Ayn Rand")
         .check_encoding().unwrap();
@@ -340,7 +340,7 @@ fn test_complex_metadata() {
     let name_es = Envelope::new("La rebelión de Atlas")
         .add_assertion(known_values::LANGUAGE, "es");
 
-    let work = Envelope::new(CID::from_data(hex!("7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")))
+    let work = Envelope::new(ARID::from_data(hex!("7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")))
         .add_assertion(known_values::IS_A, "novel")
         .add_assertion("isbn", "9780451191144")
         .add_assertion("author", author)
@@ -361,8 +361,8 @@ fn test_complex_metadata() {
     assert_eq!(book_metadata.format(), indoc! {r#"
     Digest(26d05af5) [
         "format": "EPUB"
-        "work": CID(7fb90a9d) [
-            "author": CID(9c747ace) [
+        "work": ARID(7fb90a9d) [
+            "author": ARID(9c747ace) [
                 dereferenceVia: "LibraryOfCongress"
                 hasName: "Ayn Rand"
             ]
@@ -392,7 +392,7 @@ fn test_complex_metadata() {
         eec25a61 ASSERTION
             2ddb0b05 pred "work"
             26681136 obj NODE
-                0c69be6e subj CID(7fb90a9d)
+                0c69be6e subj ARID(7fb90a9d)
                 1786d8b5 ASSERTION
                     4019420b pred "isbn"
                     69ff76b1 obj "9780451191144"
@@ -409,7 +409,7 @@ fn test_complex_metadata() {
                 7d6d5c1d ASSERTION
                     29c09059 pred "author"
                     1ba13788 obj NODE
-                        3c47e105 subj CID(9c747ace)
+                        3c47e105 subj ARID(9c747ace)
                         9c10d60f ASSERTION
                             cdb6a696 pred dereferenceVia
                             34a04547 obj "LibraryOfCongress"
@@ -438,7 +438,7 @@ fn test_complex_metadata() {
             "EPUB"
         ASSERTION
             "work"
-            CID(7fb90a9d)
+            ARID(7fb90a9d)
                 ASSERTION
                     "isbn"
                     "9780451191144"
@@ -453,7 +453,7 @@ fn test_complex_metadata() {
                             "es"
                 ASSERTION
                     "author"
-                    CID(9c747ace)
+                    ARID(9c747ace)
                         ASSERTION
                             dereferenceVia
                             "LibraryOfCongress"
@@ -475,7 +475,7 @@ fn test_complex_metadata() {
 
 fn credential() -> Rc<Envelope> {
     let mut rng = make_fake_random_number_generator();
-    Envelope::new(CID::from_data(hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")))
+    Envelope::new(ARID::from_data(hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")))
         .add_assertion(known_values::IS_A, "Certificate of Completion")
         .add_assertion(known_values::ISSUER, "Example Electrical Engineering Board")
         .add_assertion(known_values::CONTROLLER, "Example Electrical Engineering Board")
@@ -500,7 +500,7 @@ fn test_credential() {
     let credential = credential();
     assert_eq!(credential.format(), indoc! {r#"
     {
-        CID(4676635a) [
+        ARID(4676635a) [
             "certificateNumber": "123-456-789"
             "continuingEducationUnits": 1
             "expirationDate": 2028-01-01
@@ -524,7 +524,7 @@ fn test_credential() {
     11d52de3 NODE
         397a2d4c subj WRAPPED
             8122ffa9 subj NODE
-                10d3de01 subj CID(4676635a)
+                10d3de01 subj ARID(4676635a)
                 1f9ff098 ASSERTION
                     9e3bff3a pred "certificateNumber"
                     21c21808 obj "123-456-789"
@@ -573,7 +573,7 @@ fn test_credential() {
     "#}.trim());
     assert_eq!(credential.clone().tree_format(true, None), indoc! {r#"
     WRAPPED
-        CID(4676635a)
+        ARID(4676635a)
             ASSERTION
                 "certificateNumber"
                 "123-456-789"
@@ -656,7 +656,7 @@ fn test_redacted_credential() {
     {
         {
             {
-                CID(4676635a) [
+                ARID(4676635a) [
                     "expirationDate": 2028-01-01
                     "firstName": "James"
                     "lastName": "Maxwell"
@@ -686,7 +686,7 @@ fn test_redacted_credential() {
                     11d52de3 subj NODE
                         397a2d4c subj WRAPPED
                             8122ffa9 subj NODE
-                                10d3de01 subj CID(4676635a)
+                                10d3de01 subj ARID(4676635a)
                                 1f9ff098 ELIDED
                                 36c254d0 ASSERTION
                                     6e5d379f pred "expirationDate"
@@ -735,7 +735,7 @@ fn test_redacted_credential() {
     WRAPPED
         WRAPPED
             WRAPPED
-                CID(4676635a)
+                ARID(4676635a)
                     ELIDED
                     ASSERTION
                         "expirationDate"

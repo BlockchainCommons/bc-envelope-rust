@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use bc_components::{EncryptedMessage, Compressed, SealedMessage, Digest, CID, Salt};
+use bc_components::{EncryptedMessage, Compressed, SealedMessage, Digest, ARID, Salt};
 use dcbor::{CBOREncodable, CBOR, Date};
 
 use crate::{Envelope, Assertion, known_values::KnownValue};
@@ -95,6 +95,6 @@ impl_into_envelope!(bool);
 
 impl_into_envelope!(SealedMessage);
 impl_into_envelope!(Digest);
-impl_into_envelope!(CID);
+impl_into_envelope!(ARID);
 impl_into_envelope!(Date);
 impl_into_envelope!(Salt);

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use bc_components::{tags, CID};
+use bc_components::{tags, ARID};
 use dcbor::{CBOR, CBORDecodable};
 
 use crate::{IntoEnvelope, Envelope, Error, known_values::{self, KnownValue}};
@@ -82,10 +82,10 @@ impl Envelope {
 
 /// Envelope Expressions: Request Construction
 impl Envelope {
-    /// Creates an envelope with a `CID` subject and a `body: «function»` assertion.
+    /// Creates an envelope with an `ARID` subject and a `body: «function»` assertion.
     pub fn new_request<C, B>(request_id: C, body: B) -> Rc<Self>
     where
-        C: AsRef<CID>,
+        C: AsRef<ARID>,
         B: IntoEnvelope,
     {
         Envelope::new(CBOR::tagged_value(tags::REQUEST, request_id.as_ref()))
@@ -95,20 +95,20 @@ impl Envelope {
 
 /// Envelope Expressions: Response Construction
 impl Envelope {
-    /// Creates an envelope with a `CID` subject and a `result: value` assertion.
+    /// Creates an envelope with an `ARID` subject and a `result: value` assertion.
     pub fn new_response<C, R>(response_id: C, result: R) -> Rc<Self>
     where
-        C: AsRef<CID>,
+        C: AsRef<ARID>,
         R: IntoEnvelope,
     {
         Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()))
             .add_assertion(known_values::RESULT, result)
     }
 
-    /// Creates an envelope with a `CID` subject and a `result: value` assertion for each provided result.
+    /// Creates an envelope with an `ARID` subject and a `result: value` assertion for each provided result.
     pub fn new_response_with_result<C, R>(response_id: C, results: &[R]) -> Rc<Self>
     where
-        C: AsRef<CID>,
+        C: AsRef<ARID>,
         R: IntoEnvelope + Clone,
     {
         let mut envelope = Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()));
@@ -123,10 +123,10 @@ impl Envelope {
         envelope
     }
 
-    /// Creates an envelope with a `CID` subject and a `error: value` assertion.
+    /// Creates an envelope with an `ARID` subject and a `error: value` assertion.
     pub fn new_error_response_with_id<C, E>(response_id: C, error: E) -> Rc<Self>
     where
-        C: AsRef<CID>,
+        C: AsRef<ARID>,
         E: IntoEnvelope,
     {
         Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()))

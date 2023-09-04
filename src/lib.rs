@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/bc-envelope/0.3.2")]
+#![doc(html_root_url = "https://docs.rs/bc-envelope/0.4.0")]
 #![warn(rust_2018_idioms)]
 #![feature(iter_intersperse)]
 
@@ -21,7 +21,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bc-envelope = "0.3.2"
+//! bc-envelope = "0.4.0"
 //! ```
 //!
 //! ## Specification
@@ -345,13 +345,13 @@
 //!   envelope.
 //! * [`Envelope::add_optional_parameter`] Optionally adds a `❰parameter❱:
 //!   value` assertion to the envelope.
-//! * [`Envelope::new_request`] Creates an envelope with a `CID` subject and a
+//! * [`Envelope::new_request`] Creates an envelope with an `ARID` subject and a
 //!   `body: «function»` assertion.
-//! * [`Envelope::new_response`] Creates an envelope with a `CID` subject and a
+//! * [`Envelope::new_response`] Creates an envelope with an `ARID` subject and a
 //!   `result: value` assertion.
-//! * [`Envelope::new_response_with_result`] Creates an envelope with a `CID`
+//! * [`Envelope::new_response_with_result`] Creates an envelope with an `ARID`
 //!   subject and a `result: value` assertion for each provided result.
-//! * [`Envelope::new_error_response_with_id`] Creates an envelope with a `CID`
+//! * [`Envelope::new_error_response_with_id`] Creates an envelope with an `ARID`
 //!   subject and a `error: value` assertion.
 //! * [`Envelope::new_error_response`] Creates an envelope with an `unknown`
 //!   subject and a `error: value` assertion.

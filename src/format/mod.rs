@@ -5,7 +5,7 @@ mod tree_format;
 mod format_context;
 pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 
-use bc_components::{Digest, CID, URI, UUID};
+use bc_components::{Digest, ARID, URI, UUID};
 use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable, Date, CBORTaggedEncodable};
 use crate::{Envelope, Assertion, string_utils::StringUtils, expressions::{Function, FunctionsStore, ParametersStore, Parameter}, known_values::{KnownValuesStore, KnownValue}};
 use bc_components::tags;
@@ -242,7 +242,7 @@ impl EnvelopeFormat for Digest {
     }
 }
 
-impl EnvelopeFormat for CID {
+impl EnvelopeFormat for ARID {
     fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
         EnvelopeFormatItem::Item(hex::encode(self.data()))
     }
@@ -302,8 +302,8 @@ impl EnvelopeSummary for CBOR {
                             Ok(s)
                         }
                     },
-                    tags::CID_VALUE => {
-                        Ok(CID::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("CID(", ")"))
+                    tags::ARID_VALUE => {
+                        Ok(ARID::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("ARID(", ")"))
                     },
                     tags::URI_VALUE => {
                         Ok(URI::from_untagged_cbor(untagged_cbor)?.to_string().flanked_by("URI(", ")"))
