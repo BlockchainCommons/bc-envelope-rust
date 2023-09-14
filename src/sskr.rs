@@ -2,7 +2,7 @@ use std::{rc::Rc, collections::HashMap};
 
 pub use bc_components::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret};
 use bc_components::{sskr_generate_using, sskr_combine, SymmetricKey};
-use bc_crypto::RandomNumberGenerator;
+use bc_rand::RandomNumberGenerator;
 
 use crate::{Envelope, known_values, Error, impl_into_envelope};
 
@@ -29,7 +29,7 @@ impl Envelope {
     /// SSKR group, and the elements of each inner array are the envelope with a unique
     /// `sskrShare: SSKRShare` assertion added to each.
     pub fn sskr_split(self: Rc<Self>, spec: &SSKRSpec, content_key: &SymmetricKey) -> Result<Vec<Vec<Rc<Envelope>>>, Error> {
-        let mut rng = bc_crypto::SecureRandomNumberGenerator;
+        let mut rng = bc_rand::SecureRandomNumberGenerator;
         self.sskr_split_using(spec, content_key, &mut rng)
     }
 

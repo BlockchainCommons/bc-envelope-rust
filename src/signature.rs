@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider};
-use bc_crypto::{RandomNumberGenerator, SecureRandomNumberGenerator};
+use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
 
 use crate::{Envelope, Error, known_values, impl_into_envelope};
 

@@ -3,7 +3,7 @@ use std::{rc::Rc, ops::RangeInclusive};
 use crate::{Envelope, known_values, Error};
 
 use bc_components::Salt;
-use bc_crypto::{RandomNumberGenerator, SecureRandomNumberGenerator};
+use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
 use dcbor::{CBORTaggedEncodable, CBOREncodable};
 
 /// Support for decorrelation of envelopes using salt.

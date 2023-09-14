@@ -3,7 +3,7 @@ use std::{collections::HashSet, rc::Rc};
 use crate::{IntoEnvelope, Envelope, known_values};
 
 use bc_components::{SymmetricKey, Digest, DigestProvider, ARID};
-use bc_crypto::make_fake_random_number_generator;
+use bc_rand::make_fake_random_number_generator;
 use dcbor::{CBOREncodable, Date};
 use indoc::indoc;
 

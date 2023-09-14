@@ -1,5 +1,5 @@
 use crate::{known_values, Envelope, with_format_context};
-use bc_crypto::make_fake_random_number_generator;
+use bc_rand::make_fake_random_number_generator;
 use indoc::indoc;
 
 #[test]
