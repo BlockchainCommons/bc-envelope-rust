@@ -409,10 +409,8 @@ impl EnvelopeFormat for Envelope {
                 } else if encrypted_count > 0 {
                     assertion_items.push(vec![EnvelopeFormatItem::Item("ENCRYPTED".to_string())]);
                 }
-                let joined_assertions_items: Vec<Vec<EnvelopeFormatItem>> = assertion_items
-                    .into_iter()
-                    .intersperse(vec![EnvelopeFormatItem::Separator])
-                    .collect();
+                let joined_assertions_items: Vec<Vec<EnvelopeFormatItem>> =
+                    itertools::intersperse_with(assertion_items, || vec![EnvelopeFormatItem::Separator]).collect();
 
                 let needs_braces = subject.is_subject_assertion();
 

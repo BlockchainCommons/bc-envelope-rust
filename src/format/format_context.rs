@@ -121,6 +121,7 @@ macro_rules! with_format_context {
     ($action:expr) => {{
         let binding = $crate::format::GLOBAL_FORMAT_CONTEXT.get();
         let context = &*binding.as_ref().unwrap();
+        #[allow(clippy::redundant_closure_call)]
         $action(context)
     }};
 }

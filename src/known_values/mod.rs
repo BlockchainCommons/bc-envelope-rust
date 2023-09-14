@@ -96,7 +96,7 @@ mod tests {
     #[test]
     fn test_1() {
         assert_eq!(known_values::IS_A.value(), 1);
-        assert_eq!(known_values::IS_A.name(), Some("isA").unwrap());
+        assert_eq!(known_values::IS_A.name(), "isA");
         let binding = KNOWN_VALUES.get();
         let known_values = binding.as_ref().unwrap();
         assert_eq!(known_values.known_value_named("isA").unwrap().value(), 1);
