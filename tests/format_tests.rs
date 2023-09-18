@@ -1,14 +1,15 @@
 use std::{collections::HashSet, rc::Rc};
 
-use crate::{IntoEnvelope, Envelope, known_values};
+use bc_envelope::{IntoEnvelope, Envelope, known_values};
 
 use bc_components::{SymmetricKey, Digest, DigestProvider, ARID};
 use bc_rand::make_fake_random_number_generator;
 use dcbor::{CBOREncodable, Date};
 use indoc::indoc;
-
-use super::test_data::*;
 use hex_literal::hex;
+
+include!("test_data.rs.inc");
+use test_data::*;
 
 #[test]
 fn test_plaintext() {

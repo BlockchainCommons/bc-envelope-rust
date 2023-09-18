@@ -12,14 +12,25 @@ categories = ["data-structures", "encoding"]
 documentation = "https://docs.rs/bc-envelope"
 
 [dependencies]
-dcbor = "0.8.1"
+dcbor = { path = "../bc-dcbor-rust" }
+# dcbor = "0.8.1"
+
 bc-rand = "0.1.0"
-bc-crypto = "0.2.0"
-bc-components = "0.4.0"
-bc-ur = "0.1.7"
+
+bc-crypto = { path = "../bc-crypto-rust" }
+# bc-crypto = "0.2.0"
+
+bc-components = { path = "../bc-components-rust" }
+# bc-components = "0.4.0"
+
+bc-ur = { path = "../bc-ur-rust" }
+# bc-ur = "0.1.7"
+
 paste = "1.0.12"
 hex = "0.4.3"
 itertools = "0.11.0"
+thiserror = "1.0.48"
+anyhow = "1.0"
 
 [dev-dependencies]
 hex-literal = "0.4.1"

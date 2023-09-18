@@ -1,3 +1,4 @@
+use anyhow::bail;
 use bc_components::tags;
 use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
 
@@ -129,17 +130,17 @@ impl CBORTaggedEncodable for Function {
 }
 
 impl CBORDecodable for Function {
-    fn from_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
+    fn from_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
         Self::from_tagged_cbor(cbor)
     }
 }
 
 impl CBORTaggedDecodable for Function {
-    fn from_untagged_cbor(untagged_cbor: &CBOR) -> Result<Self, dcbor::Error> {
+    fn from_untagged_cbor(untagged_cbor: &CBOR) -> anyhow::Result<Self> {
         match untagged_cbor {
             CBOR::Unsigned(value) => Ok(Self::new_known(*value, None)),
             CBOR::Text(name) => Ok(Self::new_named(name)),
-            _ => Err(dcbor::Error::InvalidFormat),
+            _ => bail!("invalid function"),
         }
     }
 }

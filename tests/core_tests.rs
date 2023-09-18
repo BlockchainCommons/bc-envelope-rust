@@ -1,7 +1,9 @@
-use crate::{Envelope, with_format_context, known_values::{self, KnownValue}};
+use bc_envelope::{Envelope, with_format_context, known_values::{self, KnownValue}};
 use bc_components::DigestProvider;
 use indoc::indoc;
-use super::test_data::*;
+
+include!("test_data.rs.inc");
+use test_data::*;
 
 #[test]
 fn test_int_subject() {

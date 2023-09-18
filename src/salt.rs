@@ -1,6 +1,6 @@
 use std::{rc::Rc, ops::RangeInclusive};
 
-use crate::{Envelope, known_values, Error};
+use crate::{Envelope, known_values};
 
 use bc_components::Salt;
 use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
@@ -22,7 +22,7 @@ impl Envelope {
     /// Add a specified number of bytes of salt.
     ///
     /// Returns an error if the number of bytes is less than 8.
-    pub fn add_salt_with_len(self: Rc<Self>, count: usize) -> Result<Rc<Self>, Error> {
+    pub fn add_salt_with_len(self: Rc<Self>, count: usize) -> anyhow::Result<Rc<Self>> {
         let mut rng = SecureRandomNumberGenerator;
         self.add_salt_with_len_using(count, &mut rng)
     }
@@ -31,15 +31,15 @@ impl Envelope {
     /// Add a specified number of bytes of salt.
     ///
     /// Returns an error if the number of bytes is less than 8.
-    pub fn add_salt_with_len_using(self: Rc<Self>, count: usize, rng: &mut impl RandomNumberGenerator) -> Result<Rc<Self>, Error> {
-        let salt = Salt::new_with_len_using(count, rng).ok_or(Error::InvalidFormat)?;
+    pub fn add_salt_with_len_using(self: Rc<Self>, count: usize, rng: &mut impl RandomNumberGenerator) -> anyhow::Result<Rc<Self>> {
+        let salt = Salt::new_with_len_using(count, rng)?;
         Ok(self.add_salt_instance(salt))
     }
 
     /// Add a number of bytes of salt chosen randomly from the given range.
     ///
     /// Returns an error if the minimum number of bytes is less than 8.
-    pub fn add_salt_in_range(self: Rc<Self>, range: RangeInclusive<usize>) -> Result<Rc<Self>, Error> {
+    pub fn add_salt_in_range(self: Rc<Self>, range: RangeInclusive<usize>) -> anyhow::Result<Rc<Self>> {
         let mut rng = SecureRandomNumberGenerator;
         self.add_salt_in_range_using(&range, &mut rng)
     }
@@ -48,9 +48,8 @@ impl Envelope {
     /// Add a number of bytes of salt chosen randomly from the given range.
     ///
     /// Returns an error if the minimum number of bytes is less than 8.
-    pub fn add_salt_in_range_using(self: Rc<Self>, range: &RangeInclusive<usize>, rng: &mut impl RandomNumberGenerator) -> Result<Rc<Self>, Error> {
-        let salt = Salt::new_in_range_using(range, rng).ok_or(Error::InvalidFormat)?;
-        Ok(self.add_salt_instance(salt))
+    pub fn add_salt_in_range_using(self: Rc<Self>, range: &RangeInclusive<usize>, rng: &mut impl RandomNumberGenerator) -> anyhow::Result<Rc<Self>> {
+        Ok(self.add_salt_instance(Salt::new_in_range_using(range, rng)?))
     }
 
     #[doc(hidden)]

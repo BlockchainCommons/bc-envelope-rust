@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use crate::{Envelope, Error};
+use crate::{Envelope, EnvelopeError};
 
 /// Support for wrapping and unwrapping envelopes.
 impl Envelope {
@@ -11,10 +11,10 @@ impl Envelope {
     /// Unwraps and returns the inner envelope.
     ///
     /// Returns an error if this is not a wrapped envelope.
-    pub fn unwrap_envelope(self: Rc<Self>) -> Result<Rc<Self>, Error> {
+    pub fn unwrap_envelope(self: Rc<Self>) -> Result<Rc<Self>, EnvelopeError> {
         match &*self.subject() {
             Self::Wrapped { envelope, .. } => Ok(envelope.clone()),
-            _ => Err(Error::NotWrapped),
+            _ => Err(EnvelopeError::NotWrapped),
         }
     }
 }

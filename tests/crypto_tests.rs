@@ -5,8 +5,13 @@ use bc_ur::{UREncodable, URDecodable};
 use indoc::indoc;
 use hex_literal::hex;
 
-use crate::{Envelope, known_values};
-use super::{test_data::*, Seed};
+use bc_envelope::{Envelope, known_values};
+
+include!("test_data.rs.inc");
+use test_data::*;
+
+include!("test_seed.rs.inc");
+use test_seed::*;
 
 #[test]
 fn plaintext() {

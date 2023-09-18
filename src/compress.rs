@@ -1,19 +1,20 @@
 use std::rc::Rc;
+use anyhow::bail;
 use bc_components::{Compressed, DigestProvider};
 use dcbor::{CBOREncodable, CBORTaggedEncodable, CBORTaggedDecodable};
 
-use crate::{Envelope, Error};
+use crate::{Envelope, EnvelopeError};
 
 /// Support for compressing and uncompressing envelopes.
 impl Envelope {
     /// Returns the compressed variant of this envelope.
     ///
     /// Returns the same envelope if it is already compressed.
-    pub fn compress(self: Rc<Self>) -> Result<Rc<Self>, Error> {
+    pub fn compress(self: Rc<Self>) -> Result<Rc<Self>, EnvelopeError> {
         match &*self {
             Envelope::Compressed(_) => Ok(self),
-            Envelope::Encrypted(_) => Err(Error::AlreadyEncrypted),
-            Envelope::Elided(_) => Err(Error::AlreadyElided),
+            Envelope::Encrypted(_) => Err(EnvelopeError::AlreadyEncrypted),
+            Envelope::Elided(_) => Err(EnvelopeError::AlreadyElided),
             _ => {
                 let compressed = Compressed::from_uncompressed_data(self.tagged_cbor().cbor_data(), Some(self.digest().into_owned()));
                 Ok(Envelope::new(compressed))
@@ -24,30 +25,30 @@ impl Envelope {
     /// Returns the uncompressed variant of this envelope.
     ///
     /// Returns the same envelope if it is already uncompressed.
-    pub fn uncompress(self: Rc<Self>) -> Result<Rc<Self>, Error> {
+    pub fn uncompress(self: Rc<Self>) -> anyhow::Result<Rc<Self>> {
         if let Envelope::Compressed(compressed) = &*self {
             if let Some(digest) = compressed.digest_ref_opt() {
                 if digest != self.digest().as_ref() {
-                    return Err(Error::InvalidDigest);
+                    bail!(EnvelopeError::InvalidDigest);
                 }
                 let a = compressed.uncompress()?;
                 let envelope = Rc::new(Envelope::from_tagged_cbor_data(&a)?);
                 if envelope.digest().as_ref() != digest {
-                    return Err(Error::InvalidDigest);
+                    bail!(EnvelopeError::InvalidDigest);
                 }
                 Ok(envelope)
             } else {
-                Err(Error::MissingDigest)
+                bail!(EnvelopeError::MissingDigest)
             }
         } else {
-            Err(Error::NotCompressed)
+            bail!(EnvelopeError::NotCompressed)
         }
     }
 
     /// Returns this envelope with its subject compressed.
     ///
     /// Returns the same envelope if its subject is already compressed.
-    pub fn compress_subject(self: Rc<Self>) -> Result<Rc<Self>, Error> {
+    pub fn compress_subject(self: Rc<Self>) -> Result<Rc<Self>, EnvelopeError> {
         if self.clone().subject().is_compressed() {
             Ok(self)
         } else {
@@ -59,7 +60,7 @@ impl Envelope {
     /// Returns this envelope with its subject uncompressed.
     ///
     /// Returns the same envelope if its subject is already uncompressed.
-    pub fn uncompress_subject(self: Rc<Self>) -> Result<Rc<Self>, Error> {
+    pub fn uncompress_subject(self: Rc<Self>) -> anyhow::Result<Rc<Self>> {
         if self.clone().subject().is_compressed() {
             let subject = self.clone().subject().uncompress()?;
             Ok(self.replace_subject(subject))

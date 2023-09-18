@@ -1,4 +1,4 @@
-use crate::Envelope;
+use bc_envelope::Envelope;
 use indoc::indoc;
 
 #[test]

@@ -109,7 +109,7 @@ impl CBOREncodable for KnownValue {
 }
 
 impl CBORDecodable for KnownValue {
-    fn from_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
+    fn from_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
         Self::from_tagged_cbor(cbor)
     }
 }
@@ -123,7 +123,7 @@ impl CBORTaggedEncodable for KnownValue {
 }
 
 impl CBORTaggedDecodable for KnownValue {
-    fn from_untagged_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
+    fn from_untagged_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
         let value = u64::from_cbor(cbor)?;
         Ok(Self::new(value))
     }

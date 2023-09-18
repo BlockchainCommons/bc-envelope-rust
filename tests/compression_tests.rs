@@ -2,10 +2,10 @@ use bc_components::DigestProvider;
 use bc_rand::make_fake_random_number_generator;
 use dcbor::CBOREncodable;
 use indoc::indoc;
-use crate::{known_values::NOTE, with_format_context, Envelope};
+use bc_envelope::{known_values::NOTE, with_format_context, Envelope};
 
-use super::test_data::alice_private_keys;
-
+include!("test_data.rs.inc");
+use test_data::*;
 
 fn source() -> &'static str {
     "Lorem ipsum dolor sit amet consectetur adipiscing elit mi nibh ornare proin blandit diam ridiculus, faucibus mus dui eu vehicula nam donec dictumst sed vivamus bibendum aliquet efficitur. Felis imperdiet sodales dictum morbi vivamus augue dis duis aliquet velit ullamcorper porttitor, lobortis dapibus hac purus aliquam natoque iaculis blandit montes nunc pretium."

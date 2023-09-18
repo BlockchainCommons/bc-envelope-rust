@@ -1,5 +1,6 @@
 use std::{borrow::Cow, rc::Rc};
 
+use anyhow::bail;
 use bc_components::{Digest, DigestProvider};
 use dcbor::{
     CBORCodable, CBORDecodable, CBOREncodable, CBOR, Map,
@@ -78,17 +79,17 @@ impl CBOREncodable for Assertion {
 }
 
 impl CBORDecodable for Assertion {
-    fn from_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
+    fn from_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
         if let CBOR::Map(map) = cbor {
             if map.len() != 1 {
-                return Err(dcbor::Error::InvalidFormat);
+                bail!("assertion map must have exactly one element")
             }
             let elem = map.iter().next().unwrap();
             let predicate = Envelope::from_cbor(elem.0)?;
             let object = Envelope::from_cbor(elem.1)?;
             return Ok(Self::new(predicate, object));
         }
-        Err(dcbor::Error::InvalidFormat)
+        bail!("assertion must be a map")
     }
 }
 

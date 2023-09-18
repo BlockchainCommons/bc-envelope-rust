@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use anyhow::bail;
 use bc_components::{tags, Digest, EncryptedMessage, Compressed};
 use bc_ur::{UREncodable, URDecodable, URCodable};
 use dcbor::{CBORTagged, CBOREncodable, CBORDecodable, CBOR, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable, Tag};
@@ -29,7 +30,7 @@ impl CBOREncodable for Envelope {
 }
 
 impl CBORDecodable for Envelope {
-    fn from_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
+    fn from_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
         Self::from_untagged_cbor(cbor)
     }
 }
@@ -58,7 +59,7 @@ impl CBORTaggedEncodable for Envelope {
 }
 
 impl CBORTaggedDecodable for Envelope {
-    fn from_untagged_cbor(cbor: &CBOR) -> Result<Self, dcbor::Error> {
+    fn from_untagged_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
         match cbor {
             CBOR::Tagged(tag, item) => {
                 match tag.value() {
@@ -84,19 +85,15 @@ impl CBORTaggedDecodable for Envelope {
                         let envelope = Envelope::new_with_compressed(compressed)?;
                         Ok(envelope)
                     },
-                    _ => Err(dcbor::Error::InvalidFormat),
+                    _ => bail!("unknown envelope tag: {}", tag.value()),
                 }
             }
             CBOR::ByteString(bytes) => {
-                if let Some(digest) = Digest::from_data_ref(bytes) {
-                    Ok(Envelope::new_elided(digest))
-                } else {
-                    Err(dcbor::Error::InvalidFormat)
-                }
+                Ok(Envelope::new_elided(Digest::from_data_ref(bytes)?))
             }
             CBOR::Array(elements) => {
                 if elements.len() < 2 {
-                    return Err(dcbor::Error::InvalidFormat);
+                    bail!("node must have at least two elements")
                 }
                 let subject = Rc::new(Envelope::from_untagged_cbor(&elements[0])?);
                 // let assertions = elements[1..].iter().map(Envelope::from_tagged_cbor).collect::<Result<Vec<Self>, dcbor::Error>>()?;
@@ -106,7 +103,7 @@ impl CBORTaggedDecodable for Envelope {
                 let assertions: Vec<Rc<Envelope>> = elements[1..]
                     .iter()
                     .map(Envelope::from_untagged_cbor)
-                    .collect::<Result<Vec<Self>, dcbor::Error>>()?
+                    .collect::<Result<Vec<Self>, anyhow::Error>>()?
                     .into_iter()
                     .map(Rc::new)
                     .collect();
@@ -120,7 +117,7 @@ impl CBORTaggedDecodable for Envelope {
                 let known_value = KnownValue::new(*value);
                 Ok(Envelope::new_with_known_value(known_value))
             }
-            _ => Err(dcbor::Error::InvalidFormat),
+            _ => bail!("invalid envelope"),
         }
     }
 }

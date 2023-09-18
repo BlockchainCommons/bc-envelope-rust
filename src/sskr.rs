@@ -1,10 +1,11 @@
 use std::{rc::Rc, collections::HashMap};
 
-pub use bc_components::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret};
+use anyhow::bail;
+pub use bc_components::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret, SSKRError};
 use bc_components::{sskr_generate_using, sskr_combine, SymmetricKey};
 use bc_rand::RandomNumberGenerator;
 
-use crate::{Envelope, known_values, Error, impl_into_envelope};
+use crate::{Envelope, known_values, EnvelopeError, impl_into_envelope};
 
 /// Support for splitting and combining envelopes using SSKR (Shamir's Secret Sharing).
 impl Envelope {
@@ -28,7 +29,7 @@ impl Envelope {
     /// - Returns: An array of arrays. Each element of the outer array represents an
     /// SSKR group, and the elements of each inner array are the envelope with a unique
     /// `sskrShare: SSKRShare` assertion added to each.
-    pub fn sskr_split(self: Rc<Self>, spec: &SSKRSpec, content_key: &SymmetricKey) -> Result<Vec<Vec<Rc<Envelope>>>, Error> {
+    pub fn sskr_split(self: Rc<Self>, spec: &SSKRSpec, content_key: &SymmetricKey) -> Result<Vec<Vec<Rc<Envelope>>>, SSKRError> {
         let mut rng = bc_rand::SecureRandomNumberGenerator;
         self.sskr_split_using(spec, content_key, &mut rng)
     }
@@ -49,7 +50,7 @@ impl Envelope {
     /// - Returns: An array of arrays. Each element of the outer array represents an
     /// SSKR group, and the elements of each inner array are the envelope with a unique
     /// `sskrShare: SSKRShare` assertion added to each.
-    pub fn sskr_split_using(self: Rc<Self>, spec: &SSKRSpec, content_key: &SymmetricKey, test_rng: &mut impl RandomNumberGenerator) -> Result<Vec<Vec<Rc<Envelope>>>, Error> {
+    pub fn sskr_split_using(self: Rc<Self>, spec: &SSKRSpec, content_key: &SymmetricKey, test_rng: &mut impl RandomNumberGenerator) -> Result<Vec<Vec<Rc<Envelope>>>, SSKRError> {
         let master_secret = SSKRSecret::new(content_key.data())?;
         let shares = sskr_generate_using(spec, &master_secret, test_rng)?;
         let mut result: Vec<Vec<Rc<Envelope>>> = Vec::new();
@@ -64,7 +65,7 @@ impl Envelope {
         Ok(result)
     }
 
-    fn sskr_shares_in(envelopes: &[Rc<Envelope>]) -> Result<HashMap<u16, Vec<SSKRShare>>, Error> {
+    fn sskr_shares_in(envelopes: &[Rc<Envelope>]) -> anyhow::Result<HashMap<u16, Vec<SSKRShare>>> {
         let mut result: HashMap<u16, Vec<SSKRShare>> = HashMap::new();
         for envelope in envelopes {
             for assertion in envelope.clone().assertions_with_predicate(known_values::SSKR_SHARE) {
@@ -90,22 +91,22 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if no quorum of shares can be found to reconstruct
     /// the original envelope.
-    pub fn sskr_join(envelopes: &[Rc<Envelope>]) -> Result<Rc<Envelope>, Error> {
+    pub fn sskr_join(envelopes: &[Rc<Envelope>]) -> anyhow::Result<Rc<Envelope>> {
         if envelopes.is_empty() {
-            return Err(Error::InvalidShares);
+            bail!(EnvelopeError::InvalidShares);
         }
 
         let grouped_shares: Vec<_> = Self::sskr_shares_in(envelopes)?.values().cloned().collect();
         for shares in grouped_shares {
             if let Ok(secret) = sskr_combine(&shares) {
-                if let Some(content_key) = SymmetricKey::from_data_ref(&secret) {
+                if let Ok(content_key) = SymmetricKey::from_data_ref(&secret) {
                     if let Ok(envelope) = envelopes.first().unwrap().clone().decrypt_subject(&content_key) {
                         return Ok(envelope.subject());
                     }
                 }
             }
         }
-        Err(Error::InvalidShares)
+        bail!(EnvelopeError::InvalidShares)
     }
 }
 

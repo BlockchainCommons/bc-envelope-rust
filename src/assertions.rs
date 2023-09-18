@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use bc_components::DigestProvider;
 
-use crate::{Envelope, Error, IntoEnvelope};
+use crate::{Envelope, EnvelopeError, IntoEnvelope};
 
 /// Support for adding assertions.
 impl Envelope {
@@ -29,7 +29,7 @@ impl Envelope {
     ///
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_assertion_envelope(self: Rc<Self>, assertion_envelope: Rc<Self>) -> Result<Rc<Self>, Error> {
+    pub fn add_assertion_envelope(self: Rc<Self>, assertion_envelope: Rc<Self>) -> Result<Rc<Self>, EnvelopeError> {
         self.add_assertion_envelope_salted(assertion_envelope, false)
     }
 
@@ -37,7 +37,7 @@ impl Envelope {
     ///
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_assertion_envelope_salted(self: Rc<Self>, assertion_envelope: Rc<Self>, salted: bool) -> Result<Rc<Self>, Error> {
+    pub fn add_assertion_envelope_salted(self: Rc<Self>, assertion_envelope: Rc<Self>, salted: bool) -> Result<Rc<Self>, EnvelopeError> {
         self.add_optional_assertion_envelope_salted(Some(assertion_envelope), salted)
     }
 
@@ -45,7 +45,7 @@ impl Envelope {
     ///
     /// Each assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_assertion_envelopes(self: Rc<Self>, assertions: &[Rc<Self>]) -> Result<Rc<Self>, Error> {
+    pub fn add_assertion_envelopes(self: Rc<Self>, assertions: &[Rc<Self>]) -> Result<Rc<Self>, EnvelopeError> {
         let mut e = self;
         for assertion in assertions {
             e = e.add_assertion_envelope(assertion.clone())?;
@@ -58,7 +58,7 @@ impl Envelope {
     ///
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_optional_assertion_envelope(self: Rc<Self>, assertion: Option<Rc<Self>>) -> Result<Rc<Self>, Error> {
+    pub fn add_optional_assertion_envelope(self: Rc<Self>, assertion: Option<Rc<Self>>) -> Result<Rc<Self>, EnvelopeError> {
         self.add_optional_assertion_envelope_salted(assertion, false)
     }
 
@@ -81,11 +81,11 @@ impl Envelope {
     ///
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_optional_assertion_envelope_salted(self: Rc<Self>, assertion: Option<Rc<Self>>, salted: bool) -> Result<Rc<Self>, Error> {
+    pub fn add_optional_assertion_envelope_salted(self: Rc<Self>, assertion: Option<Rc<Self>>, salted: bool) -> Result<Rc<Self>, EnvelopeError> {
         match assertion {
             Some(assertion) => {
                 if !assertion.is_subject_assertion() && !assertion.is_subject_obscured() {
-                    return Err(Error::InvalidFormat)
+                    return Err(EnvelopeError::InvalidFormat)
                 }
                 let envelope2 = if salted {
                     assertion.add_salt()
@@ -133,7 +133,7 @@ impl Envelope {
 
     /// Returns a new envelope with the given assertion replaced by the provided one. If
     /// the targeted assertion does not exist, returns the same envelope.
-    pub fn replace_assertion(self: Rc<Self>, assertion: Rc<Self>, new_assertion: Rc<Self>) -> Result<Rc<Self>, Error> {
+    pub fn replace_assertion(self: Rc<Self>, assertion: Rc<Self>, new_assertion: Rc<Self>) -> Result<Rc<Self>, EnvelopeError> {
         self.remove_assertion(assertion).add_assertion_envelope(new_assertion)
     }
 

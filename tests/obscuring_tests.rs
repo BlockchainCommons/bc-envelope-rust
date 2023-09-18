@@ -1,8 +1,9 @@
 use bc_components::SymmetricKey;
 
-use crate::Envelope;
+use bc_envelope::Envelope;
 
-use super::test_data::PLAINTEXT_HELLO;
+include!("test_data.rs.inc");
+use test_data::*;
 
 /// This tests the transformation of different kinds of "obscured" envelopes into
 /// others. Some transformations are allowed, some are idempotent (return the same

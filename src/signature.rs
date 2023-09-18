@@ -1,8 +1,9 @@
 use std::rc::Rc;
+use anyhow::bail;
 use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider};
 use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
 
-use crate::{Envelope, Error, known_values, impl_into_envelope};
+use crate::{Envelope, EnvelopeError, known_values, impl_into_envelope};
 
 /// Support for signing envelopes and verifying signatures.
 impl Envelope {
@@ -189,7 +190,7 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if any `verifiedBy` assertion doesn't contain a
     /// valid `Signature` as its object.
-    pub fn signatures(self: Rc<Self>) -> Result<Vec<Rc<Signature>>, Error> {
+    pub fn signatures(self: Rc<Self>) -> anyhow::Result<Vec<Rc<Signature>>> {
         let verified_by = known_values::VERIFIED_BY;
         self
             .assertions_with_predicate(verified_by).into_iter()
@@ -228,7 +229,7 @@ impl Envelope {
         self: Rc<Self>,
         signature: &Signature,
         public_keys: &PublicKeyBase,
-    ) -> Result<Rc<Self>, Error> {
+    ) -> Result<Rc<Self>, EnvelopeError> {
         self.verify_signature_from_key(signature, public_keys.signing_public_key())
     }
 
@@ -244,7 +245,7 @@ impl Envelope {
     pub fn has_signature_from(
         self: Rc<Self>,
         public_keys: &PublicKeyBase,
-    ) -> Result<bool, Error> {
+    ) -> anyhow::Result<bool> {
         self.has_some_signature_from_key(public_keys.signing_public_key())
     }
 
@@ -262,7 +263,7 @@ impl Envelope {
     pub fn verify_signature_from(
         self: Rc<Self>,
         public_keys: &PublicKeyBase,
-    ) -> Result<Rc<Self>, Error> {
+    ) -> anyhow::Result<Rc<Self>> {
         self.verify_has_some_signature_from_key(public_keys.signing_public_key())
     }
 
@@ -270,7 +271,7 @@ impl Envelope {
     pub fn has_signatures_from(
         self: Rc<Self>,
         public_keys_array: &[&PublicKeyBase],
-    ) -> Result<bool, Error> {
+    ) -> anyhow::Result<bool> {
         self.has_signatures_from_threshold(public_keys_array, None)
     }
 
@@ -291,7 +292,7 @@ impl Envelope {
         self: Rc<Self>,
         public_keys_array: &[&PublicKeyBase],
         threshold: Option<usize>,
-    ) -> Result<bool, Error> {
+    ) -> anyhow::Result<bool> {
         let public_keys = public_keys_array
             .iter()
             .map(|public_key| public_key.signing_public_key())
@@ -303,7 +304,7 @@ impl Envelope {
     pub fn verify_signatures_from(
         self: Rc<Self>,
         public_keys_array: &[&PublicKeyBase],
-    ) -> Result<Rc<Self>, Error> {
+    ) -> anyhow::Result<Rc<Self>> {
         self.verify_signatures_from_threshold(public_keys_array, None)
     }
 
@@ -325,7 +326,7 @@ impl Envelope {
         self: Rc<Self>,
         public_keys_array: &[&PublicKeyBase],
         threshold: Option<usize>,
-    ) -> Result<Rc<Self>, Error> {
+    ) -> anyhow::Result<Rc<Self>> {
         let public_keys = public_keys_array
             .iter()
             .map(|public_key| public_key.signing_public_key())
@@ -348,9 +349,9 @@ impl Envelope {
         self: Rc<Self>,
         signature: &Signature,
         key: &SigningPublicKey
-    ) -> Result<Rc<Self>, Error> {
+    ) -> Result<Rc<Self>, EnvelopeError> {
         if !self.clone().is_signature_from_key(signature, key) {
-            return Err(Error::UnverifiedSignature);
+            return Err(EnvelopeError::UnverifiedSignature);
         }
         Ok(self)
     }
@@ -358,7 +359,7 @@ impl Envelope {
     fn has_some_signature_from_key(
         self: Rc<Self>,
         key: &SigningPublicKey
-    ) -> Result<bool, Error> {
+    ) -> anyhow::Result<bool> {
         let signatures = self.clone().signatures();
         let signatures = signatures?;
         let result = signatures.iter().any(|signature| {
@@ -370,9 +371,9 @@ impl Envelope {
     fn verify_has_some_signature_from_key(
         self: Rc<Self>,
         key: &SigningPublicKey
-    ) -> Result<Rc<Self>, Error> {
+    ) -> anyhow::Result<Rc<Self>> {
         if !self.clone().has_some_signature_from_key(key)? {
-            return Err(Error::UnverifiedSignature);
+            bail!(EnvelopeError::UnverifiedSignature);
         }
         Ok(self)
     }
@@ -381,7 +382,7 @@ impl Envelope {
         self: Rc<Self>,
         keys: &[&SigningPublicKey],
         threshold: Option<usize>
-    ) -> Result<bool, Error> {
+    ) -> anyhow::Result<bool> {
         let threshold = threshold.unwrap_or(keys.len());
         let mut count = 0;
         for key in keys {
@@ -399,9 +400,9 @@ impl Envelope {
         self: Rc<Self>,
         keys: &[&SigningPublicKey],
         threshold: Option<usize>
-    ) -> Result<Rc<Self>, Error> {
+    ) -> anyhow::Result<Rc<Self>> {
         if !self.clone().has_signatures_from_keys_threshold(keys, threshold)? {
-            return Err(Error::UnverifiedSignature);
+            bail!(EnvelopeError::UnverifiedSignature);
         }
         Ok(self)
     }

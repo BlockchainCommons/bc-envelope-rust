@@ -1,3 +1,4 @@
+use anyhow::bail;
 use bc_components::{Compressed, Digest, DigestProvider, EncryptedMessage};
 use dcbor::{CBORDecodable, CBOR};
 use std::{
@@ -5,7 +6,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::{Assertion, Envelope, Error, IntoEnvelope, known_values::KnownValue};
+use crate::{Assertion, Envelope, EnvelopeError, IntoEnvelope, known_values::KnownValue};
 
 /// Support for various queries on envelopes.
 impl Envelope {
@@ -179,11 +180,11 @@ impl Envelope {
     /// Returns the envelope's subject, decoded as the given type.
     ///
     /// If the encoded type doesn't match the given type, returns `Error::InvalidFormat`.
-    pub fn extract_subject<T>(&self) -> Result<Rc<T>, Error>
+    pub fn extract_subject<T>(&self) -> anyhow::Result<Rc<T>>
     where
         T: Any + CBORDecodable,
     {
-        fn extract_type<T, U>(value: &U) -> Result<Rc<T>, Error>
+        fn extract_type<T, U>(value: &U) -> anyhow::Result<Rc<T>>
         where
             T: Any,
             U: Any + Clone,
@@ -193,7 +194,7 @@ impl Envelope {
                     .downcast::<T>()
                     .unwrap())
             } else {
-                Err(Error::InvalidFormat)
+                bail!(EnvelopeError::InvalidFormat)
             }
         }
 
@@ -235,24 +236,24 @@ impl Envelope {
     pub fn assertion_with_predicate<P>(
         self: Rc<Self>,
         predicate: P,
-    ) -> Result<Rc<Self>, Error>
+    ) -> Result<Rc<Self>, EnvelopeError>
     where
         P: IntoEnvelope,
     {
         let a = self.assertions_with_predicate(predicate);
         if a.is_empty() {
-            Err(Error::NonexistentPredicate)
+            Err(EnvelopeError::NonexistentPredicate)
         } else if a.len() == 1 {
             Ok(a[0].clone())
         } else {
-            Err(Error::AmbiguousPredicate)
+            Err(EnvelopeError::AmbiguousPredicate)
         }
     }
 
     /// Returns the object of the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
-    pub fn object_for_predicate<P>(self: Rc<Self>, predicate: P) -> Result<Rc<Self>, Error>
+    pub fn object_for_predicate<P>(self: Rc<Self>, predicate: P) -> Result<Rc<Self>, EnvelopeError>
     where
         P: IntoEnvelope,
     {
@@ -266,7 +267,7 @@ impl Envelope {
     pub fn extract_object_for_predicate<T, P>(
         self: Rc<Self>,
         predicate: P,
-    ) -> Result<Rc<T>, Error>
+    ) -> anyhow::Result<Rc<T>>
     where
         T: CBORDecodable + 'static,
         P: IntoEnvelope,
@@ -295,7 +296,7 @@ impl Envelope {
     pub fn extract_objects_for_predicate<T, P>(
         self: Rc<Self>,
         predicate: P,
-    ) -> Result<Vec<Rc<T>>, Error>
+    ) -> anyhow::Result<Vec<Rc<T>>>
     where
         T: CBORDecodable,
         P: IntoEnvelope,

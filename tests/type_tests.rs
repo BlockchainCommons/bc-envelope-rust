@@ -1,4 +1,4 @@
-use crate::{Envelope, known_values};
+use bc_envelope::{Envelope, known_values};
 use bc_components::DigestProvider;
 use bc_rand::{fake_random_data, make_fake_random_number_generator, RandomNumberGenerator};
 use bc_ur::UREncodable;
