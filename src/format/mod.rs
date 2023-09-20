@@ -1,9 +1,9 @@
 use std::error::Error;
 
-mod tree_format;
-
 mod format_context;
 pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
+
+mod tree_format;
 
 use bc_components::{Digest, ARID, URI, UUID};
 use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable, Date, CBORTaggedEncodable};
@@ -282,7 +282,7 @@ impl EnvelopeSummary for CBOR {
                     tags::KNOWN_VALUE_VALUE => {
                         if let CBOR::Unsigned(raw_value) = &**untagged_cbor {
                             Ok(KnownValuesStore::known_value_for_raw_value(*raw_value, Some(context.known_values()))
-                                .to_string())
+                                .to_string().flanked_by("'", "'",))
                         } else {
                             Ok("<not a known value>".to_string())
                         }
@@ -448,6 +448,7 @@ impl EnvelopeFormat for KnownValue {
             .assigned_name(self)
             .map(|s| s.to_string())
             .unwrap_or_else(|| self.name())
+            .flanked_by("'", "'")
         )
     }
 }

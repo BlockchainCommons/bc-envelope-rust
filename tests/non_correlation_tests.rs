@@ -15,7 +15,7 @@ fn test_envelope_non_correlation() {
 
     assert_eq!(e2.format(), indoc! {r#"
     "Hello." [
-        salt: Salt
+        'salt': Salt
     ]
     "#}.trim());
 
@@ -39,7 +39,7 @@ fn test_envelope_non_correlation() {
     4f0f2d55 NODE
         8cc96cdb subj "Hello."
         dd412f1d ASSERTION
-            618975ce pred salt
+            618975ce pred 'salt'
             7915f200 obj Salt
     "#}.trim());
 
@@ -95,14 +95,14 @@ fn test_add_salt() {
     let e1_expected_format = indoc! {r#"
     {
         "Alpha" [
-            salt: Salt
+            'salt': Salt
         ]
     } [
-        note [
-            salt: Salt
+        'note' [
+            'salt': Salt
         ]
         : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." [
-            salt: Salt
+            'salt': Salt
         ]
     ]
     "#}.trim();

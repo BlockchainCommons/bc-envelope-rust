@@ -47,7 +47,7 @@ fn test_request() {
         let request_envelope = Envelope::new_request(&request_id, two_plus_three());
             assert_eq!(request_envelope.format_opt(Some(context)), indoc! {r#"
             request(ARID(c66be27d)) [
-                body: «add» [
+                'body': «add» [
                     ❰lhs❱: 2
                     ❰rhs❱: 3
                 ]
@@ -57,21 +57,21 @@ fn test_request() {
         let response_envelope = Envelope::new_response(&request_id, 5);
         assert_eq!(response_envelope.format_opt(Some(context)), indoc! {r#"
             response(ARID(c66be27d)) [
-                result: 5
+                'result': 5
             ]
             "#}.trim());
 
         let error_response = Envelope::new_error_response_with_id(request_id, "Internal Server Error");
         assert_eq!(error_response.format_opt(Some(context)), indoc! {r#"
             response(ARID(c66be27d)) [
-                error: "Internal Server Error"
+                'error': "Internal Server Error"
             ]
             "#}.trim());
 
         let unknown_error_response = Envelope::new_error_response(Some("Decryption failure"));
         assert_eq!(unknown_error_response.format_opt(Some(context)), indoc! {r#"
             response("unknown") [
-                error: "Decryption failure"
+                'error': "Decryption failure"
             ]
             "#}.trim());
     });

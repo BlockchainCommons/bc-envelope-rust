@@ -2,17 +2,17 @@ use std::{rc::Rc, collections::HashSet, cell::RefCell};
 
 use bc_components::{Digest, DigestProvider};
 
-use crate::{Envelope, format::FormatContext, walk::EdgeType};
+use crate::{Envelope, format::FormatContext, walk::EdgeType, string_utils::StringUtils};
 
 use super::EnvelopeSummary;
 
 /// Support for tree-formatting envelopes.
 impl Envelope {
-    pub fn tree_format(self: Rc<Envelope>, hide_nodes: bool, context: Option<&FormatContext>) -> String {
+    pub fn tree_format(&self, hide_nodes: bool, context: Option<&FormatContext>) -> String {
         self.tree_format_with_target(hide_nodes, &HashSet::new(), context)
     }
 
-    pub fn tree_format_with_target(self: Rc<Envelope>, hide_nodes: bool, highlighting_target: &HashSet<Digest>, context: Option<&FormatContext>) -> String {
+    pub fn tree_format_with_target(&self, hide_nodes: bool, highlighting_target: &HashSet<Digest>, context: Option<&FormatContext>) -> String {
         let elements: RefCell<Vec<TreeElement>> = RefCell::new(Vec::new());
         let visitor = |envelope: Rc<Self>, level: usize, incoming_edge: EdgeType, _: Option<&()>| -> _ {
             let elem = TreeElement::new(
@@ -25,7 +25,8 @@ impl Envelope {
             elements.borrow_mut().push(elem);
             None
         };
-        self.walk(hide_nodes, &visitor);
+        let s = Rc::new(self.clone());
+        s.walk(hide_nodes, &visitor);
         let elements = elements.borrow();
         elements.iter().map(|e| e.string(context.unwrap_or(&FormatContext::default()))).collect::<Vec<_>>().join("\n")
     }
@@ -41,7 +42,7 @@ impl Envelope {
             Envelope::Node { .. } => "NODE".to_string(),
             Envelope::Leaf { cbor, .. } => cbor.envelope_summary(max_length, context).unwrap(),
             Envelope::Wrapped { .. } => "WRAPPED".to_string(),
-            Envelope::KnownValue { value, .. } => value.name(),
+            Envelope::KnownValue { value, .. } => value.name().flanked_by("'", "'"),
             Envelope::Assertion(_) => "ASSERTION".to_string(),
             Envelope::Encrypted(_) => "ENCRYPTED".to_string(),
             Envelope::Compressed(_) => "COMPRESSED".to_string(),

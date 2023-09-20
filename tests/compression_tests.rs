@@ -40,10 +40,10 @@ fn test_compress_subject() {
                 7f35e345 subj NODE
                     13941b48 subj "Alice"
                     9fb69539 ASSERTION
-                        0fcd6a39 pred note
+                        0fcd6a39 pred 'note'
                         e343c9b4 obj "Lorem ipsum dolor sit amet consectetur a…"
             2f87ba42 ASSERTION
-                d0e39e78 pred verifiedBy
+                d0e39e78 pred 'verifiedBy'
                 dd386db5 obj Signature
         "#}.trim());
     });
@@ -55,7 +55,7 @@ fn test_compress_subject() {
         9ed291b0 NODE
             d7183f04 subj COMPRESSED
             2f87ba42 ASSERTION
-                d0e39e78 pred verifiedBy
+                d0e39e78 pred 'verifiedBy'
                 dd386db5 obj Signature
         "#}.trim());
     });

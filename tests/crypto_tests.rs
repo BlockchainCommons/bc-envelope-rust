@@ -43,7 +43,7 @@ fn test_signed_plaintext() {
 
     let expected_format = indoc! {r#"
     "Hello." [
-        verifiedBy: Signature
+        'verifiedBy': Signature
     ]
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
@@ -81,8 +81,8 @@ fn multisigned_plaintext() {
 
     let expected_format = indoc! {r#"
     "Hello." [
-        verifiedBy: Signature
-        verifiedBy: Signature
+        'verifiedBy': Signature
+        'verifiedBy': Signature
     ]
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
@@ -251,7 +251,7 @@ fn test_encrypt_then_sign() {
 
     let expected_format = indoc! {r#"
     ENCRYPTED [
-        verifiedBy: Signature
+        'verifiedBy': Signature
     ]
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
@@ -282,8 +282,8 @@ fn test_multi_recipient() {
 
     let expected_format = indoc! {r#"
     ENCRYPTED [
-        hasRecipient: SealedMessage
-        hasRecipient: SealedMessage
+        'hasRecipient': SealedMessage
+        'hasRecipient': SealedMessage
     ]
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
@@ -326,9 +326,9 @@ fn test_visible_signature_multi_recipient() {
 
     let expected_format = indoc! {r#"
     ENCRYPTED [
-        hasRecipient: SealedMessage
-        hasRecipient: SealedMessage
-        verifiedBy: Signature
+        'hasRecipient': SealedMessage
+        'hasRecipient': SealedMessage
+        'verifiedBy': Signature
     ]
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
@@ -377,8 +377,8 @@ fn test_hidden_signature_multi_recipient() {
 
     let expected_format = indoc! {r#"
     ENCRYPTED [
-        hasRecipient: SealedMessage
-        hasRecipient: SealedMessage
+        'hasRecipient': SealedMessage
+        'hasRecipient': SealedMessage
     ]
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
@@ -444,7 +444,7 @@ fn test_sskr() {
 
     let expected_format = indoc! {r#"
         ENCRYPTED [
-            sskrShare: SSKRShare
+            'sskrShare': SSKRShare
         ]
         "#}.trim();
     assert_eq!(sent_envelopes[0].format(), expected_format);

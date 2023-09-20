@@ -95,7 +95,7 @@ fn test_known_value_subject() {
 
     assert_eq!(e.format(),
     indoc! {r#"
-    note
+    'note'
     "#}.trim()
     );
 
