@@ -418,34 +418,3 @@ mod assertion;
 pub use assertion::Assertion;
 
 pub mod check_encoding;
-
-// #[cfg(test)]
-// mod tests {
-//     pub mod test_data;
-//     mod test_seed;
-//     pub use test_seed::Seed;
-
-//     mod check_encoding;
-//     mod compression_tests;
-//     mod core_encoding_tests;
-//     mod core_nesting_tests;
-//     mod core_tests;
-//     mod crypto_tests;
-//     mod elision_tests;
-//     mod encrypted_tests;
-//     mod format_tests;
-//     mod expressions_tests;
-//     mod non_correlation_tests;
-//     mod obscuring_tests;
-//     mod type_tests;
-
-//     #[test]
-//     fn test_readme_deps() {
-//         version_sync::assert_markdown_deps_updated!("README.md");
-//     }
-
-//     #[test]
-//     fn test_html_root_url() {
-//         version_sync::assert_html_root_url_updated!("src/lib.rs");
-//     }
-// }

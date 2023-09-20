@@ -2,8 +2,8 @@ use bc_envelope::{Envelope, with_format_context, known_values::{self, KnownValue
 use bc_components::DigestProvider;
 use indoc::indoc;
 
-include!("test_data.rs.inc");
-use test_data::*;
+mod common;
+use crate::common::test_data::*;
 
 #[test]
 fn test_int_subject() {

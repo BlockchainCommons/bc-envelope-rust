@@ -8,8 +8,8 @@ use dcbor::{CBOREncodable, Date};
 use indoc::indoc;
 use hex_literal::hex;
 
-include!("test_data.rs.inc");
-use test_data::*;
+mod common;
+use crate::common::test_data::*;
 
 #[test]
 fn test_plaintext() {

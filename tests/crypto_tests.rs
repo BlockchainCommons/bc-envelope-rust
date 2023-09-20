@@ -7,11 +7,9 @@ use hex_literal::hex;
 
 use bc_envelope::{Envelope, known_values};
 
-include!("test_data.rs.inc");
-use test_data::*;
-
-include!("test_seed.rs.inc");
-use test_seed::*;
+mod common;
+use crate::common::test_data::*;
+use crate::common::test_seed::*;
 
 #[test]
 fn plaintext() {

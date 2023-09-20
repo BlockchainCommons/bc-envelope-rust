@@ -2,8 +2,8 @@ use bc_components::SymmetricKey;
 
 use bc_envelope::Envelope;
 
-include!("test_data.rs.inc");
-use test_data::*;
+mod common;
+use crate::common::test_data::*;
 
 /// This tests the transformation of different kinds of "obscured" envelopes into
 /// others. Some transformations are allowed, some are idempotent (return the same
