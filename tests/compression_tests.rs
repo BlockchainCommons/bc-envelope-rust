@@ -33,7 +33,7 @@ fn test_compress_subject() {
         .sign_with_using(&alice_private_keys(), &mut rng);
     assert_eq!(original.cbor_data().len(), 456);
     with_format_context!(|context| {
-        let s = original.clone().tree_format(false, Some(context));
+        let s = original.clone().tree_format_opt(false, Some(context));
         assert_eq!(s, indoc! {r#"
         9ed291b0 NODE
             d7183f04 subj WRAPPED
@@ -50,7 +50,7 @@ fn test_compress_subject() {
     let compressed = original.clone().compress_subject().unwrap().check_encoding().unwrap();
     assert_eq!(compressed.cbor_data().len(), 373);
     with_format_context!(|context| {
-        let s = compressed.clone().tree_format(false, Some(context));
+        let s = compressed.clone().tree_format_opt(false, Some(context));
         assert_eq!(s, indoc! {r#"
         9ed291b0 NODE
             d7183f04 subj COMPRESSED

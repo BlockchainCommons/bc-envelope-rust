@@ -2,14 +2,20 @@ use std::{rc::Rc, collections::HashSet, cell::RefCell};
 
 use bc_components::{Digest, DigestProvider};
 
-use crate::{Envelope, format::FormatContext, walk::EdgeType, string_utils::StringUtils};
+use crate::{Envelope, format::FormatContext, walk::EdgeType, string_utils::StringUtils, known_values::KnownValuesStore, with_format_context};
 
 use super::EnvelopeSummary;
 
 /// Support for tree-formatting envelopes.
 impl Envelope {
-    pub fn tree_format(&self, hide_nodes: bool, context: Option<&FormatContext>) -> String {
+    pub fn tree_format_opt(&self, hide_nodes: bool, context: Option<&FormatContext>) -> String {
         self.tree_format_with_target(hide_nodes, &HashSet::new(), context)
+    }
+
+    pub fn tree_format(&self, hide_nodes: bool) -> String {
+        with_format_context!(|context| {
+            self.tree_format_opt(hide_nodes, Some(context))
+        })
     }
 
     pub fn tree_format_with_target(&self, hide_nodes: bool, highlighting_target: &HashSet<Digest>, context: Option<&FormatContext>) -> String {
@@ -42,7 +48,10 @@ impl Envelope {
             Envelope::Node { .. } => "NODE".to_string(),
             Envelope::Leaf { cbor, .. } => cbor.envelope_summary(max_length, context).unwrap(),
             Envelope::Wrapped { .. } => "WRAPPED".to_string(),
-            Envelope::KnownValue { value, .. } => value.name().flanked_by("'", "'"),
+            Envelope::KnownValue { value, .. } => {
+                let known_value = KnownValuesStore::known_value_for_raw_value(value.value(), Some(context.known_values()));
+                known_value.to_string().flanked_by("'", "'",)
+            },
             Envelope::Assertion(_) => "ASSERTION".to_string(),
             Envelope::Encrypted(_) => "ENCRYPTED".to_string(),
             Envelope::Compressed(_) => "COMPRESSED".to_string(),
