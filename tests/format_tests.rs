@@ -363,6 +363,7 @@ fn test_complex_metadata() {
     Digest(26d05af5) [
         "format": "EPUB"
         "work": ARID(7fb90a9d) [
+            'isA': "novel"
             "author": ARID(9c747ace) [
                 'dereferenceVia': "LibraryOfCongress"
                 'hasName': "Ayn Rand"
@@ -375,7 +376,6 @@ fn test_complex_metadata() {
             'hasName': "La rebelión de Atlas" [
                 'language': "es"
             ]
-            'isA': "novel"
         ]
         'dereferenceVia': "IPFS"
     ]
@@ -502,6 +502,7 @@ fn test_credential() {
     assert_eq!(credential.format(), indoc! {r#"
     {
         ARID(4676635a) [
+            'isA': "Certificate of Completion"
             "certificateNumber": "123-456-789"
             "continuingEducationUnits": 1
             "expirationDate": 2028-01-01
@@ -513,7 +514,6 @@ fn test_credential() {
             "subject": "RF and Microwave Engineering"
             "topics": ["Subject 1", "Subject 2"]
             'controller': "Example Electrical Engineering Board"
-            'isA': "Certificate of Completion"
             'issuer': "Example Electrical Engineering Board"
         ]
     } [
@@ -658,11 +658,11 @@ fn test_redacted_credential() {
         {
             {
                 ARID(4676635a) [
+                    'isA': "Certificate of Completion"
                     "expirationDate": 2028-01-01
                     "firstName": "James"
                     "lastName": "Maxwell"
                     "subject": "RF and Microwave Engineering"
-                    'isA': "Certificate of Completion"
                     'issuer': "Example Electrical Engineering Board"
                     ELIDED (7)
                 ]

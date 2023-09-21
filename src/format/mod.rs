@@ -7,7 +7,7 @@ mod tree_format;
 
 use bc_components::{Digest, ARID, URI, UUID};
 use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable, Date, CBORTaggedEncodable};
-use crate::{Envelope, Assertion, string_utils::StringUtils, expressions::{Function, FunctionsStore, ParametersStore, Parameter}, known_values::{KnownValuesStore, KnownValue}};
+use crate::{Envelope, Assertion, string_utils::StringUtils, expressions::{Function, FunctionsStore, ParametersStore, Parameter}, known_values::{KnownValuesStore, KnownValue, self}};
 use bc_components::tags;
 
 /// Support for the various text output formats for ``Envelope``.
@@ -375,6 +375,7 @@ impl EnvelopeFormat for Envelope {
                 let mut elided_count = 0;
                 let mut encrypted_count = 0;
                 let mut compressed_count = 0;
+                let mut type_assertion_items: Vec<Vec<EnvelopeFormatItem>> = Vec::new();
                 let mut assertion_items: Vec<Vec<EnvelopeFormatItem>> = Vec::new();
 
                 for assertion in assertions {
@@ -389,11 +390,26 @@ impl EnvelopeFormat for Envelope {
                             compressed_count += 1;
                         },
                         _ => {
-                            assertion_items.push(vec![assertion.format_item(context)]);
+                            let mut is_type_assertion = false;
+                            if let Some(predicate) = assertion.clone().predicate() {
+                                if let Some(known_value) = predicate.subject().known_value() {
+                                    if *known_value == known_values::IS_A {
+                                        is_type_assertion = true;
+                                    }
+                                }
+                            }
+                            let item = vec![assertion.format_item(context)];
+                            if is_type_assertion {
+                                type_assertion_items.push(item);
+                            } else {
+                                assertion_items.push(item);
+                            }
                         },
                     }
                 }
+                type_assertion_items.sort();
                 assertion_items.sort();
+                assertion_items.splice(0..0, type_assertion_items);
                 if compressed_count > 1 {
                     assertion_items.push(vec![EnvelopeFormatItem::Item(format!("COMPRESSED ({})", compressed_count))]);
                 } else if compressed_count > 0 {

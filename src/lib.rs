@@ -382,6 +382,7 @@ mod salt;
 mod signature;
 mod string_utils;
 mod wrap;
+mod types;
 
 /// Types dealing with envelope expressions (and distributed function evaluation)
 pub mod expressions;
