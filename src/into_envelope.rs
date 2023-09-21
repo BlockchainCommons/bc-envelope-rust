@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use bc_components::{EncryptedMessage, Compressed, SealedMessage, Digest, ARID, Salt};
+use bc_components::{EncryptedMessage, Compressed, SealedMessage, Digest, ARID, Salt, URI, UUID};
 use dcbor::preamble::*;
 
 use crate::{Envelope, Assertion, known_values::KnownValue};
@@ -112,3 +112,5 @@ impl_into_envelope!(Digest);
 impl_into_envelope!(ARID);
 impl_into_envelope!(dcbor::Date);
 impl_into_envelope!(Salt);
+impl_into_envelope!(URI);
+impl_into_envelope!(UUID);
