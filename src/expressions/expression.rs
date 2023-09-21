@@ -218,7 +218,7 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
     pub fn is_result_ok(self: Rc<Self>) -> anyhow::Result<bool> {
-        self.extract_result::<KnownValue>().map(|v| *v == known_values::OK)
+        self.extract_result::<KnownValue>().map(|v| *v == known_values::OK_VALUE)
     }
 
     /// Returns the error value, decoded as the given type.
