@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use bc_components::{EncryptedMessage, Compressed, SealedMessage, Digest, ARID, Salt};
-use dcbor::{CBOREncodable, CBOR, Date};
+use dcbor::preamble::*;
 
 use crate::{Envelope, Assertion, known_values::KnownValue};
 
@@ -58,6 +58,18 @@ impl IntoEnvelope for &Box<CBOR> {
     }
 }
 
+impl IntoEnvelope for String {
+    fn into_envelope(self) -> Rc<Envelope> {
+        self.cbor().into_envelope()
+    }
+}
+
+impl IntoEnvelope for &String {
+    fn into_envelope(self) -> Rc<Envelope> {
+        self.cbor().into_envelope()
+    }
+}
+
 impl IntoEnvelope for &str {
     fn into_envelope(self) -> Rc<Envelope> {
         self.cbor().into_envelope()
@@ -92,9 +104,11 @@ impl_into_envelope!(i16);
 impl_into_envelope!(i32);
 impl_into_envelope!(i64);
 impl_into_envelope!(bool);
+impl_into_envelope!(f64);
+impl_into_envelope!(f32);
 
 impl_into_envelope!(SealedMessage);
 impl_into_envelope!(Digest);
 impl_into_envelope!(ARID);
-impl_into_envelope!(Date);
+impl_into_envelope!(dcbor::Date);
 impl_into_envelope!(Salt);

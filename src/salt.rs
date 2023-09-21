@@ -4,7 +4,7 @@ use crate::{Envelope, known_values};
 
 use bc_components::Salt;
 use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
-use dcbor::{CBORTaggedEncodable, CBOREncodable};
+use dcbor::preamble::*;
 
 /// Support for decorrelation of envelopes using salt.
 impl Envelope {

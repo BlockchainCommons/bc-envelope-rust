@@ -1,8 +1,7 @@
 use std::rc::Rc;
 use anyhow::bail;
 use bc_components::{tags, Digest, EncryptedMessage, Compressed};
-use bc_ur::{UREncodable, URDecodable, URCodable};
-use dcbor::{CBORTagged, CBOREncodable, CBORDecodable, CBOR, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable, Tag};
+use bc_ur::preamble::*;
 use crate::{Envelope, Assertion, known_values::KnownValue};
 
 /// Support for CBOR encoding and decoding of ``Envelope``.

@@ -1,8 +1,7 @@
-use bc_envelope::{Envelope, known_values};
+use bc_envelope::preamble::*;
 use bc_components::DigestProvider;
 use bc_rand::{fake_random_data, make_fake_random_number_generator, RandomNumberGenerator};
-use bc_ur::UREncodable;
-use dcbor::Date;
+use bc_ur::preamble::*;
 
 #[test]
 fn test_known_value() {
@@ -15,7 +14,7 @@ fn test_known_value() {
 
 #[test]
 fn test_date() {
-    let date = Date::new_from_string("2018-01-07").unwrap();
+    let date = dcbor::Date::new_from_string("2018-01-07").unwrap();
     let envelope = Envelope::new(date).check_encoding().unwrap();
     assert_eq!(envelope.format(), "2018-01-07");
 }

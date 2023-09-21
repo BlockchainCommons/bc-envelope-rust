@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::{Envelope, known_values, EnvelopeError};
 
 use bc_components::{SealedMessage, PublicKeyBase, SymmetricKey, Nonce, PrivateKeyBase};
-use dcbor::{CBOREncodable, CBORTaggedDecodable};
+use dcbor::preamble::*;
 
 /// Support for public key encryption.
 impl Envelope {

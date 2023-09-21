@@ -1,8 +1,8 @@
-use dcbor::CBOREncodable;
+use dcbor::preamble::*;
 use indoc::indoc;
 use std::error::Error;
 use bc_components::Digest;
-use bc_envelope::{Envelope, with_format_context};
+use bc_envelope::preamble::*;
 
 #[test]
 fn test_digest() {

@@ -1,8 +1,8 @@
 use bc_components::DigestProvider;
 use bc_rand::make_fake_random_number_generator;
-use dcbor::CBOREncodable;
+use dcbor::preamble::*;
 use indoc::indoc;
-use bc_envelope::{known_values::NOTE, with_format_context, Envelope};
+use bc_envelope::preamble::*;
 
 mod common;
 use crate::common::test_data::*;
@@ -28,7 +28,7 @@ fn test_compress() {
 fn test_compress_subject() {
     let mut rng = make_fake_random_number_generator();
     let original = Envelope::new("Alice")
-        .add_assertion(NOTE, source())
+        .add_assertion(known_values::NOTE, source())
         .wrap_envelope()
         .sign_with_using(&alice_private_keys(), &mut rng);
     assert_eq!(original.cbor_data().len(), 456);

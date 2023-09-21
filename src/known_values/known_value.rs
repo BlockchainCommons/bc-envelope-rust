@@ -1,7 +1,7 @@
 use std::{fmt::{Formatter, Display}, borrow::Cow};
 
 use bc_components::{tags, DigestProvider, Digest};
-use dcbor::{CBOR, CBORTagged, Tag, CBOREncodable, CBORDecodable, CBORCodable, CBORTaggedEncodable, CBORTaggedDecodable, CBORTaggedCodable};
+use dcbor::preamble::*;
 
 // Re-export everything from known_value_registry
 pub use crate::known_values::*;

@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use anyhow::bail;
 use bc_components::{Compressed, DigestProvider};
-use dcbor::{CBOREncodable, CBORTaggedEncodable, CBORTaggedDecodable};
+use dcbor::preamble::*;
 
 use crate::{Envelope, EnvelopeError};
 

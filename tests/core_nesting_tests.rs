@@ -1,4 +1,4 @@
-use bc_envelope::Envelope;
+use bc_envelope::preamble::*;
 use indoc::indoc;
 
 #[test]

@@ -1,7 +1,7 @@
 use std::{rc::Rc, collections::HashSet};
 
 use bc_components::{SymmetricKey, DigestProvider, Digest, Nonce};
-use dcbor::{CBORTaggedEncodable, CBOREncodable};
+use dcbor::preamble::*;
 
 use crate::{Envelope, Assertion, EnvelopeError};
 

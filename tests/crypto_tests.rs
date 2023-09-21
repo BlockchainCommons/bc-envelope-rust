@@ -1,11 +1,11 @@
 use std::rc::Rc;
 
 use bc_components::{SymmetricKey, SSKRGroupSpec, SSKRSpec};
-use bc_ur::{UREncodable, URDecodable};
+use bc_ur::preamble::*;
 use indoc::indoc;
 use hex_literal::hex;
 
-use bc_envelope::{Envelope, known_values};
+use bc_envelope::preamble::*;
 
 mod common;
 use crate::common::test_data::*;

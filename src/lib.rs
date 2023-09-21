@@ -392,6 +392,7 @@ pub mod format;
 
 /// Types dealing with known values.
 pub mod known_values;
+pub use known_values::KnownValue;
 
 /// Types dealing with SSKR splitting.
 pub mod sskr;
@@ -419,3 +420,5 @@ mod assertion;
 pub use assertion::Assertion;
 
 pub mod check_encoding;
+
+pub mod preamble;

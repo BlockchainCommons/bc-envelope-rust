@@ -6,7 +6,7 @@ pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 mod tree_format;
 
 use bc_components::{Digest, ARID, URI, UUID};
-use dcbor::{CBOR, CBORTagged, CBORTaggedDecodable, CBOREncodable, Date, CBORTaggedEncodable};
+use dcbor::preamble::*;
 use crate::{Envelope, Assertion, string_utils::StringUtils, expressions::{Function, FunctionsStore, ParametersStore, Parameter}, known_values::{KnownValuesStore, KnownValue, self}};
 use bc_components::tags;
 
@@ -294,7 +294,7 @@ impl EnvelopeSummary for CBOR {
                     tags::SSKR_SHARE_VALUE => Ok("SSKRShare".to_string()),
                     tags::PUBLIC_KEYBASE_VALUE => Ok("PublicKeyBase".to_string()),
                     tags::DATE_VALUE => {
-                        let date = Date::from_untagged_cbor(untagged_cbor)?;
+                        let date = dcbor::Date::from_untagged_cbor(untagged_cbor)?;
                         let s = date.to_string();
                         if s.len() == 20 && s.ends_with("T00:00:00Z") {
                             Ok(s.chars().take(10).collect::<String>())

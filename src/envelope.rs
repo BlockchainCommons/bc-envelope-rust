@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use bc_components::{Digest, Compressed, EncryptedMessage, DigestProvider};
-use dcbor::{CBOR, CBOREncodable};
+use dcbor::preamble::*;
 use crate::{assertion::Assertion, EnvelopeError, IntoEnvelope, known_values::KnownValue};
 
 /// A flexible container for structured data.

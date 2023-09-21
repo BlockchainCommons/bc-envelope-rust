@@ -1,6 +1,6 @@
 use anyhow::bail;
 use bc_components::tags;
-use dcbor::{CBORTagged, Tag, CBOREncodable, CBORTaggedEncodable, CBOR, CBORDecodable, CBORTaggedDecodable};
+use dcbor::preamble::*;
 
 use crate::string_utils::StringUtils;
 
