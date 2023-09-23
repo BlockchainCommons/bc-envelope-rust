@@ -389,6 +389,7 @@ pub mod expressions;
 
 /// Types dealing with formatting envelopes.
 pub mod format;
+pub use format::FormatContext;
 
 /// Types dealing with known values.
 pub mod known_values;
@@ -421,4 +422,4 @@ pub use assertion::Assertion;
 
 pub mod check_encoding;
 
-pub mod preamble;
+pub mod prelude;

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use std::rc::Rc;
-use bc_envelope::preamble::*;
+use bc_envelope::prelude::*;
 use hex_literal::hex;
 use bc_components::{PrivateKeyBase, PublicKeyBase, SymmetricKey, Nonce};
 

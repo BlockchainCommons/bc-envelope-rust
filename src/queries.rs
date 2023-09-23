@@ -1,6 +1,6 @@
 use anyhow::bail;
 use bc_components::{Compressed, Digest, DigestProvider, EncryptedMessage};
-use dcbor::preamble::*;
+use dcbor::prelude::*;
 use std::{
     any::{Any, TypeId},
     rc::Rc,

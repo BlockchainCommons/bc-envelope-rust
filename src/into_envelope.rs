@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use bc_components::{EncryptedMessage, Compressed, SealedMessage, Digest, ARID, Salt, URI, UUID};
-use dcbor::preamble::*;
+use dcbor::prelude::*;
 
 use crate::{Envelope, Assertion, known_values::KnownValue};
 

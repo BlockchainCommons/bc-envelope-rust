@@ -1,8 +1,8 @@
 use bc_components::DigestProvider;
 use bc_rand::make_fake_random_number_generator;
-use dcbor::preamble::*;
+use dcbor::prelude::*;
 use indoc::indoc;
-use bc_envelope::preamble::*;
+use bc_envelope::prelude::*;
 
 mod common;
 use crate::common::test_data::*;

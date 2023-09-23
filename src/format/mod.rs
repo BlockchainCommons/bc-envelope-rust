@@ -6,7 +6,7 @@ pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 mod tree_format;
 
 use bc_components::{Digest, ARID, URI, UUID};
-use dcbor::preamble::*;
+use dcbor::prelude::*;
 use crate::{Envelope, Assertion, string_utils::StringUtils, expressions::{Function, FunctionsStore, ParametersStore, Parameter}, known_values::{KnownValuesStore, KnownValue, self}};
 use bc_components::tags;
 

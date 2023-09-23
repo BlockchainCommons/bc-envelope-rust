@@ -2,7 +2,7 @@ use std::{rc::Rc, borrow::Cow};
 
 use anyhow::bail;
 use bc_components::{SymmetricKey, Nonce, Digest, DigestProvider, tags::{LEAF, ENVELOPE}};
-use dcbor::preamble::*;
+use dcbor::prelude::*;
 
 use crate::{Envelope, EnvelopeError};
 

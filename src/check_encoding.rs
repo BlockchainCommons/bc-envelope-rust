@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use bc_components::DigestProvider;
-use dcbor::preamble::*;
+use dcbor::prelude::*;
 
 use crate::Envelope;
 use anyhow::{anyhow, bail};

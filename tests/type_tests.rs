@@ -1,7 +1,6 @@
-use bc_envelope::preamble::*;
+use bc_envelope::prelude::*;
 use bc_components::DigestProvider;
 use bc_rand::{fake_random_data, make_fake_random_number_generator, RandomNumberGenerator};
-use bc_ur::preamble::*;
 
 #[test]
 fn test_known_value() {

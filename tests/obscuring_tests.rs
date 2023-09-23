@@ -1,6 +1,6 @@
 use bc_components::SymmetricKey;
 
-use bc_envelope::preamble::*;
+use bc_envelope::prelude::*;
 
 mod common;
 use crate::common::test_data::*;

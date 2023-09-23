@@ -1,6 +1,6 @@
 use anyhow::bail;
 use bc_components::tags;
-use dcbor::preamble::*;
+use dcbor::prelude::*;
 
 use crate::string_utils::StringUtils;
 

@@ -1,5 +1,5 @@
 use std::{rc::Rc, error::Error, collections::HashSet};
-use bc_envelope::preamble::*;
+use bc_envelope::prelude::*;
 use indoc::indoc;
 
 fn basic_envelope() -> Rc<Envelope> {

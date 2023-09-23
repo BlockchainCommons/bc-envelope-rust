@@ -1,5 +1,5 @@
 use bc_components::tags::GLOBAL_TAGS;
-use dcbor::preamble::*;
+use dcbor::prelude::*;
 use std::sync::{Once, Mutex};
 use crate::{expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNCTIONS, GLOBAL_PARAMETERS}, known_values::{KnownValuesStore, KNOWN_VALUES}};
 

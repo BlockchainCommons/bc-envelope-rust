@@ -2,7 +2,7 @@ use std::{borrow::Cow, rc::Rc};
 
 use anyhow::bail;
 use bc_components::{Digest, DigestProvider};
-use dcbor::preamble::*;
+use dcbor::prelude::*;
 
 use crate::{envelope::Envelope, IntoEnvelope};
 

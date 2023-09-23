@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use bc_components::{tags, ARID};
-use dcbor::preamble::*;
+use dcbor::prelude::*;
 
 use crate::{IntoEnvelope, Envelope, EnvelopeError, known_values::{self, KnownValue}};
 

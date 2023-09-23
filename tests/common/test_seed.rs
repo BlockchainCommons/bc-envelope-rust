@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use anyhow::bail;
 use bc_components::tags;
-use bc_ur::preamble::*;
+use bc_ur::prelude::*;
 
 use bc_envelope::{IntoEnvelope, Envelope};
 

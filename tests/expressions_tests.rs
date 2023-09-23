@@ -3,7 +3,7 @@ use std::rc::Rc;
 use bc_components::ARID;
 use indoc::indoc;
 use hex_literal::hex;
-use bc_envelope::preamble::*;
+use bc_envelope::prelude::*;
 
 fn two_plus_three() -> Rc<Envelope> {
     Envelope::new(functions::ADD)

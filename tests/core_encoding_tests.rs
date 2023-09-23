@@ -1,8 +1,8 @@
-use dcbor::preamble::*;
+use dcbor::prelude::*;
 use indoc::indoc;
 use std::error::Error;
 use bc_components::Digest;
-use bc_envelope::preamble::*;
+use bc_envelope::prelude::*;
 
 #[test]
 fn test_digest() {
