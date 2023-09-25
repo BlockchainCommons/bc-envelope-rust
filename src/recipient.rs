@@ -54,16 +54,30 @@ impl Envelope {
     /// - Returns: The encrypted envelope.
     ///
     /// - Throws: If the envelope is already encrypted.
-    pub fn encrypt_subject_to_recipients(self: Rc<Self>, recipients: &[&PublicKeyBase]) -> Result<Rc<Self>, EnvelopeError> {
+    pub fn encrypt_subject_to_recipients<T>(
+        self: Rc<Self>,
+        recipients: &[T]
+    ) -> Result<Rc<Self>, EnvelopeError>
+    where
+        T: AsRef<PublicKeyBase>
+    {
         self.encrypt_subject_to_recipients_opt(recipients, None, None::<&Nonce>)
     }
 
     #[doc(hidden)]
-    pub fn encrypt_subject_to_recipients_opt(self: Rc<Self>, recipients: &[&PublicKeyBase], test_key_material: Option<&[u8]>, test_nonce: Option<&Nonce>) -> Result<Rc<Self>, EnvelopeError> {
+    pub fn encrypt_subject_to_recipients_opt<T>(
+        self: Rc<Self>,
+        recipients: &[T],
+        test_key_material: Option<&[u8]>,
+        test_nonce: Option<&Nonce>
+    ) -> Result<Rc<Self>, EnvelopeError>
+    where
+        T: AsRef<PublicKeyBase>
+    {
         let content_key = SymmetricKey::new();
         let mut e = self.encrypt_subject(&content_key)?;
         for recipient in recipients {
-            e = e.add_recipient_opt(recipient, &content_key, test_key_material, test_nonce);
+            e = e.add_recipient_opt(recipient.as_ref(), &content_key, test_key_material, test_nonce);
         }
         Ok(e)
     }
