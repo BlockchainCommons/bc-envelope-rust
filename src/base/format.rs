@@ -1,14 +1,8 @@
-use std::error::Error;
-
-mod format_context;
-pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
-
-mod tree_format;
-
-use bc_components::{Digest, ARID, URI, UUID};
+use bc_components::{Digest, ARID};
 use dcbor::prelude::*;
-use crate::{Envelope, Assertion, string_utils::StringUtils, expressions::{Function, FunctionsStore, ParametersStore, Parameter}, known_values::{KnownValuesStore, KnownValue, self}};
-use bc_components::tags;
+use crate::{Envelope, Assertion, string_utils::StringUtils, known_values::{KnownValue, self}, FormatContext};
+
+use super::EnvelopeSummary;
 
 /// Support for the various text output formats for ``Envelope``.
 impl Envelope {
@@ -245,97 +239,6 @@ impl EnvelopeFormat for Digest {
 impl EnvelopeFormat for ARID {
     fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
         EnvelopeFormatItem::Item(hex::encode(self.data()))
-    }
-}
-
-trait EnvelopeSummary {
-    fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> Result<String, Box<dyn Error>>;
-}
-
-impl EnvelopeSummary for CBOR {
-    fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> Result<String, Box<dyn Error>> {
-        match self {
-            CBOR::Unsigned(n) => Ok(n.to_string()),
-            CBOR::Negative(n) => Ok(n.to_string()),
-            CBOR::ByteString(data) => Ok(format!("Bytes({})", data.len())),
-            CBOR::Text(string) => {
-                let string = if string.len() > max_length {
-                    format!("{}…", string.chars().take(max_length).collect::<String>())
-                } else {
-                    string.clone()
-                };
-                Ok(string.replace('\n', "\\n").flanked_by("\"", "\""))
-            }
-            CBOR::Array(elements) => {
-                Ok(elements
-                    .iter()
-                    .map(|element| element.envelope_summary(max_length, context))
-                    .collect::<Result<Vec<String>, Box<dyn Error>>>()?
-                    .join(", ")
-                    .flanked_by("[", "]")
-                )
-            },
-            CBOR::Map(_) => Ok("Map".to_string()),
-            CBOR::Tagged(tag, untagged_cbor) => {
-                match tag.value() {
-                    tags::ENVELOPE_VALUE => Ok("Envelope".to_string()),
-                    tags::KNOWN_VALUE_VALUE => {
-                        if let CBOR::Unsigned(raw_value) = &**untagged_cbor {
-                            Ok(KnownValuesStore::known_value_for_raw_value(*raw_value, Some(context.known_values()))
-                                .to_string().flanked_by("'", "'",))
-                        } else {
-                            Ok("<not a known value>".to_string())
-                        }
-                    },
-                    tags::SIGNATURE_VALUE => Ok("Signature".to_string()),
-                    tags::NONCE_VALUE => Ok("Nonce".to_string()),
-                    tags::SALT_VALUE => Ok("Salt".to_string()),
-                    tags::SEALED_MESSAGE_VALUE => Ok("SealedMessage".to_string()),
-                    tags::SSKR_SHARE_VALUE => Ok("SSKRShare".to_string()),
-                    tags::PUBLIC_KEYBASE_VALUE => Ok("PublicKeyBase".to_string()),
-                    tags::DATE_VALUE => {
-                        let date = dcbor::Date::from_untagged_cbor(untagged_cbor)?;
-                        let s = date.to_string();
-                        if s.len() == 20 && s.ends_with("T00:00:00Z") {
-                            Ok(s.chars().take(10).collect::<String>())
-                        } else {
-                            Ok(s)
-                        }
-                    },
-                    tags::ARID_VALUE => {
-                        Ok(ARID::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("ARID(", ")"))
-                    },
-                    tags::URI_VALUE => {
-                        Ok(URI::from_untagged_cbor(untagged_cbor)?.to_string().flanked_by("URI(", ")"))
-                    },
-                    tags::UUID_VALUE => {
-                        Ok(UUID::from_untagged_cbor(untagged_cbor)?.to_string().flanked_by("UUID(", ")"))
-                    },
-                    tags::DIGEST_VALUE => {
-                        Ok(Digest::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("Digest(", ")"))
-                    },
-                    tags::FUNCTION_VALUE => {
-                        let f = Function::from_untagged_cbor(untagged_cbor)?;
-                        Ok(FunctionsStore::name_for_function(&f, Some(context.functions())).flanked_by("«", "»"))
-                    },
-                    tags::PARAMETER_VALUE => {
-                        let p = Parameter::from_untagged_cbor(untagged_cbor)?;
-                        Ok(ParametersStore::name_for_parameter(&p, Some(context.parameters())).flanked_by("❰", "❱"))
-                    },
-                    tags::REQUEST_VALUE => {
-                        Ok(Envelope::new(untagged_cbor).format_opt(Some(context)).flanked_by("request(", ")"))
-                    },
-                    tags::RESPONSE_VALUE => {
-                        Ok(Envelope::new(untagged_cbor).format_opt(Some(context)).flanked_by("response(", ")"))
-                    },
-                    _ => {
-                        let name = context.name_for_tag(tag);
-                        Ok(format!("{}({})", name, untagged_cbor.envelope_summary(max_length, context)?))
-                    }
-                }
-            },
-            CBOR::Simple(v) => Ok(v.to_string()),
-        }
     }
 }
 

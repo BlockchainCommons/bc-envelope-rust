@@ -371,25 +371,16 @@
 //!   `KnownValue` `.ok`.
 //! * [`Envelope::error`] Returns the error value, decoded as the given type.
 
-mod assertions;
-mod cbor;
-mod compress;
-mod digest;
-mod encrypt;
-mod queries;
-mod recipient;
-mod salt;
-mod signature;
-mod string_utils;
-mod wrap;
-mod types;
+
+pub mod base;
+pub use base::Assertion;
+pub use base::Envelope;
+pub use base::IntoEnvelope;
+pub use base::EnvelopeError;
+pub use base::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 
 /// Types dealing with envelope expressions (and distributed function evaluation)
 pub mod expressions;
-
-/// Types dealing with formatting envelopes.
-pub mod format;
-pub use format::FormatContext;
 
 /// Types dealing with known values.
 pub mod known_values;
@@ -398,28 +389,18 @@ pub use known_values::KnownValue;
 /// Types dealing with SSKR splitting.
 pub mod sskr;
 
-/// Types dealing with recursive walking of envelopes.
-///
-/// The [`Envelope`] type itself has functions for walking envelopes.
-pub mod walk;
-
 /// Types dealing with elision.
 ///
 /// Actual functions for elision are on the [`Envelope`] type itself.
 pub mod elide;
 
-mod into_envelope;
-pub use into_envelope::IntoEnvelope;
-
-mod envelope;
-pub use crate::envelope::Envelope;
-
-mod error;
-pub use error::EnvelopeError;
-
-mod assertion;
-pub use assertion::Assertion;
-
 pub mod check_encoding;
 
 pub mod prelude;
+
+pub mod salt;
+pub mod encrypt;
+pub mod compress;
+pub mod string_utils;
+pub mod signature;
+pub mod recipient;

@@ -4,7 +4,7 @@ use anyhow::bail;
 use bc_components::{Digest, DigestProvider};
 use dcbor::prelude::*;
 
-use crate::{envelope::Envelope, IntoEnvelope};
+use crate::{Envelope, IntoEnvelope};
 
 /// Represents an assertion.
 ///

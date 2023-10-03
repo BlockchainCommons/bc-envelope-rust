@@ -2,9 +2,9 @@ use std::{rc::Rc, collections::HashSet, cell::RefCell};
 
 use bc_components::{Digest, DigestProvider};
 
-use crate::{Envelope, format::FormatContext, walk::EdgeType, string_utils::StringUtils, known_values::KnownValuesStore, with_format_context};
+use crate::{Envelope, string_utils::StringUtils, known_values::KnownValuesStore, with_format_context, FormatContext};
 
-use super::EnvelopeSummary;
+use super::{walk::EdgeType, EnvelopeSummary};
 
 /// Support for tree-formatting envelopes.
 impl Envelope {
