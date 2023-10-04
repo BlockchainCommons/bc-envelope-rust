@@ -1,6 +1,9 @@
 use std::{rc::Rc, collections::HashSet};
 
-use bc_components::{SymmetricKey, DigestProvider, Digest, Nonce};
+use bc_components::{DigestProvider, Digest};
+#[cfg(feature = "encrypt")]
+use bc_components::{SymmetricKey, Nonce};
+#[cfg(feature = "encrypt")]
 use dcbor::prelude::*;
 
 use crate::{Envelope, Assertion, EnvelopeError};
@@ -11,10 +14,11 @@ pub enum ObscureAction {
     Elide,
 
     /// Encrypt the target using the specified key.
+    #[cfg(feature = "encrypt")]
     Encrypt(SymmetricKey),
 
-    #[cfg(feature = "compress")]
     /// Compress the target.
+    #[cfg(feature = "compress")]
     Compress,
 }
 
@@ -182,6 +186,7 @@ impl Envelope {
         if target.contains(&self_digest) != is_revealing {
             match action {
                 ObscureAction::Elide => self.elide(),
+                #[cfg(feature = "encrypt")]
                 ObscureAction::Encrypt(key) => {
                     let message = key.encrypt(self.tagged_cbor().cbor_data(), Some((&self_digest).into()), None::<Nonce>);
                     Rc::new(Self::new_with_encrypted(message).unwrap())

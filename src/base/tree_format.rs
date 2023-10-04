@@ -53,6 +53,7 @@ impl Envelope {
                 known_value.to_string().flanked_by("'", "'",)
             },
             Envelope::Assertion(_) => "ASSERTION".to_string(),
+            #[cfg(feature = "encrypt")]
             Envelope::Encrypted(_) => "ENCRYPTED".to_string(),
             #[cfg(feature = "compress")]
             Envelope::Compressed(_) => "COMPRESSED".to_string(),

@@ -1,5 +1,7 @@
 use std::rc::Rc;
-use bc_components::{Digest, EncryptedMessage, DigestProvider};
+use bc_components::{Digest, DigestProvider};
+#[cfg(feature = "encrypt")]
+use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 use dcbor::prelude::*;
@@ -28,6 +30,7 @@ pub enum Envelope {
     Assertion(Assertion),
 
     /// Represents an encrypted envelope.
+    #[cfg(feature = "encrypt")]
     Encrypted(EncryptedMessage),
 
     /// Represents a compressed envelope.
@@ -88,6 +91,7 @@ impl Envelope {
         Self::KnownValue { value, digest }
     }
 
+    #[cfg(feature = "encrypt")]
     pub(crate) fn new_with_encrypted(encrypted_message: EncryptedMessage) -> Result<Self, EnvelopeError> {
         if !encrypted_message.has_digest() {
             return Err(EnvelopeError::MissingDigest);

@@ -13,6 +13,7 @@ impl Envelope {
     pub fn compress(self: Rc<Self>) -> Result<Rc<Self>, EnvelopeError> {
         match &*self {
             Envelope::Compressed(_) => Ok(self),
+            #[cfg(feature = "encrypt")]
             Envelope::Encrypted(_) => Err(EnvelopeError::AlreadyEncrypted),
             Envelope::Elided(_) => Err(EnvelopeError::AlreadyElided),
             _ => {

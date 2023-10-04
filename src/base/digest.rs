@@ -21,6 +21,7 @@ impl DigestProvider for Envelope {
             Self::Wrapped { digest, .. } => Cow::Borrowed(digest),
             Self::KnownValue { digest, .. } => Cow::Borrowed(digest),
             Self::Assertion(assertion) => assertion.digest(),
+            #[cfg(feature = "encrypt")]
             Self::Encrypted(encrypted_message) => encrypted_message.digest(),
             #[cfg(feature = "compress")]
             Self::Compressed(compressed) => compressed.digest(),
@@ -100,8 +101,9 @@ impl Envelope {
         let visitor = |envelope: Rc<Self>, _: usize, _: EdgeType, _: Option<&()>| -> _ {
             // Add a discriminator to the image for the obscured cases.
             match &*envelope {
-                Self::Encrypted(_) => image.borrow_mut().push(0),
                 Self::Elided(_) => image.borrow_mut().push(1),
+                #[cfg(feature = "encrypt")]
+                Self::Encrypted(_) => image.borrow_mut().push(0),
                 #[cfg(feature = "compress")]
                 Self::Compressed(_) => image.borrow_mut().push(2),
                 _ => {}

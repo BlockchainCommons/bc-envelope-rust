@@ -40,18 +40,21 @@ version-sync = "0.9"
 
 [features]
 compress = []
-encrypt = []
 expression = []
-recipient = ["encrypt"]
 salt = []
 signature = []
+
+encrypt = []
+recipient = ["encrypt"]
 sskr = ["encrypt"]
+
 default = [
     "compress",
-    "encrypt",
     "expression",
-    "recipient",
     "salt",
     "signature",
-    "sskr",
+
+    # "encrypt",
+    # "recipient",
+    # "sskr",
 ]

@@ -269,6 +269,7 @@ impl EnvelopeFormat for Envelope {
                 EnvelopeFormatItem::End("}".to_string()),
             ]),
             Envelope::Assertion(assertion) => assertion.format_item(context),
+            #[cfg(feature = "encrypt")]
             Envelope::Encrypted(_) => EnvelopeFormatItem::Item("ENCRYPTED".to_string()),
             #[cfg(feature = "compress")]
             Envelope::Compressed(_) => EnvelopeFormatItem::Item("COMPRESSED".to_string()),
@@ -277,6 +278,7 @@ impl EnvelopeFormat for Envelope {
 
                 let subject_item = subject.format_item(context);
                 let mut elided_count = 0;
+                #[cfg(feature = "encrypt")]
                 let mut encrypted_count = 0;
                 #[cfg(feature = "compress")]
                 let mut compressed_count = 0;
@@ -288,6 +290,7 @@ impl EnvelopeFormat for Envelope {
                         Envelope::Elided(_) => {
                             elided_count += 1;
                         },
+                        #[cfg(feature = "encrypt")]
                         Envelope::Encrypted(_) => {
                             encrypted_count += 1;
                         },
@@ -327,6 +330,7 @@ impl EnvelopeFormat for Envelope {
                 } else if elided_count > 0 {
                     assertion_items.push(vec![EnvelopeFormatItem::Item("ELIDED".to_string())]);
                 }
+                #[cfg(feature = "encrypt")]
                 if encrypted_count > 1 {
                     assertion_items.push(vec![EnvelopeFormatItem::Item(format!("ENCRYPTED ({})", encrypted_count))]);
                 } else if encrypted_count > 0 {
@@ -392,6 +396,7 @@ impl EnvelopeFormat for KnownValue {
             Self::Wrapped { envelope, .. } => format!(".wrapped({})", envelope),
             Self::KnownValue { value, .. } => format!(".knownValue({})", value),
             Self::Assertion(assertion) => format!(".assertion({}, {})", assertion.predicate(), assertion.object()),
+            #[cfg(feature = "encrypt")]
             Self::Encrypted(_) => ".encrypted".to_string(),
             #[cfg(feature = "compress")]
             Self::Compressed(_) => ".compressed".to_string(),

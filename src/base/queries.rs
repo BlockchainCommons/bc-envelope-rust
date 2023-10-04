@@ -1,5 +1,7 @@
 use anyhow::bail;
-use bc_components::{Digest, DigestProvider, EncryptedMessage};
+use bc_components::{Digest, DigestProvider};
+#[cfg(feature = "encrypt")]
+use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 use dcbor::prelude::*;
@@ -104,6 +106,7 @@ impl Envelope {
     }
 
     /// `true` if the envelope is case `::Encrypted`, `false` otherwise.
+    #[cfg(feature = "encrypt")]
     pub fn is_encrypted(&self) -> bool {
         matches!(self, Self::Encrypted(_))
     }
@@ -129,6 +132,7 @@ impl Envelope {
     }
 
     /// `true` if the subject of the envelope has been encrypted, `false` otherwise.
+    #[cfg(feature = "encrypt")]
     pub fn is_subject_encrypted(&self) -> bool {
         match self {
             Self::Encrypted(_) => true,
@@ -163,6 +167,7 @@ impl Envelope {
         if self.is_subject_elided() {
             return true;
         }
+        #[cfg(feature = "encrypt")]
         if self.is_subject_encrypted() {
             return true;
         }
@@ -188,6 +193,7 @@ impl Envelope {
         if self.is_elided() {
             return true;
         }
+        #[cfg(feature = "encrypt")]
         if self.is_encrypted() {
             return true;
         }
@@ -225,9 +231,8 @@ impl Envelope {
             Self::Leaf { cbor, .. } => Ok(Rc::new(T::from_cbor(cbor)?)),
             Self::KnownValue { value, .. } => extract_type::<T, KnownValue>(value),
             Self::Assertion(assertion) => extract_type::<T, Assertion>(assertion),
-            Self::Encrypted(encrypted_message) => {
-                extract_type::<T, EncryptedMessage>(encrypted_message)
-            }
+            #[cfg(feature = "encrypt")]
+            Self::Encrypted(encrypted_message) => extract_type::<T, EncryptedMessage>(encrypted_message),
             #[cfg(feature = "compress")]
             Self::Compressed(compressed) => extract_type::<T, Compressed>(compressed),
             Self::Elided(digest) => extract_type::<T, Digest>(digest),

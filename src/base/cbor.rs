@@ -1,6 +1,8 @@
 use std::rc::Rc;
 use anyhow::bail;
-use bc_components::{tags, Digest, EncryptedMessage};
+use bc_components::{tags, Digest};
+#[cfg(feature = "encrypt")]
+use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 use bc_ur::prelude::*;
@@ -52,6 +54,7 @@ impl CBORTaggedEncodable for Envelope {
             Envelope::Wrapped { envelope, digest: _ } => envelope.tagged_cbor(),
             Envelope::KnownValue { value, digest: _ } => value.untagged_cbor(),
             Envelope::Assertion(assertion) => assertion.cbor(),
+            #[cfg(feature = "encrypt")]
             Envelope::Encrypted(encrypted_message) => encrypted_message.tagged_cbor(),
             #[cfg(feature = "compress")]
             Envelope::Compressed(compressed) => compressed.tagged_cbor(),
@@ -77,6 +80,7 @@ impl CBORTaggedDecodable for Envelope {
                         let envelope = Rc::new(Envelope::from_tagged_cbor(cbor)?);
                         Ok(Envelope::new_wrapped(envelope))
                     },
+                    #[cfg(feature = "encrypt")]
                     tags::ENCRYPTED_VALUE => {
                         let encrypted = EncryptedMessage::from_untagged_cbor(item)?;
                         let envelope = Envelope::new_with_encrypted(encrypted)?;
