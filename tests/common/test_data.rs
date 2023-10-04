@@ -8,6 +8,7 @@ use bc_components::{PrivateKeyBase, PublicKeyBase, SymmetricKey, Nonce};
 pub const PLAINTEXT_HELLO: &str = "Hello.";
 
 pub fn hello_envelope() -> Rc<Envelope> { Envelope::new(PLAINTEXT_HELLO) }
+#[cfg(feature = "known_value")]
 pub fn known_value_envelope() -> Rc<Envelope> { Envelope::new(known_values::NOTE) }
 pub fn assertion_envelope() -> Rc<Envelope> { Envelope::new_assertion("knows", "Bob") }
 

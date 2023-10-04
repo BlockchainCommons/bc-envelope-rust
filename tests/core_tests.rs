@@ -80,6 +80,7 @@ fn test_cbor_encodable_subject() {
     assert_eq!(*e.extract_subject::<String>().unwrap(), PLAINTEXT_HELLO);
 }
 
+#[cfg(feature = "known_value")]
 #[test]
 fn test_known_value_subject() {
     let e = known_value_envelope().check_encoding().unwrap();

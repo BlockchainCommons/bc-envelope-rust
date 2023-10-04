@@ -1,9 +1,11 @@
 use bc_envelope::prelude::*;
 
+#[cfg(feature = "known_value")]
 use bc_components::{Digest, ARID};
 #[cfg(feature = "encrypt")]
 use bc_components::SymmetricKey;
 use indoc::indoc;
+#[cfg(feature = "known_value")]
 use hex_literal::hex;
 
 mod common;
@@ -334,6 +336,7 @@ fn test_assertion_positions() {
     assert_eq!(envelope.elements_count(), envelope.clone().tree_format(false).split('\n').count());
 }
 
+#[cfg(feature = "known_value")]
 #[test]
 fn test_complex_metadata() {
     // Assertions made about an ARID are considered part of a distributed set. Which

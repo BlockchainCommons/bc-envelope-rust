@@ -75,10 +75,6 @@ impl CBORTaggedDecodable for Envelope {
                         let cbor = item.as_ref().clone();
                         Ok(Envelope::new_leaf(cbor))
                     },
-                    // tags::KNOWN_VALUE_VALUE => {
-                    //     let known_value = KnownValue::from_untagged_cbor(item)?;
-                    //     Ok(Envelope::new_with_known_value(known_value))
-                    // },
                     tags::ENVELOPE_VALUE => {
                         let envelope = Rc::new(Envelope::from_tagged_cbor(cbor)?);
                         Ok(Envelope::new_wrapped(envelope))

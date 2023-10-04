@@ -22,11 +22,16 @@ pub mod recipient;
 #[cfg(feature = "sskr")]
 pub mod sskr;
 
+/// Types dealing with Known Values.
 #[cfg(feature = "known_value")]
 pub mod known_values;
 #[cfg(feature = "known_value")]
 pub use known_values::*;
 
-#[cfg(feature = "expression")]
 /// Types dealing with envelope expressions (and distributed function evaluation)
+#[cfg(feature = "expression")]
 pub mod expression;
+
+/// Working with type ('isA') assertions.
+#[cfg(feature = "types")]
+pub mod types;
