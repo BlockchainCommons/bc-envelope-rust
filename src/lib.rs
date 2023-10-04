@@ -379,6 +379,8 @@ pub use base::IntoEnvelope;
 pub use base::EnvelopeError;
 pub use base::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 
+pub mod extension;
+
 /// Types dealing with envelope expressions (and distributed function evaluation)
 pub mod expressions;
 
@@ -386,21 +388,8 @@ pub mod expressions;
 pub mod known_values;
 pub use known_values::KnownValue;
 
-/// Types dealing with SSKR splitting.
-pub mod sskr;
-
-/// Types dealing with elision.
-///
-/// Actual functions for elision are on the [`Envelope`] type itself.
-pub mod elide;
-
 pub mod check_encoding;
 
 pub mod prelude;
 
-pub mod salt;
-pub mod encrypt;
-pub mod compress;
 pub mod string_utils;
-pub mod signature;
-pub mod recipient;
