@@ -1,15 +1,6 @@
 {
     "cSpell.enabled": false,
     "rust-analyzer.cargo.features": [
-        // "known_value",
-
-        "compress",
-        // "expression",
-        "salt",
-        "signature",
-
-        "encrypt",
-        "recipient",
-        "sskr",
+        "all"
     ]
 }
