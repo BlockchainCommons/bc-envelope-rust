@@ -2,7 +2,7 @@ use std::rc::Rc;
 use anyhow::bail;
 use bc_components::{tags, Digest, EncryptedMessage, Compressed};
 use bc_ur::prelude::*;
-use crate::{Envelope, Assertion, KnownValue};
+use crate::{Envelope, Assertion, extension::KnownValue};
 
 /// Support for CBOR encoding and decoding of ``Envelope``.
 

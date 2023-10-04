@@ -3,7 +3,7 @@ use std::rc::Rc;
 use bc_components::{tags, ARID};
 use dcbor::prelude::*;
 
-use crate::{IntoEnvelope, Envelope, EnvelopeError, known_values, KnownValue};
+use crate::{IntoEnvelope, Envelope, EnvelopeError, extension::{known_values, KnownValue}};
 
 use super::{Function, Parameter};
 

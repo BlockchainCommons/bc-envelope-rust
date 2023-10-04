@@ -3,7 +3,7 @@ use std::error::Error;
 use bc_components::{tags, ARID, URI, UUID, Digest};
 use dcbor::{CBOR, CBORTaggedDecodable};
 
-use crate::{FormatContext, string_utils::StringUtils, known_values::KnownValuesStore, expressions::{Function, FunctionsStore, Parameter, ParametersStore}, Envelope};
+use crate::{FormatContext, string_utils::StringUtils, extension::known_values::KnownValuesStore, extension::expressions::{Function, FunctionsStore, Parameter, ParametersStore}, Envelope};
 
 pub trait EnvelopeSummary {
     fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> Result<String, Box<dyn Error>>;

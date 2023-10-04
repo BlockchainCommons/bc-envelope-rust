@@ -2,7 +2,7 @@ use std::{rc::Rc, collections::HashSet, cell::RefCell};
 
 use bc_components::{Digest, DigestProvider};
 
-use crate::{Envelope, string_utils::StringUtils, KnownValuesStore, with_format_context, FormatContext};
+use crate::{Envelope, string_utils::StringUtils, extension::KnownValuesStore, with_format_context, FormatContext};
 
 use super::{walk::EdgeType, EnvelopeSummary};
 

@@ -5,7 +5,7 @@ pub use bc_components::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret, SSKRErro
 use bc_components::{sskr_generate_using, sskr_combine, SymmetricKey};
 use bc_rand::RandomNumberGenerator;
 
-use crate::{Envelope, EnvelopeError, impl_into_envelope, known_values};
+use crate::{Envelope, EnvelopeError, impl_into_envelope, extension::known_values};
 
 /// Support for splitting and combining envelopes using SSKR (Shamir's Secret Sharing).
 impl Envelope {

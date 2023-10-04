@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{Envelope, known_values, EnvelopeError};
+use crate::{Envelope, EnvelopeError, extension::known_values};
 
 use bc_components::{SealedMessage, PublicKeyBase, SymmetricKey, Nonce, PrivateKeyBase};
 use dcbor::prelude::*;

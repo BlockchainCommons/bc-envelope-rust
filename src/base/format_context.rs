@@ -1,7 +1,7 @@
 use bc_components::tags::GLOBAL_TAGS;
 use dcbor::prelude::*;
 use std::sync::{Once, Mutex};
-use crate::{expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNCTIONS, GLOBAL_PARAMETERS}, known_values::{KnownValuesStore, KNOWN_VALUES}};
+use crate::extension::{known_values::{KnownValuesStore, KNOWN_VALUES}, expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNCTIONS, GLOBAL_PARAMETERS}};
 
 /// The envelope formatting functions take a `FormatContext` as an argument. This type
 /// defines information about CBOR tags, known values, functions and parameters that

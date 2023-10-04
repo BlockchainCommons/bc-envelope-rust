@@ -10,7 +10,7 @@ macro_rules! known_value_constant {
         paste! {
             pub const [<$const_name _RAW>]: u64 = $value;
         }
-        pub const $const_name: $crate::known_values::KnownValue = $crate::known_values::KnownValue::new_with_static_name($value, $name);
+        pub const $const_name: $crate::extension::known_values::KnownValue = $crate::extension::known_values::KnownValue::new_with_static_name($value, $name);
     };
 }
 
@@ -143,7 +143,7 @@ pub static KNOWN_VALUES: LazyKnownValues = LazyKnownValues {
 mod tests {
     use known_values::KNOWN_VALUES;
 
-    use crate::known_values;
+    use crate::extension::known_values;
 
     #[test]
     fn test_1() {
