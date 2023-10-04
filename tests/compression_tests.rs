@@ -1,12 +1,17 @@
 use bc_components::DigestProvider;
-use bc_rand::make_fake_random_number_generator;
+
 use dcbor::prelude::*;
-use indoc::indoc;
 use bc_envelope::prelude::*;
 
 mod common;
-use crate::common::test_data::*;
 use crate::common::check_encoding::*;
+
+#[cfg(feature = "signature")]
+use crate::common::test_data::*;
+#[cfg(feature = "signature")]
+use bc_rand::make_fake_random_number_generator;
+#[cfg(feature = "signature")]
+use indoc::indoc;
 
 fn source() -> &'static str {
     "Lorem ipsum dolor sit amet consectetur adipiscing elit mi nibh ornare proin blandit diam ridiculus, faucibus mus dui eu vehicula nam donec dictumst sed vivamus bibendum aliquet efficitur. Felis imperdiet sodales dictum morbi vivamus augue dis duis aliquet velit ullamcorper porttitor, lobortis dapibus hac purus aliquam natoque iaculis blandit montes nunc pretium."
@@ -25,6 +30,7 @@ fn test_compress() {
     assert_eq!(uncompressed.structural_digest(), original.structural_digest());
 }
 
+#[cfg(feature = "signature")]
 #[test]
 fn test_compress_subject() {
     let mut rng = make_fake_random_number_generator();

@@ -41,5 +41,11 @@ version-sync = "0.9"
 [features]
 expressions = []
 salt = []
+signature = []
 sskr = []
-default = ["expressions", "salt", "sskr"]
+default = [
+    "expressions",
+    "salt",
+    "signature",
+    "sskr",
+]

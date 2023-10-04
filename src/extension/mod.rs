@@ -1,4 +1,6 @@
+#[cfg(feature = "signature")]
 pub mod signature;
+
 pub mod compress;
 
 #[cfg(feature = "salt")]

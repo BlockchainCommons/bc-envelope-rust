@@ -1,15 +1,19 @@
-use std::{collections::HashSet, rc::Rc};
-
 use bc_envelope::prelude::*;
 
-use bc_components::{SymmetricKey, Digest, DigestProvider, ARID};
-use bc_rand::make_fake_random_number_generator;
+use bc_components::{SymmetricKey, Digest, ARID};
 use indoc::indoc;
 use hex_literal::hex;
 
 mod common;
 use crate::common::test_data::*;
 use crate::common::check_encoding::*;
+
+#[cfg(feature = "signature")]
+use bc_rand::make_fake_random_number_generator;
+#[cfg(feature = "signature")]
+use std::{collections::HashSet, rc::Rc};
+#[cfg(feature = "signature")]
+use bc_components::DigestProvider;
 
 #[test]
 fn test_plaintext() {
@@ -26,6 +30,7 @@ fn test_plaintext() {
     assert_eq!(envelope.elements_count(), envelope.tree_format(false).split('\n').count());
 }
 
+#[cfg(feature = "signature")]
 #[test]
 fn test_signed_plaintext() {
     let mut rng = make_fake_random_number_generator();
@@ -124,6 +129,7 @@ fn test_elided_object() {
     assert_eq!(elided.elements_count(), elided.tree_format(false).split('\n').count());
 }
 
+#[cfg(feature = "signature")]
 #[test]
 fn test_signed_subject() {
     let mut rng = make_fake_random_number_generator();
@@ -191,6 +197,7 @@ fn test_signed_subject() {
     assert_eq!(elided.elements_count(), elided.clone().tree_format(false).split('\n').count());
 }
 
+#[cfg(feature = "signature")]
 #[test]
 fn test_wrap_then_signed() {
     let mut rng = make_fake_random_number_generator();
@@ -474,6 +481,7 @@ fn test_complex_metadata() {
     assert_eq!(book_metadata.elements_count(), book_metadata.clone().tree_format(false).split('\n').count());
 }
 
+#[cfg(feature = "signature")]
 fn credential() -> Rc<Envelope> {
     let mut rng = make_fake_random_number_generator();
     Envelope::new(ARID::from_data(hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")))
@@ -496,6 +504,7 @@ fn credential() -> Rc<Envelope> {
         .check_encoding().unwrap()
 }
 
+#[cfg(feature = "signature")]
 #[test]
 fn test_credential() {
     let credential = credential();
@@ -624,6 +633,7 @@ fn test_credential() {
     assert_eq!(credential.elements_count(), credential.tree_format(false).split('\n').count());
 }
 
+#[cfg(feature = "signature")]
 #[test]
 fn test_redacted_credential() {
     let credential = credential();
