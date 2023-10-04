@@ -379,11 +379,6 @@ pub use base::EnvelopeError;
 pub use base::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 
 pub mod extension;
-// pub use extension::{known_values, KnownValue};
-// pub use extension::expressions;
-// pub use extension::elide;
-// use extension::KnownValuesStore;
-
 pub mod prelude;
 
 mod string_utils;
