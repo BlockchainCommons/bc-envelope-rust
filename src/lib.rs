@@ -371,7 +371,6 @@
 //!   `KnownValue` `.ok`.
 //! * [`Envelope::error`] Returns the error value, decoded as the given type.
 
-
 pub mod base;
 pub use base::Assertion;
 pub use base::Envelope;
@@ -380,8 +379,11 @@ pub use base::EnvelopeError;
 pub use base::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 
 pub mod extension;
-pub use extension::{known_values, KnownValue, KNOWN_VALUES, KnownValuesStore, expressions, elide};
+pub use extension::{known_values, KnownValue};
+pub use extension::expressions;
+pub use extension::elide;
+use extension::KnownValuesStore;
 
 pub mod prelude;
 
-pub mod string_utils;
+mod string_utils;

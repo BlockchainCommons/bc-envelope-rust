@@ -3,7 +3,7 @@ use std::rc::Rc;
 use bc_components::{EncryptedMessage, Compressed, SealedMessage, Digest, ARID, Salt, URI, UUID};
 use dcbor::prelude::*;
 
-use crate::{Envelope, Assertion, KnownValue};
+use crate::{Envelope, Assertion};
 
 /// A type that can be converted into an envelope.
 pub trait IntoEnvelope {
@@ -19,12 +19,6 @@ impl IntoEnvelope for Rc<Envelope> {
 impl IntoEnvelope for Envelope {
     fn into_envelope(self) -> Rc<Envelope> {
         Rc::new(self)
-    }
-}
-
-impl IntoEnvelope for KnownValue {
-    fn into_envelope(self) -> Rc<Envelope> {
-        Rc::new(Envelope::new_with_known_value(self))
     }
 }
 

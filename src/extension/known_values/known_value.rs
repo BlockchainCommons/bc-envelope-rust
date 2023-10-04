@@ -1,7 +1,9 @@
-use std::{fmt::{Formatter, Display}, borrow::Cow};
+use std::{fmt::{Formatter, Display}, borrow::Cow, rc::Rc};
 
 use bc_components::{tags, DigestProvider, Digest};
 use dcbor::prelude::*;
+
+use crate::{IntoEnvelope, Envelope};
 
 #[derive(Debug, Clone)]
 enum KnownValueName {
@@ -86,6 +88,12 @@ impl Display for KnownValue {
             Some(KnownValueName::Dynamic(name)) => write!(f, "{}", name),
             None => write!(f, "{}", self.value),
         }
+    }
+}
+
+impl IntoEnvelope for KnownValue {
+    fn into_envelope(self) -> Rc<Envelope> {
+        Rc::new(Envelope::new_with_known_value(self))
     }
 }
 
