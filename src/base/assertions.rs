@@ -12,17 +12,8 @@ impl Envelope {
         P: IntoEnvelope,
         O: IntoEnvelope,
     {
-        self.add_assertion_salted(predicate, object, false)
-    }
-
-    /// Returns the result of adding the given assertion to the envelope, optionally salting it.
-    pub fn add_assertion_salted<P, O>(self: Rc<Self>, predicate: P, object: O, salted: bool) -> Rc<Self>
-    where
-        P: IntoEnvelope,
-        O: IntoEnvelope,
-    {
         let assertion = Self::new_assertion(predicate, object);
-        self.add_optional_assertion_envelope_salted(Some(assertion), salted).unwrap()
+        self.add_optional_assertion_envelope(Some(assertion)).unwrap()
     }
 
     /// Returns the result of adding the given assertion to the envelope.
@@ -30,15 +21,7 @@ impl Envelope {
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
     pub fn add_assertion_envelope(self: Rc<Self>, assertion_envelope: Rc<Self>) -> Result<Rc<Self>, EnvelopeError> {
-        self.add_assertion_envelope_salted(assertion_envelope, false)
-    }
-
-    /// Returns the result of adding the given assertion to the envelope, optionally salting it.
-    ///
-    /// The assertion envelope must be a valid assertion envelope, or an
-    /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_assertion_envelope_salted(self: Rc<Self>, assertion_envelope: Rc<Self>, salted: bool) -> Result<Rc<Self>, EnvelopeError> {
-        self.add_optional_assertion_envelope_salted(Some(assertion_envelope), salted)
+        self.add_optional_assertion_envelope(Some(assertion_envelope))
     }
 
     /// Returns the result of adding the given array of assertions to the envelope.
@@ -59,7 +42,27 @@ impl Envelope {
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
     pub fn add_optional_assertion_envelope(self: Rc<Self>, assertion: Option<Rc<Self>>) -> Result<Rc<Self>, EnvelopeError> {
-        self.add_optional_assertion_envelope_salted(assertion, false)
+        match assertion {
+            Some(assertion) => {
+                if !assertion.is_subject_assertion() && !assertion.is_subject_obscured() {
+                    return Err(EnvelopeError::InvalidFormat)
+                }
+
+                match &*self {
+                    Self::Node { subject, assertions, .. } => {
+                        if !assertions.iter().any(|a| a.digest() == assertion.digest()) {
+                            let mut assertions = assertions.clone();
+                            assertions.push(assertion);
+                            Ok(Rc::new(Self::new_with_unchecked_assertions(subject.clone(), assertions)))
+                        } else {
+                            Ok(self)
+                        }
+                    },
+                    _ => Ok(Rc::new(Self::new_with_unchecked_assertions(self.subject(), vec![assertion]))),
+                }
+            },
+            None => Ok(self),
+        }
     }
 
     /// If the optional object is present, returns the result of adding the
@@ -74,6 +77,28 @@ impl Envelope {
         } else {
             self
         }
+    }
+}
+
+#[cfg(feature = "salt")]
+/// Support for adding assertions with salt.
+impl Envelope {
+    /// Returns the result of adding the given assertion to the envelope, optionally salting it.
+    pub fn add_assertion_salted<P, O>(self: Rc<Self>, predicate: P, object: O, salted: bool) -> Rc<Self>
+    where
+        P: IntoEnvelope,
+        O: IntoEnvelope,
+    {
+        let assertion = Self::new_assertion(predicate, object);
+        self.add_optional_assertion_envelope_salted(Some(assertion), salted).unwrap()
+    }
+
+    /// Returns the result of adding the given assertion to the envelope, optionally salting it.
+    ///
+    /// The assertion envelope must be a valid assertion envelope, or an
+    /// obscured variant (elided, encrypted, compressed) of one.
+    pub fn add_assertion_envelope_salted(self: Rc<Self>, assertion_envelope: Rc<Self>, salted: bool) -> Result<Rc<Self>, EnvelopeError> {
+        self.add_optional_assertion_envelope_salted(Some(assertion_envelope), salted)
     }
 
     /// If the optional assertion is present, returns the result of adding it to

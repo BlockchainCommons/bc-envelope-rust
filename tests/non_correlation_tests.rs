@@ -1,3 +1,4 @@
+#![cfg(feature = "salt")]
 use bc_envelope::prelude::*;
 use bc_rand::make_fake_random_number_generator;
 use indoc::indoc;

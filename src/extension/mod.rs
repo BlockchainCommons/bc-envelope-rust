@@ -1,6 +1,9 @@
 pub mod signature;
 pub mod compress;
+
+#[cfg(feature = "salt")]
 pub mod salt;
+
 pub mod encrypt;
 
 /// Types dealing with elision.

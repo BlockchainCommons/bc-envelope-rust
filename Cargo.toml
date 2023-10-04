@@ -40,4 +40,5 @@ version-sync = "0.9"
 
 [features]
 expressions = []
-default = ["expressions"]
+salt = []
+default = ["expressions", "salt"]
