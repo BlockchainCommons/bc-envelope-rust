@@ -40,9 +40,9 @@ version-sync = "0.9"
 
 [features]
 compress = []
+known_value = []
 encrypt = ["known_value"]
 expression = ["known_value"]
-known_value = []
 recipient = ["encrypt"]
 salt = ["known_value"]
 signature = ["known_value"]
@@ -51,9 +51,9 @@ types = ["known_value"]
 
 default = [
     "compress",
+    "known_value",
     "encrypt",
     "expression",
-    "known_value",
     "recipient",
     "salt",
     "signature",
