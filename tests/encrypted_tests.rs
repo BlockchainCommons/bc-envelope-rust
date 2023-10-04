@@ -1,3 +1,4 @@
+#![cfg(feature = "encrypt")]
 use std::error::Error;
 use std::rc::Rc;
 use bc_envelope::prelude::*;

@@ -1,6 +1,8 @@
 use bc_envelope::prelude::*;
 
-use bc_components::{SymmetricKey, Digest, ARID};
+use bc_components::{Digest, ARID};
+#[cfg(feature = "encrypt")]
+use bc_components::SymmetricKey;
 use indoc::indoc;
 use hex_literal::hex;
 
@@ -57,6 +59,7 @@ fn test_signed_plaintext() {
     assert_eq!(envelope.elements_count(), envelope.tree_format(false).split('\n').count());
 }
 
+#[cfg(feature = "encrypt")]
 #[test]
 fn test_encrypt_subject() {
     let envelope = Envelope::new("Alice")

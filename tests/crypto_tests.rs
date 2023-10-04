@@ -1,5 +1,6 @@
 use std::rc::Rc;
 
+#[cfg(feature = "encrypt")]
 use bc_components::SymmetricKey;
 use bc_ur::prelude::*;
 use indoc::indoc;
@@ -99,6 +100,7 @@ fn multisigned_plaintext() {
     assert_eq!(*received_plaintext, PLAINTEXT_HELLO);
 }
 
+#[cfg(feature = "encrypt")]
 #[test]
 fn symmetric_encryption() {
     // Alice and Bob have agreed to use this key.
@@ -134,6 +136,7 @@ fn symmetric_encryption() {
     assert!(received_envelope.decrypt_subject(&SymmetricKey::new()).is_err());
 }
 
+#[cfg(feature = "encrypt")]
 fn round_trip_test(envelope: Rc<Envelope>) {
     let key = SymmetricKey::new();
     let plaintext_subject = envelope.check_encoding().unwrap();
@@ -147,6 +150,7 @@ fn round_trip_test(envelope: Rc<Envelope>) {
     assert!(plaintext_subject.is_identical_to(plaintext_subject2));
 }
 
+#[cfg(feature = "encrypt")]
 #[test]
 fn encrypt_decrypt() {
     // leaf
@@ -179,7 +183,7 @@ fn encrypt_decrypt() {
     }
 }
 
-#[cfg(feature = "signature")]
+#[cfg(all(feature = "signature", feature = "encrypt"))]
 #[test]
 fn sign_then_encrypt() {
     // Alice and Bob have agreed to use this key.
@@ -217,7 +221,7 @@ fn sign_then_encrypt() {
     assert_eq!(*received_plaintext, PLAINTEXT_HELLO);
 }
 
-#[cfg(feature = "signature")]
+#[cfg(all(feature = "signature", feature = "encrypt"))]
 #[test]
 fn test_encrypt_then_sign() {
     // Alice and Bob have agreed to use this key.

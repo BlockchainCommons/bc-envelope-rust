@@ -11,6 +11,7 @@ pub mod compress;
 pub mod salt;
 
 /// Symmetric key encryption.
+#[cfg(feature = "encrypt")]
 pub mod encrypt;
 
 /// Public key encryption.

@@ -1,3 +1,4 @@
+#[cfg(feature = "encrypt")]
 use bc_components::SymmetricKey;
 
 use bc_envelope::prelude::*;
@@ -17,13 +18,17 @@ use crate::common::test_data::*;
 ///
 #[test]
 fn test_obscuring() {
+    #[cfg(feature = "encrypt")]
     let key = SymmetricKey::new();
 
     let envelope = Envelope::new(PLAINTEXT_HELLO);
     assert!(!envelope.is_obscured());
 
-    let encrypted = envelope.clone().encrypt_subject(&key).unwrap();
-    assert!(encrypted.is_obscured());
+    #[cfg(feature = "encrypt")]
+    {
+        let encrypted = envelope.clone().encrypt_subject(&key).unwrap();
+        assert!(encrypted.is_obscured());
+    }
 
     let elided = envelope.clone().elide();
     assert!(elided.is_obscured());
@@ -41,14 +46,21 @@ fn test_obscuring() {
     // double-encrypted, possibly with a different key, which is probably not what's
     // intended. If you want to double-encrypt then wrap the encrypted envelope first,
     // which will change its digest.
-    encrypted.clone().encrypt_subject(&key).unwrap_err();
+    #[cfg(feature = "encrypt")]
+    {
+        let encrypted = envelope.clone().encrypt_subject(&key).unwrap();
+        encrypted.clone().encrypt_subject(&key).unwrap_err();
+    }
 
     // Cannot encrypt an elided envelope.
     //
     // Elided envelopes have no data to encrypt.
-    elided.clone().encrypt_subject(&key).unwrap_err();
+    #[cfg(feature = "encrypt")]
+    {
+        elided.clone().encrypt_subject(&key).unwrap_err();
+    }
 
-    #[cfg(feature = "compress")]
+    #[cfg(all(feature = "compress", feature = "encrypt"))]
     {
         // OK to encrypt a compressed envelope.
         let compressed = envelope.clone().compress().unwrap();
@@ -59,9 +71,13 @@ fn test_obscuring() {
 
     // ELISION
 
-    // OK to elide an encrypted envelope.
-    let elided_encrypted = encrypted.clone().elide();
-    assert!(elided_encrypted.is_elided());
+    #[cfg(feature = "encrypt")]
+    {
+        // OK to elide an encrypted envelope.
+        let encrypted = envelope.clone().encrypt_subject(&key).unwrap();
+        let elided_encrypted = encrypted.clone().elide();
+        assert!(elided_encrypted.is_elided());
+    }
 
     // Eliding an elided envelope is idempotent.
     let elided_elided = elided.clone().elide();
@@ -81,8 +97,11 @@ fn test_obscuring() {
     //
     // Encrypted envelopes cannot become smaller because encrypted data looks random,
     // and random data is not compressible.
-    #[cfg(feature = "compress")]
-    encrypted.compress().unwrap_err();
+    #[cfg(all(feature = "compress", feature = "encrypt"))]
+    {
+        let encrypted = envelope.clone().encrypt_subject(&key).unwrap();
+        encrypted.compress().unwrap_err();
+    }
 
     // Cannot compress an elided envelope.
     //
