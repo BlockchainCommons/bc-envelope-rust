@@ -3,8 +3,8 @@ use dcbor::prelude::*;
 use std::sync::{Once, Mutex};
 use crate::extension::known_values::{KnownValuesStore, KNOWN_VALUES};
 
-#[cfg(feature = "expressions")]
-use crate::extension::expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNCTIONS, GLOBAL_PARAMETERS};
+#[cfg(feature = "expression")]
+use crate::extension::expression::{FunctionsStore, ParametersStore, GLOBAL_FUNCTIONS, GLOBAL_PARAMETERS};
 
 /// The envelope formatting functions take a `FormatContext` as an argument. This type
 /// defines information about CBOR tags, known values, functions and parameters that
@@ -30,9 +30,9 @@ use crate::extension::expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNC
 pub struct FormatContext {
     tags: TagsStore,
     known_values: KnownValuesStore,
-    #[cfg(feature = "expressions")]
+    #[cfg(feature = "expression")]
     functions: FunctionsStore,
-    #[cfg(feature = "expressions")]
+    #[cfg(feature = "expression")]
     parameters: ParametersStore,
 }
 
@@ -40,17 +40,17 @@ impl FormatContext {
     pub fn new(
         tags: Option<&TagsStore>,
         known_values: Option<&KnownValuesStore>,
-        #[cfg(feature = "expressions")]
+        #[cfg(feature = "expression")]
         functions: Option<&FunctionsStore>,
-        #[cfg(feature = "expressions")]
+        #[cfg(feature = "expression")]
         parameters: Option<&ParametersStore>,
     ) -> Self {
         Self {
             tags: tags.cloned().unwrap_or_default(),
             known_values: known_values.cloned().unwrap_or_default(),
-            #[cfg(feature = "expressions")]
+            #[cfg(feature = "expression")]
             functions: functions.cloned().unwrap_or_default(),
-            #[cfg(feature = "expressions")]
+            #[cfg(feature = "expression")]
             parameters: parameters.cloned().unwrap_or_default(),
         }
     }
@@ -79,12 +79,12 @@ impl FormatContext {
         &self.known_values
     }
 
-    #[cfg(feature = "expressions")]
+    #[cfg(feature = "expression")]
     pub fn functions(&self) -> &FunctionsStore {
         &self.functions
     }
 
-    #[cfg(feature = "expressions")]
+    #[cfg(feature = "expression")]
     pub fn parameters(&self) -> &ParametersStore {
         &self.parameters
     }
@@ -95,9 +95,9 @@ impl Default for FormatContext {
         Self::new(
             None,
             None,
-            #[cfg(feature = "expressions")]
+            #[cfg(feature = "expression")]
             None,
-            #[cfg(feature = "expressions")]
+            #[cfg(feature = "expression")]
             None)
     }
 }
@@ -115,21 +115,21 @@ impl LazyFormatContext {
             let known_values_binding = KNOWN_VALUES.get();
             let known_values = known_values_binding.as_ref().unwrap();
 
-            #[cfg(feature = "expressions")]
+            #[cfg(feature = "expression")]
             let functions_binding = GLOBAL_FUNCTIONS.get();
-            #[cfg(feature = "expressions")]
+            #[cfg(feature = "expression")]
             let functions = functions_binding.as_ref().unwrap();
-            #[cfg(feature = "expressions")]
+            #[cfg(feature = "expression")]
             let parameters_binding = GLOBAL_PARAMETERS.get();
-            #[cfg(feature = "expressions")]
+            #[cfg(feature = "expression")]
             let parameters = parameters_binding.as_ref().unwrap();
 
             let context = FormatContext::new(
                 Some(tags),
                 Some(known_values),
-                #[cfg(feature = "expressions")]
+                #[cfg(feature = "expression")]
                 Some(functions),
-                #[cfg(feature = "expressions")]
+                #[cfg(feature = "expression")]
                 Some(parameters)
             );
             *self.data.lock().unwrap() = Some(context);

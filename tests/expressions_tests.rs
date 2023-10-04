@@ -1,4 +1,4 @@
-#![cfg(feature = "expressions")]
+#![cfg(feature = "expression")]
 use std::rc::Rc;
 
 use bc_components::ARID;

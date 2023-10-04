@@ -5,8 +5,8 @@ use dcbor::{CBOR, CBORTaggedDecodable};
 
 use crate::{FormatContext, string_utils::StringUtils, extension::known_values::KnownValuesStore};
 
-#[cfg(feature = "expressions")]
-use crate::{Envelope, extension::expressions::{Function, FunctionsStore, Parameter, ParametersStore}};
+#[cfg(feature = "expression")]
+use crate::{Envelope, extension::expression::{Function, FunctionsStore, Parameter, ParametersStore}};
 
 pub trait EnvelopeSummary {
     fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> Result<String, Box<dyn Error>>;
@@ -74,21 +74,21 @@ impl EnvelopeSummary for CBOR {
                     tags::DIGEST_VALUE => {
                         Ok(Digest::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("Digest(", ")"))
                     },
-                    #[cfg(feature = "expressions")]
+                    #[cfg(feature = "expression")]
                     tags::FUNCTION_VALUE => {
                         let f = Function::from_untagged_cbor(untagged_cbor)?;
                         Ok(FunctionsStore::name_for_function(&f, Some(context.functions())).flanked_by("«", "»"))
                     },
-                    #[cfg(feature = "expressions")]
+                    #[cfg(feature = "expression")]
                     tags::PARAMETER_VALUE => {
                         let p = Parameter::from_untagged_cbor(untagged_cbor)?;
                         Ok(ParametersStore::name_for_parameter(&p, Some(context.parameters())).flanked_by("❰", "❱"))
                     },
-                    #[cfg(feature = "expressions")]
+                    #[cfg(feature = "expression")]
                     tags::REQUEST_VALUE => {
                         Ok(Envelope::new(untagged_cbor).format_opt(Some(context)).flanked_by("request(", ")"))
                     },
-                    #[cfg(feature = "expressions")]
+                    #[cfg(feature = "expression")]
                     tags::RESPONSE_VALUE => {
                         Ok(Envelope::new(untagged_cbor).format_opt(Some(context)).flanked_by("response(", ")"))
                     },

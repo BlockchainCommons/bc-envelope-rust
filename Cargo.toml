@@ -40,14 +40,14 @@ version-sync = "0.9"
 
 [features]
 compress = []
-expressions = []
+expression = []
 recipient = []
 salt = []
 signature = []
 sskr = []
 default = [
-    # "compress",
-    "expressions",
+    "compress",
+    "expression",
     "recipient",
     "salt",
     "signature",
