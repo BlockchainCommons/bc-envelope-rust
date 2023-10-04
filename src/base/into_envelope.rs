@@ -1,6 +1,8 @@
 use std::rc::Rc;
 
-use bc_components::{EncryptedMessage, Compressed, SealedMessage, Digest, ARID, Salt, URI, UUID};
+use bc_components::{EncryptedMessage, SealedMessage, Digest, ARID, Salt, URI, UUID};
+#[cfg(feature = "compress")]
+use bc_components::Compressed;
 use dcbor::prelude::*;
 
 use crate::{Envelope, Assertion};
@@ -34,6 +36,7 @@ impl IntoEnvelope for EncryptedMessage {
     }
 }
 
+#[cfg(feature = "compress")]
 impl IntoEnvelope for Compressed {
     fn into_envelope(self) -> Rc<Envelope> {
         Rc::new(Envelope::new_with_compressed(self).unwrap())

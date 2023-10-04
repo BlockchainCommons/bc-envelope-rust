@@ -68,6 +68,7 @@ impl Envelope {
             Self::Encrypted { .. } => {
                 return Err(EnvelopeError::AlreadyEncrypted);
             }
+            #[cfg(feature = "compress")]
             Self::Compressed(compressed) => {
                 let digest = compressed.digest();
                 let encoded_cbor = CBOR::tagged_value(ENVELOPE, compressed.tagged_cbor()).cbor_data();

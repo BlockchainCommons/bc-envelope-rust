@@ -22,6 +22,7 @@ impl DigestProvider for Envelope {
             Self::KnownValue { digest, .. } => Cow::Borrowed(digest),
             Self::Assertion(assertion) => assertion.digest(),
             Self::Encrypted(encrypted_message) => encrypted_message.digest(),
+            #[cfg(feature = "compress")]
             Self::Compressed(compressed) => compressed.digest(),
             Self::Elided(digest) => Cow::Borrowed(digest),
         }
@@ -101,6 +102,7 @@ impl Envelope {
             match &*envelope {
                 Self::Encrypted(_) => image.borrow_mut().push(0),
                 Self::Elided(_) => image.borrow_mut().push(1),
+                #[cfg(feature = "compress")]
                 Self::Compressed(_) => image.borrow_mut().push(2),
                 _ => {}
             }

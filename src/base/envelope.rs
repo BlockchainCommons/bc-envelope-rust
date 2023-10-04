@@ -1,5 +1,7 @@
 use std::rc::Rc;
-use bc_components::{Digest, Compressed, EncryptedMessage, DigestProvider};
+use bc_components::{Digest, EncryptedMessage, DigestProvider};
+#[cfg(feature = "compress")]
+use bc_components::Compressed;
 use dcbor::prelude::*;
 use crate::{base::Assertion, EnvelopeError, IntoEnvelope, extension::KnownValue};
 
@@ -29,6 +31,7 @@ pub enum Envelope {
     Encrypted(EncryptedMessage),
 
     /// Represents a compressed envelope.
+    #[cfg(feature = "compress")]
     Compressed(Compressed),
 
     /// Represents an elided envelope.
@@ -92,6 +95,7 @@ impl Envelope {
         Ok(Self::Encrypted(encrypted_message))
     }
 
+    #[cfg(feature = "compress")]
     pub(crate) fn new_with_compressed(compressed: Compressed) -> Result<Self, EnvelopeError> {
         if !compressed.has_digest() {
             return Err(EnvelopeError::MissingDigest);
@@ -117,7 +121,9 @@ impl Envelope {
 
 #[cfg(test)]
 mod tests {
-    use bc_components::{DigestProvider, Compressed};
+    use bc_components::DigestProvider;
+    #[cfg(feature = "compress")]
+    use bc_components::Compressed;
     use crate::{Envelope, Assertion, extension::KnownValue};
 
     #[test]
@@ -151,6 +157,7 @@ mod tests {
         //todo!()
     }
 
+    #[cfg(feature = "compress")]
     #[test]
     fn test_any_compressed() {
         let data = "Hello".as_bytes();

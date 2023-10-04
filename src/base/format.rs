@@ -270,6 +270,7 @@ impl EnvelopeFormat for Envelope {
             ]),
             Envelope::Assertion(assertion) => assertion.format_item(context),
             Envelope::Encrypted(_) => EnvelopeFormatItem::Item("ENCRYPTED".to_string()),
+            #[cfg(feature = "compress")]
             Envelope::Compressed(_) => EnvelopeFormatItem::Item("COMPRESSED".to_string()),
             Envelope::Node { subject, assertions, .. } => {
                 let mut items: Vec<EnvelopeFormatItem> = Vec::new();
@@ -277,6 +278,7 @@ impl EnvelopeFormat for Envelope {
                 let subject_item = subject.format_item(context);
                 let mut elided_count = 0;
                 let mut encrypted_count = 0;
+                #[cfg(feature = "compress")]
                 let mut compressed_count = 0;
                 let mut type_assertion_items: Vec<Vec<EnvelopeFormatItem>> = Vec::new();
                 let mut assertion_items: Vec<Vec<EnvelopeFormatItem>> = Vec::new();
@@ -289,6 +291,7 @@ impl EnvelopeFormat for Envelope {
                         Envelope::Encrypted(_) => {
                             encrypted_count += 1;
                         },
+                        #[cfg(feature = "compress")]
                         Envelope::Compressed(_) => {
                             compressed_count += 1;
                         },
@@ -313,6 +316,7 @@ impl EnvelopeFormat for Envelope {
                 type_assertion_items.sort();
                 assertion_items.sort();
                 assertion_items.splice(0..0, type_assertion_items);
+                #[cfg(feature = "compress")]
                 if compressed_count > 1 {
                     assertion_items.push(vec![EnvelopeFormatItem::Item(format!("COMPRESSED ({})", compressed_count))]);
                 } else if compressed_count > 0 {
@@ -389,6 +393,7 @@ impl EnvelopeFormat for KnownValue {
             Self::KnownValue { value, .. } => format!(".knownValue({})", value),
             Self::Assertion(assertion) => format!(".assertion({}, {})", assertion.predicate(), assertion.object()),
             Self::Encrypted(_) => ".encrypted".to_string(),
+            #[cfg(feature = "compress")]
             Self::Compressed(_) => ".compressed".to_string(),
             Self::Elided(_) => ".elided".to_string()
         }

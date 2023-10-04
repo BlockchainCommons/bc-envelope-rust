@@ -1,5 +1,7 @@
 use anyhow::bail;
-use bc_components::{Compressed, Digest, DigestProvider, EncryptedMessage};
+use bc_components::{Digest, DigestProvider, EncryptedMessage};
+#[cfg(feature = "compress")]
+use bc_components::Compressed;
 use dcbor::prelude::*;
 use std::{
     any::{Any, TypeId},
@@ -107,6 +109,7 @@ impl Envelope {
     }
 
     /// `true` if the envelope is case `::Compressed`, `false` otherwise.
+    #[cfg(feature = "compress")]
     pub fn is_compressed(&self) -> bool {
         matches!(self, Self::Compressed(_))
     }
@@ -135,6 +138,7 @@ impl Envelope {
     }
 
     /// `true` if the subject of the envelope has been compressed, `false` otherwise.
+    #[cfg(feature = "compress")]
     pub fn is_subject_compressed(&self) -> bool {
         match self {
             Self::Compressed(_) => true,
@@ -156,7 +160,17 @@ impl Envelope {
     ///
     /// Obscured assertion envelopes may exist in the list of an envelope's assertions.
     pub fn is_subject_obscured(&self) -> bool {
-        self.is_subject_encrypted() || self.is_subject_compressed() || self.is_subject_elided()
+        if self.is_subject_elided() {
+            return true;
+        }
+        if self.is_subject_encrypted() {
+            return true;
+        }
+        #[cfg(feature = "compress")]
+        if self.is_subject_compressed() {
+            return true;
+        }
+        false
     }
 
     /// `true` if the envelope is *internal*, that is, it has child elements, or `false` if it is a leaf node.
@@ -171,10 +185,17 @@ impl Envelope {
 
     /// `true` if the envelope is encrypted, elided, or compressed; `false` otherwise.
     pub fn is_obscured(&self) -> bool {
-        matches!(
-            self,
-            Self::Encrypted(_) | Self::Compressed(_) | Self::Elided(_)
-        )
+        if self.is_elided() {
+            return true;
+        }
+        if self.is_encrypted() {
+            return true;
+        }
+        #[cfg(feature = "compress")]
+        if self.is_compressed() {
+            return true;
+        }
+        false
     }
 
     /// Returns the envelope's subject, decoded as the given type.
@@ -207,6 +228,7 @@ impl Envelope {
             Self::Encrypted(encrypted_message) => {
                 extract_type::<T, EncryptedMessage>(encrypted_message)
             }
+            #[cfg(feature = "compress")]
             Self::Compressed(compressed) => extract_type::<T, Compressed>(compressed),
             Self::Elided(digest) => extract_type::<T, Digest>(digest),
         }

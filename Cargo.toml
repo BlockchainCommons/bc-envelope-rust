@@ -46,7 +46,7 @@ salt = []
 signature = []
 sskr = []
 default = [
-    "compress",
+    # "compress",
     "expressions",
     "recipient",
     "salt",

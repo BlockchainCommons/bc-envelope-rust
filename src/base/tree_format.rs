@@ -54,6 +54,7 @@ impl Envelope {
             },
             Envelope::Assertion(_) => "ASSERTION".to_string(),
             Envelope::Encrypted(_) => "ENCRYPTED".to_string(),
+            #[cfg(feature = "compress")]
             Envelope::Compressed(_) => "COMPRESSED".to_string(),
             Envelope::Elided(_) => "ELIDED".to_string(),
         }
