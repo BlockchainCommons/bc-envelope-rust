@@ -1,3 +1,4 @@
+#![cfg(feature = "compress")]
 use bc_components::DigestProvider;
 
 use dcbor::prelude::*;

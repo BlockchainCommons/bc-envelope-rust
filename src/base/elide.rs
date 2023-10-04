@@ -13,6 +13,7 @@ pub enum ObscureAction {
     /// Encrypt the target using the specified key.
     Encrypt(SymmetricKey),
 
+    #[cfg(feature = "compress")]
     /// Compress the target.
     Compress,
 }
@@ -185,6 +186,7 @@ impl Envelope {
                     let message = key.encrypt(self.tagged_cbor().cbor_data(), Some((&self_digest).into()), None::<Nonce>);
                     Rc::new(Self::new_with_encrypted(message).unwrap())
                 },
+                #[cfg(feature = "compress")]
                 ObscureAction::Compress => self.compress().unwrap(),
             }
         } else if let Self::Assertion(assertion) = &*self {

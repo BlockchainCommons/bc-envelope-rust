@@ -39,12 +39,14 @@ indoc = "2.0.0"
 version-sync = "0.9"
 
 [features]
+compress = []
 expressions = []
 recipient = []
 salt = []
 signature = []
 sskr = []
 default = [
+    "compress",
     "expressions",
     "recipient",
     "salt",

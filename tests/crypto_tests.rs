@@ -171,9 +171,12 @@ fn encrypt_decrypt() {
     let e = Envelope::new_assertion("knows", "Bob");
     round_trip_test(e);
 
-    // compressed
-    let e = Envelope::new(PLAINTEXT_HELLO).compress().unwrap();
-    round_trip_test(e);
+    #[cfg(feature = "compress")]
+    {
+        // compressed
+        let e = Envelope::new(PLAINTEXT_HELLO).compress().unwrap();
+        round_trip_test(e);
+    }
 }
 
 #[cfg(feature = "signature")]

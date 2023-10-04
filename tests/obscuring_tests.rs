@@ -28,9 +28,11 @@ fn test_obscuring() {
     let elided = envelope.clone().elide();
     assert!(elided.is_obscured());
 
-    let compressed = envelope.compress().unwrap();
-    assert!(compressed.is_obscured());
-
+    #[cfg(feature = "compress")]
+    {
+        let compressed = envelope.clone().compress().unwrap();
+        assert!(compressed.is_obscured());
+    }
     // ENCRYPTION
 
     // Cannot encrypt an encrypted envelope.
@@ -46,9 +48,13 @@ fn test_obscuring() {
     // Elided envelopes have no data to encrypt.
     elided.clone().encrypt_subject(&key).unwrap_err();
 
-    // OK to encrypt a compressed envelope.
-    let encrypted_compressed = compressed.clone().encrypt_subject(&key).unwrap();
-    assert!(encrypted_compressed.is_encrypted());
+    #[cfg(feature = "compress")]
+    {
+        // OK to encrypt a compressed envelope.
+        let compressed = envelope.clone().compress().unwrap();
+        let encrypted_compressed = compressed.clone().encrypt_subject(&key).unwrap();
+        assert!(encrypted_compressed.is_encrypted());
+    }
 
 
     // ELISION
@@ -61,9 +67,13 @@ fn test_obscuring() {
     let elided_elided = elided.clone().elide();
     assert!(elided_elided.is_elided());
 
-    // OK to elide a compressed envelope.
-    let elided_compressed = compressed.clone().elide();
-    assert!(elided_compressed.is_elided());
+    #[cfg(feature = "compress")]
+    {
+        // OK to elide a compressed envelope.
+        let compressed = envelope.clone().compress().unwrap();
+        let elided_compressed = compressed.clone().elide();
+        assert!(elided_compressed.is_elided());
+    }
 
     // COMPRESSION
 
@@ -71,14 +81,20 @@ fn test_obscuring() {
     //
     // Encrypted envelopes cannot become smaller because encrypted data looks random,
     // and random data is not compressible.
+    #[cfg(feature = "compress")]
     encrypted.compress().unwrap_err();
 
     // Cannot compress an elided envelope.
     //
     // Elided envelopes have no data to compress.
+    #[cfg(feature = "compress")]
     elided.compress().unwrap_err();
 
-    // Compressing a compressed envelope is idempotent.
-    let compressed_compressed = compressed.compress().unwrap();
-    assert!(compressed_compressed.is_compressed());
+    #[cfg(feature = "compress")]
+    {
+        // Compressing a compressed envelope is idempotent.
+        let compressed = envelope.compress().unwrap();
+        let compressed_compressed = compressed.compress().unwrap();
+        assert!(compressed_compressed.is_compressed());
+    }
 }
