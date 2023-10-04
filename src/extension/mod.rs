@@ -13,4 +13,5 @@ pub mod recipient;
 /// Types dealing with SSKR splitting.
 pub mod sskr;
 
-pub mod kv;
+pub mod known_values;
+pub use known_values::*;

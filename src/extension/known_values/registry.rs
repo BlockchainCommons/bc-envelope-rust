@@ -1,10 +1,7 @@
-
-mod known_values_store;
-pub use known_values_store::KnownValuesStore;
-
 use std::sync::{Once, Mutex};
 use paste::paste;
-use crate::KnownValue;
+
+use super::known_values_store::KnownValuesStore;
 
 /// A macro that declares a known value at compile time.
 #[macro_export]
@@ -13,7 +10,7 @@ macro_rules! known_value_constant {
         paste! {
             pub const [<$const_name _RAW>]: u64 = $value;
         }
-        pub const $const_name: KnownValue = KnownValue::new_with_static_name($value, $name);
+        pub const $const_name: $crate::KnownValue = $crate::KnownValue::new_with_static_name($value, $name);
     };
 }
 
@@ -144,7 +141,7 @@ pub static KNOWN_VALUES: LazyKnownValues = LazyKnownValues {
 
 #[cfg(test)]
 mod tests {
-    use crate::known_values::{self, KNOWN_VALUES};
+    use crate::{known_values, KNOWN_VALUES};
 
     #[test]
     fn test_1() {
