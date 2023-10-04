@@ -381,8 +381,7 @@ pub use base::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 
 pub mod extension;
 /// Types dealing with known values.
-pub use extension::known_values;
-pub use extension::known_values::{KnownValue, KNOWN_VALUES, KnownValuesStore};
+pub use extension::{known_values, KnownValue, KNOWN_VALUES, KnownValuesStore};
 
 /// Types dealing with envelope expressions (and distributed function evaluation)
 pub mod expressions;
