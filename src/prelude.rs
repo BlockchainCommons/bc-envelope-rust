@@ -4,6 +4,6 @@ pub use crate::extension::known_values::{self, known_value, KnownValue, KNOWN_VA
 #[cfg(feature = "expressions")]
 pub use crate::extension::expressions::{functions, parameters, Function, Parameter};
 
-pub use crate::extension::elide::{self, ObscureAction};
+pub use crate::elide::{self, ObscureAction};
 pub use bc_components::{DigestProvider, Digest};
 pub use bc_ur::prelude::*;

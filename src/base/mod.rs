@@ -4,6 +4,10 @@ pub mod cbor;
 pub mod digest;
 pub mod envelope;
 
+/// Types dealing with elision.
+///
+/// Actual functions for elision are on the [`Envelope`] type itself.
+pub mod elide;
 
 pub mod error;
 pub mod into_envelope;

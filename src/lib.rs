@@ -377,6 +377,7 @@ pub use base::Envelope;
 pub use base::IntoEnvelope;
 pub use base::EnvelopeError;
 pub use base::{FormatContext, GLOBAL_FORMAT_CONTEXT};
+pub use base::elide::{self, ObscureAction};
 
 pub mod extension;
 pub mod prelude;
