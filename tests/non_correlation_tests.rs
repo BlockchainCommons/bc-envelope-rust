@@ -2,6 +2,9 @@ use bc_envelope::prelude::*;
 use bc_rand::make_fake_random_number_generator;
 use indoc::indoc;
 
+mod common;
+use crate::common::check_encoding::*;
+
 #[test]
 fn test_envelope_non_correlation() {
     let e1 = Envelope::new("Hello.");

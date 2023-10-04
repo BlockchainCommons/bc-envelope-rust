@@ -6,6 +6,7 @@ use bc_envelope::prelude::*;
 
 mod common;
 use crate::common::test_data::*;
+use crate::common::check_encoding::*;
 
 fn source() -> &'static str {
     "Lorem ipsum dolor sit amet consectetur adipiscing elit mi nibh ornare proin blandit diam ridiculus, faucibus mus dui eu vehicula nam donec dictumst sed vivamus bibendum aliquet efficitur. Felis imperdiet sodales dictum morbi vivamus augue dis duis aliquet velit ullamcorper porttitor, lobortis dapibus hac purus aliquam natoque iaculis blandit montes nunc pretium."

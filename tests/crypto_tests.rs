@@ -10,6 +10,7 @@ use bc_envelope::prelude::*;
 mod common;
 use crate::common::test_data::*;
 use crate::common::test_seed::*;
+use crate::common::check_encoding::*;
 
 #[test]
 fn plaintext() {

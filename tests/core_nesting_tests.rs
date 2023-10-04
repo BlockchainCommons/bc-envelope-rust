@@ -1,6 +1,9 @@
 use bc_envelope::prelude::*;
 use indoc::indoc;
 
+mod common;
+use crate::common::check_encoding::*;
+
 #[test]
 fn test_predicate_enclosures() {
     let alice = Envelope::new("Alice");

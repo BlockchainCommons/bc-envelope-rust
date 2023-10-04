@@ -15,3 +15,6 @@ pub mod sskr;
 
 pub mod known_values;
 pub use known_values::*;
+
+/// Types dealing with envelope expressions (and distributed function evaluation)
+pub mod expressions;

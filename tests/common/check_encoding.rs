@@ -6,13 +6,17 @@ use dcbor::prelude::*;
 use crate::Envelope;
 use anyhow::{anyhow, bail};
 
-impl Envelope {
+pub trait CheckEncoding {
+    fn check_encoding(self) -> Result<Self, anyhow::Error>
+    where
+        Self: Sized;
+}
+
+impl CheckEncoding for Rc<Envelope> {
     /// Used by test suite to check round-trip encoding of `Envelope`.
-    ///
-    /// Not needed in production code.
-    pub fn check_encoding(self: Rc<Self>) -> Result<Rc<Self>, anyhow::Error> {
+    fn check_encoding(self) -> Result<Self, anyhow::Error> {
         let cbor = self.tagged_cbor();
-        let restored = Self::from_tagged_cbor(&cbor);
+        let restored = Envelope::from_tagged_cbor(&cbor);
         let restored = restored.map_err(|_| {
             println!("=== EXPECTED");
             println!("{}", self.format());

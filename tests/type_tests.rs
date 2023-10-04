@@ -2,6 +2,9 @@ use bc_envelope::prelude::*;
 use bc_components::DigestProvider;
 use bc_rand::{fake_random_data, make_fake_random_number_generator, RandomNumberGenerator};
 
+mod common;
+use crate::common::check_encoding::*;
+
 #[test]
 fn test_known_value() {
     let envelope = Envelope::new(known_values::VERIFIED_BY).check_encoding().unwrap();

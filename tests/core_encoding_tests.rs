@@ -4,6 +4,9 @@ use std::error::Error;
 use bc_components::Digest;
 use bc_envelope::prelude::*;
 
+mod common;
+use crate::common::check_encoding::*;
+
 #[test]
 fn test_digest() {
    Envelope::new(Digest::from_image(&"Hello.".as_bytes())).check_encoding().unwrap();

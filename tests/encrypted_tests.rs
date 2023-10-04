@@ -4,6 +4,9 @@ use bc_envelope::prelude::*;
 use bc_components::{DigestProvider, SymmetricKey, Nonce, EncryptedMessage};
 use hex_literal::hex;
 
+mod common;
+use crate::common::check_encoding::*;
+
 fn basic_envelope() -> Rc<Envelope> {
     Envelope::new("Hello.")
 }

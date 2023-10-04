@@ -4,6 +4,7 @@ use indoc::indoc;
 
 mod common;
 use crate::common::test_data::*;
+use crate::common::check_encoding::*;
 
 #[test]
 fn test_int_subject() {

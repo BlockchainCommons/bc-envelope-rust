@@ -2,6 +2,9 @@ use std::{rc::Rc, error::Error, collections::HashSet};
 use bc_envelope::prelude::*;
 use indoc::indoc;
 
+mod common;
+use crate::common::check_encoding::*;
+
 fn basic_envelope() -> Rc<Envelope> {
     Envelope::new("Hello.")
 }
