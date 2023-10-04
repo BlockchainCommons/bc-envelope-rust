@@ -13,6 +13,7 @@ pub mod elide;
 
 pub mod recipient;
 
+#[cfg(feature = "sskr")]
 /// Types dealing with SSKR splitting.
 pub mod sskr;
 
