@@ -247,6 +247,7 @@ fn test_wrap_then_signed() {
     assert_eq!(envelope.elements_count(), envelope.clone().tree_format(false).split('\n').count());
 }
 
+#[cfg(feature = "recipient")]
 #[test]
 fn test_encrypt_to_recipients() {
     let envelope = Envelope::new(PLAINTEXT_HELLO)

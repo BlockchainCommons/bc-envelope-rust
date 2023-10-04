@@ -8,6 +8,7 @@ pub mod salt;
 
 pub mod encrypt;
 
+#[cfg(feature = "recipient")]
 pub mod recipient;
 
 #[cfg(feature = "sskr")]

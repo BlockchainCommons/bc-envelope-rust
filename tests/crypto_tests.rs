@@ -270,6 +270,7 @@ fn test_encrypt_then_sign() {
     assert_eq!(*received_plaintext, PLAINTEXT_HELLO);
 }
 
+#[cfg(feature = "recipient")]
 #[test]
 fn test_multi_recipient() {
     // Alice encrypts a message so that it can only be decrypted by Bob or Carol.
@@ -313,7 +314,7 @@ fn test_multi_recipient() {
     assert!(received_envelope.decrypt_to_recipient(&alice_private_keys()).is_err());
 }
 
-#[cfg(feature = "signature")]
+#[cfg(all(feature = "signature", feature = "recipient"))]
 #[test]
 fn test_visible_signature_multi_recipient() {
     // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
@@ -361,7 +362,7 @@ fn test_visible_signature_multi_recipient() {
     assert!(received_envelope.decrypt_to_recipient(&alice_private_keys()).is_err());
 }
 
-#[cfg(feature = "signature")]
+#[cfg(all(feature = "signature", feature = "recipient"))]
 #[test]
 fn test_hidden_signature_multi_recipient() {
     // Alice signs a message, and then encloses it in another envelope before
