@@ -12,7 +12,10 @@ pub mod elide;
 pub mod error;
 pub mod into_envelope;
 pub mod queries;
+
+#[cfg(feature = "known_value")]
 pub mod types;
+
 /// Types dealing with formatting envelopes.
 pub mod format;
 pub mod format_context;

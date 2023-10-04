@@ -1,4 +1,6 @@
 pub use crate::{Envelope, IntoEnvelope, FormatContext, with_format_context};
+
+#[cfg(feature = "known_value")]
 pub use crate::extension::known_values::{self, known_value, KnownValue, KNOWN_VALUES, KnownValuesStore};
 
 #[cfg(feature = "expression")]

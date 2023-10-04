@@ -1,6 +1,7 @@
 use bc_components::tags::GLOBAL_TAGS;
 use dcbor::prelude::*;
 use std::sync::{Once, Mutex};
+#[cfg(feature = "known_value")]
 use crate::extension::known_values::{KnownValuesStore, KNOWN_VALUES};
 
 #[cfg(feature = "expression")]
@@ -29,6 +30,7 @@ use crate::extension::expression::{FunctionsStore, ParametersStore, GLOBAL_FUNCT
 #[derive(Clone, Debug)]
 pub struct FormatContext {
     tags: TagsStore,
+    #[cfg(feature = "known_value")]
     known_values: KnownValuesStore,
     #[cfg(feature = "expression")]
     functions: FunctionsStore,
@@ -39,6 +41,7 @@ pub struct FormatContext {
 impl FormatContext {
     pub fn new(
         tags: Option<&TagsStore>,
+        #[cfg(feature = "known_value")]
         known_values: Option<&KnownValuesStore>,
         #[cfg(feature = "expression")]
         functions: Option<&FunctionsStore>,
@@ -47,6 +50,7 @@ impl FormatContext {
     ) -> Self {
         Self {
             tags: tags.cloned().unwrap_or_default(),
+            #[cfg(feature = "known_value")]
             known_values: known_values.cloned().unwrap_or_default(),
             #[cfg(feature = "expression")]
             functions: functions.cloned().unwrap_or_default(),
@@ -75,6 +79,7 @@ impl FormatContext {
         self.tags.tag_for_name(name)
     }
 
+    #[cfg(feature = "known_value")]
     pub fn known_values(&self) -> &KnownValuesStore {
         &self.known_values
     }
@@ -94,6 +99,7 @@ impl Default for FormatContext {
     fn default() -> Self {
         Self::new(
             None,
+            #[cfg(feature = "known_value")]
             None,
             #[cfg(feature = "expression")]
             None,
@@ -112,7 +118,10 @@ impl LazyFormatContext {
         self.init.call_once(|| {
             let tags_binding = GLOBAL_TAGS.get();
             let tags = tags_binding.as_ref().unwrap();
+
+            #[cfg(feature = "known_value")]
             let known_values_binding = KNOWN_VALUES.get();
+            #[cfg(feature = "known_value")]
             let known_values = known_values_binding.as_ref().unwrap();
 
             #[cfg(feature = "expression")]
@@ -126,6 +135,7 @@ impl LazyFormatContext {
 
             let context = FormatContext::new(
                 Some(tags),
+                #[cfg(feature = "known_value")]
                 Some(known_values),
                 #[cfg(feature = "expression")]
                 Some(functions),

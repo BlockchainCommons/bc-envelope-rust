@@ -19,13 +19,14 @@ impl DigestProvider for Envelope {
             Self::Node { digest, .. } => Cow::Borrowed(digest),
             Self::Leaf { digest, .. } => Cow::Borrowed(digest),
             Self::Wrapped { digest, .. } => Cow::Borrowed(digest),
-            Self::KnownValue { digest, .. } => Cow::Borrowed(digest),
             Self::Assertion(assertion) => assertion.digest(),
+            Self::Elided(digest) => Cow::Borrowed(digest),
+            #[cfg(feature = "known_value")]
+            Self::KnownValue { digest, .. } => Cow::Borrowed(digest),
             #[cfg(feature = "encrypt")]
             Self::Encrypted(encrypted_message) => encrypted_message.digest(),
             #[cfg(feature = "compress")]
             Self::Compressed(compressed) => compressed.digest(),
-            Self::Elided(digest) => Cow::Borrowed(digest),
         }
     }
 }

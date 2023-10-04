@@ -39,22 +39,26 @@ indoc = "2.0.0"
 version-sync = "0.9"
 
 [features]
-compress = []
-expression = []
-salt = []
-signature = []
+known_value = []
 
-encrypt = []
+compress = []
+expression = ["known_value"]
+salt = ["known_value"]
+signature = ["known_value"]
+
+encrypt = ["known_value"]
 recipient = ["encrypt"]
 sskr = ["encrypt"]
 
 default = [
+    "known_value",
+
     "compress",
     "expression",
     "salt",
     "signature",
 
-    # "encrypt",
-    # "recipient",
-    # "sskr",
+    "encrypt",
+    "recipient",
+    "sskr",
 ]

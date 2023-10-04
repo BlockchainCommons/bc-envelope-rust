@@ -3,7 +3,9 @@ use anyhow::bail;
 use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider};
 use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
 
-use crate::{Envelope, EnvelopeError, impl_into_envelope, extension::known_values};
+use crate::{Envelope, EnvelopeError, impl_into_envelope};
+#[cfg(feature = "known_value")]
+use crate::extension::known_values;
 
 /// Support for signing envelopes and verifying signatures.
 impl Envelope {

@@ -5,7 +5,9 @@ use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 use dcbor::prelude::*;
-use crate::{base::Assertion, EnvelopeError, IntoEnvelope, extension::KnownValue};
+use crate::{base::Assertion, EnvelopeError, IntoEnvelope};
+#[cfg(feature = "known_value")]
+use crate::extension::KnownValue;
 
 /// A flexible container for structured data.
 ///
@@ -21,13 +23,17 @@ pub enum Envelope {
     /// Represents an envelope that wraps another envelope.
     Wrapped { envelope: Rc<Self>, digest: Digest },
 
-    /// Represents a value from a namespace of unsigned integers.
-    KnownValue { value: KnownValue, digest: Digest },
-
     /// Represents an assertion.
     ///
     /// An assertion is a predicate-object pair, each of which is itself an ``Envelope``.
     Assertion(Assertion),
+
+    /// Represents an elided envelope.
+    Elided(Digest),
+
+    /// Represents a value from a namespace of unsigned integers.
+    #[cfg(feature = "known_value")]
+    KnownValue { value: KnownValue, digest: Digest },
 
     /// Represents an encrypted envelope.
     #[cfg(feature = "encrypt")]
@@ -36,9 +42,6 @@ pub enum Envelope {
     /// Represents a compressed envelope.
     #[cfg(feature = "compress")]
     Compressed(Compressed),
-
-    /// Represents an elided envelope.
-    Elided(Digest),
 }
 
 /// Support for basic envelope creation.
@@ -86,6 +89,7 @@ impl Envelope {
         Self::Assertion(assertion)
     }
 
+    #[cfg(feature = "known_value")]
     pub(crate) fn new_with_known_value(value: KnownValue) -> Self {
         let digest = value.digest().into_owned();
         Self::KnownValue { value, digest }
@@ -128,7 +132,9 @@ mod tests {
     use bc_components::DigestProvider;
     #[cfg(feature = "compress")]
     use bc_components::Compressed;
-    use crate::{Envelope, Assertion, extension::KnownValue};
+    use crate::{Envelope, Assertion};
+    #[cfg(feature = "known_value")]
+    use crate::extension::KnownValue;
 
     #[test]
     fn test_any_envelope() {
@@ -138,6 +144,7 @@ mod tests {
         assert_eq!(e1.digest(), e2.digest());
     }
 
+    #[cfg(feature = "known_value")]
     #[test]
     fn test_any_known_value() {
         let known_value = KnownValue::new(100);

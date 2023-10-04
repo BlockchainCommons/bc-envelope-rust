@@ -1,6 +1,8 @@
 use std::{rc::Rc, ops::RangeInclusive};
 
-use crate::{Envelope, extension::known_values};
+use crate::Envelope;
+#[cfg(feature = "known_value")]
+use crate::extension::known_values;
 
 use bc_components::Salt;
 use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};

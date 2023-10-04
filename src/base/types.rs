@@ -1,7 +1,8 @@
 use std::rc::Rc;
 use bc_components::DigestProvider;
 
-use crate::{Envelope, EnvelopeError, extension::{known_values, KnownValue}, IntoEnvelope};
+use crate::{Envelope, EnvelopeError, IntoEnvelope};
+use crate::extension::{known_values, KnownValue};
 
 impl Envelope {
     pub fn add_type<O>(self: Rc<Self>, object: O) -> Rc<Self>

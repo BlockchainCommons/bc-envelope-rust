@@ -3,7 +3,9 @@ use std::error::Error;
 use bc_components::{tags, ARID, URI, UUID, Digest};
 use dcbor::{CBOR, CBORTaggedDecodable};
 
-use crate::{FormatContext, string_utils::StringUtils, extension::known_values::KnownValuesStore};
+use crate::{FormatContext, string_utils::StringUtils};
+#[cfg(feature = "known_value")]
+use crate::extension::known_values::KnownValuesStore;
 
 #[cfg(feature = "expression")]
 use crate::{Envelope, extension::expression::{Function, FunctionsStore, Parameter, ParametersStore}};
@@ -39,6 +41,7 @@ impl EnvelopeSummary for CBOR {
             CBOR::Tagged(tag, untagged_cbor) => {
                 match tag.value() {
                     tags::ENVELOPE_VALUE => Ok("Envelope".to_string()),
+                    #[cfg(feature = "known_value")]
                     tags::KNOWN_VALUE_VALUE => {
                         if let CBOR::Unsigned(raw_value) = &**untagged_cbor {
                             Ok(KnownValuesStore::known_value_for_raw_value(*raw_value, Some(context.known_values()))

@@ -1,6 +1,8 @@
 use std::rc::Rc;
 
-use crate::{Envelope, EnvelopeError, extension::known_values};
+use crate::{Envelope, EnvelopeError};
+#[cfg(feature = "known_value")]
+use crate::extension::known_values;
 
 use bc_components::{SealedMessage, PublicKeyBase, SymmetricKey, Nonce, PrivateKeyBase};
 use dcbor::prelude::*;

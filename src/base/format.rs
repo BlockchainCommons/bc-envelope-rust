@@ -1,6 +1,8 @@
 use bc_components::{Digest, ARID};
 use dcbor::prelude::*;
-use crate::{Envelope, Assertion, string_utils::StringUtils, extension::{KnownValue, known_values}, FormatContext};
+use crate::{Envelope, Assertion, string_utils::StringUtils, FormatContext};
+#[cfg(feature = "known_value")]
+use crate::extension::{KnownValue, known_values};
 
 use super::EnvelopeSummary;
 
@@ -262,13 +264,14 @@ impl EnvelopeFormat for Envelope {
     fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
         match self {
             Envelope::Leaf { cbor, .. } => cbor.format_item(context),
-            Envelope::KnownValue { value, .. } => value.format_item(context),
             Envelope::Wrapped { envelope, .. } => EnvelopeFormatItem::List(vec![
                 EnvelopeFormatItem::Begin("{".to_string()),
                 envelope.format_item(context),
                 EnvelopeFormatItem::End("}".to_string()),
             ]),
             Envelope::Assertion(assertion) => assertion.format_item(context),
+            #[cfg(feature = "known_value")]
+            Envelope::KnownValue { value, .. } => value.format_item(context),
             #[cfg(feature = "encrypt")]
             Envelope::Encrypted(_) => EnvelopeFormatItem::Item("ENCRYPTED".to_string()),
             #[cfg(feature = "compress")]
@@ -282,6 +285,7 @@ impl EnvelopeFormat for Envelope {
                 let mut encrypted_count = 0;
                 #[cfg(feature = "compress")]
                 let mut compressed_count = 0;
+                #[cfg(feature = "known_value")]
                 let mut type_assertion_items: Vec<Vec<EnvelopeFormatItem>> = Vec::new();
                 let mut assertion_items: Vec<Vec<EnvelopeFormatItem>> = Vec::new();
 
@@ -299,25 +303,32 @@ impl EnvelopeFormat for Envelope {
                             compressed_count += 1;
                         },
                         _ => {
-                            let mut is_type_assertion = false;
-                            if let Some(predicate) = assertion.clone().predicate() {
-                                if let Some(known_value) = predicate.subject().known_value() {
-                                    if *known_value == known_values::IS_A {
-                                        is_type_assertion = true;
+                            let item = vec![assertion.format_item(context)];
+                            #[cfg(feature = "known_value")]
+                            {
+                                let mut is_type_assertion = false;
+                                if let Some(predicate) = assertion.clone().predicate() {
+                                    if let Some(known_value) = predicate.subject().known_value() {
+                                        if *known_value == known_values::IS_A {
+                                            is_type_assertion = true;
+                                        }
                                     }
                                 }
+                                if is_type_assertion {
+                                    type_assertion_items.push(item);
+                                } else {
+                                    assertion_items.push(item);
+                                }
                             }
-                            let item = vec![assertion.format_item(context)];
-                            if is_type_assertion {
-                                type_assertion_items.push(item);
-                            } else {
-                                assertion_items.push(item);
-                            }
+                            #[cfg(not(feature = "known_value"))]
+                            assertion_items.push(item);
                         },
                     }
                 }
+                #[cfg(feature = "known_value")]
                 type_assertion_items.sort();
                 assertion_items.sort();
+                #[cfg(feature = "known_value")]
                 assertion_items.splice(0..0, type_assertion_items);
                 #[cfg(feature = "compress")]
                 if compressed_count > 1 {
@@ -368,6 +379,7 @@ impl EnvelopeFormat for Assertion {
     }
 }
 
+#[cfg(feature = "known_value")]
 impl EnvelopeFormat for KnownValue {
     fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
         EnvelopeFormatItem::Item(context
@@ -394,13 +406,14 @@ impl EnvelopeFormat for KnownValue {
             }
             Self::Leaf { cbor, .. } => format!(".cbor({})", cbor.format_item(context.unwrap_or(&FormatContext::default()))),
             Self::Wrapped { envelope, .. } => format!(".wrapped({})", envelope),
-            Self::KnownValue { value, .. } => format!(".knownValue({})", value),
             Self::Assertion(assertion) => format!(".assertion({}, {})", assertion.predicate(), assertion.object()),
+            Self::Elided(_) => ".elided".to_string(),
+            #[cfg(feature = "known_value")]
+            Self::KnownValue { value, .. } => format!(".knownValue({})", value),
             #[cfg(feature = "encrypt")]
             Self::Encrypted(_) => ".encrypted".to_string(),
             #[cfg(feature = "compress")]
             Self::Compressed(_) => ".compressed".to_string(),
-            Self::Elided(_) => ".elided".to_string()
         }
     }
 }

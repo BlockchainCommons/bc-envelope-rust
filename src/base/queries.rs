@@ -10,7 +10,9 @@ use std::{
     rc::Rc,
 };
 
-use crate::{Assertion, Envelope, EnvelopeError, IntoEnvelope, extension::KnownValue};
+use crate::{Assertion, Envelope, EnvelopeError, IntoEnvelope};
+#[cfg(feature = "known_value")]
+use crate::extension::KnownValue;
 
 /// Support for various queries on envelopes.
 impl Envelope {
@@ -73,6 +75,7 @@ impl Envelope {
     }
 
     /// The envelope's `KnownValue`, or `None` if the envelope is not case `::KnownValue`.
+    #[cfg(feature = "known_value")]
     pub fn known_value(&self) -> Option<&KnownValue> {
         match self {
             Self::KnownValue { value, .. } => Some(value),
@@ -96,6 +99,7 @@ impl Envelope {
     }
 
     /// `true` if the envelope is case `::KnownValue`, `false` otherwise.
+    #[cfg(feature = "known_value")]
     pub fn is_known_value(&self) -> bool {
         matches!(self, Self::KnownValue { .. })
     }
@@ -229,13 +233,14 @@ impl Envelope {
             Self::Wrapped { envelope, .. } => extract_type::<T, Self>(&**envelope),
             Self::Node { subject, .. } => subject.extract_subject::<T>(),
             Self::Leaf { cbor, .. } => Ok(Rc::new(T::from_cbor(cbor)?)),
-            Self::KnownValue { value, .. } => extract_type::<T, KnownValue>(value),
             Self::Assertion(assertion) => extract_type::<T, Assertion>(assertion),
+            Self::Elided(digest) => extract_type::<T, Digest>(digest),
+            #[cfg(feature = "known_value")]
+            Self::KnownValue { value, .. } => extract_type::<T, KnownValue>(value),
             #[cfg(feature = "encrypt")]
             Self::Encrypted(encrypted_message) => extract_type::<T, EncryptedMessage>(encrypted_message),
             #[cfg(feature = "compress")]
             Self::Compressed(compressed) => extract_type::<T, Compressed>(compressed),
-            Self::Elided(digest) => extract_type::<T, Digest>(digest),
         }
     }
 

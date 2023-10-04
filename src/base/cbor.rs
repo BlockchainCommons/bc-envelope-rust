@@ -6,7 +6,9 @@ use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 use bc_ur::prelude::*;
-use crate::{Envelope, Assertion, extension::KnownValue};
+use crate::{Envelope, Assertion};
+#[cfg(feature = "known_value")]
+use crate::extension::KnownValue;
 
 /// Support for CBOR encoding and decoding of ``Envelope``.
 
@@ -52,13 +54,14 @@ impl CBORTaggedEncodable for Envelope {
             }
             Envelope::Leaf { cbor, digest: _ } => CBOR::tagged_value(tags::LEAF, cbor.clone()),
             Envelope::Wrapped { envelope, digest: _ } => envelope.tagged_cbor(),
-            Envelope::KnownValue { value, digest: _ } => value.untagged_cbor(),
             Envelope::Assertion(assertion) => assertion.cbor(),
+            Envelope::Elided(digest) => digest.untagged_cbor(),
+            #[cfg(feature = "known_value")]
+            Envelope::KnownValue { value, digest: _ } => value.untagged_cbor(),
             #[cfg(feature = "encrypt")]
             Envelope::Encrypted(encrypted_message) => encrypted_message.tagged_cbor(),
             #[cfg(feature = "compress")]
             Envelope::Compressed(compressed) => compressed.tagged_cbor(),
-            Envelope::Elided(digest) => digest.untagged_cbor(),
         }
     }
 }
@@ -120,6 +123,7 @@ impl CBORTaggedDecodable for Envelope {
                 let assertion = Assertion::from_cbor(cbor)?;
                 Ok(Envelope::new_with_assertion(assertion))
             }
+            #[cfg(feature = "known_value")]
             CBOR::Unsigned(value) => {
                 let known_value = KnownValue::new(*value);
                 Ok(Envelope::new_with_known_value(known_value))

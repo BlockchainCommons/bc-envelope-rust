@@ -22,7 +22,9 @@ pub mod recipient;
 #[cfg(feature = "sskr")]
 pub mod sskr;
 
+#[cfg(feature = "known_value")]
 pub mod known_values;
+#[cfg(feature = "known_value")]
 pub use known_values::*;
 
 #[cfg(feature = "expression")]

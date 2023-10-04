@@ -2,7 +2,9 @@ use std::{rc::Rc, collections::HashSet, cell::RefCell};
 
 use bc_components::{Digest, DigestProvider};
 
-use crate::{Envelope, string_utils::StringUtils, extension::KnownValuesStore, with_format_context, FormatContext};
+use crate::{Envelope, with_format_context, FormatContext};
+#[cfg(feature = "known_value")]
+use crate::{string_utils::StringUtils, extension::KnownValuesStore};
 
 use super::{walk::EdgeType, EnvelopeSummary};
 
@@ -48,16 +50,17 @@ impl Envelope {
             Envelope::Node { .. } => "NODE".to_string(),
             Envelope::Leaf { cbor, .. } => cbor.envelope_summary(max_length, context).unwrap(),
             Envelope::Wrapped { .. } => "WRAPPED".to_string(),
+            Envelope::Assertion(_) => "ASSERTION".to_string(),
+            Envelope::Elided(_) => "ELIDED".to_string(),
+            #[cfg(feature = "known_value")]
             Envelope::KnownValue { value, .. } => {
                 let known_value = KnownValuesStore::known_value_for_raw_value(value.value(), Some(context.known_values()));
                 known_value.to_string().flanked_by("'", "'",)
             },
-            Envelope::Assertion(_) => "ASSERTION".to_string(),
             #[cfg(feature = "encrypt")]
             Envelope::Encrypted(_) => "ENCRYPTED".to_string(),
             #[cfg(feature = "compress")]
             Envelope::Compressed(_) => "COMPRESSED".to_string(),
-            Envelope::Elided(_) => "ELIDED".to_string(),
         }
     }
 }
