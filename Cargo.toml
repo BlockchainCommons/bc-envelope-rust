@@ -37,3 +37,7 @@ hex-literal = "0.4.1"
 lazy_static = "1.4.0"
 indoc = "2.0.0"
 version-sync = "0.9"
+
+[features]
+expressions = []
+default = ["expressions"]

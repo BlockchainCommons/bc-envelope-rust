@@ -16,5 +16,6 @@ pub mod sskr;
 pub mod known_values;
 pub use known_values::*;
 
+#[cfg(feature = "expressions")]
 /// Types dealing with envelope expressions (and distributed function evaluation)
 pub mod expressions;
