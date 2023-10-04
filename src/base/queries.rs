@@ -6,7 +6,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::{Assertion, Envelope, EnvelopeError, IntoEnvelope, known_values::KnownValue};
+use crate::{Assertion, Envelope, EnvelopeError, IntoEnvelope, KnownValue};
 
 /// Support for various queries on envelopes.
 impl Envelope {

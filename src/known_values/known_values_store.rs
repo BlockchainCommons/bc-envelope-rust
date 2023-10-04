@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::KnownValue;
+use crate::KnownValue;
 
 /// A type that maps between known values and their assigned names.
 #[derive(Clone, Debug)]

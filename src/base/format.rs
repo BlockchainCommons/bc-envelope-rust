@@ -1,6 +1,6 @@
 use bc_components::{Digest, ARID};
 use dcbor::prelude::*;
-use crate::{Envelope, Assertion, string_utils::StringUtils, known_values::{KnownValue, self}, FormatContext};
+use crate::{Envelope, Assertion, string_utils::StringUtils, KnownValue, known_values, FormatContext};
 
 use super::EnvelopeSummary;
 

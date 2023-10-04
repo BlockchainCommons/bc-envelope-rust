@@ -1,12 +1,10 @@
-pub mod known_value;
-pub use known_value::KnownValue;
 
 mod known_values_store;
 pub use known_values_store::KnownValuesStore;
 
 use std::sync::{Once, Mutex};
 use paste::paste;
-
+use crate::KnownValue;
 
 /// A macro that declares a known value at compile time.
 #[macro_export]
