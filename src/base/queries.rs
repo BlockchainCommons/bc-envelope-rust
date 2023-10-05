@@ -50,12 +50,22 @@ impl Envelope {
         }
     }
 
+    /// If the envelope's subject is an assertion return it, else return an error.
+    pub fn assertion_or_error(self: Rc<Self>) -> Result<Rc<Self>, EnvelopeError> {
+        self.assertion().ok_or(EnvelopeError::NotAssertion)
+    }
+
     /// The envelope's predicate, or `None` if the envelope is not an assertion.
     pub fn predicate(self: Rc<Self>) -> Option<Rc<Self>> {
         match &*self {
             Self::Assertion(assertion) => Some(assertion.predicate()),
             _ => None,
         }
+    }
+
+    /// The envelope's predicate, or an error if the envelope is not an assertion.
+    pub fn predicate_or_error(self: Rc<Self>) -> Result<Rc<Self>, EnvelopeError> {
+        self.predicate().ok_or(EnvelopeError::NotAssertion)
     }
 
     /// The envelope's object, or `None` if the envelope is not an assertion.
@@ -66,12 +76,22 @@ impl Envelope {
         }
     }
 
+    /// The envelope's object, or an error if the envelope is not an assertion.
+    pub fn object_or_error(self: Rc<Self>) -> Result<Rc<Self>, EnvelopeError> {
+        self.object().ok_or(EnvelopeError::NotAssertion)
+    }
+
     /// The envelope's leaf CBOR object, or `None` if the envelope is not a leaf.
     pub fn leaf(&self) -> Option<&CBOR> {
         match self {
             Self::Leaf { cbor, .. } => Some(cbor),
             _ => None,
         }
+    }
+
+    /// The envelope's leaf CBOR object, or an error if the envelope is not a leaf.
+    pub fn leaf_or_error(&self) -> Result<&CBOR, EnvelopeError> {
+        self.leaf().ok_or(EnvelopeError::NotLeaf)
     }
 
     /// The envelope's `KnownValue`, or `None` if the envelope is not case `::KnownValue`.
@@ -81,6 +101,12 @@ impl Envelope {
             Self::KnownValue { value, .. } => Some(value),
             _ => None,
         }
+    }
+
+    /// The envelope's `KnownValue`, or an error if the envelope is not case `::KnownValue`.
+    #[cfg(feature = "known_value")]
+    pub fn known_value_or_error(&self) -> Result<&KnownValue, EnvelopeError> {
+        self.known_value().ok_or(EnvelopeError::NotKnownValue)
     }
 
     /// `true` if the envelope is case `::Leaf`, `false` otherwise.
@@ -308,6 +334,21 @@ impl Envelope {
             .object()
             .unwrap()
             .extract_subject()
+    }
+
+    pub fn extract_optional_object_for_predicate<T, P>(
+        self: Rc<Self>,
+        predicate: P,
+    ) -> anyhow::Result<Option<Rc<T>>>
+    where
+        T: CBORDecodable + 'static,
+        P: IntoEnvelope,
+    {
+        if let Ok(object) = self.object_for_predicate(predicate) {
+            Ok(Some(object.extract_subject()?))
+        } else {
+            Ok(None)
+        }
     }
 
     /// Returns the objects of all assertions with the matching predicate.

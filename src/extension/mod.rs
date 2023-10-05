@@ -1,3 +1,7 @@
+/// Attachments
+#[cfg(feature = "attachment")]
+pub mod attachment;
+
 /// Public key signing and verification.
 #[cfg(feature = "signature")]
 pub mod signature;

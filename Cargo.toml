@@ -39,6 +39,7 @@ indoc = "2.0.0"
 version-sync = "0.9"
 
 [features]
+attachment = ["known_value"]
 compress = []
 known_value = []
 encrypt = ["known_value"]
@@ -50,6 +51,7 @@ sskr = ["encrypt"]
 types = ["known_value"]
 
 default = [
+    "attachment",
     "compress",
     "known_value",
     "encrypt",
