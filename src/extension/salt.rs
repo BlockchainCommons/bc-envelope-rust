@@ -6,7 +6,7 @@ use crate::extension::known_values;
 
 use bc_components::Salt;
 use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
-use dcbor::prelude::*;
+use bc_ur::prelude::*;
 
 /// Support for decorrelation of envelopes using salt.
 impl Envelope {

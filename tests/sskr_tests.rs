@@ -10,7 +10,7 @@ mod common;
 use crate::common::test_seed::*;
 
 #[test]
-fn test_sskr() {
+fn test_sskr() -> anyhow::Result<()> {
     // Dan has a cryptographic seed he wants to backup using a social recovery scheme.
     // The seed includes metadata he wants to back up also, making it too large to fit
     // into a basic SSKR share.
@@ -24,26 +24,29 @@ fn test_sskr() {
     // representing SSKR groups and the inner array elements each holding the encrypted
     // seed and a single share.
     let content_key = SymmetricKey::new();
-    let seed_envelope = Envelope::new(&dan_seed);
+    let seed_envelope = dan_seed.into_envelope();
     let encrypted_seed_envelope = seed_envelope
-        .encrypt_subject(&content_key).unwrap();
+        .wrap_envelope()
+        .encrypt_subject(&content_key)?;
 
-    let group = SSKRGroupSpec::new(2, 3).unwrap();
-    let spec = SSKRSpec::new(1, vec![group]).unwrap();
+    let group = SSKRGroupSpec::new(2, 3)?;
+    let spec = SSKRSpec::new(1, vec![group])?;
     let envelopes = encrypted_seed_envelope
-        .sskr_split(&spec, &content_key).unwrap();
+        .sskr_split(&spec, &content_key)?;
 
     // Flattening the array of arrays gives just a single array of all the envelopes
     // to be distributed.
     let sent_envelopes: Vec<_> = envelopes.into_iter().flatten().collect();
     let sent_urs: Vec<_> = sent_envelopes.iter().map(|e| e.ur()).collect();
 
-    let expected_format = indoc! {r#"
+    with_format_context!(|context| {
+        let expected_format = indoc! {r#"
         ENCRYPTED [
             'sskrShare': SSKRShare
         ]
         "#}.trim();
-    assert_eq!(sent_envelopes[0].format(), expected_format);
+        assert_eq!(sent_envelopes[0].format_opt(Some(context)), expected_format);
+    });
 
     // Dan sends one envelope to each of Alice, Bob, and Carol.
 
@@ -51,15 +54,15 @@ fn test_sskr() {
     // Dan ➡️ ☁️ ➡️ Bob
     // Dan ➡️ ☁️ ➡️ Carol
 
-    // let alice_envelope = Envelope::from_ur(&sent_urs[0]).unwrap(); // UNRECOVERED
-    let bob_envelope = Rc::new(Envelope::from_ur(&sent_urs[1]).unwrap());
-    let carol_envelope = Rc::new(Envelope::from_ur(&sent_urs[2]).unwrap());
+    // let alice_envelope = Envelope::from_ur(&sent_urs[0])?; // UNRECOVERED
+    let bob_envelope = Rc::new(Envelope::from_ur(&sent_urs[1])?);
+    let carol_envelope = Rc::new(Envelope::from_ur(&sent_urs[2])?);
 
     // At some future point, Dan retrieves two of the three envelopes so he can recover his seed.
     let recovered_envelopes = [bob_envelope.clone(), carol_envelope];
-    let recovered_seed_envelope = Envelope::sskr_join(&recovered_envelopes).unwrap();
-    println!("{}", recovered_seed_envelope.format());
-    let recovered_seed = recovered_seed_envelope.extract_subject::<Seed>().unwrap();
+    let recovered_seed_envelope = Envelope::sskr_join(&recovered_envelopes)?.unwrap_envelope()?;
+
+    let recovered_seed = Seed::from_envelope(&recovered_seed_envelope)?;
 
     // The recovered seed is correct.
     assert_eq!(dan_seed.data(), recovered_seed.data());
@@ -69,4 +72,6 @@ fn test_sskr() {
 
     // Attempting to recover with only one of the envelopes won't work.
     assert!(Envelope::sskr_join(&[bob_envelope]).is_err());
+
+    Ok(())
 }

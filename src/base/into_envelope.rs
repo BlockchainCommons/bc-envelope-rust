@@ -76,6 +76,18 @@ impl IntoEnvelope for &str {
     }
 }
 
+impl<const N: usize> IntoEnvelope for &[u8; N] {
+    fn into_envelope(self) -> Rc<Envelope> {
+        self.cbor().into_envelope()
+    }
+}
+
+impl IntoEnvelope for &[u8] {
+    fn into_envelope(self) -> Rc<Envelope> {
+        self.to_vec().cbor().into_envelope()
+    }
+}
+
 /// A macro that implements IntoEnvelope for a type and its reference.
 #[macro_export]
 macro_rules! impl_into_envelope {

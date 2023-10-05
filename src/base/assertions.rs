@@ -78,6 +78,17 @@ impl Envelope {
             self
         }
     }
+
+    /// Returns a new `Envelope` with the given array of assertions added.
+    ///
+    /// - Parameter assertions: The assertions to add.
+    pub fn add_assertions(self: Rc<Self>, envelopes: &[Rc<Self>]) -> Rc<Self> {
+        let mut e = self;
+        for envelope in envelopes {
+            e = e.add_assertion_envelope(envelope.clone()).unwrap();
+        }
+        e
+    }
 }
 
 #[cfg(feature = "salt")]
@@ -133,6 +144,14 @@ impl Envelope {
             },
             None => Ok(self),
         }
+    }
+
+    pub fn add_assertions_salted(self: Rc<Self>, assertions: &[Rc<Self>], salted: bool) -> Rc<Self> {
+        let mut e = self;
+        for assertion in assertions {
+            e = e.add_assertion_envelope_salted(assertion.clone(), salted).unwrap();
+        }
+        e
     }
 }
 

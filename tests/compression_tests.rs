@@ -14,13 +14,11 @@ use bc_rand::make_fake_random_number_generator;
 #[cfg(feature = "signature")]
 use indoc::indoc;
 
-fn source() -> &'static str {
-    "Lorem ipsum dolor sit amet consectetur adipiscing elit mi nibh ornare proin blandit diam ridiculus, faucibus mus dui eu vehicula nam donec dictumst sed vivamus bibendum aliquet efficitur. Felis imperdiet sodales dictum morbi vivamus augue dis duis aliquet velit ullamcorper porttitor, lobortis dapibus hac purus aliquam natoque iaculis blandit montes nunc pretium."
-}
+static SOURCE: &str = "Lorem ipsum dolor sit amet consectetur adipiscing elit mi nibh ornare proin blandit diam ridiculus, faucibus mus dui eu vehicula nam donec dictumst sed vivamus bibendum aliquet efficitur. Felis imperdiet sodales dictum morbi vivamus augue dis duis aliquet velit ullamcorper porttitor, lobortis dapibus hac purus aliquam natoque iaculis blandit montes nunc pretium.";
 
 #[test]
 fn test_compress() {
-    let original = Envelope::new(source());
+    let original = Envelope::new(SOURCE);
     assert_eq!(original.cbor_data().len(), 369);
     let compressed = original.clone().compress().unwrap().check_encoding().unwrap();
     assert_eq!(compressed.cbor_data().len(), 282);
@@ -36,7 +34,7 @@ fn test_compress() {
 fn test_compress_subject() {
     let mut rng = make_fake_random_number_generator();
     let original = Envelope::new("Alice")
-        .add_assertion(known_values::NOTE, source())
+        .add_assertion(known_values::NOTE, SOURCE)
         .wrap_envelope()
         .sign_with_using(&alice_private_keys(), &mut rng);
     assert_eq!(original.cbor_data().len(), 456);

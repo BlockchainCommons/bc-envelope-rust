@@ -4,7 +4,7 @@ use anyhow::bail;
 use bc_components::tags;
 use bc_ur::prelude::*;
 
-use bc_envelope::{IntoEnvelope, Envelope};
+use bc_envelope::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Seed {
@@ -17,24 +17,26 @@ pub struct Seed {
 impl Seed {
     pub fn new<T>(data: T) -> Self
     where
-        T: Into<Vec<u8>>,
+        T: AsRef<[u8]>,
     {
         Self::new_opt(data, String::new(), String::new(), None)
     }
 
-    pub fn new_opt<T>(data: T, name: String, note: String, creation_date: Option<dcbor::Date>) -> Self
+    pub fn new_opt<T, S, U>(data: T, name: S, note: U, creation_date: Option<dcbor::Date>) -> Self
     where
-        T: Into<Vec<u8>>,
+        T: AsRef<[u8]>,
+        S: AsRef<str>,
+        U: AsRef<str>,
     {
         Self {
-            data: data.into(),
-            name,
-            note,
+            data: data.as_ref().to_vec(),
+            name: name.as_ref().to_string(),
+            note: note.as_ref().to_string(),
             creation_date,
         }
     }
 
-    pub fn data(&self) -> &Vec<u8> {
+    pub fn data(&self) -> &[u8] {
         &self.data
     }
 
@@ -42,24 +44,24 @@ impl Seed {
         &self.name
     }
 
-    pub fn set_name(&mut self, name: &str) {
-        self.name = name.to_string();
+    pub fn set_name(&mut self, name: impl AsRef<str>) {
+        self.name = name.as_ref().to_string();
     }
 
     pub fn note(&self) -> &str {
         &self.note
     }
 
-    pub fn set_note(&mut self, note: &str) {
-        self.note = note.to_string();
+    pub fn set_note(&mut self, note: impl AsRef<str>) {
+        self.note = note.as_ref().to_string();
     }
 
-    pub fn creation_date(&self) -> &Option<dcbor::Date> {
-        &self.creation_date
+    pub fn creation_date(&self) -> Option<&dcbor::Date> {
+        self.creation_date.as_ref()
     }
 
-    pub fn set_creation_date(&mut self, creation_date: Option<dcbor::Date>) {
-        self.creation_date = creation_date;
+    pub fn set_creation_date(&mut self, creation_date: Option<impl AsRef<dcbor::Date>>) {
+        self.creation_date = creation_date.map(|x| x.as_ref().clone());
     }
 }
 
@@ -116,14 +118,62 @@ impl URDecodable for Seed { }
 
 impl URCodable for Seed { }
 
+// ```swift
+// extension Seed {
+//     var envelope: Envelope {
+//         var e = Envelope(data)
+//             .addType(.Seed)
+//             .addAssertion(.date, creationDate)
+
+//         if !name.isEmpty {
+//             e = e.addAssertion(.hasName, name)
+//         }
+
+//         if !note.isEmpty {
+//             e = e.addAssertion(.note, note)
+//         }
+
+//         return e
+//     }
+
+//     init(_ envelope: Envelope) throws {
+//         let data = try envelope.extractSubject(Data.self)
+//         let name = try envelope.extractOptionalObject(String.self, forPredicate: .hasName) ?? ""
+//         let note = try envelope.extractOptionalObject(String.self, forPredicate: .note) ?? ""
+//         let creationDate = try? envelope.extractObject(Date.self, forPredicate: .date)
+//         guard let result = Self.init(data: data, name: name, note: note, creationDate: creationDate) else {
+//             throw EnvelopeError.invalidFormat
+//         }
+//         self = result
+//     }
+// }
+// ```
+
 impl IntoEnvelope for &Seed {
     fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
+        let mut e = Envelope::new(CBOR::byte_string(self.data()))
+            .add_type(known_values::SEED_TYPE)
+            .add_optional_assertion(known_values::DATE, self.creation_date());
+
+        if !self.name().is_empty() {
+            e = e.add_assertion(known_values::HAS_NAME, self.name());
+        }
+
+        if !self.note().is_empty() {
+            e = e.add_assertion(known_values::NOTE, self.note());
+        }
+
+        e
     }
 }
 
-impl IntoEnvelope for Seed {
-    fn into_envelope(self) -> Rc<Envelope> {
-        self.cbor().into_envelope()
+impl Seed {
+    pub fn from_envelope(envelope: &Rc<Envelope>) -> anyhow::Result<Self> {
+        envelope.clone().check_type(&known_values::SEED_TYPE)?;
+        let data = envelope.clone().subject().leaf_or_error()?.expect_byte_string()?.to_vec();
+        let name = envelope.clone().extract_optional_object_for_predicate::<String, KnownValue>(known_values::HAS_NAME)?.unwrap_or_default().to_string();
+        let note = envelope.clone().extract_optional_object_for_predicate::<String, KnownValue>(known_values::NOTE)?.unwrap_or_default().to_string();
+        let creation_date: Option<dcbor::Date> = envelope.clone().extract_optional_object_for_predicate::<dcbor::Date, KnownValue>(known_values::DATE)?.map(|s| s.as_ref().clone());
+        Ok(Self::new_opt(data, name, note, creation_date))
     }
 }
