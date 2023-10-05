@@ -1,41 +1,63 @@
-/// Attachments
+///
+/// Attachments Extension
+///
 #[cfg(feature = "attachment")]
 pub mod attachment;
 
-/// Public key signing and verification.
-#[cfg(feature = "signature")]
-pub mod signature;
-
-/// Compression.
+///
+/// Compression Extension
+///
 #[cfg(feature = "compress")]
 pub mod compress;
 
-/// Decorrelation using salt.
-#[cfg(feature = "salt")]
-pub mod salt;
-
-/// Symmetric key encryption.
+///
+/// Symmetric Encryption Extension
+///
 #[cfg(feature = "encrypt")]
 pub mod encrypt;
 
-/// Public key encryption.
-#[cfg(feature = "recipient")]
-pub mod recipient;
+///
+/// Expressions Extension
+///
+/// Includes distributed function evaluation.
+///
+#[cfg(feature = "expression")]
+pub mod expression;
 
-/// Types dealing with SSKR splitting.
-#[cfg(feature = "sskr")]
-pub mod sskr;
-
-/// Types dealing with Known Values.
+///
+/// Known Values Extension
+///
 #[cfg(feature = "known_value")]
 pub mod known_values;
 #[cfg(feature = "known_value")]
 pub use known_values::*;
 
-/// Types dealing with envelope expressions (and distributed function evaluation)
-#[cfg(feature = "expression")]
-pub mod expression;
+///
+/// Public Key Encryption Extension
+///
+#[cfg(feature = "recipient")]
+pub mod recipient;
 
-/// Working with type ('isA') assertions.
+///
+/// Public Key Signing Extension
+///
+#[cfg(feature = "signature")]
+pub mod signature;
+
+///
+/// Salt Extension
+///
+#[cfg(feature = "salt")]
+pub mod salt;
+
+///
+/// SSKR Extension
+///
+#[cfg(feature = "sskr")]
+pub mod sskr;
+
+///
+/// Types Extension
+/// 
 #[cfg(feature = "types")]
 pub mod types;
