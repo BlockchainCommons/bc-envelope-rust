@@ -68,17 +68,17 @@ impl Envelope {
         let matching_assertions: Vec<_> = assertions
             .into_iter()
             .filter(|assertion| {
-                if let Some(vendor) = &vendor {
+                if let Some(vendor) = vendor {
                     if let Ok(v) = assertion.clone().attachment_vendor() {
-                        if v != vendor.as_ref() {
+                        if v != vendor {
                             return false;
                         }
                     }
                 }
-                if let Some(conforms_to) = &conforms_to {
+                if let Some(conforms_to) = conforms_to {
                     if let Ok(c) = assertion.clone().attachment_conforms_to() {
                         if let Some(c) = c {
-                            if c != conforms_to.as_ref() {
+                            if c != conforms_to {
                                 return false;
                             }
                         } else {
