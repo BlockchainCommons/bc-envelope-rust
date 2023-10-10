@@ -5,18 +5,52 @@ use crate::{Assertion, IntoEnvelope, extension::known_values, Envelope, Envelope
 impl Assertion {
     /// Creates an attachment assertion. See:
     /// [BCR-2023-006](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2023-006-envelope-attachment.md)
-    pub fn new_attachment<A>(attachment: A, vendor: &str, conforms_to: Option<&str>) -> Self
+    pub fn new_attachment<A>(payload: A, vendor: &str, conforms_to: Option<&str>) -> Self
     where
         A: IntoEnvelope,
     {
         let conforms_to: Option<String> = conforms_to.map(|c| c.to_string());
         Self::new(
             known_values::ATTACHMENT,
-            attachment.into_envelope()
+            payload.into_envelope()
                 .wrap_envelope()
                 .add_assertion(known_values::VENDOR, vendor.to_string())
                 .add_optional_assertion(known_values::CONFORMS_TO, conforms_to)
         )
+    }
+
+    /// Returns the payload of the given attachment assertion.
+    pub fn attachment_payload(&self) -> Result<Rc<Envelope>, EnvelopeError> {
+        self.object().unwrap_envelope()
+    }
+
+    /// Returns the `vendor` of the given attachment assertion.
+    pub fn attachment_vendor(&self) -> anyhow::Result<String> {
+        Ok(self.object().extract_object_for_predicate::<String, KnownValue>(known_values::VENDOR)?.as_ref().clone())
+    }
+
+    /// Returns the `conformsTo` of the given attachment assertion.
+    pub fn attachment_conforms_to(&self) -> anyhow::Result<Option<String>> {
+        Ok(self.object().extract_optional_object_for_predicate::<String, KnownValue>(known_values::CONFORMS_TO)?.map(|s| s.as_ref().clone()))
+    }
+
+    /// Validates the given attachment assertion.
+    ///
+    /// Ensures:
+    /// - The attachment assertion's predicate is `known_values::ATTACHMENT`.
+    /// - The attachment assertion's object is an envelope.
+    /// - The attachment assertion's object has a `'vendor': String` assertion.
+    /// - The attachment assertion's object has an optional `'conformsTo': String` assertion.
+    pub fn validate_attachment(&self) -> anyhow::Result<()> {
+        let payload = self.attachment_payload()?;
+        let vendor = self.attachment_vendor()?;
+        let conforms_to: Option<String> = self.attachment_conforms_to()?;
+        let assertion = Assertion::new_attachment(payload, vendor.as_str(), conforms_to.as_deref());
+        let e = assertion.into_envelope();
+        if !e.is_equivalent_to(self.clone().into_envelope()) {
+            anyhow::bail!(EnvelopeError::InvalidAttachment);
+        }
+        Ok(())
     }
 }
 
@@ -25,11 +59,11 @@ impl Envelope {
     ///
     /// The payload envelope has a `'vendor': String` assertion and an optional
     /// `'conformsTo': String` assertion.
-    pub fn new_attachment<A>(attachment: A, vendor: &str, conforms_to: Option<&str>) -> Rc<Self>
+    pub fn new_attachment<A>(payload: A, vendor: &str, conforms_to: Option<&str>) -> Rc<Self>
     where
         A: IntoEnvelope,
     {
-        Assertion::new_attachment(attachment, vendor, conforms_to).into_envelope()
+        Assertion::new_attachment(payload, vendor, conforms_to).into_envelope()
     }
 
     /// Returns a new envelope with an added `'attachment': Envelope` assertion.
@@ -48,18 +82,30 @@ impl Envelope {
 
 impl Envelope {
     /// Returns the payload of the given attachment envelope.
-    pub fn attachment_payload(self: Rc<Self>) -> Result<Rc<Self>, EnvelopeError> {
-        self.object_or_error()?.unwrap_envelope()
+    pub fn attachment_payload(&self) -> Result<Rc<Self>, EnvelopeError> {
+        if let Envelope::Assertion(assertion) = self {
+            Ok(assertion.attachment_payload()?)
+        } else {
+            Err(EnvelopeError::InvalidAttachment)
+        }
     }
 
     /// Returns the `vendor` of the given attachment envelope.
     pub fn attachment_vendor(self: Rc<Self>) -> anyhow::Result<String> {
-        Ok(self.object_or_error()?.extract_object_for_predicate::<String, KnownValue>(known_values::VENDOR)?.as_ref().clone())
+        if let Envelope::Assertion(assertion) = self.as_ref() {
+            Ok(assertion.clone().attachment_vendor()?)
+        } else {
+            anyhow::bail!(EnvelopeError::InvalidAttachment);
+        }
     }
 
     /// Returns the `conformsTo` of the given attachment envelope.
     pub fn attachment_conforms_to(self: Rc<Self>) -> anyhow::Result<Option<String>> {
-        Ok(self.object_or_error()?.extract_optional_object_for_predicate::<String, KnownValue>(known_values::CONFORMS_TO)?.map(|s| s.as_ref().clone()))
+        if let Envelope::Assertion(assertion) = self.as_ref() {
+            Ok(assertion.clone().attachment_conforms_to()?)
+        } else {
+            anyhow::bail!(EnvelopeError::InvalidAttachment);
+        }
     }
 
     /// Searches the envelope's attachments for any that match the given
@@ -116,15 +162,12 @@ impl Envelope {
     /// - The attachment envelope's object has a `'vendor': String` assertion.
     /// - The attachment envelope's object has an optional `'conformsTo': String` assertion.
     pub fn validate_attachment(attachment: Rc<Self>) -> anyhow::Result<()> {
-        let payload = attachment.clone().attachment_payload()?;
-        let vendor = attachment.clone().attachment_vendor()?;
-        let conforms_to: Option<String> = attachment.clone().attachment_conforms_to()?;
-        let assertion = Assertion::new_attachment(payload, vendor.as_str(), conforms_to.as_deref());
-        let e = assertion.into_envelope();
-        if !e.is_equivalent_to(attachment) {
+        if let Envelope::Assertion(assertion) = attachment.as_ref() {
+            assertion.validate_attachment()?;
+            Ok(())
+        } else {
             anyhow::bail!(EnvelopeError::InvalidAttachment);
         }
-        Ok(())
     }
 
     /// Searches the envelope's attachments for any that match the given
