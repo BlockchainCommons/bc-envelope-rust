@@ -21,6 +21,17 @@ impl Assertion {
 }
 
 impl Envelope {
+    /// Returns a new attachment envelope.
+    ///
+    /// The payload envelope has a `'vendor': String` assertion and an optional
+    /// `'conformsTo': String` assertion.
+    pub fn new_attachment<A>(attachment: A, vendor: &str, conforms_to: Option<&str>) -> Rc<Self>
+    where
+        A: IntoEnvelope,
+    {
+        Assertion::new_attachment(attachment, vendor, conforms_to).into_envelope()
+    }
+
     /// Returns a new envelope with an added `'attachment': Envelope` assertion.
     ///
     /// The payload envelope has a `'vendor': String` assertion and an optional
