@@ -118,37 +118,6 @@ impl URDecodable for Seed { }
 
 impl URCodable for Seed { }
 
-// ```swift
-// extension Seed {
-//     var envelope: Envelope {
-//         var e = Envelope(data)
-//             .addType(.Seed)
-//             .addAssertion(.date, creationDate)
-
-//         if !name.isEmpty {
-//             e = e.addAssertion(.hasName, name)
-//         }
-
-//         if !note.isEmpty {
-//             e = e.addAssertion(.note, note)
-//         }
-
-//         return e
-//     }
-
-//     init(_ envelope: Envelope) throws {
-//         let data = try envelope.extractSubject(Data.self)
-//         let name = try envelope.extractOptionalObject(String.self, forPredicate: .hasName) ?? ""
-//         let note = try envelope.extractOptionalObject(String.self, forPredicate: .note) ?? ""
-//         let creationDate = try? envelope.extractObject(Date.self, forPredicate: .date)
-//         guard let result = Self.init(data: data, name: name, note: note, creationDate: creationDate) else {
-//             throw EnvelopeError.invalidFormat
-//         }
-//         self = result
-//     }
-// }
-// ```
-
 impl IntoEnvelope for &Seed {
     fn into_envelope(self) -> Rc<Envelope> {
         let mut e = Envelope::new(CBOR::byte_string(self.data()))

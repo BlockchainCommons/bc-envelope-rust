@@ -44,7 +44,14 @@ fn test_attachment() -> anyhow::Result<()> {
     });
 
     assert_eq!(seed_envelope.clone().attachments()?.len(), 2);
+
+    assert_eq!(seed_envelope.clone().attachments_with_vendor_and_conforms_to(None, None)?.len(), 2);
     assert_eq!(seed_envelope.clone().attachments_with_vendor_and_conforms_to(Some("com.example"), None)?.len(), 2);
+    assert_eq!(seed_envelope.clone().attachments_with_vendor_and_conforms_to(None, Some("https://example.com/seed-attachment/v1"))?.len(), 1);
+
+    assert_eq!(seed_envelope.clone().attachments_with_vendor_and_conforms_to(None, Some("foo"))?.len(), 0);
+    assert_eq!(seed_envelope.clone().attachments_with_vendor_and_conforms_to(Some("bar"), None)?.len(), 0);
+
     let v1_attachment = seed_envelope.clone().attachment_with_vendor_and_conforms_to(None, Some("https://example.com/seed-attachment/v1"))?;
     let payload = v1_attachment.clone().attachment_payload()?;
     with_format_context!(|context| {

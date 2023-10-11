@@ -70,12 +70,12 @@ impl Envelope {
     ///
     /// The payload envelope has a `'vendor': String` assertion and an optional
     /// `'conformsTo': String` assertion.
-    pub fn add_attachment<A>(self: Rc<Self>, attachment: A, vendor: &str, conforms_to: Option<&str>) -> Rc<Self>
+    pub fn add_attachment<A>(self: Rc<Self>, payload: A, vendor: &str, conforms_to: Option<&str>) -> Rc<Self>
     where
         A: IntoEnvelope,
     {
         self.add_assertion_envelope(
-            Assertion::new_attachment(attachment, vendor, conforms_to).into_envelope()
+            Assertion::new_attachment(payload, vendor, conforms_to).into_envelope()
         ).unwrap()
     }
 }
@@ -161,8 +161,8 @@ impl Envelope {
     /// - The attachment envelope's object is an envelope.
     /// - The attachment envelope's object has a `'vendor': String` assertion.
     /// - The attachment envelope's object has an optional `'conformsTo': String` assertion.
-    pub fn validate_attachment(attachment: Rc<Self>) -> anyhow::Result<()> {
-        if let Envelope::Assertion(assertion) = attachment.as_ref() {
+    pub fn validate_attachment(self: Rc<Self>) -> anyhow::Result<()> {
+        if let Envelope::Assertion(assertion) = self.as_ref() {
             assertion.validate_attachment()?;
             Ok(())
         } else {
