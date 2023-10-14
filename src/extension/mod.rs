@@ -33,6 +33,12 @@ pub mod known_values;
 pub use known_values::*;
 
 ///
+/// Inclusion Proof Extension
+/// 
+#[cfg(feature = "proof")]
+pub mod proof;
+
+///
 /// Public Key Encryption Extension
 ///
 #[cfg(feature = "recipient")]
@@ -58,6 +64,6 @@ pub mod sskr;
 
 ///
 /// Types Extension
-/// 
+///
 #[cfg(feature = "types")]
 pub mod types;

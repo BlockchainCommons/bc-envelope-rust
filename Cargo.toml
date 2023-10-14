@@ -44,6 +44,7 @@ compress = []
 known_value = []
 encrypt = ["known_value"]
 expression = ["known_value"]
+proof = []
 recipient = ["encrypt"]
 salt = ["known_value"]
 signature = ["known_value"]
@@ -56,6 +57,7 @@ default = [
     "known_value",
     "encrypt",
     "expression",
+    "proof",
     "recipient",
     "salt",
     "signature",
