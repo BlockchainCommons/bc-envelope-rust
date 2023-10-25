@@ -375,6 +375,7 @@ pub mod base;
 pub use base::Assertion;
 pub use base::Envelope;
 pub use base::IntoEnvelope;
+pub use base::FromEnvelope;
 pub use base::EnvelopeError;
 pub use base::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 pub use base::elide::{self, ObscureAction};

@@ -32,6 +32,12 @@ impl IntoEnvelope for Assertion {
     }
 }
 
+impl IntoEnvelope for &Assertion {
+    fn into_envelope(self) -> Rc<Envelope> {
+        self.clone().into_envelope()
+    }
+}
+
 #[cfg(feature = "encrypt")]
 impl IntoEnvelope for EncryptedMessage {
     fn into_envelope(self) -> Rc<Envelope> {

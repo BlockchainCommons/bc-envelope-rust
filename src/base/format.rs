@@ -207,28 +207,28 @@ impl EnvelopeFormatItem {
 
 impl PartialOrd for EnvelopeFormatItem {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        let l_index = self.index();
-        let r_index = other.index();
-        match l_index.cmp(&r_index) {
-            std::cmp::Ordering::Less => return Some(std::cmp::Ordering::Less),
-            std::cmp::Ordering::Greater => return Some(std::cmp::Ordering::Greater),
-            _ => {}
-        }
-        match (self, other) {
-            (EnvelopeFormatItem::Begin(l), EnvelopeFormatItem::Begin(r)) => l.partial_cmp(r),
-            (EnvelopeFormatItem::End(l), EnvelopeFormatItem::End(r)) => l.partial_cmp(r),
-            (EnvelopeFormatItem::Item(l), EnvelopeFormatItem::Item(r)) => l.partial_cmp(r),
-            (EnvelopeFormatItem::Separator, EnvelopeFormatItem::Separator) => Some(std::cmp::Ordering::Equal),
-            (EnvelopeFormatItem::List(l), EnvelopeFormatItem::List(r)) => l.partial_cmp(r),
-            _ => None,
-        }
+        Some(self.cmp(other))
     }
 }
 
 
 impl Ord for EnvelopeFormatItem {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).unwrap()
+        let l_index = self.index();
+        let r_index = other.index();
+        match l_index.cmp(&r_index) {
+            std::cmp::Ordering::Less => return std::cmp::Ordering::Less,
+            std::cmp::Ordering::Greater => return std::cmp::Ordering::Greater,
+            _ => {}
+        }
+        match (self, other) {
+            (EnvelopeFormatItem::Begin(l), EnvelopeFormatItem::Begin(r)) => l.cmp(r),
+            (EnvelopeFormatItem::End(l), EnvelopeFormatItem::End(r)) => l.cmp(r),
+            (EnvelopeFormatItem::Item(l), EnvelopeFormatItem::Item(r)) => l.cmp(r),
+            (EnvelopeFormatItem::Separator, EnvelopeFormatItem::Separator) => std::cmp::Ordering::Equal,
+            (EnvelopeFormatItem::List(l), EnvelopeFormatItem::List(r)) => l.cmp(r),
+            _ => std::cmp::Ordering::Equal,
+        }
     }
 }
 
