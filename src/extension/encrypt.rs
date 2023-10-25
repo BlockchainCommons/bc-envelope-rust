@@ -35,7 +35,7 @@ impl Envelope {
                 }
                 let encoded_cbor = subject.tagged_cbor().cbor_data();
                 let digest = subject.digest();
-                let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
+                let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 let encrypted_subject = Rc::new(Self::new_with_encrypted(encrypted_message)?);
                 result = Rc::new(Self::new_with_unchecked_assertions(encrypted_subject, assertions.clone()));
                 original_digest = Cow::Borrowed(envelope_digest);

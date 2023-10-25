@@ -117,7 +117,7 @@ impl Envelope {
 
     pub(crate) fn new_leaf<T: CBOREncodable>(cbor: T) -> Self {
         let cbor = cbor.cbor();
-        let digest = Digest::from_image(&cbor.cbor_data());
+        let digest = Digest::from_image(cbor.cbor_data());
         Self::Leaf { cbor, digest }
     }
 

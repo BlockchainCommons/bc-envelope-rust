@@ -26,17 +26,17 @@ pub fn wrapped_envelope() -> Rc<Envelope> { hello_envelope().wrap_envelope() }
 pub fn double_wrapped_envelope() -> Rc<Envelope> { wrapped_envelope().wrap_envelope() }
 
 pub fn alice_seed() -> Vec<u8> { hex!("82f32c855d3d542256180810797e0073").into() }
-pub fn alice_private_keys() -> PrivateKeyBase { PrivateKeyBase::from_data(&alice_seed()) }
+pub fn alice_private_keys() -> PrivateKeyBase { PrivateKeyBase::from_data(alice_seed()) }
 pub fn alice_public_keys() -> PublicKeyBase { alice_private_keys().public_keys() }
 
 // pub fn bob_identifier() -> ARID { ARID::from_data(hex!("d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")) }
 pub fn bob_seed() -> Vec<u8> { hex!("187a5973c64d359c836eba466a44db7b").into() }
-pub fn bob_private_keys() -> PrivateKeyBase { PrivateKeyBase::from_data(&bob_seed()) }
+pub fn bob_private_keys() -> PrivateKeyBase { PrivateKeyBase::from_data(bob_seed()) }
 pub fn bob_public_keys() -> PublicKeyBase { bob_private_keys().public_keys() }
 
 // pub fn carol_identifier() -> ARID { ARID::from_data(hex!("06c777262faedf49a443277474c1c08531efcff4c58e9cb3b04f7fc1c0e6d60d")) }
 pub fn carol_seed() -> Vec<u8> { hex!("8574afab18e229651c1be8f76ffee523").into() }
-pub fn carol_private_keys() -> PrivateKeyBase { PrivateKeyBase::from_data(&carol_seed()) }
+pub fn carol_private_keys() -> PrivateKeyBase { PrivateKeyBase::from_data(carol_seed()) }
 pub fn carol_public_keys() -> PublicKeyBase { carol_private_keys().public_keys() }
 
 // pub fn example_ledger_identifier() -> ARID { ARID::from_data(hex!("0eda5ce79a2b5619e387f490861a2e7211559029b3b369cf98fb749bd3ba9a5d")) }

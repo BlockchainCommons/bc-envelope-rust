@@ -113,7 +113,7 @@ impl Envelope {
             None
         };
         self.walk(false, &visitor);
-        Digest::from_image(&image.into_inner())
+        Digest::from_image(image.into_inner())
     }
 
     /// Tests two envelopes for semantic equivalence.

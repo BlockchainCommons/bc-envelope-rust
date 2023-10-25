@@ -161,6 +161,7 @@ use std::collections::HashSet;
 
 use bc_components::{ARID, PrivateKeyBase};
 use bc_envelope::prelude::*;
+use bytes::Bytes;
 use dcbor::Date;
 use indoc::indoc;
 mod common;
@@ -274,8 +275,8 @@ fn test_verifiable_credential() {
     // ```
 
     let alice_seed = Seed::new(hex!("82f32c855d3d542256180810797e0073"));
-    let alice_private_keys = PrivateKeyBase::from_data(alice_seed.data());
-    let arid = Envelope::new(ARID::from_data_ref(&hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")).unwrap());
+    let alice_private_keys = PrivateKeyBase::from_data(Bytes::copy_from_slice(alice_seed.data()));
+    let arid = Envelope::new(ARID::from_data_ref(hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")).unwrap());
     let credential = arid
         .add_assertion_salted("firstName", "John", true)
         .add_assertion_salted("lastName", "Smith", true)

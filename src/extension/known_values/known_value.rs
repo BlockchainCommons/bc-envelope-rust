@@ -99,7 +99,7 @@ impl EnvelopeEncodable for KnownValue {
 
 impl DigestProvider for KnownValue {
     fn digest(&self) -> Cow<'_, Digest> {
-        Cow::Owned(Digest::from_image(&self.tagged_cbor().cbor_data()))
+        Cow::Owned(Digest::from_image(self.tagged_cbor().cbor_data()))
     }
 }
 

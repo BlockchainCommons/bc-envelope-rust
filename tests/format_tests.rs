@@ -255,10 +255,12 @@ fn test_wrap_then_signed() {
 #[cfg(feature = "recipient")]
 #[test]
 fn test_encrypt_to_recipients() {
+    use bytes::Bytes;
+
     let envelope = Envelope::new(PLAINTEXT_HELLO)
         .encrypt_subject_opt(&fake_content_key(), Some(fake_nonce())).unwrap().check_encoding().unwrap()
-        .add_recipient_opt(&bob_public_keys(), &fake_content_key(), Some(fake_content_key().data()), Some(&fake_nonce())).check_encoding().unwrap()
-        .add_recipient_opt(&carol_public_keys(), &fake_content_key(), Some(fake_content_key().data()), Some(&fake_nonce())).check_encoding().unwrap();
+        .add_recipient_opt(&bob_public_keys(), &fake_content_key(), Some(Bytes::copy_from_slice(fake_content_key().data())), Some(&fake_nonce())).check_encoding().unwrap()
+        .add_recipient_opt(&carol_public_keys(), &fake_content_key(), Some(Bytes::copy_from_slice(fake_content_key().data())), Some(&fake_nonce())).check_encoding().unwrap();
     assert_eq!(envelope.format(), indoc! {r#"
     ENCRYPTED [
         'hasRecipient': SealedMessage
@@ -367,7 +369,7 @@ fn test_complex_metadata() {
     let book_data = "This is the entire book “Atlas Shrugged” in EPUB format.";
     // Assertions made on a digest are considered associated with that specific binary
     // object and no other. In other words, the referent of a Digest is immutable.
-    let book_metadata = Envelope::new(Digest::from_image(&book_data))
+    let book_metadata = Envelope::new(Digest::from_image(book_data))
         .add_assertion("work", work)
         .add_assertion("format", "EPUB")
         .add_assertion(known_values::DEREFERENCE_VIA, "IPFS")
