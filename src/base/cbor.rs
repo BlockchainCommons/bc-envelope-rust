@@ -104,7 +104,7 @@ impl CBORTaggedDecodable for Envelope {
                 }
                 let subject = Self::from_untagged_cbor(&elements[0])?;
                 // let assertions = elements[1..].iter().map(Self::from_tagged_cbor).collect::<Result<Vec<Self>, dcbor::Error>>()?;
-                // let assertions: Vec<Rc<Envelope>> = assertions.into_iter().map(Rc::new).collect();
+                // let assertions: Vec<Envelope> = assertions.into_iter().collect();
 
                 // The above two lines as a single line:
                 let assertions: Vec<Envelope> = elements[1..]
