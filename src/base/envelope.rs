@@ -5,7 +5,7 @@ use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 use dcbor::prelude::*;
-use crate::{base::Assertion, EnvelopeError, IntoEnvelope};
+use crate::{base::Assertion, EnvelopeError, EnvelopeEncodable};
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
 
@@ -50,7 +50,7 @@ impl Envelope {
     /// can be any instance that implements ``IntoEnvelope``.
     pub fn new<E>(subject: E) -> Rc<Self>
     where
-        E: IntoEnvelope,
+        E: EnvelopeEncodable,
     {
         subject.into_envelope()
     }
@@ -59,8 +59,8 @@ impl Envelope {
     /// each of which can be any instance that implements ``IntoEnvelope``.
     pub fn new_assertion<P, O>(predicate: P, object: O) -> Rc<Self>
     where
-        P: IntoEnvelope,
-        O: IntoEnvelope,
+        P: EnvelopeEncodable,
+        O: EnvelopeEncodable,
     {
         Rc::new(Self::new_with_assertion(Assertion::new(predicate, object)))
     }

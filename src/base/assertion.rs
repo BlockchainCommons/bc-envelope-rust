@@ -4,7 +4,7 @@ use anyhow::bail;
 use bc_components::{Digest, DigestProvider};
 use dcbor::prelude::*;
 
-use crate::{Envelope, IntoEnvelope};
+use crate::{Envelope, EnvelopeEncodable};
 
 /// Represents an assertion.
 ///
@@ -22,8 +22,8 @@ impl Assertion {
     /// Creates an assertion and calculates its digest.
     pub fn new<P, O>(predicate: P, object: O) -> Self
     where
-        P: IntoEnvelope,
-        O: IntoEnvelope,
+        P: EnvelopeEncodable,
+        O: EnvelopeEncodable,
     {
         let predicate = Envelope::new(predicate);
         let object = Envelope::new(object);

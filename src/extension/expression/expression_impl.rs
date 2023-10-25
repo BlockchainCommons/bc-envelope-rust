@@ -3,7 +3,7 @@ use std::rc::Rc;
 use bc_components::{tags, ARID};
 use dcbor::prelude::*;
 
-use crate::{IntoEnvelope, Envelope, EnvelopeError};
+use crate::{EnvelopeEncodable, Envelope, EnvelopeError};
 #[cfg(feature = "known_value")]
 use crate::extension::{known_values, KnownValue};
 
@@ -32,7 +32,7 @@ impl Envelope {
     pub fn new_parameter<P, V>(param: P, value: V) -> Rc<Self>
     where
         P: Into<Parameter>,
-        V: IntoEnvelope,
+        V: EnvelopeEncodable,
     {
         Self::new_assertion(param.into(), value)
     }
@@ -41,7 +41,7 @@ impl Envelope {
     pub fn new_optional_parameter<P, V>(param: P, value: Option<V>) -> Option<Rc<Self>>
     where
         P: Into<Parameter>,
-        V: IntoEnvelope,
+        V: EnvelopeEncodable,
     {
         value.map(|value| Self::new_parameter(param, value))
     }
@@ -56,7 +56,7 @@ impl Envelope {
     pub fn add_parameter<P, V>(self: Rc<Self>, param: P, value: V) -> Rc<Self>
     where
         P: Into<Parameter>,
-        V: IntoEnvelope,
+        V: EnvelopeEncodable,
     {
         self.add_assertion_envelope(Self::new_parameter(param, value))
             .unwrap()
@@ -75,7 +75,7 @@ impl Envelope {
         value: Option<V>,
     ) -> Rc<Self>
     where
-        V: IntoEnvelope,
+        V: EnvelopeEncodable,
     {
         self.add_optional_assertion_envelope(Self::new_optional_parameter(param, value))
             .unwrap()
@@ -88,7 +88,7 @@ impl Envelope {
     pub fn new_request<C, B>(request_id: C, body: B) -> Rc<Self>
     where
         C: AsRef<ARID>,
-        B: IntoEnvelope,
+        B: EnvelopeEncodable,
     {
         Envelope::new(CBOR::tagged_value(tags::REQUEST, request_id.as_ref()))
             .add_assertion(known_values::BODY, body)
@@ -101,7 +101,7 @@ impl Envelope {
     pub fn new_response<C, R>(response_id: C, result: R) -> Rc<Self>
     where
         C: AsRef<ARID>,
-        R: IntoEnvelope,
+        R: EnvelopeEncodable,
     {
         Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()))
             .add_assertion(known_values::RESULT, result)
@@ -111,7 +111,7 @@ impl Envelope {
     pub fn new_response_with_result<C, R>(response_id: C, results: &[R]) -> Rc<Self>
     where
         C: AsRef<ARID>,
-        R: IntoEnvelope + Clone,
+        R: EnvelopeEncodable + Clone,
     {
         let mut envelope = Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()));
 
@@ -129,7 +129,7 @@ impl Envelope {
     pub fn new_error_response_with_id<C, E>(response_id: C, error: E) -> Rc<Self>
     where
         C: AsRef<ARID>,
-        E: IntoEnvelope,
+        E: EnvelopeEncodable,
     {
         Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()))
             .add_assertion(known_values::ERROR, error)
@@ -144,7 +144,7 @@ impl Envelope {
     /// it impossible to extract the request ID.
     pub fn new_error_response<E>(error: Option<E>) -> Rc<Self>
     where
-        E: IntoEnvelope,
+        E: EnvelopeEncodable,
     {
         if let Some(error) = error {
             Envelope::new(CBOR::tagged_value(tags::RESPONSE, "unknown"))

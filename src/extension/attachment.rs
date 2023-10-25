@@ -1,13 +1,13 @@
 use std::rc::Rc;
 
-use crate::{Assertion, IntoEnvelope, extension::known_values, Envelope, EnvelopeError, prelude::KnownValue};
+use crate::{Assertion, EnvelopeEncodable, extension::known_values, Envelope, EnvelopeError, prelude::KnownValue};
 
 impl Assertion {
     /// Creates an attachment assertion. See:
     /// [BCR-2023-006](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2023-006-envelope-attachment.md)
     pub fn new_attachment<A>(payload: A, vendor: &str, conforms_to: Option<&str>) -> Self
     where
-        A: IntoEnvelope,
+        A: EnvelopeEncodable,
     {
         let conforms_to: Option<String> = conforms_to.map(|c| c.to_string());
         Self::new(
@@ -61,7 +61,7 @@ impl Envelope {
     /// `'conformsTo': String` assertion.
     pub fn new_attachment<A>(payload: A, vendor: &str, conforms_to: Option<&str>) -> Rc<Self>
     where
-        A: IntoEnvelope,
+        A: EnvelopeEncodable,
     {
         Assertion::new_attachment(payload, vendor, conforms_to).into_envelope()
     }
@@ -72,7 +72,7 @@ impl Envelope {
     /// `'conformsTo': String` assertion.
     pub fn add_attachment<A>(self: Rc<Self>, payload: A, vendor: &str, conforms_to: Option<&str>) -> Rc<Self>
     where
-        A: IntoEnvelope,
+        A: EnvelopeEncodable,
     {
         self.add_assertion_envelope(
             Assertion::new_attachment(payload, vendor, conforms_to).into_envelope()

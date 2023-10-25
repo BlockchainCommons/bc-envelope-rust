@@ -118,7 +118,7 @@ impl URDecodable for Seed { }
 
 impl URCodable for Seed { }
 
-impl IntoEnvelope for &Seed {
+impl EnvelopeEncodable for &Seed {
     fn into_envelope(self) -> Rc<Envelope> {
         let mut e = Envelope::new(CBOR::byte_string(self.data()))
             .add_type(known_values::SEED_TYPE)

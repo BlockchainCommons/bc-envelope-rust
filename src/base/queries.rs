@@ -10,7 +10,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::{Assertion, Envelope, EnvelopeError, IntoEnvelope};
+use crate::{Assertion, Envelope, EnvelopeError, EnvelopeEncodable};
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
 
@@ -273,7 +273,7 @@ impl Envelope {
     /// Returns all assertions with the given predicate. Match by comparing digests.
     pub fn assertions_with_predicate<P>(self: Rc<Self>, predicate: P) -> Vec<Rc<Self>>
     where
-        P: IntoEnvelope,
+        P: EnvelopeEncodable,
     {
         let predicate = Envelope::new(predicate);
         self.assertions()
@@ -296,7 +296,7 @@ impl Envelope {
         predicate: P,
     ) -> Result<Rc<Self>, EnvelopeError>
     where
-        P: IntoEnvelope,
+        P: EnvelopeEncodable,
     {
         let a = self.assertions_with_predicate(predicate);
         if a.is_empty() {
@@ -313,7 +313,7 @@ impl Envelope {
     /// Returns an error if there is no matching predicate or multiple matching predicates.
     pub fn object_for_predicate<P>(self: Rc<Self>, predicate: P) -> Result<Rc<Self>, EnvelopeError>
     where
-        P: IntoEnvelope,
+        P: EnvelopeEncodable,
     {
         Ok(self.assertion_with_predicate(predicate)?.object().unwrap())
     }
@@ -328,7 +328,7 @@ impl Envelope {
     ) -> anyhow::Result<Rc<T>>
     where
         T: CBORDecodable + 'static,
-        P: IntoEnvelope,
+        P: EnvelopeEncodable,
     {
         self.assertion_with_predicate(predicate)?
             .object()
@@ -342,7 +342,7 @@ impl Envelope {
     ) -> anyhow::Result<Option<Rc<T>>>
     where
         T: CBORDecodable + 'static,
-        P: IntoEnvelope,
+        P: EnvelopeEncodable,
     {
         if let Ok(object) = self.object_for_predicate(predicate) {
             Ok(Some(object.extract_subject()?))
@@ -354,7 +354,7 @@ impl Envelope {
     /// Returns the objects of all assertions with the matching predicate.
     pub fn objects_for_predicate<P>(self: Rc<Self>, predicate: P) -> Vec<Rc<Self>>
     where
-        P: IntoEnvelope,
+        P: EnvelopeEncodable,
     {
         self.assertions_with_predicate(predicate)
             .into_iter()
@@ -372,7 +372,7 @@ impl Envelope {
     ) -> anyhow::Result<Vec<Rc<T>>>
     where
         T: CBORDecodable,
-        P: IntoEnvelope,
+        P: EnvelopeEncodable,
     {
         self.assertions_with_predicate(predicate)
             .into_iter()

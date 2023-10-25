@@ -3,7 +3,7 @@ use std::{fmt::{Formatter, Display}, borrow::Cow, rc::Rc};
 use bc_components::{tags, DigestProvider, Digest};
 use dcbor::prelude::*;
 
-use crate::{IntoEnvelope, Envelope};
+use crate::{EnvelopeEncodable, Envelope};
 
 #[derive(Debug, Clone)]
 enum KnownValueName {
@@ -91,7 +91,7 @@ impl Display for KnownValue {
     }
 }
 
-impl IntoEnvelope for KnownValue {
+impl EnvelopeEncodable for KnownValue {
     fn into_envelope(self) -> Rc<Envelope> {
         Rc::new(Envelope::new_with_known_value(self))
     }

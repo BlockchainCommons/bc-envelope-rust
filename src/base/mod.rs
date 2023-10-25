@@ -11,7 +11,7 @@ pub mod elide;
 
 pub mod error;
 pub mod into_envelope;
-pub mod from_envelope;
+pub mod envelope_decodable;
 pub mod queries;
 
 /// Types dealing with formatting envelopes.
@@ -30,7 +30,7 @@ pub mod envelope_summary;
 pub use assertion::Assertion;
 pub use envelope::Envelope;
 pub use error::EnvelopeError;
-pub use into_envelope::IntoEnvelope;
-pub use from_envelope::FromEnvelope;
+pub use into_envelope::EnvelopeEncodable;
+pub use envelope_decodable::EnvelopeDecodable;
 pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 pub use envelope_summary::EnvelopeSummary;

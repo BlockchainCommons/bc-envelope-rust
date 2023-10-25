@@ -10,101 +10,101 @@ use dcbor::prelude::*;
 use crate::{Envelope, Assertion};
 
 /// A type that can be converted into an envelope.
-pub trait IntoEnvelope {
+pub trait EnvelopeEncodable {
     fn into_envelope(self) -> Rc<Envelope>;
 }
 
-impl IntoEnvelope for Rc<Envelope> {
+impl EnvelopeEncodable for Rc<Envelope> {
     fn into_envelope(self) -> Rc<Envelope> {
         self
     }
 }
 
-impl IntoEnvelope for Envelope {
+impl EnvelopeEncodable for Envelope {
     fn into_envelope(self) -> Rc<Envelope> {
         Rc::new(self)
     }
 }
 
-impl IntoEnvelope for Assertion {
+impl EnvelopeEncodable for Assertion {
     fn into_envelope(self) -> Rc<Envelope> {
         Rc::new(Envelope::new_with_assertion(self))
     }
 }
 
-impl IntoEnvelope for &Assertion {
+impl EnvelopeEncodable for &Assertion {
     fn into_envelope(self) -> Rc<Envelope> {
         self.clone().into_envelope()
     }
 }
 
 #[cfg(feature = "encrypt")]
-impl IntoEnvelope for EncryptedMessage {
+impl EnvelopeEncodable for EncryptedMessage {
     fn into_envelope(self) -> Rc<Envelope> {
         Rc::new(Envelope::new_with_encrypted(self).unwrap())
     }
 }
 
 #[cfg(feature = "compress")]
-impl IntoEnvelope for Compressed {
+impl EnvelopeEncodable for Compressed {
     fn into_envelope(self) -> Rc<Envelope> {
         Rc::new(Envelope::new_with_compressed(self).unwrap())
     }
 }
 
-impl IntoEnvelope for CBOR {
+impl EnvelopeEncodable for CBOR {
     fn into_envelope(self) -> Rc<Envelope> {
         Rc::new(Envelope::new_leaf(self))
     }
 }
 
-impl IntoEnvelope for &Box<CBOR> {
+impl EnvelopeEncodable for &Box<CBOR> {
     fn into_envelope(self) -> Rc<Envelope> {
         self.cbor().into_envelope()
     }
 }
 
-impl IntoEnvelope for String {
+impl EnvelopeEncodable for String {
     fn into_envelope(self) -> Rc<Envelope> {
         self.cbor().into_envelope()
     }
 }
 
-impl IntoEnvelope for &String {
+impl EnvelopeEncodable for &String {
     fn into_envelope(self) -> Rc<Envelope> {
         self.cbor().into_envelope()
     }
 }
 
-impl IntoEnvelope for &str {
+impl EnvelopeEncodable for &str {
     fn into_envelope(self) -> Rc<Envelope> {
         self.cbor().into_envelope()
     }
 }
 
-impl<const N: usize> IntoEnvelope for &[u8; N] {
+impl<const N: usize> EnvelopeEncodable for &[u8; N] {
     fn into_envelope(self) -> Rc<Envelope> {
         self.cbor().into_envelope()
     }
 }
 
-impl IntoEnvelope for &[u8] {
+impl EnvelopeEncodable for &[u8] {
     fn into_envelope(self) -> Rc<Envelope> {
         self.to_vec().cbor().into_envelope()
     }
 }
 
-/// A macro that implements IntoEnvelope for a type and its reference.
+/// A macro that implements EnvelopeEncodable for a type and its reference.
 #[macro_export]
 macro_rules! impl_into_envelope {
     ($type:ty) => {
-        impl $crate::IntoEnvelope for $type {
+        impl $crate::EnvelopeEncodable for $type {
             fn into_envelope(self) -> std::rc::Rc<$crate::Envelope> {
                 <Self as dcbor::CBOREncodable>::cbor(&self).into_envelope()
             }
         }
 
-        impl<'a> $crate::IntoEnvelope for &'a $type {
+        impl<'a> $crate::EnvelopeEncodable for &'a $type {
             fn into_envelope(self) -> std::rc::Rc<$crate::Envelope> {
                 <Self as dcbor::CBOREncodable>::cbor(&self).into_envelope()
             }

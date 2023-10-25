@@ -2,15 +2,15 @@ use std::rc::Rc;
 
 use bc_components::DigestProvider;
 
-use crate::{Envelope, EnvelopeError, IntoEnvelope};
+use crate::{Envelope, EnvelopeError, EnvelopeEncodable};
 
 /// Support for adding assertions.
 impl Envelope {
     /// Returns the result of adding the given assertion to the envelope.
     pub fn add_assertion<P, O>(self: Rc<Self>, predicate: P, object: O) -> Rc<Self>
     where
-        P: IntoEnvelope,
-        O: IntoEnvelope,
+        P: EnvelopeEncodable,
+        O: EnvelopeEncodable,
     {
         let assertion = Self::new_assertion(predicate, object);
         self.add_optional_assertion_envelope(Some(assertion)).unwrap()
@@ -69,8 +69,8 @@ impl Envelope {
     /// assertion to the envelope. Otherwise, returns the envelope unchanged.
     pub fn add_optional_assertion<P, O>(self: Rc<Self>, predicate: P, object: Option<O>) -> Rc<Self>
     where
-        P: IntoEnvelope,
-        O: IntoEnvelope,
+        P: EnvelopeEncodable,
+        O: EnvelopeEncodable,
     {
         if let Some(object) = object {
             self.add_assertion_envelope(Self::new_assertion(predicate, object)).unwrap()
@@ -97,8 +97,8 @@ impl Envelope {
     /// Returns the result of adding the given assertion to the envelope, optionally salting it.
     pub fn add_assertion_salted<P, O>(self: Rc<Self>, predicate: P, object: O, salted: bool) -> Rc<Self>
     where
-        P: IntoEnvelope,
-        O: IntoEnvelope,
+        P: EnvelopeEncodable,
+        O: EnvelopeEncodable,
     {
         let assertion = Self::new_assertion(predicate, object);
         self.add_optional_assertion_envelope_salted(Some(assertion), salted).unwrap()
