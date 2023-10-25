@@ -24,12 +24,12 @@ impl Assertion {
 
     /// Returns the `vendor` of the given attachment assertion.
     pub fn attachment_vendor(&self) -> anyhow::Result<String> {
-        Ok(self.object().extract_object_for_predicate::<String, KnownValue>(known_values::VENDOR)?.as_ref().clone())
+        self.object().extract_object_for_predicate::<String, KnownValue>(known_values::VENDOR)
     }
 
     /// Returns the `conformsTo` of the given attachment assertion.
     pub fn attachment_conforms_to(&self) -> anyhow::Result<Option<String>> {
-        Ok(self.object().extract_optional_object_for_predicate::<String, KnownValue>(known_values::CONFORMS_TO)?.map(|s| s.as_ref().clone()))
+        self.object().extract_optional_object_for_predicate::<String, KnownValue>(known_values::CONFORMS_TO)
     }
 
     /// Validates the given attachment assertion.

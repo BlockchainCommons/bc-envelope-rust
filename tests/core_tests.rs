@@ -28,7 +28,7 @@ fn test_int_subject() {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<i32>().unwrap(), 42);
+    assert_eq!(e.extract_subject::<i32>().unwrap(), 42);
 }
 
 #[test]
@@ -53,7 +53,7 @@ fn test_negative_int_subject() {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<i32>().unwrap(), -42);
+    assert_eq!(e.extract_subject::<i32>().unwrap(), -42);
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn test_cbor_encodable_subject() {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<String>().unwrap(), PLAINTEXT_HELLO);
+    assert_eq!(e.extract_subject::<String>().unwrap(), PLAINTEXT_HELLO);
 }
 
 #[cfg(feature = "known_value")]
@@ -101,7 +101,7 @@ fn test_known_value_subject() {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<KnownValue>().unwrap(), known_values::NOTE);
+    assert_eq!(e.extract_subject::<KnownValue>().unwrap(), known_values::NOTE);
 }
 
 #[test]
@@ -165,7 +165,7 @@ fn test_subject_with_assertion() {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<String>().unwrap(), "Alice");
+    assert_eq!(e.extract_subject::<String>().unwrap(), "Alice");
 }
 
 #[test]
@@ -203,7 +203,7 @@ fn test_subject_with_two_assertions() {
     "#}.trim()
     );
 
-    assert_eq!(*e.extract_subject::<String>().unwrap(), "Alice");
+    assert_eq!(e.extract_subject::<String>().unwrap(), "Alice");
 }
 
 #[test]

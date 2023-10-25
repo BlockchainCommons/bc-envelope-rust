@@ -5,10 +5,7 @@ use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 use dcbor::prelude::*;
-use std::{
-    any::{Any, TypeId},
-    rc::Rc,
-};
+use std::any::{Any, TypeId};
 
 use crate::{Assertion, Envelope, EnvelopeError, EnvelopeEncodable};
 #[cfg(feature = "known_value")]
@@ -239,19 +236,21 @@ impl Envelope {
     /// Returns the envelope's subject, decoded as the given type.
     ///
     /// If the encoded type doesn't match the given type, returns `Error::InvalidFormat`.
-    pub fn extract_subject<T>(&self) -> anyhow::Result<Rc<T>>
+    pub fn extract_subject<T>(&self) -> anyhow::Result<T>
     where
         T: Any + CBORDecodable,
     {
-        fn extract_type<T, U>(value: &U) -> anyhow::Result<Rc<T>>
+        fn extract_type<T, U>(value: &U) -> anyhow::Result<T>
         where
             T: Any,
             U: Any + Clone,
         {
             if TypeId::of::<T>() == TypeId::of::<U>() {
-                Ok((Rc::new(value.clone()) as Rc<dyn Any>)
+                let cloned: Box<dyn Any> = Box::new(value.clone());
+                let downcast = cloned
                     .downcast::<T>()
-                    .unwrap())
+                    .unwrap();
+                Ok(*downcast)
             } else {
                 bail!(EnvelopeError::InvalidFormat)
             }
@@ -260,7 +259,7 @@ impl Envelope {
         match self.case() {
             EnvelopeCase::Wrapped { envelope, .. } => extract_type::<T, Self>(envelope),
             EnvelopeCase::Node { subject, .. } => subject.extract_subject::<T>(),
-            EnvelopeCase::Leaf { cbor, .. } => Ok(Rc::new(T::from_cbor(cbor)?)),
+            EnvelopeCase::Leaf { cbor, .. } => Ok(T::from_cbor(cbor)?),
             EnvelopeCase::Assertion(assertion) => extract_type::<T, Assertion>(assertion),
             EnvelopeCase::Elided(digest) => extract_type::<T, Digest>(digest),
             #[cfg(feature = "known_value")]
@@ -327,7 +326,7 @@ impl Envelope {
     pub fn extract_object_for_predicate<T, P>(
         &self,
         predicate: P,
-    ) -> anyhow::Result<Rc<T>>
+    ) -> anyhow::Result<T>
     where
         T: CBORDecodable + 'static,
         P: EnvelopeEncodable,
@@ -341,7 +340,7 @@ impl Envelope {
     pub fn extract_optional_object_for_predicate<T, P>(
         &self,
         predicate: P,
-    ) -> anyhow::Result<Option<Rc<T>>>
+    ) -> anyhow::Result<Option<T>>
     where
         T: CBORDecodable + 'static,
         P: EnvelopeEncodable,
@@ -371,7 +370,7 @@ impl Envelope {
     pub fn extract_objects_for_predicate<T, P>(
         &self,
         predicate: P,
-    ) -> anyhow::Result<Vec<Rc<T>>>
+    ) -> anyhow::Result<Vec<T>>
     where
         T: CBORDecodable,
         P: EnvelopeEncodable,

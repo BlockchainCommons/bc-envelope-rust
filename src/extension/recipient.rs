@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use crate::{Envelope, EnvelopeError};
 #[cfg(feature = "known_value")]
 use crate::extension::known_values;
@@ -32,7 +30,7 @@ impl Envelope {
     /// Returns an array of `SealedMessage`s from all of the envelope's `hasRecipient` assertions.
     ///
     /// - Throws: Throws an exception if any `hasRecipient` assertions do not have a `SealedMessage` as their object.
-    pub fn recipients(&self) -> anyhow::Result<Vec<Rc<SealedMessage>>> {
+    pub fn recipients(&self) -> anyhow::Result<Vec<SealedMessage>> {
         self
             .assertions_with_predicate(known_values::HAS_RECIPIENT)
             .into_iter()
@@ -108,7 +106,7 @@ impl Envelope {
     }
 
     #[cfg(feature = "encrypt")]
-    fn first_plaintext_in_sealed_messages(sealed_messages: &[Rc<SealedMessage>], private_keys: &PrivateKeyBase) -> Result<Vec<u8>, EnvelopeError> {
+    fn first_plaintext_in_sealed_messages(sealed_messages: &[SealedMessage], private_keys: &PrivateKeyBase) -> Result<Vec<u8>, EnvelopeError> {
         for sealed_message in sealed_messages {
             let a = sealed_message.decrypt(private_keys).ok();
             if let Some(plaintext) = a {

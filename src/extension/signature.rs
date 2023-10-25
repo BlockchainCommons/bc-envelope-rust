@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use anyhow::bail;
 use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider};
 use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
@@ -197,7 +196,7 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if any `verifiedBy` assertion doesn't contain a
     /// valid `Signature` as its object.
-    pub fn signatures(&self) -> anyhow::Result<Vec<Rc<Signature>>> {
+    pub fn signatures(&self) -> anyhow::Result<Vec<Signature>> {
         let verified_by = known_values::VERIFIED_BY;
         self
             .assertions_with_predicate(verified_by).into_iter()

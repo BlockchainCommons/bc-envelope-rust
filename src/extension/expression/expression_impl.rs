@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use bc_components::{tags, ARID};
 use dcbor::prelude::*;
 
@@ -161,7 +159,7 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if there is not exactly one matching `parameter`,
     /// or if the parameter value is not the correct type.
-    pub fn extract_object_for_parameter<T, P>(&self, param: P) -> anyhow::Result<Rc<T>>
+    pub fn extract_object_for_parameter<T, P>(&self, param: P) -> anyhow::Result<T>
     where
         T: CBORDecodable + 'static,
         P: Into<Parameter>,
@@ -172,7 +170,7 @@ impl Envelope {
     /// Returns an array of arguments for the given parameter, decoded as the given type.
     ///
     /// - Throws: Throws an exception if any of the parameter values are not the correct type.
-    pub fn extract_objects_for_parameter<T, P>(&self, param: P) -> anyhow::Result<Vec<Rc<T>>>
+    pub fn extract_objects_for_parameter<T, P>(&self, param: P) -> anyhow::Result<Vec<T>>
     where
         T: CBORDecodable + 'static,
         P: Into<Parameter>,
@@ -199,7 +197,7 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if there is no `result` predicate, or if its
     /// object cannot be decoded to the specified `type`.
-    pub fn extract_result<T>(&self) -> anyhow::Result<Rc<T>>
+    pub fn extract_result<T>(&self) -> anyhow::Result<T>
     where
         T: CBORDecodable + 'static,
     {
@@ -209,7 +207,7 @@ impl Envelope {
     /// Returns the objects of every `result` predicate, decoded as the given type.
     ///
     /// - Throws: Throws an if not all object cannot be decoded to the specified `type`.
-    pub fn extract_results<T>(&self) -> anyhow::Result<Vec<Rc<T>>>
+    pub fn extract_results<T>(&self) -> anyhow::Result<Vec<T>>
     where
         T: CBORDecodable + 'static,
     {
@@ -220,13 +218,13 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
     pub fn is_result_ok(&self) -> anyhow::Result<bool> {
-        self.extract_result::<KnownValue>().map(|v| *v == known_values::OK_VALUE)
+        self.extract_result::<KnownValue>().map(|v| v == known_values::OK_VALUE)
     }
 
     /// Returns the error value, decoded as the given type.
     ///
     /// - Throws: Throws an exception if there is no `error` predicate.
-    pub fn error<T>(&self) -> anyhow::Result<Rc<T>>
+    pub fn error<T>(&self) -> anyhow::Result<T>
     where
         T: CBORDecodable + 'static,
     {

@@ -76,7 +76,7 @@ impl Envelope {
                 if result.get(&identifier).is_none() {
                     result.insert(identifier, Vec::new());
                 }
-                result.get_mut(&identifier).unwrap().push((*share).clone());
+                result.get_mut(&identifier).unwrap().push(share);
             }
         }
         Ok(result)
