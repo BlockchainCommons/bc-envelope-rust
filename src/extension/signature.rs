@@ -3,7 +3,7 @@ use anyhow::bail;
 use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider};
 use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
 
-use crate::{Envelope, EnvelopeError, impl_into_envelope};
+use crate::{Envelope, EnvelopeError, impl_envelope_encodable};
 #[cfg(feature = "known_value")]
 use crate::extension::known_values;
 
@@ -439,4 +439,4 @@ impl Envelope {
     }
 }
 
-impl_into_envelope!(Signature);
+impl_envelope_encodable!(Signature);

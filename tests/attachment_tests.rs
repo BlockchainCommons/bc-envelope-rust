@@ -15,7 +15,7 @@ fn test_attachment() -> anyhow::Result<()> {
         None
     );
     let seed_envelope = seed
-        .into_envelope()
+        .envelope()
         .add_attachment("Attachment Data V1", "com.example", Some("https://example.com/seed-attachment/v1"))
         .add_attachment("Attachment Data V2", "com.example", Some("https://example.com/seed-attachment/v2"));
 
@@ -64,7 +64,7 @@ fn test_attachment() -> anyhow::Result<()> {
     assert_eq!(v1_attachment.clone().attachment_vendor()?, "com.example");
     assert_eq!(v1_attachment.attachment_conforms_to()?, Some("https://example.com/seed-attachment/v1".to_string()));
 
-    let seed_envelope2 = seed.into_envelope();
+    let seed_envelope2 = seed.envelope();
     let attachments = seed_envelope.clone().attachments()?;
     let seed_envelope2 = seed_envelope2.add_assertions(&attachments);
     assert!(seed_envelope2.is_equivalent_to(seed_envelope));

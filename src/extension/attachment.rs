@@ -12,7 +12,7 @@ impl Assertion {
         let conforms_to: Option<String> = conforms_to.map(|c| c.to_string());
         Self::new(
             known_values::ATTACHMENT,
-            payload.into_envelope()
+            payload.envelope()
                 .wrap_envelope()
                 .add_assertion(known_values::VENDOR, vendor.to_string())
                 .add_optional_assertion(known_values::CONFORMS_TO, conforms_to)
@@ -46,8 +46,8 @@ impl Assertion {
         let vendor = self.attachment_vendor()?;
         let conforms_to: Option<String> = self.attachment_conforms_to()?;
         let assertion = Assertion::new_attachment(payload, vendor.as_str(), conforms_to.as_deref());
-        let e = assertion.into_envelope();
-        if !e.is_equivalent_to(self.clone().into_envelope()) {
+        let e = assertion.envelope();
+        if !e.is_equivalent_to(self.clone().envelope()) {
             anyhow::bail!(EnvelopeError::InvalidAttachment);
         }
         Ok(())
@@ -63,7 +63,7 @@ impl Envelope {
     where
         A: EnvelopeEncodable,
     {
-        Assertion::new_attachment(payload, vendor, conforms_to).into_envelope()
+        Assertion::new_attachment(payload, vendor, conforms_to).envelope()
     }
 
     /// Returns a new envelope with an added `'attachment': Envelope` assertion.
@@ -75,7 +75,7 @@ impl Envelope {
         A: EnvelopeEncodable,
     {
         self.add_assertion_envelope(
-            Assertion::new_attachment(payload, vendor, conforms_to).into_envelope()
+            Assertion::new_attachment(payload, vendor, conforms_to).envelope()
         ).unwrap()
     }
 }

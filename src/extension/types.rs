@@ -32,13 +32,13 @@ impl Envelope {
 
     /// Returns `true` if the envelope has an `'IsA'` type assertion with the given envelope `t`'s digest.
     pub fn has_type_envelope(self: Rc<Self>, t: impl EnvelopeEncodable) -> bool {
-        let e = t.into_envelope();
+        let e = t.envelope();
         self.types().iter().any(|x| x.digest() == e.digest())
     }
 
     /// Returns `true` if the envelope has an `'IsA'` type assertion with the given known value `t`.
     pub fn has_type(self: Rc<Self>, t: &KnownValue) -> bool {
-        let type_envelope = t.clone().into_envelope();
+        let type_envelope = t.clone().envelope();
         self.types().iter().any(|x| x.digest() == type_envelope.digest())
     }
 

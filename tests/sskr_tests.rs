@@ -24,7 +24,7 @@ fn test_sskr() -> anyhow::Result<()> {
     // representing SSKR groups and the inner array elements each holding the encrypted
     // seed and a single share.
     let content_key = SymmetricKey::new();
-    let seed_envelope = dan_seed.into_envelope();
+    let seed_envelope = dan_seed.envelope();
     let encrypted_seed_envelope = seed_envelope
         .wrap_envelope()
         .encrypt_subject(&content_key)?;

@@ -112,7 +112,7 @@ fn test_top_level_assertion() {
 fn test_elided_object() {
     let envelope = Envelope::new("Alice")
         .add_assertion("knows", "Bob");
-    let elided = envelope.elide_removing_target(&"Bob".into_envelope());
+    let elided = envelope.elide_removing_target(&"Bob".envelope());
     assert_eq!(elided.format(), indoc! {r#"
     "Alice" [
         "knows": ELIDED

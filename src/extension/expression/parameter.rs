@@ -1,7 +1,7 @@
 use anyhow::bail;
 use bc_components::tags;
 use dcbor::prelude::*;
-use crate::{string_utils::StringUtils, impl_into_envelope};
+use crate::{string_utils::StringUtils, impl_envelope_encodable};
 
 use super::ParametersStore;
 
@@ -163,4 +163,4 @@ impl std::fmt::Display for Parameter {
     }
 }
 
-impl_into_envelope!(Parameter);
+impl_envelope_encodable!(Parameter);

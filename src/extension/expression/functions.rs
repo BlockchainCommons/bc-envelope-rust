@@ -1,7 +1,7 @@
 use std::sync::{Once, Mutex};
 use paste::paste;
 
-use crate::impl_into_envelope;
+use crate::impl_envelope_encodable;
 
 use super::{Function, FunctionsStore};
 
@@ -48,4 +48,4 @@ pub static GLOBAL_FUNCTIONS: LazyFunctions = LazyFunctions {
     data: Mutex::new(None),
 };
 
-impl_into_envelope!(Function);
+impl_envelope_encodable!(Function);

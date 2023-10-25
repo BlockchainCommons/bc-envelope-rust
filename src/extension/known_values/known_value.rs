@@ -92,7 +92,7 @@ impl Display for KnownValue {
 }
 
 impl EnvelopeEncodable for KnownValue {
-    fn into_envelope(self) -> Rc<Envelope> {
+    fn envelope(self) -> Rc<Envelope> {
         Rc::new(Envelope::new_with_known_value(self))
     }
 }

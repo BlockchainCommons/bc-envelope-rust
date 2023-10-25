@@ -52,7 +52,7 @@ impl Envelope {
     where
         E: EnvelopeEncodable,
     {
-        subject.into_envelope()
+        subject.envelope()
     }
 
     /// Creates an assertion envelope with a `predicate` and `object`,
