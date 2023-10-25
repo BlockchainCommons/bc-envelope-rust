@@ -1,4 +1,4 @@
-use std::{borrow::Cow, rc::Rc};
+use std::borrow::Cow;
 
 use anyhow::bail;
 use bc_components::{Digest, DigestProvider};
@@ -13,8 +13,8 @@ use crate::{Envelope, EnvelopeEncodable};
 /// on ``Envelope`` that create assertions.
 #[derive(Clone, Debug)]
 pub struct Assertion {
-    predicate: Rc<Envelope>,
-    object: Rc<Envelope>,
+    predicate: Envelope,
+    object: Envelope,
     digest: Digest,
 }
 
@@ -39,12 +39,12 @@ impl Assertion {
     }
 
     /// Returns the predicate of the assertion.
-    pub fn predicate(&self) -> Rc<Envelope> {
+    pub fn predicate(&self) -> Envelope {
         self.predicate.clone()
     }
 
     /// Returns the object of the assertion.
-    pub fn object(&self) -> Rc<Envelope> {
+    pub fn object(&self) -> Envelope {
         self.object.clone()
     }
 

@@ -1,29 +1,28 @@
 #![allow(dead_code)]
 
-use std::rc::Rc;
 use bc_envelope::prelude::*;
 use hex_literal::hex;
 use bc_components::{PrivateKeyBase, PublicKeyBase, SymmetricKey, Nonce};
 
 pub const PLAINTEXT_HELLO: &str = "Hello.";
 
-pub fn hello_envelope() -> Rc<Envelope> { Envelope::new(PLAINTEXT_HELLO) }
+pub fn hello_envelope() -> Envelope { Envelope::new(PLAINTEXT_HELLO) }
 #[cfg(feature = "known_value")]
-pub fn known_value_envelope() -> Rc<Envelope> { Envelope::new(known_values::NOTE) }
-pub fn assertion_envelope() -> Rc<Envelope> { Envelope::new_assertion("knows", "Bob") }
+pub fn known_value_envelope() -> Envelope { Envelope::new(known_values::NOTE) }
+pub fn assertion_envelope() -> Envelope { Envelope::new_assertion("knows", "Bob") }
 
-pub fn single_assertion_envelope() -> Rc<Envelope> {
+pub fn single_assertion_envelope() -> Envelope {
     Envelope::new("Alice")
         .add_assertion("knows", "Bob")
 }
 
-pub fn double_assertion_envelope() -> Rc<Envelope> {
+pub fn double_assertion_envelope() -> Envelope {
     single_assertion_envelope()
         .add_assertion("knows", "Carol")
 }
 
-pub fn wrapped_envelope() -> Rc<Envelope> { hello_envelope().wrap_envelope() }
-pub fn double_wrapped_envelope() -> Rc<Envelope> { wrapped_envelope().wrap_envelope() }
+pub fn wrapped_envelope() -> Envelope { hello_envelope().wrap_envelope() }
+pub fn double_wrapped_envelope() -> Envelope { wrapped_envelope().wrap_envelope() }
 
 pub fn alice_seed() -> Vec<u8> { hex!("82f32c855d3d542256180810797e0073").into() }
 pub fn alice_private_keys() -> PrivateKeyBase { PrivateKeyBase::from_data(alice_seed()) }

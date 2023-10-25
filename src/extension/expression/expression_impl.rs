@@ -12,7 +12,7 @@ use super::{Function, Parameter};
 /// Envelope Expressions: Function Construction
 impl Envelope {
     /// Creates an envelope with a `«function»` subject.
-    pub fn new_function<F>(function: F) -> Rc<Self>
+    pub fn new_function<F>(function: F) -> Self
     where
         F: Into<Function>,
     {
@@ -29,7 +29,7 @@ impl Envelope {
     ///   - value: The argument value.
     ///
     /// - Returns: The new assertion envelope. If `value` is `None`, returns `None`.
-    pub fn new_parameter<P, V>(param: P, value: V) -> Rc<Self>
+    pub fn new_parameter<P, V>(param: P, value: V) -> Self
     where
         P: Into<Parameter>,
         V: EnvelopeEncodable,
@@ -38,7 +38,7 @@ impl Envelope {
     }
 
     /// Optionally adds a `❰parameter❱: value` assertion to the envelope.
-    pub fn new_optional_parameter<P, V>(param: P, value: Option<V>) -> Option<Rc<Self>>
+    pub fn new_optional_parameter<P, V>(param: P, value: Option<V>) -> Option<Self>
     where
         P: Into<Parameter>,
         V: EnvelopeEncodable,
@@ -53,7 +53,7 @@ impl Envelope {
     ///   - value: The argument value.
     ///
     /// - Returns: The new envelope.
-    pub fn add_parameter<P, V>(self: Rc<Self>, param: P, value: V) -> Rc<Self>
+    pub fn add_parameter<P, V>(&self, param: P, value: V) -> Self
     where
         P: Into<Parameter>,
         V: EnvelopeEncodable,
@@ -70,10 +70,10 @@ impl Envelope {
     ///
     /// - Returns: The new envelope. If `value` is `None`, returns the original envelope.
     pub fn add_optional_parameter<V>(
-        self: Rc<Self>,
+        &self,
         param: Parameter,
         value: Option<V>,
-    ) -> Rc<Self>
+    ) -> Self
     where
         V: EnvelopeEncodable,
     {
@@ -85,7 +85,7 @@ impl Envelope {
 /// Envelope Expressions: Request Construction
 impl Envelope {
     /// Creates an envelope with an `ARID` subject and a `body: «function»` assertion.
-    pub fn new_request<C, B>(request_id: C, body: B) -> Rc<Self>
+    pub fn new_request<C, B>(request_id: C, body: B) -> Self
     where
         C: AsRef<ARID>,
         B: EnvelopeEncodable,
@@ -98,7 +98,7 @@ impl Envelope {
 /// Envelope Expressions: Response Construction
 impl Envelope {
     /// Creates an envelope with an `ARID` subject and a `result: value` assertion.
-    pub fn new_response<C, R>(response_id: C, result: R) -> Rc<Self>
+    pub fn new_response<C, R>(response_id: C, result: R) -> Self
     where
         C: AsRef<ARID>,
         R: EnvelopeEncodable,
@@ -108,7 +108,7 @@ impl Envelope {
     }
 
     /// Creates an envelope with an `ARID` subject and a `result: value` assertion for each provided result.
-    pub fn new_response_with_result<C, R>(response_id: C, results: &[R]) -> Rc<Self>
+    pub fn new_response_with_result<C, R>(response_id: C, results: &[R]) -> Self
     where
         C: AsRef<ARID>,
         R: EnvelopeEncodable + Clone,
@@ -126,7 +126,7 @@ impl Envelope {
     }
 
     /// Creates an envelope with an `ARID` subject and a `error: value` assertion.
-    pub fn new_error_response_with_id<C, E>(response_id: C, error: E) -> Rc<Self>
+    pub fn new_error_response_with_id<C, E>(response_id: C, error: E) -> Self
     where
         C: AsRef<ARID>,
         E: EnvelopeEncodable,
@@ -142,7 +142,7 @@ impl Envelope {
     /// Used for an immediate response to a request without a proper ID, for example
     /// when a encrypted request envelope is received and the decryption fails, making
     /// it impossible to extract the request ID.
-    pub fn new_error_response<E>(error: Option<E>) -> Rc<Self>
+    pub fn new_error_response<E>(error: Option<E>) -> Self
     where
         E: EnvelopeEncodable,
     {
@@ -161,7 +161,7 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if there is not exactly one matching `parameter`,
     /// or if the parameter value is not the correct type.
-    pub fn extract_object_for_parameter<T, P>(self: Rc<Self>, param: P) -> anyhow::Result<Rc<T>>
+    pub fn extract_object_for_parameter<T, P>(&self, param: P) -> anyhow::Result<Rc<T>>
     where
         T: CBORDecodable + 'static,
         P: Into<Parameter>,
@@ -172,7 +172,7 @@ impl Envelope {
     /// Returns an array of arguments for the given parameter, decoded as the given type.
     ///
     /// - Throws: Throws an exception if any of the parameter values are not the correct type.
-    pub fn extract_objects_for_parameter<T, P>(self: Rc<Self>, param: P) -> anyhow::Result<Vec<Rc<T>>>
+    pub fn extract_objects_for_parameter<T, P>(&self, param: P) -> anyhow::Result<Vec<Rc<T>>>
     where
         T: CBORDecodable + 'static,
         P: Into<Parameter>,
@@ -186,12 +186,12 @@ impl Envelope {
     /// Returns the object of the `result` predicate.
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
-    pub fn result(self: Rc<Self>) -> Result<Rc<Self>, EnvelopeError> {
+    pub fn result(&self) -> Result<Self, EnvelopeError> {
         self.object_for_predicate(known_values::RESULT)
     }
 
     /// Returns the objects of every `result` predicate.
-    pub fn results(self: Rc<Self>) -> Vec<Rc<Self>> {
+    pub fn results(&self) -> Vec<Self> {
         self.objects_for_predicate(known_values::RESULT)
     }
 
@@ -199,7 +199,7 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if there is no `result` predicate, or if its
     /// object cannot be decoded to the specified `type`.
-    pub fn extract_result<T>(self: Rc<Self>) -> anyhow::Result<Rc<T>>
+    pub fn extract_result<T>(&self) -> anyhow::Result<Rc<T>>
     where
         T: CBORDecodable + 'static,
     {
@@ -209,7 +209,7 @@ impl Envelope {
     /// Returns the objects of every `result` predicate, decoded as the given type.
     ///
     /// - Throws: Throws an if not all object cannot be decoded to the specified `type`.
-    pub fn extract_results<T>(self: Rc<Self>) -> anyhow::Result<Vec<Rc<T>>>
+    pub fn extract_results<T>(&self) -> anyhow::Result<Vec<Rc<T>>>
     where
         T: CBORDecodable + 'static,
     {
@@ -219,14 +219,14 @@ impl Envelope {
     /// Returns whether the `result` predicate has the `KnownValue` `.ok`.
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
-    pub fn is_result_ok(self: Rc<Self>) -> anyhow::Result<bool> {
+    pub fn is_result_ok(&self) -> anyhow::Result<bool> {
         self.extract_result::<KnownValue>().map(|v| *v == known_values::OK_VALUE)
     }
 
     /// Returns the error value, decoded as the given type.
     ///
     /// - Throws: Throws an exception if there is no `error` predicate.
-    pub fn error<T>(self: Rc<Self>) -> anyhow::Result<Rc<T>>
+    pub fn error<T>(&self) -> anyhow::Result<Rc<T>>
     where
         T: CBORDecodable + 'static,
     {

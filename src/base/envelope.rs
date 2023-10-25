@@ -12,16 +12,31 @@ use crate::extension::KnownValue;
 /// A flexible container for structured data.
 ///
 /// Envelopes are immutable. You create "mutations" by creating new envelopes from old envelopes.
-#[derive(Clone, Debug)]
-pub enum Envelope {
+#[derive(Debug, Clone)]
+pub struct Envelope(Rc<EnvelopeCase>);
+
+impl Envelope {
+    pub fn case(&self) -> &EnvelopeCase {
+        &self.0
+    }
+}
+
+impl From<EnvelopeCase> for Envelope {
+    fn from(case: EnvelopeCase) -> Self {
+        Self(Rc::new(case))
+    }
+}
+
+#[derive(Debug)]
+pub enum EnvelopeCase {
     /// Represents an envelope with one or more assertions.
-    Node { subject: Rc<Self>, assertions: Vec<Rc<Self>>, digest: Digest },
+    Node { subject: Envelope, assertions: Vec<Envelope>, digest: Digest },
 
     /// Represents an envelope with encoded CBOR data.
     Leaf { cbor: CBOR, digest: Digest },
 
     /// Represents an envelope that wraps another envelope.
-    Wrapped { envelope: Rc<Self>, digest: Digest },
+    Wrapped { envelope: Envelope, digest: Digest },
 
     /// Represents an assertion.
     ///
@@ -48,7 +63,7 @@ pub enum Envelope {
 impl Envelope {
     /// Creates an envelope with a `subject`, which
     /// can be any instance that implements ``IntoEnvelope``.
-    pub fn new<E>(subject: E) -> Rc<Self>
+    pub fn new<E>(subject: E) -> Self
     where
         E: EnvelopeEncodable,
     {
@@ -57,28 +72,28 @@ impl Envelope {
 
     /// Creates an assertion envelope with a `predicate` and `object`,
     /// each of which can be any instance that implements ``IntoEnvelope``.
-    pub fn new_assertion<P, O>(predicate: P, object: O) -> Rc<Self>
+    pub fn new_assertion<P, O>(predicate: P, object: O) -> Self
     where
         P: EnvelopeEncodable,
         O: EnvelopeEncodable,
     {
-        Rc::new(Self::new_with_assertion(Assertion::new(predicate, object)))
+        Self::new_with_assertion(Assertion::new(predicate, object))
     }
 }
 
 /// Internal constructors
 impl Envelope {
-    pub(crate) fn new_with_unchecked_assertions(subject: Rc<Self>, unchecked_assertions: Vec<Rc<Self>>) -> Self {
+    pub(crate) fn new_with_unchecked_assertions(subject: Self, unchecked_assertions: Vec<Self>) -> Self {
         assert!(!unchecked_assertions.is_empty());
         let mut sorted_assertions = unchecked_assertions;
         sorted_assertions.sort_by(|a, b| a.digest().cmp(&b.digest()));
         let mut digests = vec![subject.digest().into_owned()];
         digests.extend(sorted_assertions.iter().map(|a| a.digest().into_owned()));
         let digest = Digest::from_digests(&digests);
-        Self::Node { subject, assertions: sorted_assertions, digest }
+        (EnvelopeCase::Node { subject, assertions: sorted_assertions, digest }).into()
     }
 
-    pub(crate) fn new_with_assertions(subject: Rc<Self>, assertions: Vec<Rc<Self>>) -> Result<Self, EnvelopeError> {
+    pub(crate) fn new_with_assertions(subject: Self, assertions: Vec<Self>) -> Result<Self, EnvelopeError> {
         if !assertions.iter().all(|a| a.is_subject_assertion() || a.is_subject_obscured()) {
             return Err(EnvelopeError::InvalidFormat);
         }
@@ -86,13 +101,13 @@ impl Envelope {
     }
 
     pub(crate) fn new_with_assertion(assertion: Assertion) -> Self {
-        Self::Assertion(assertion)
+        EnvelopeCase::Assertion(assertion).into()
     }
 
     #[cfg(feature = "known_value")]
     pub(crate) fn new_with_known_value(value: KnownValue) -> Self {
         let digest = value.digest().into_owned();
-        Self::KnownValue { value, digest }
+        (EnvelopeCase::KnownValue { value, digest }).into()
     }
 
     #[cfg(feature = "encrypt")]
@@ -100,7 +115,7 @@ impl Envelope {
         if !encrypted_message.has_digest() {
             return Err(EnvelopeError::MissingDigest);
         }
-        Ok(Self::Encrypted(encrypted_message))
+        Ok(EnvelopeCase::Encrypted(encrypted_message).into())
     }
 
     #[cfg(feature = "compress")]
@@ -108,22 +123,22 @@ impl Envelope {
         if !compressed.has_digest() {
             return Err(EnvelopeError::MissingDigest);
         }
-        Ok(Self::Compressed(compressed))
+        Ok(EnvelopeCase::Compressed(compressed).into())
     }
 
     pub(crate) fn new_elided(digest: Digest) -> Self {
-        Self::Elided(digest)
+        EnvelopeCase::Elided(digest).into()
     }
 
     pub(crate) fn new_leaf<T: CBOREncodable>(cbor: T) -> Self {
         let cbor = cbor.cbor();
         let digest = Digest::from_image(cbor.cbor_data());
-        Self::Leaf { cbor, digest }
+        (EnvelopeCase::Leaf { cbor, digest }).into()
     }
 
-    pub(crate) fn new_wrapped(envelope: Rc<Self>) -> Self {
+    pub(crate) fn new_wrapped(envelope: Self) -> Self {
         let digest = Digest::from_digests(&[envelope.digest().into_owned()]);
-        Self::Wrapped { envelope, digest }
+        (EnvelopeCase::Wrapped { envelope, digest }).into()
     }
 }
 

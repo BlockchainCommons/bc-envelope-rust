@@ -1,12 +1,10 @@
 #![cfg(feature = "expression")]
-use std::rc::Rc;
-
 use bc_components::ARID;
 use indoc::indoc;
 use hex_literal::hex;
 use bc_envelope::prelude::*;
 
-fn two_plus_three() -> Rc<Envelope> {
+fn two_plus_three() -> Envelope {
     Envelope::new(functions::ADD)
         .add_parameter(parameters::LHS, 2)
         .add_parameter(parameters::RHS, 3)

@@ -15,7 +15,7 @@ use crate::common::check_encoding::*;
 #[cfg(feature = "signature")]
 use bc_rand::make_fake_random_number_generator;
 #[cfg(feature = "signature")]
-use std::{collections::HashSet, rc::Rc};
+use std::collections::HashSet;
 #[cfg(feature = "signature")]
 use bc_components::DigestProvider;
 
@@ -491,7 +491,7 @@ fn test_complex_metadata() {
 }
 
 #[cfg(feature = "signature")]
-fn credential() -> Rc<Envelope> {
+fn credential() -> Envelope {
     let mut rng = make_fake_random_number_generator();
     Envelope::new(ARID::from_data(hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")))
         .add_assertion(known_values::IS_A, "Certificate of Completion")

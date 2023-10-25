@@ -1,4 +1,4 @@
-use std::{rc::Rc, collections::HashSet, cell::RefCell};
+use std::{collections::HashSet, cell::RefCell};
 
 use bc_components::{Digest, DigestProvider};
 
@@ -6,7 +6,7 @@ use crate::{Envelope, with_format_context, FormatContext};
 #[cfg(feature = "known_value")]
 use crate::{string_utils::StringUtils, extension::KnownValuesStore};
 
-use super::{walk::EdgeType, EnvelopeSummary};
+use super::{walk::EdgeType, EnvelopeSummary, envelope::EnvelopeCase};
 
 /// Support for tree-formatting envelopes.
 impl Envelope {
@@ -22,7 +22,7 @@ impl Envelope {
 
     pub fn tree_format_with_target(&self, hide_nodes: bool, highlighting_target: &HashSet<Digest>, context: Option<&FormatContext>) -> String {
         let elements: RefCell<Vec<TreeElement>> = RefCell::new(Vec::new());
-        let visitor = |envelope: Rc<Self>, level: usize, incoming_edge: EdgeType, _: Option<&()>| -> _ {
+        let visitor = |envelope: Self, level: usize, incoming_edge: EdgeType, _: Option<&()>| -> _ {
             let elem = TreeElement::new(
                 level,
                 envelope.clone(),
@@ -33,7 +33,7 @@ impl Envelope {
             elements.borrow_mut().push(elem);
             None
         };
-        let s = Rc::new(self.clone());
+        let s = self.clone();
         s.walk(hide_nodes, &visitor);
         let elements = elements.borrow();
         elements.iter().map(|e| e.string(context.unwrap_or(&FormatContext::default()))).collect::<Vec<_>>().join("\n")
@@ -46,35 +46,35 @@ impl Envelope {
     }
 
     fn summary(&self, max_length: usize, context: &FormatContext) -> String {
-        match self {
-            Envelope::Node { .. } => "NODE".to_string(),
-            Envelope::Leaf { cbor, .. } => cbor.envelope_summary(max_length, context).unwrap(),
-            Envelope::Wrapped { .. } => "WRAPPED".to_string(),
-            Envelope::Assertion(_) => "ASSERTION".to_string(),
-            Envelope::Elided(_) => "ELIDED".to_string(),
+        match self.case() {
+            EnvelopeCase::Node { .. } => "NODE".to_string(),
+            EnvelopeCase::Leaf { cbor, .. } => cbor.envelope_summary(max_length, context).unwrap(),
+            EnvelopeCase::Wrapped { .. } => "WRAPPED".to_string(),
+            EnvelopeCase::Assertion(_) => "ASSERTION".to_string(),
+            EnvelopeCase::Elided(_) => "ELIDED".to_string(),
             #[cfg(feature = "known_value")]
-            Envelope::KnownValue { value, .. } => {
+            EnvelopeCase::KnownValue { value, .. } => {
                 let known_value = KnownValuesStore::known_value_for_raw_value(value.value(), Some(context.known_values()));
                 known_value.to_string().flanked_by("'", "'",)
             },
             #[cfg(feature = "encrypt")]
-            Envelope::Encrypted(_) => "ENCRYPTED".to_string(),
+            EnvelopeCase::Encrypted(_) => "ENCRYPTED".to_string(),
             #[cfg(feature = "compress")]
-            Envelope::Compressed(_) => "COMPRESSED".to_string(),
+            EnvelopeCase::Compressed(_) => "COMPRESSED".to_string(),
         }
     }
 }
 
 struct TreeElement {
     level: usize,
-    envelope: Rc<Envelope>,
+    envelope: Envelope,
     incoming_edge: EdgeType,
     show_id: bool,
     is_highlighted: bool,
 }
 
 impl TreeElement {
-    fn new(level: usize, envelope: Rc<Envelope>, incoming_edge: EdgeType, show_id: bool, is_highlighted: bool) -> Self {
+    fn new(level: usize, envelope: Envelope, incoming_edge: EdgeType, show_id: bool, is_highlighted: bool) -> Self {
         Self { level, envelope, incoming_edge, show_id, is_highlighted }
     }
 

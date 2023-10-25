@@ -15,7 +15,7 @@ impl Envelope {
     ///   - privateKeys: The signer's `PrivateKeyBase`
     ///
     /// - Returns: The signed envelope.
-    pub fn sign_with(self: Rc<Self>, private_keys: &PrivateKeyBase) -> Rc<Self> {
+    pub fn sign_with(&self, private_keys: &PrivateKeyBase) -> Self {
         self.sign_with_opt(private_keys, None, [])
     }
 
@@ -29,16 +29,16 @@ impl Envelope {
     ///
     /// - Returns: The signed envelope.
     pub fn sign_with_opt_using<D>(
-        self: Rc<Self>,
+        &self,
         private_keys: &PrivateKeyBase,
         note: Option<&str>,
         tag: D,
         rng: &mut impl RandomNumberGenerator
-    ) -> Rc<Self>
+    ) -> Self
     where
         D: AsRef<[u8]>,
     {
-        let mut assertions: Vec<Rc<Envelope>> = vec![];
+        let mut assertions: Vec<Envelope> = vec![];
         if let Some(note) = note {
             assertions.push(Self::new_assertion(known_values::NOTE, note));
         }
@@ -53,11 +53,11 @@ impl Envelope {
     ///
     /// - Returns: The signed envelope.
     pub fn sign_with_opt<D>(
-        self: Rc<Self>,
+        &self,
         private_keys: &PrivateKeyBase,
         note: Option<&str>,
         tag: D,
-    ) -> Rc<Self>
+    ) -> Self
     where
         D: AsRef<[u8]>,
     {
@@ -67,17 +67,17 @@ impl Envelope {
 
     #[doc(hidden)]
     pub fn sign_with_using(
-        self: Rc<Self>,
+        &self,
         private_keys: &PrivateKeyBase,
         rng: &mut impl RandomNumberGenerator
-    ) -> Rc<Self> {
+    ) -> Self {
         self.sign_with_opt_using(private_keys, None, [], rng)
     }
 
     pub fn sign_with_keys<T>(
-        self: Rc<Self>,
+        &self,
         private_keys_array: &[T],
-    ) -> Rc<Self>
+    ) -> Self
     where
         T: AsRef<PrivateKeyBase>,
     {
@@ -91,10 +91,10 @@ impl Envelope {
     ///
     /// - Returns: The signed envelope.
     pub fn sign_with_keys_opt<D, T>(
-        self: Rc<Self>,
+        &self,
         private_keys_array: &[T],
         tag: D,
-    ) -> Rc<Self>
+    ) -> Self
     where
         D: AsRef<[u8]> + Clone,
         T: AsRef<PrivateKeyBase>,
@@ -112,16 +112,16 @@ impl Envelope {
     ///
     /// - Returns: The signed envelope.
     pub fn sign_with_keys_opt_using<D, T>(
-        self: Rc<Self>,
+        &self,
         private_keys_array: &[T],
         tag: D,
         rng: &mut impl RandomNumberGenerator
-    ) -> Rc<Self>
+    ) -> Self
     where
         D: AsRef<[u8]> + Clone,
         T: AsRef<PrivateKeyBase>,
     {
-        private_keys_array.iter().fold(self, |envelope, private_key| {
+        private_keys_array.iter().fold(self.clone(), |envelope, private_key| {
             envelope.sign_with_opt_using(private_key.as_ref(), None, tag.clone(), rng)
         })
     }
@@ -136,12 +136,12 @@ impl Envelope {
     ///
     /// - Returns: The signed envelope.
     pub fn sign_with_uncovered_assertions_using<D>(
-        self: Rc<Self>,
+        &self,
         private_keys: &PrivateKeyBase,
-        uncovered_assertions: &[Rc<Self>],
+        uncovered_assertions: &[Self],
         tag: D,
         rng: &mut impl RandomNumberGenerator
-    ) -> Rc<Self>
+    ) -> Self
     where
         D: AsRef<[u8]>,
     {
@@ -161,11 +161,11 @@ impl Envelope {
     ///
     /// - Returns: The signed envelope.
     pub fn sign_with_uncovered_assertions<D>(
-        self: Rc<Self>,
+        &self,
         private_keys: &PrivateKeyBase,
-        uncovered_assertions: &[Rc<Self>],
+        uncovered_assertions: &[Self],
         tag: D,
-    ) -> Rc<Self>
+    ) -> Self
     where
         D: AsRef<[u8]>,
     {
@@ -181,10 +181,10 @@ impl Envelope {
     ///
     /// - Returns: The new assertion envelope.
     pub fn make_verified_by_signature(
-        self: Rc<Self>,
+        &self,
         signature: &Signature,
         note: Option<&str>
-    ) -> Rc<Self> {
+    ) -> Self {
         let verified_by = known_values::VERIFIED_BY;
         let mut envelope = Envelope::new_assertion(verified_by, Envelope::new(signature));
         if let Some(note) = note {
@@ -197,7 +197,7 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if any `verifiedBy` assertion doesn't contain a
     /// valid `Signature` as its object.
-    pub fn signatures(self: Rc<Self>) -> anyhow::Result<Vec<Rc<Signature>>> {
+    pub fn signatures(&self) -> anyhow::Result<Vec<Rc<Signature>>> {
         let verified_by = known_values::VERIFIED_BY;
         self
             .assertions_with_predicate(verified_by).into_iter()
@@ -213,7 +213,7 @@ impl Envelope {
     ///
     /// - Returns: `true` if the signature is valid for this envelope's subject, `false` otherwise.
     pub fn is_verified_signature(
-        self: Rc<Self>,
+        &self,
         signature: &Signature,
         public_keys: &PublicKeyBase,
     ) -> bool {
@@ -233,10 +233,10 @@ impl Envelope {
     /// - Throws: Throws `EnvelopeError.unverifiedSignature` if the signature is not valid.
     /// valid.
     pub fn verify_signature(
-        self: Rc<Self>,
+        &self,
         signature: &Signature,
         public_keys: &PublicKeyBase,
-    ) -> Result<Rc<Self>, EnvelopeError> {
+    ) -> Result<Self, EnvelopeError> {
         self.verify_signature_from_key(signature, public_keys.signing_public_key())
     }
 
@@ -250,7 +250,7 @@ impl Envelope {
     /// - Throws: Throws an exception if any `verifiedBy` assertion doesn't contain a
     /// valid `Signature` as its object.
     pub fn has_signature_from(
-        self: Rc<Self>,
+        &self,
         public_keys: &PublicKeyBase,
     ) -> anyhow::Result<bool> {
         self.has_some_signature_from_key(public_keys.signing_public_key())
@@ -268,15 +268,15 @@ impl Envelope {
     /// - Throws: Throws `EnvelopeError.unverifiedSignature` if the signature is not valid.
     /// valid.
     pub fn verify_signature_from(
-        self: Rc<Self>,
+        &self,
         public_keys: &PublicKeyBase,
-    ) -> anyhow::Result<Rc<Self>> {
+    ) -> anyhow::Result<Self> {
         self.verify_has_some_signature_from_key(public_keys.signing_public_key())
     }
 
     /// Checks whether the envelope's subject has a set of signatures.
     pub fn has_signatures_from<T>(
-        self: Rc<Self>,
+        &self,
         public_keys_array: &[T],
     ) -> anyhow::Result<bool>
     where
@@ -299,7 +299,7 @@ impl Envelope {
     /// - Throws: Throws an exception if any `verifiedBy` assertion doesn't contain a
     /// valid `Signature` as its object.
     pub fn has_signatures_from_threshold<T>(
-        self: Rc<Self>,
+        &self,
         public_keys_array: &[T],
         threshold: Option<usize>,
     ) -> anyhow::Result<bool>
@@ -315,9 +315,9 @@ impl Envelope {
 
     /// Checks whether the envelope's subject has a set of signatures.
     pub fn verify_signatures_from<T>(
-        self: Rc<Self>,
+        &self,
         public_keys_array: &[T],
-    ) -> anyhow::Result<Rc<Self>>
+    ) -> anyhow::Result<Self>
     where
         T: AsRef<PublicKeyBase>,
     {
@@ -339,10 +339,10 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if the threshold of valid signatures is not met.
     pub fn verify_signatures_from_threshold<T>(
-        self: Rc<Self>,
+        &self,
         public_keys_array: &[T],
         threshold: Option<usize>,
-    ) -> anyhow::Result<Rc<Self>>
+    ) -> anyhow::Result<Self>
     where
         T: AsRef<PublicKeyBase>,
     {
@@ -357,7 +357,7 @@ impl Envelope {
 #[doc(hidden)]
 impl Envelope {
     fn is_signature_from_key<T>(
-        self: Rc<Self>,
+        &self,
         signature: &Signature,
         key: T
     ) -> bool
@@ -368,18 +368,18 @@ impl Envelope {
     }
 
     fn verify_signature_from_key(
-        self: Rc<Self>,
+        &self,
         signature: &Signature,
         key: &SigningPublicKey
-    ) -> Result<Rc<Self>, EnvelopeError> {
+    ) -> Result<Self, EnvelopeError> {
         if !self.clone().is_signature_from_key(signature, key) {
             return Err(EnvelopeError::UnverifiedSignature);
         }
-        Ok(self)
+        Ok(self.clone())
     }
 
     fn has_some_signature_from_key<T>(
-        self: Rc<Self>,
+        &self,
         key: T
     ) -> anyhow::Result<bool>
     where
@@ -394,17 +394,17 @@ impl Envelope {
     }
 
     fn verify_has_some_signature_from_key(
-        self: Rc<Self>,
+        &self,
         key: &SigningPublicKey
-    ) -> anyhow::Result<Rc<Self>> {
+    ) -> anyhow::Result<Self> {
         if !self.clone().has_some_signature_from_key(key)? {
             bail!(EnvelopeError::UnverifiedSignature);
         }
-        Ok(self)
+        Ok(self.clone())
     }
 
     fn has_signatures_from_keys_threshold<T>(
-        self: Rc<Self>,
+        &self,
         keys: &[T],
         threshold: Option<usize>
     ) -> anyhow::Result<bool>
@@ -425,17 +425,17 @@ impl Envelope {
     }
 
     fn verify_signatures_from_keys_threshold<T>(
-        self: Rc<Self>,
+        &self,
         keys: &[T],
         threshold: Option<usize>
-    ) -> anyhow::Result<Rc<Self>>
+    ) -> anyhow::Result<Self>
     where
         T: AsRef<SigningPublicKey>,
     {
         if !self.clone().has_signatures_from_keys_threshold(keys, threshold)? {
             bail!(EnvelopeError::UnverifiedSignature);
         }
-        Ok(self)
+        Ok(self.clone())
     }
 }
 

@@ -1,6 +1,4 @@
 #![cfg(feature = "sskr")]
-use std::rc::Rc;
-
 use bc_components::{SymmetricKey, SSKRGroupSpec, SSKRSpec};
 use hex_literal::hex;
 use bc_envelope::prelude::*;
@@ -55,8 +53,8 @@ fn test_sskr() -> anyhow::Result<()> {
     // Dan ➡️ ☁️ ➡️ Carol
 
     // let alice_envelope = Envelope::from_ur(&sent_urs[0])?; // UNRECOVERED
-    let bob_envelope = Rc::new(Envelope::from_ur(&sent_urs[1])?);
-    let carol_envelope = Rc::new(Envelope::from_ur(&sent_urs[2])?);
+    let bob_envelope = Envelope::from_ur(&sent_urs[1])?;
+    let carol_envelope = Envelope::from_ur(&sent_urs[2])?;
 
     // At some future point, Dan retrieves two of the three envelopes so he can recover his seed.
     let recovered_envelopes = [bob_envelope.clone(), carol_envelope];

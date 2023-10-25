@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 #[cfg(feature = "encrypt")]
 use bc_components::SymmetricKey;
 use bc_ur::prelude::*;
@@ -25,7 +23,7 @@ fn plaintext() {
     // Alice ➡️ ☁️ ➡️ Bob
 
     // Bob receives the envelope and reads the message.
-    let received_plaintext = Rc::new(Envelope::from_ur(&ur).unwrap())
+    let received_plaintext = Envelope::from_ur(&ur).unwrap()
         .check_encoding().unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(*received_plaintext, PLAINTEXT_HELLO);
@@ -50,7 +48,7 @@ fn test_signed_plaintext() {
     // Alice ➡️ ☁️ ➡️ Bob
 
     // Bob receives the envelope.
-    let received_envelope = Rc::new(Envelope::from_ur(&ur).unwrap())
+    let received_envelope = Envelope::from_ur(&ur).unwrap()
         .check_encoding().unwrap();
 
     // Bob receives the message, validates Alice's signature, and reads the message.
@@ -90,7 +88,7 @@ fn multisigned_plaintext() {
     // Alice & Carol ➡️ ☁️ ➡️ Bob
 
     // Bob receives the envelope and verifies the message was signed by both Alice and Carol.
-    let received_plaintext = Rc::new(Envelope::from_ur(&ur).unwrap())
+    let received_plaintext = Envelope::from_ur(&ur).unwrap()
         .check_encoding().unwrap()
         .verify_signatures_from(&[&alice_public_keys(), &carol_public_keys()]);
 
@@ -120,7 +118,7 @@ fn symmetric_encryption() {
     // Alice ➡️ ☁️ ➡️ Bob
 
     // Bob receives the envelope.
-    let received_envelope = Rc::new(Envelope::from_ur(&ur).unwrap())
+    let received_envelope = Envelope::from_ur(&ur).unwrap()
         .check_encoding().unwrap();
 
     // Bob decrypts and reads the message.
@@ -137,7 +135,7 @@ fn symmetric_encryption() {
 }
 
 #[cfg(feature = "encrypt")]
-fn round_trip_test(envelope: Rc<Envelope>) {
+fn round_trip_test(envelope: Envelope) {
     let key = SymmetricKey::new();
     let plaintext_subject = envelope.check_encoding().unwrap();
     let encrypted_subject = plaintext_subject.clone()
@@ -207,7 +205,7 @@ fn sign_then_encrypt() {
     // Alice ➡️ ☁️ ➡️ Bob
 
     // Bob receives the envelope, decrypts it using the shared key, and then validates Alice's signature.
-    let received_plaintext = Rc::new(Envelope::from_ur(&ur).unwrap())
+    let received_plaintext = Envelope::from_ur(&ur).unwrap()
         .check_encoding().unwrap()
         .decrypt_subject(&key).unwrap()
         .check_encoding().unwrap()
@@ -267,7 +265,7 @@ fn test_encrypt_then_sign() {
     // Alice ➡️ ☁️ ➡️ Bob
 
     // Bob receives the envelope, validates Alice's signature, then decrypts the message.
-    let received_plaintext = Rc::new(Envelope::from_ur(&ur).unwrap())
+    let received_plaintext = Envelope::from_ur(&ur).unwrap()
         .check_encoding().unwrap()
         .verify_signature_from(&alice_public_keys()).unwrap()
         .decrypt_subject(&key).unwrap()
@@ -301,7 +299,7 @@ fn test_multi_recipient() {
     // Alice ➡️ ☁️ ➡️ Carol
 
     // The envelope is received
-    let received_envelope = Rc::new(Envelope::from_ur(&ur).unwrap());
+    let received_envelope = Envelope::from_ur(&ur).unwrap();
 
     // Bob decrypts and reads the message
     let bob_received_plaintext = received_envelope.clone()
@@ -347,7 +345,7 @@ fn test_visible_signature_multi_recipient() {
     // Alice ➡️ ☁️ ➡️ Carol
 
     // The envelope is received
-    let received_envelope = Rc::new(Envelope::from_ur(&ur).unwrap());
+    let received_envelope = Envelope::from_ur(&ur).unwrap();
 
     // Bob validates Alice's signature, then decrypts and reads the message
     let bob_received_plaintext = received_envelope.clone()
@@ -398,7 +396,7 @@ fn test_hidden_signature_multi_recipient() {
     // Alice ➡️ ☁️ ➡️ Carol
 
     // The envelope is received
-    let received_envelope = Rc::new(Envelope::from_ur(&ur).unwrap());
+    let received_envelope = Envelope::from_ur(&ur).unwrap();
 
     // Bob decrypts the envelope, then extracts the inner envelope and validates
     // Alice's signature, then reads the message

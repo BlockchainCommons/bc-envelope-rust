@@ -1,24 +1,24 @@
-use std::{rc::Rc, error::Error, collections::HashSet};
+use std::{error::Error, collections::HashSet};
 use bc_envelope::prelude::*;
 use indoc::indoc;
 
 mod common;
 use crate::common::check_encoding::*;
 
-fn basic_envelope() -> Rc<Envelope> {
+fn basic_envelope() -> Envelope {
     Envelope::new("Hello.")
 }
 
-fn assertion_envelope() -> Rc<Envelope> {
+fn assertion_envelope() -> Envelope {
     Envelope::new_assertion("knows", "Bob")
 }
 
-fn single_assertion_envelope() -> Rc<Envelope> {
+fn single_assertion_envelope() -> Envelope {
     Envelope::new("Alice")
         .add_assertion("knows", "Bob")
 }
 
-fn double_assertion_envelope() -> Rc<Envelope> {
+fn double_assertion_envelope() -> Envelope {
     Envelope::new("Alice")
         .add_assertion("knows", "Bob")
         .add_assertion("knows", "Carol")

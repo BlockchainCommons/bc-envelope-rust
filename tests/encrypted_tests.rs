@@ -1,6 +1,5 @@
 #![cfg(feature = "encrypt")]
 use std::error::Error;
-use std::rc::Rc;
 use bc_envelope::prelude::*;
 use bc_components::{DigestProvider, SymmetricKey, Nonce, EncryptedMessage};
 use hex_literal::hex;
@@ -8,33 +7,33 @@ use hex_literal::hex;
 mod common;
 use crate::common::check_encoding::*;
 
-fn basic_envelope() -> Rc<Envelope> {
+fn basic_envelope() -> Envelope {
     Envelope::new("Hello.")
 }
 
-fn known_value_envelope() -> Rc<Envelope> {
+fn known_value_envelope() -> Envelope {
     Envelope::new(known_values::NOTE)
 }
 
-fn assertion_envelope() -> Rc<Envelope> {
+fn assertion_envelope() -> Envelope {
     Envelope::new_assertion("knows", "Bob")
 }
 
-fn single_assertion_envelope() -> Rc<Envelope> {
+fn single_assertion_envelope() -> Envelope {
     Envelope::new("Alice")
         .add_assertion("knows", "Bob")
 }
 
-fn double_assertion_envelope() -> Rc<Envelope> {
+fn double_assertion_envelope() -> Envelope {
     single_assertion_envelope()
         .add_assertion("knows", "Carol")
 }
 
-fn wrapped_envelope() -> Rc<Envelope> {
+fn wrapped_envelope() -> Envelope {
     basic_envelope().wrap_envelope()
 }
 
-fn double_wrapped_envelope() -> Rc<Envelope> {
+fn double_wrapped_envelope() -> Envelope {
     wrapped_envelope().wrap_envelope()
 }
 
@@ -46,7 +45,7 @@ fn fake_nonce() -> Nonce {
     Nonce::from_data(hex!("4d785658f36c22fb5aed3ac0"))
 }
 
-fn encrypted_test(e1: Rc<Envelope>) -> Result<(), Box<dyn Error>> {
+fn encrypted_test(e1: Envelope) -> Result<(), Box<dyn Error>> {
     // println!("{}", e1.hex_opt(true, None));
     let e2 = e1
         .clone()

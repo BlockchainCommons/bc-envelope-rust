@@ -1,8 +1,8 @@
-use std::{collections::{HashSet, hash_map::RandomState}, iter, rc::Rc};
+use std::{collections::{HashSet, hash_map::RandomState}, iter};
 
 use bc_components::{DigestProvider, Digest};
 
-use crate::Envelope;
+use crate::{Envelope, base::envelope::EnvelopeCase};
 
 /// Support for inclusions proofs.
 impl Envelope {
@@ -12,7 +12,7 @@ impl Envelope {
     /// - `target`: The elements if this envelope that the proof must include.
     /// # Returns
     /// The proof, of `None` if it cannot be proven that the envelope contains every element in the target set.
-    pub fn proof_contains_set(self: Rc<Self>, target: &HashSet<Digest, RandomState>) -> Option<Rc<Envelope>> {
+    pub fn proof_contains_set(&self, target: &HashSet<Digest, RandomState>) -> Option<Envelope> {
         let reveal_set = self.reveal_set_of_set(target);
         if !target.is_subset(&reveal_set) {
             return None;
@@ -26,7 +26,7 @@ impl Envelope {
     /// - `target`: The element of this envelope that the proof must include.
     /// # Returns
     /// The proof, of `None` if it cannot be proven that the envelope contains the targeted element.
-    pub fn proof_contains_target(self: Rc<Self>, target: &dyn DigestProvider) -> Option<Rc<Envelope>> {
+    pub fn proof_contains_target(&self, target: &dyn DigestProvider) -> Option<Envelope> {
         let set = HashSet::from_iter(iter::once(target.digest().into_owned()));
         self.proof_contains_set(&set)
     }
@@ -38,7 +38,7 @@ impl Envelope {
     /// - `proof`: The inclusion proof to use.
     /// # Returns
     /// `true` if every element of `target` is in this envelope as shown by `proof`, `false` otherwise.
-    pub fn confirm_contains_set(self: Rc<Self>, target: &HashSet<Digest, RandomState>, proof: &Rc<Envelope>) -> bool {
+    pub fn confirm_contains_set(&self, target: &HashSet<Digest, RandomState>, proof: &Envelope) -> bool {
         self.digest() == proof.digest() && proof.contains_all(target)
     }
 
@@ -49,7 +49,7 @@ impl Envelope {
     /// - `proof`: The inclusion proof to use.
     /// # Returns
     /// `true` if `target` is in this envelope as shown by `proof`, `false` otherwise.
-    pub fn confirm_contains_target(self: Rc<Self>, target: &dyn DigestProvider, proof: &Rc<Envelope>) -> bool {
+    pub fn confirm_contains_target(&self, target: &dyn DigestProvider, proof: &Envelope) -> bool {
         let set = HashSet::from_iter(iter::once(target.digest().into_owned()));
         self.confirm_contains_set(&set, proof)
     }
@@ -76,17 +76,17 @@ impl Envelope {
             result.extend(current.iter().cloned());
         }
 
-        match self {
-            Envelope::Node { subject, assertions, .. } => {
+        match self.case() {
+            EnvelopeCase::Node { subject, assertions, .. } => {
                 subject.reveal_sets(target, &current, result);
                 for assertion in assertions {
                     assertion.reveal_sets(target, &current, result);
                 }
             }
-            Envelope::Wrapped { envelope, .. } => {
+            EnvelopeCase::Wrapped { envelope, .. } => {
                 envelope.reveal_sets(target, &current, result);
             }
-            Envelope::Assertion(assertion) => {
+            EnvelopeCase::Assertion(assertion) => {
                 assertion.predicate().reveal_sets(target, &current, result);
                 assertion.object().reveal_sets(target, &current, result);
             }
@@ -102,17 +102,17 @@ impl Envelope {
             return;
         }
 
-        match self {
-            Envelope::Node { subject, assertions, .. } => {
+        match self.case() {
+            EnvelopeCase::Node { subject, assertions, .. } => {
                 subject.remove_all_found(target);
                 for assertion in assertions {
                     assertion.remove_all_found(target);
                 }
             }
-            Envelope::Wrapped { envelope, .. } => {
+            EnvelopeCase::Wrapped { envelope, .. } => {
                 envelope.remove_all_found(target);
             }
-            Envelope::Assertion(assertion) => {
+            EnvelopeCase::Assertion(assertion) => {
                 assertion.predicate().remove_all_found(target);
                 assertion.object().remove_all_found(target);
             }

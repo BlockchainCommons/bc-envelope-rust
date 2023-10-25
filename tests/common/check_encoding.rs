@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use bc_components::DigestProvider;
 use dcbor::prelude::*;
 
@@ -12,7 +10,7 @@ pub trait CheckEncoding {
         Self: Sized;
 }
 
-impl CheckEncoding for Rc<Envelope> {
+impl CheckEncoding for Envelope {
     /// Used by test suite to check round-trip encoding of `Envelope`.
     fn check_encoding(self) -> Result<Self, anyhow::Error> {
         let cbor = self.tagged_cbor();

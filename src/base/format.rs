@@ -4,7 +4,7 @@ use crate::{Envelope, Assertion, string_utils::StringUtils, FormatContext};
 #[cfg(feature = "known_value")]
 use crate::extension::{KnownValue, known_values};
 
-use super::EnvelopeSummary;
+use super::{EnvelopeSummary, envelope::EnvelopeCase};
 
 /// Support for the various text output formats for ``Envelope``.
 impl Envelope {
@@ -262,21 +262,21 @@ impl EnvelopeFormat for CBOR {
 
 impl EnvelopeFormat for Envelope {
     fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
-        match self {
-            Envelope::Leaf { cbor, .. } => cbor.format_item(context),
-            Envelope::Wrapped { envelope, .. } => EnvelopeFormatItem::List(vec![
+        match self.case() {
+            EnvelopeCase::Leaf { cbor, .. } => cbor.format_item(context),
+            EnvelopeCase::Wrapped { envelope, .. } => EnvelopeFormatItem::List(vec![
                 EnvelopeFormatItem::Begin("{".to_string()),
                 envelope.format_item(context),
                 EnvelopeFormatItem::End("}".to_string()),
             ]),
-            Envelope::Assertion(assertion) => assertion.format_item(context),
+            EnvelopeCase::Assertion(assertion) => assertion.format_item(context),
             #[cfg(feature = "known_value")]
-            Envelope::KnownValue { value, .. } => value.format_item(context),
+            EnvelopeCase::KnownValue { value, .. } => value.format_item(context),
             #[cfg(feature = "encrypt")]
-            Envelope::Encrypted(_) => EnvelopeFormatItem::Item("ENCRYPTED".to_string()),
+            EnvelopeCase::Encrypted(_) => EnvelopeFormatItem::Item("ENCRYPTED".to_string()),
             #[cfg(feature = "compress")]
-            Envelope::Compressed(_) => EnvelopeFormatItem::Item("COMPRESSED".to_string()),
-            Envelope::Node { subject, assertions, .. } => {
+            EnvelopeCase::Compressed(_) => EnvelopeFormatItem::Item("COMPRESSED".to_string()),
+            EnvelopeCase::Node { subject, assertions, .. } => {
                 let mut items: Vec<EnvelopeFormatItem> = Vec::new();
 
                 let subject_item = subject.format_item(context);
@@ -290,16 +290,16 @@ impl EnvelopeFormat for Envelope {
                 let mut assertion_items: Vec<Vec<EnvelopeFormatItem>> = Vec::new();
 
                 for assertion in assertions {
-                    match &**assertion {
-                        Envelope::Elided(_) => {
+                    match assertion.case() {
+                        EnvelopeCase::Elided(_) => {
                             elided_count += 1;
                         },
                         #[cfg(feature = "encrypt")]
-                        Envelope::Encrypted(_) => {
+                        EnvelopeCase::Encrypted(_) => {
                             encrypted_count += 1;
                         },
                         #[cfg(feature = "compress")]
-                        Envelope::Compressed(_) => {
+                        EnvelopeCase::Compressed(_) => {
                             compressed_count += 1;
                         },
                         _ => {
@@ -364,7 +364,7 @@ impl EnvelopeFormat for Envelope {
                 items.push(EnvelopeFormatItem::End("]".to_string()));
                 EnvelopeFormatItem::List(items)
             },
-            Envelope::Elided(_) => EnvelopeFormatItem::Item("ELIDED".to_string()),
+            EnvelopeCase::Elided(_) => EnvelopeFormatItem::Item("ELIDED".to_string()),
         }
     }
 }
@@ -394,8 +394,8 @@ impl EnvelopeFormat for KnownValue {
 
  impl Envelope {
     fn description(&self, context: Option<&FormatContext>) -> String {
-        match self {
-            Self::Node { subject, assertions, .. } => {
+        match self.case() {
+            EnvelopeCase::Node { subject, assertions, .. } => {
                 let assertions = assertions
                     .iter()
                     .map(|a| a.to_string())
@@ -404,16 +404,16 @@ impl EnvelopeFormat for KnownValue {
                     .flanked_by("[", "]");
                 format!(".node({}, {})", subject, assertions)
             }
-            Self::Leaf { cbor, .. } => format!(".cbor({})", cbor.format_item(context.unwrap_or(&FormatContext::default()))),
-            Self::Wrapped { envelope, .. } => format!(".wrapped({})", envelope),
-            Self::Assertion(assertion) => format!(".assertion({}, {})", assertion.predicate(), assertion.object()),
-            Self::Elided(_) => ".elided".to_string(),
+            EnvelopeCase::Leaf { cbor, .. } => format!(".cbor({})", cbor.format_item(context.unwrap_or(&FormatContext::default()))),
+            EnvelopeCase::Wrapped { envelope, .. } => format!(".wrapped({})", envelope),
+            EnvelopeCase::Assertion(assertion) => format!(".assertion({}, {})", assertion.predicate(), assertion.object()),
+            EnvelopeCase::Elided(_) => ".elided".to_string(),
             #[cfg(feature = "known_value")]
-            Self::KnownValue { value, .. } => format!(".knownValue({})", value),
+            EnvelopeCase::KnownValue { value, .. } => format!(".knownValue({})", value),
             #[cfg(feature = "encrypt")]
-            Self::Encrypted(_) => ".encrypted".to_string(),
+            EnvelopeCase::Encrypted(_) => ".encrypted".to_string(),
             #[cfg(feature = "compress")]
-            Self::Compressed(_) => ".compressed".to_string(),
+            EnvelopeCase::Compressed(_) => ".compressed".to_string(),
         }
     }
 }

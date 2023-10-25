@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use anyhow::bail;
 use bc_components::tags;
 use bc_ur::prelude::*;
@@ -119,7 +117,7 @@ impl URDecodable for Seed { }
 impl URCodable for Seed { }
 
 impl EnvelopeEncodable for &Seed {
-    fn envelope(self) -> Rc<Envelope> {
+    fn envelope(self) -> Envelope {
         let mut e = Envelope::new(CBOR::byte_string(self.data()))
             .add_type(known_values::SEED_TYPE)
             .add_optional_assertion(known_values::DATE, self.creation_date());
@@ -137,7 +135,7 @@ impl EnvelopeEncodable for &Seed {
 }
 
 impl Seed {
-    pub fn from_envelope(envelope: &Rc<Envelope>) -> anyhow::Result<Self> {
+    pub fn from_envelope(envelope: &Envelope) -> anyhow::Result<Self> {
         envelope.clone().check_type(&known_values::SEED_TYPE)?;
         let data = envelope.clone().subject().leaf_or_error()?.expect_byte_string()?.to_vec();
         let name = envelope.clone().extract_optional_object_for_predicate::<String, KnownValue>(known_values::HAS_NAME)?.unwrap_or_default().to_string();

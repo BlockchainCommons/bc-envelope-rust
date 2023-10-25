@@ -1,6 +1,4 @@
-use std::rc::Rc;
-
-use crate::{Assertion, EnvelopeEncodable, extension::known_values, Envelope, EnvelopeError, prelude::KnownValue};
+use crate::{Assertion, EnvelopeEncodable, extension::known_values, Envelope, EnvelopeError, prelude::KnownValue, base::envelope::EnvelopeCase};
 
 impl Assertion {
     /// Creates an attachment assertion. See:
@@ -20,7 +18,7 @@ impl Assertion {
     }
 
     /// Returns the payload of the given attachment assertion.
-    pub fn attachment_payload(&self) -> Result<Rc<Envelope>, EnvelopeError> {
+    pub fn attachment_payload(&self) -> Result<Envelope, EnvelopeError> {
         self.object().unwrap_envelope()
     }
 
@@ -59,7 +57,7 @@ impl Envelope {
     ///
     /// The payload envelope has a `'vendor': String` assertion and an optional
     /// `'conformsTo': String` assertion.
-    pub fn new_attachment<A>(payload: A, vendor: &str, conforms_to: Option<&str>) -> Rc<Self>
+    pub fn new_attachment<A>(payload: A, vendor: &str, conforms_to: Option<&str>) -> Self
     where
         A: EnvelopeEncodable,
     {
@@ -70,7 +68,7 @@ impl Envelope {
     ///
     /// The payload envelope has a `'vendor': String` assertion and an optional
     /// `'conformsTo': String` assertion.
-    pub fn add_attachment<A>(self: Rc<Self>, payload: A, vendor: &str, conforms_to: Option<&str>) -> Rc<Self>
+    pub fn add_attachment<A>(&self, payload: A, vendor: &str, conforms_to: Option<&str>) -> Self
     where
         A: EnvelopeEncodable,
     {
@@ -82,8 +80,8 @@ impl Envelope {
 
 impl Envelope {
     /// Returns the payload of the given attachment envelope.
-    pub fn attachment_payload(&self) -> Result<Rc<Self>, EnvelopeError> {
-        if let Envelope::Assertion(assertion) = self {
+    pub fn attachment_payload(&self) -> Result<Self, EnvelopeError> {
+        if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.attachment_payload()?)
         } else {
             Err(EnvelopeError::InvalidAttachment)
@@ -91,8 +89,8 @@ impl Envelope {
     }
 
     /// Returns the `vendor` of the given attachment envelope.
-    pub fn attachment_vendor(self: Rc<Self>) -> anyhow::Result<String> {
-        if let Envelope::Assertion(assertion) = self.as_ref() {
+    pub fn attachment_vendor(&self) -> anyhow::Result<String> {
+        if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.clone().attachment_vendor()?)
         } else {
             anyhow::bail!(EnvelopeError::InvalidAttachment);
@@ -100,8 +98,8 @@ impl Envelope {
     }
 
     /// Returns the `conformsTo` of the given attachment envelope.
-    pub fn attachment_conforms_to(self: Rc<Self>) -> anyhow::Result<Option<String>> {
-        if let Envelope::Assertion(assertion) = self.as_ref() {
+    pub fn attachment_conforms_to(&self) -> anyhow::Result<Option<String>> {
+        if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.clone().attachment_conforms_to()?)
         } else {
             anyhow::bail!(EnvelopeError::InvalidAttachment);
@@ -115,12 +113,12 @@ impl Envelope {
     /// matches any `conformsTo`. If both are `None`, matches any attachment. On
     /// success, returns a vector of matching attachments. Returns an error if
     /// any of the attachments are invalid.
-    pub fn attachments_with_vendor_and_conforms_to(self: Rc<Self>, vendor: Option<&str>, conforms_to: Option<&str>)
-    -> anyhow::Result<Vec<Rc<Self>>>
+    pub fn attachments_with_vendor_and_conforms_to(&self, vendor: Option<&str>, conforms_to: Option<&str>)
+    -> anyhow::Result<Vec<Self>>
     {
         let assertions = self.assertions_with_predicate(known_values::ATTACHMENT);
-        for assertion in &assertions {
-            Self::validate_attachment(assertion.clone())?;
+        for assertion in assertions.clone() {
+            Self::validate_attachment(&assertion)?;
         }
         let matching_assertions: Vec<_> = assertions
             .into_iter()
@@ -149,7 +147,7 @@ impl Envelope {
         anyhow::Result::Ok(matching_assertions)
     }
 
-    pub fn attachments(self: Rc<Self>) -> anyhow::Result<Vec<Rc<Self>>> {
+    pub fn attachments(&self) -> anyhow::Result<Vec<Self>> {
         self.attachments_with_vendor_and_conforms_to(None::<&str>, None::<&str>)
     }
 
@@ -161,8 +159,8 @@ impl Envelope {
     /// - The attachment envelope's object is an envelope.
     /// - The attachment envelope's object has a `'vendor': String` assertion.
     /// - The attachment envelope's object has an optional `'conformsTo': String` assertion.
-    pub fn validate_attachment(self: Rc<Self>) -> anyhow::Result<()> {
-        if let Envelope::Assertion(assertion) = self.as_ref() {
+    pub fn validate_attachment(&self) -> anyhow::Result<()> {
+        if let EnvelopeCase::Assertion(assertion) = self.case() {
             assertion.validate_attachment()?;
             Ok(())
         } else {
@@ -178,8 +176,8 @@ impl Envelope {
     /// success, returns the first matching attachment. Returns an error if
     /// more than one attachment matches, or if any of the attachments are
     /// invalid.
-    pub fn attachment_with_vendor_and_conforms_to(self: Rc<Self>, vendor: Option<&str>, conforms_to: Option<&str>)
-    -> anyhow::Result<Rc<Self>>
+    pub fn attachment_with_vendor_and_conforms_to(&self, vendor: Option<&str>, conforms_to: Option<&str>)
+    -> anyhow::Result<Self>
     {
         let attachments = self.attachments_with_vendor_and_conforms_to(vendor, conforms_to)?;
         if attachments.is_empty() {

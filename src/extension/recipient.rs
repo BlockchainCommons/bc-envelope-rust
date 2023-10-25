@@ -19,12 +19,12 @@ impl Envelope {
     ///   - contentKey: The `SymmetricKey` that was used to encrypt the subject.
     ///
     /// - Returns: The new envelope.
-    pub fn add_recipient(self: Rc<Self>, recipient: &PublicKeyBase, content_key: &SymmetricKey) -> Rc<Self> {
+    pub fn add_recipient(&self, recipient: &PublicKeyBase, content_key: &SymmetricKey) -> Self {
         self.add_recipient_opt(recipient, content_key, None, None::<&Nonce>)
     }
 
     #[doc(hidden)]
-    pub fn add_recipient_opt(self: Rc<Self>, recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<Bytes>, test_nonce: Option<&Nonce>) -> Rc<Self> {
+    pub fn add_recipient_opt(&self, recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<Bytes>, test_nonce: Option<&Nonce>) -> Self {
         let assertion = Self::make_has_recipient(recipient, content_key, test_key_material, test_nonce);
         self.add_assertion_envelope(assertion).unwrap()
     }
@@ -32,7 +32,7 @@ impl Envelope {
     /// Returns an array of `SealedMessage`s from all of the envelope's `hasRecipient` assertions.
     ///
     /// - Throws: Throws an exception if any `hasRecipient` assertions do not have a `SealedMessage` as their object.
-    pub fn recipients(self: Rc<Self>) -> anyhow::Result<Vec<Rc<SealedMessage>>> {
+    pub fn recipients(&self) -> anyhow::Result<Vec<Rc<SealedMessage>>> {
         self
             .assertions_with_predicate(known_values::HAS_RECIPIENT)
             .into_iter()
@@ -59,9 +59,9 @@ impl Envelope {
     /// - Throws: If the envelope is already encrypted.
     #[cfg(feature = "encrypt")]
     pub fn encrypt_subject_to_recipients<T>(
-        self: Rc<Self>,
+        &self,
         recipients: &[T]
-    ) -> Result<Rc<Self>, EnvelopeError>
+    ) -> Result<Self, EnvelopeError>
     where
         T: AsRef<PublicKeyBase>
     {
@@ -71,11 +71,11 @@ impl Envelope {
     #[cfg(feature = "encrypt")]
     #[doc(hidden)]
     pub fn encrypt_subject_to_recipients_opt<T>(
-        self: Rc<Self>,
+        &self,
         recipients: &[T],
         test_key_material: Option<Bytes>,
         test_nonce: Option<&Nonce>
-    ) -> Result<Rc<Self>, EnvelopeError>
+    ) -> Result<Self, EnvelopeError>
     where
         T: AsRef<PublicKeyBase>
     {
@@ -97,13 +97,13 @@ impl Envelope {
     ///
     /// - Returns: The encrypted envelope.
     #[cfg(feature = "encrypt")]
-    pub fn encrypt_subject_to_recipient(self: Rc<Self>, recipient: &PublicKeyBase) -> Result<Rc<Self>, EnvelopeError> {
+    pub fn encrypt_subject_to_recipient(&self, recipient: &PublicKeyBase) -> Result<Self, EnvelopeError> {
         self.encrypt_subject_to_recipient_opt(recipient, None, None::<&Nonce>)
     }
 
     #[cfg(feature = "encrypt")]
     #[doc(hidden)]
-    pub fn encrypt_subject_to_recipient_opt(self: Rc<Self>, recipient: &PublicKeyBase, test_key_material: Option<Bytes>, test_nonce: Option<&Nonce>) -> Result<Rc<Self>, EnvelopeError> {
+    pub fn encrypt_subject_to_recipient_opt(&self, recipient: &PublicKeyBase, test_key_material: Option<Bytes>, test_nonce: Option<&Nonce>) -> Result<Self, EnvelopeError> {
         self.encrypt_subject_to_recipients_opt(&[recipient], test_key_material, test_nonce)
     }
 
@@ -128,7 +128,7 @@ impl Envelope {
     /// - Throws: If a `SealedMessage` for `recipient` is not found among the
     /// `hasRecipient` assertions on the envelope.
     #[cfg(feature = "encrypt")]
-    pub fn decrypt_to_recipient(self: Rc<Self>, recipient: &PrivateKeyBase) -> anyhow::Result<Rc<Self>> {
+    pub fn decrypt_to_recipient(&self, recipient: &PrivateKeyBase) -> anyhow::Result<Self> {
         let sealed_messages = self.clone().recipients()?;
         let content_key_data = Self::first_plaintext_in_sealed_messages(&sealed_messages, recipient)?;
         let content_key = SymmetricKey::from_tagged_cbor_data(&content_key_data)?;
@@ -144,7 +144,7 @@ impl Envelope {
     ///   - contentKey: The `SymmetricKey` that was used to encrypt the subject.
     ///
     /// - Returns: The assertion envelope.
-    fn make_has_recipient(recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<Bytes>, test_nonce: Option<&Nonce>) -> Rc<Self>
+    fn make_has_recipient(recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<Bytes>, test_nonce: Option<&Nonce>) -> Self
     {
         let sealed_message = SealedMessage::new_opt(content_key.cbor_data(), recipient, None::<Bytes>, test_key_material, test_nonce);
         Self::new_assertion(known_values::HAS_RECIPIENT, sealed_message)
