@@ -10,10 +10,7 @@ use super::{Function, Parameter};
 /// Envelope Expressions: Function Construction
 impl Envelope {
     /// Creates an envelope with a `«function»` subject.
-    pub fn new_function<F>(function: F) -> Self
-    where
-        F: Into<Function>,
-    {
+    pub fn new_function(function: impl Into<Function>) -> Self {
         Envelope::new(function.into())
     }
 }
@@ -27,20 +24,12 @@ impl Envelope {
     ///   - value: The argument value.
     ///
     /// - Returns: The new assertion envelope. If `value` is `None`, returns `None`.
-    pub fn new_parameter<P, V>(param: P, value: V) -> Self
-    where
-        P: Into<Parameter>,
-        V: EnvelopeEncodable,
-    {
+    pub fn new_parameter(param: impl Into<Parameter>, value: impl EnvelopeEncodable) -> Self {
         Self::new_assertion(param.into(), value)
     }
 
     /// Optionally adds a `❰parameter❱: value` assertion to the envelope.
-    pub fn new_optional_parameter<P, V>(param: P, value: Option<V>) -> Option<Self>
-    where
-        P: Into<Parameter>,
-        V: EnvelopeEncodable,
-    {
+    pub fn new_optional_parameter(param: impl Into<Parameter>, value: Option<impl EnvelopeEncodable>) -> Option<Self> {
         value.map(|value| Self::new_parameter(param, value))
     }
 
@@ -51,11 +40,7 @@ impl Envelope {
     ///   - value: The argument value.
     ///
     /// - Returns: The new envelope.
-    pub fn add_parameter<P, V>(&self, param: P, value: V) -> Self
-    where
-        P: Into<Parameter>,
-        V: EnvelopeEncodable,
-    {
+    pub fn add_parameter(&self, param: impl Into<Parameter>, value: impl EnvelopeEncodable) -> Self {
         self.add_assertion_envelope(Self::new_parameter(param, value))
             .unwrap()
     }
@@ -67,14 +52,11 @@ impl Envelope {
     ///   - value: The optional argument value.
     ///
     /// - Returns: The new envelope. If `value` is `None`, returns the original envelope.
-    pub fn add_optional_parameter<V>(
+    pub fn add_optional_parameter(
         &self,
         param: Parameter,
-        value: Option<V>,
-    ) -> Self
-    where
-        V: EnvelopeEncodable,
-    {
+        value: Option<impl EnvelopeEncodable>,
+    ) -> Self {
         self.add_optional_assertion_envelope(Self::new_optional_parameter(param, value))
             .unwrap()
     }
@@ -83,34 +65,37 @@ impl Envelope {
 /// Envelope Expressions: Request Construction
 impl Envelope {
     /// Creates an envelope with an `ARID` subject and a `body: «function»` assertion.
-    pub fn new_request<C, B>(request_id: C, body: B) -> Self
-    where
-        C: AsRef<ARID>,
-        B: EnvelopeEncodable,
-    {
+    pub fn new_request(request_id: impl AsRef<ARID>, body: impl EnvelopeEncodable) -> Self {
         Envelope::new(CBOR::tagged_value(tags::REQUEST, request_id.as_ref()))
             .add_assertion(known_values::BODY, body)
+    }
+}
+
+/// Envelope Expression: Request Parsing
+impl Envelope {
+    pub fn request_id(&self) -> anyhow::Result<ARID> {
+        let id = self
+            .expect_leaf()?
+            .expect_tagged_value(tags::REQUEST)?
+            .try_into()?;
+        Ok(id)
+    }
+
+    pub fn request_body(&self) -> Result<Self, EnvelopeError> {
+        self.object_for_predicate(known_values::BODY)
     }
 }
 
 /// Envelope Expressions: Response Construction
 impl Envelope {
     /// Creates an envelope with an `ARID` subject and a `result: value` assertion.
-    pub fn new_response<C, R>(response_id: C, result: R) -> Self
-    where
-        C: AsRef<ARID>,
-        R: EnvelopeEncodable,
-    {
+    pub fn new_response(response_id: impl AsRef<ARID>, result: impl EnvelopeEncodable) -> Self {
         Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()))
             .add_assertion(known_values::RESULT, result)
     }
 
     /// Creates an envelope with an `ARID` subject and a `result: value` assertion for each provided result.
-    pub fn new_response_with_result<C, R>(response_id: C, results: &[R]) -> Self
-    where
-        C: AsRef<ARID>,
-        R: EnvelopeEncodable + Clone,
-    {
+    pub fn new_response_with_result(response_id: impl AsRef<ARID>, results: &[impl EnvelopeEncodable + Clone]) -> Self {
         let mut envelope = Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()));
 
         for result in results {
@@ -124,11 +109,7 @@ impl Envelope {
     }
 
     /// Creates an envelope with an `ARID` subject and a `error: value` assertion.
-    pub fn new_error_response_with_id<C, E>(response_id: C, error: E) -> Self
-    where
-        C: AsRef<ARID>,
-        E: EnvelopeEncodable,
-    {
+    pub fn new_error_response_with_id(response_id: impl AsRef<ARID>, error: impl EnvelopeEncodable) -> Self {
         Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()))
             .add_assertion(known_values::ERROR, error)
     }
@@ -140,10 +121,7 @@ impl Envelope {
     /// Used for an immediate response to a request without a proper ID, for example
     /// when a encrypted request envelope is received and the decryption fails, making
     /// it impossible to extract the request ID.
-    pub fn new_error_response<E>(error: Option<E>) -> Self
-    where
-        E: EnvelopeEncodable,
-    {
+    pub fn new_error_response(error: Option<impl EnvelopeEncodable>) -> Self {
         if let Some(error) = error {
             Envelope::new(CBOR::tagged_value(tags::RESPONSE, "unknown"))
                 .add_assertion(known_values::ERROR, error)
@@ -159,10 +137,9 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if there is not exactly one matching `parameter`,
     /// or if the parameter value is not the correct type.
-    pub fn extract_object_for_parameter<T, P>(&self, param: P) -> anyhow::Result<T>
+    pub fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> anyhow::Result<T>
     where
         T: CBORDecodable + 'static,
-        P: Into<Parameter>,
     {
         self.extract_object_for_predicate(param.into())
     }
@@ -170,10 +147,9 @@ impl Envelope {
     /// Returns an array of arguments for the given parameter, decoded as the given type.
     ///
     /// - Throws: Throws an exception if any of the parameter values are not the correct type.
-    pub fn extract_objects_for_parameter<T, P>(&self, param: P) -> anyhow::Result<Vec<T>>
+    pub fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> anyhow::Result<Vec<T>>
     where
         T: CBORDecodable + 'static,
-        P: Into<Parameter>,
     {
         self.extract_objects_for_predicate(param.into())
     }

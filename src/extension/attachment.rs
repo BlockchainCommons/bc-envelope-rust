@@ -1,4 +1,4 @@
-use crate::{Assertion, EnvelopeEncodable, extension::known_values, Envelope, EnvelopeError, prelude::KnownValue, base::envelope::EnvelopeCase};
+use crate::{Assertion, EnvelopeEncodable, extension::known_values, Envelope, EnvelopeError, base::envelope::EnvelopeCase};
 
 impl Assertion {
     /// Creates an attachment assertion. See:
@@ -24,12 +24,12 @@ impl Assertion {
 
     /// Returns the `vendor` of the given attachment assertion.
     pub fn attachment_vendor(&self) -> anyhow::Result<String> {
-        self.object().extract_object_for_predicate::<String, KnownValue>(known_values::VENDOR)
+        self.object().extract_object_for_predicate(known_values::VENDOR)
     }
 
     /// Returns the `conformsTo` of the given attachment assertion.
     pub fn attachment_conforms_to(&self) -> anyhow::Result<Option<String>> {
-        self.object().extract_optional_object_for_predicate::<String, KnownValue>(known_values::CONFORMS_TO)
+        self.object().extract_optional_object_for_predicate(known_values::CONFORMS_TO)
     }
 
     /// Validates the given attachment assertion.

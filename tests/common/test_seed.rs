@@ -137,10 +137,10 @@ impl EnvelopeEncodable for &Seed {
 impl Seed {
     pub fn from_envelope(envelope: &Envelope) -> anyhow::Result<Self> {
         envelope.clone().check_type(&known_values::SEED_TYPE)?;
-        let data = envelope.clone().subject().leaf_or_error()?.expect_byte_string()?.to_vec();
-        let name = envelope.clone().extract_optional_object_for_predicate::<String, KnownValue>(known_values::HAS_NAME)?.unwrap_or_default().to_string();
-        let note = envelope.clone().extract_optional_object_for_predicate::<String, KnownValue>(known_values::NOTE)?.unwrap_or_default().to_string();
-        let creation_date: Option<dcbor::Date> = envelope.clone().extract_optional_object_for_predicate::<dcbor::Date, KnownValue>(known_values::DATE)?.map(|s| s.as_ref().clone());
+        let data = envelope.clone().subject().expect_leaf()?.expect_byte_string()?.to_vec();
+        let name = envelope.clone().extract_optional_object_for_predicate::<String>(known_values::HAS_NAME)?.unwrap_or_default().to_string();
+        let note = envelope.clone().extract_optional_object_for_predicate::<String>(known_values::NOTE)?.unwrap_or_default().to_string();
+        let creation_date: Option<dcbor::Date> = envelope.clone().extract_optional_object_for_predicate::<dcbor::Date>(known_values::DATE)?.map(|s| s.as_ref().clone());
         Ok(Self::new_opt(data, name, note, creation_date))
     }
 }

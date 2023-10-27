@@ -2,7 +2,7 @@ use anyhow::bail;
 use bc_components::tags;
 use dcbor::prelude::*;
 
-use crate::string_utils::StringUtils;
+use crate::{string_utils::StringUtils, Envelope};
 
 use super::FunctionsStore;
 
@@ -161,5 +161,19 @@ impl Function {
 impl std::fmt::Display for Function {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.description(None))
+    }
+}
+
+impl Envelope {
+    pub fn function(&self) -> anyhow::Result<Function> {
+        self.extract_subject()
+    }
+
+    pub fn check_function(&self, function: &Function) -> anyhow::Result<()> {
+        let envelope_function = self.function()?;
+        if envelope_function != *function {
+            bail!("unknown function");
+        }
+        Ok(())
     }
 }

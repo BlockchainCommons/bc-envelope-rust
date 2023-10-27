@@ -385,3 +385,12 @@ pub mod extension;
 pub mod prelude;
 
 mod string_utils;
+
+#[cfg(feature = "known_value")]
+pub use extension::known_values::{self, known_value, KnownValue, KNOWN_VALUES, KnownValuesStore};
+
+#[cfg(feature = "expression")]
+pub use extension::expression;
+
+#[cfg(feature = "expression")]
+pub use extension::expression::{functions, parameters, Function, Parameter};

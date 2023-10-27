@@ -32,6 +32,8 @@ fn test_compress() {
 #[cfg(feature = "signature")]
 #[test]
 fn test_compress_subject() {
+    use bc_envelope::known_values;
+
     let mut rng = make_fake_random_number_generator();
     let original = Envelope::new("Alice")
         .add_assertion(known_values::NOTE, SOURCE)

@@ -7,11 +7,7 @@ use super::envelope::EnvelopeCase;
 /// Support for adding assertions.
 impl Envelope {
     /// Returns the result of adding the given assertion to the envelope.
-    pub fn add_assertion<P, O>(&self, predicate: P, object: O) -> Self
-    where
-        P: EnvelopeEncodable,
-        O: EnvelopeEncodable,
-    {
+    pub fn add_assertion(&self, predicate: impl EnvelopeEncodable, object: impl EnvelopeEncodable) -> Self {
         let assertion = Self::new_assertion(predicate, object);
         self.add_optional_assertion_envelope(Some(assertion)).unwrap()
     }
@@ -67,11 +63,7 @@ impl Envelope {
 
     /// If the optional object is present, returns the result of adding the
     /// assertion to the envelope. Otherwise, returns the envelope unchanged.
-    pub fn add_optional_assertion<P, O>(&self, predicate: P, object: Option<O>) -> Self
-    where
-        P: EnvelopeEncodable,
-        O: EnvelopeEncodable,
-    {
+    pub fn add_optional_assertion(&self, predicate: impl EnvelopeEncodable, object: Option<impl EnvelopeEncodable>) -> Self {
         if let Some(object) = object {
             self.add_assertion_envelope(Self::new_assertion(predicate, object)).unwrap()
         } else {
@@ -88,6 +80,29 @@ impl Envelope {
             e = e.add_assertion_envelope(envelope.clone()).unwrap();
         }
         e.clone()
+    }
+}
+
+/// Support for adding conditional assertions.
+impl Envelope {
+    /// If the condition is true, returns the result of adding the given assertion to the envelope.
+    /// Otherwise, returns the envelope unchanged.
+    pub fn add_assertion_if(&self, condition: bool, predicate: impl EnvelopeEncodable, object: impl EnvelopeEncodable) -> Self {
+        if condition {
+            self.add_assertion(predicate, object)
+        } else {
+            self.clone()
+        }
+    }
+
+    /// If the condition is true, returns the result of adding the given assertion to the envelope.
+    /// Otherwise, returns the envelope unchanged.
+    pub fn add_assertion_envelope_if(&self, condition: bool, assertion_envelope: Self) -> Result<Self, EnvelopeError> {
+        if condition {
+            self.add_assertion_envelope(assertion_envelope)
+        } else {
+            Ok(self.clone())
+        }
     }
 }
 
