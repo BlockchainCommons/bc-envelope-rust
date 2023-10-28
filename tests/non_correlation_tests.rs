@@ -23,7 +23,7 @@ fn test_envelope_non_correlation() {
     ]
     "#}.trim());
 
-    assert_eq!(e2.clone().diagnostic_with_context(), indoc! {r#"
+    assert_eq!(e2.clone().diagnostic(), indoc! {r#"
     200(   / envelope /
        [
           24("Hello."),   / leaf /

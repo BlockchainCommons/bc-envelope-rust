@@ -16,7 +16,7 @@ fn test_digest() {
 fn test_1() -> Result<(), Box<dyn Error>> {
     let e = Envelope::new("Hello.");
 
-    assert_eq!(e.diagnostic_with_context(),
+    assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
        24("Hello.")   / leaf /
@@ -32,7 +32,7 @@ fn test_2() -> Result<(), Box<dyn Error>> {
     let array: Vec<u64> = vec![1, 2, 3];
     let e = Envelope::new(array.cbor());
 
-    assert_eq!(e.diagnostic_with_context(),
+    assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
        24(   / leaf /
@@ -62,7 +62,7 @@ fn test_3() -> Result<(), Box<dyn Error>> {
         "#}.trim()
     );
 
-    assert_eq!(e4.diagnostic_with_context(),
+    assert_eq!(e4.diagnostic(),
     indoc! {r#"
     200(   / envelope /
        [
@@ -97,7 +97,7 @@ fn test_3() -> Result<(), Box<dyn Error>> {
         "#}.trim()
     );
 
-    assert_eq!(e5.diagnostic_with_context(),
+    assert_eq!(e5.diagnostic(),
     indoc! {r#"
     200(   / envelope /
        [

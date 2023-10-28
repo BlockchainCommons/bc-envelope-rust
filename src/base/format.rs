@@ -32,19 +32,11 @@ impl Envelope {
 
     /// Returns the CBOR diagnostic notation for this envelope.
     ///
-    /// See [RFC-8949 §8](https://www.rfc-editor.org/rfc/rfc8949.html#name-diagnostic-notation)
-    /// for information on CBOR diagnostic notation.
-    pub fn diagnostic(&self) -> String {
-        self.diagnostic_opt(false, None)
-    }
-
-    /// Returns the CBOR diagnostic notation for this envelope.
-    ///
     /// Uses the current format context.
     ///
     /// See [RFC-8949 §8](https://www.rfc-editor.org/rfc/rfc8949.html#name-diagnostic-notation)
     /// for information on CBOR diagnostic notation.
-    pub fn diagnostic_with_context(&self) -> String {
+    pub fn diagnostic(&self) -> String {
         with_format_context!(|context| {
             self.diagnostic_opt(true, Some(context))
         })
@@ -60,19 +52,11 @@ impl Envelope {
 
     /// Returns the CBOR hex dump of this envelope.
     ///
-    /// See [RFC-8949](https://www.rfc-editor.org/rfc/rfc8949.html) for information on
-    /// the CBOR binary format.
-    pub fn hex(&self) -> String {
-        self.hex_opt(false, None)
-    }
-
-    /// Returns the CBOR hex dump of this envelope.
-    ///
     /// Uses the current format context.
     ///
     /// See [RFC-8949](https://www.rfc-editor.org/rfc/rfc8949.html) for information on
     /// the CBOR binary format.
-    pub fn hex_with_context(&self) -> String {
+    pub fn hex(&self) -> String {
         with_format_context!(|context| {
             self.hex_opt(true, Some(context))
         })

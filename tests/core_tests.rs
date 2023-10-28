@@ -10,7 +10,7 @@ use crate::common::check_encoding::*;
 fn test_int_subject() {
     let e = Envelope::new(42).check_encoding().unwrap();
 
-    assert_eq!(e.diagnostic_with_context(),
+    assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
        24(42)   / leaf /
@@ -33,7 +33,7 @@ fn test_int_subject() {
 fn test_negative_int_subject() {
     let e = Envelope::new(-42).check_encoding().unwrap();
 
-    assert_eq!(e.diagnostic_with_context(),
+    assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
        24(-42)   / leaf /
@@ -55,7 +55,7 @@ fn test_negative_int_subject() {
 #[test]
 fn test_cbor_encodable_subject() {
     let e = hello_envelope().check_encoding().unwrap();
-    assert_eq!(e.diagnostic_with_context(),
+    assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
        24("Hello.")   / leaf /
@@ -79,7 +79,7 @@ fn test_cbor_encodable_subject() {
 fn test_known_value_subject() {
     let e = known_value_envelope().check_encoding().unwrap();
 
-    assert_eq!(e.diagnostic_with_context(),
+    assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(4)   / envelope /
     "#}.trim()
@@ -105,7 +105,7 @@ fn test_assertion_subject() {
     assert_eq!(e.clone().subject().digest().to_string(), "Digest(78d666eb8f4c0977a0425ab6aa21ea16934a6bc97c6f0c3abaefac951c1714a2)");
     assert_eq!(e.digest().to_string(), "Digest(78d666eb8f4c0977a0425ab6aa21ea16934a6bc97c6f0c3abaefac951c1714a2)");
 
-    assert_eq!(e.diagnostic_with_context(),
+    assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
        {
@@ -129,7 +129,7 @@ fn test_assertion_subject() {
 fn test_subject_with_assertion() {
     let e = single_assertion_envelope().check_encoding().unwrap();
 
-    assert_eq!(e.diagnostic_with_context(),
+    assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
        [
@@ -160,7 +160,7 @@ fn test_subject_with_assertion() {
 fn test_subject_with_two_assertions() {
     let e = double_assertion_envelope().check_encoding().unwrap();
 
-    assert_eq!(e.diagnostic_with_context(),
+    assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
        [
@@ -196,7 +196,7 @@ fn test_subject_with_two_assertions() {
 fn test_wrapped() {
     let e = wrapped_envelope().check_encoding().unwrap();
 
-    assert_eq!(e.diagnostic_with_context(),
+    assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
        200(   / envelope /
@@ -221,7 +221,7 @@ fn test_wrapped() {
 fn test_double_wrapped() {
     let e = double_wrapped_envelope().check_encoding().unwrap();
 
-    assert_eq!(e.diagnostic_with_context(),
+    assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
        200(   / envelope /
@@ -280,7 +280,7 @@ fn test_digest_leaf() {
 
     assert_eq!(e.digest().to_string(), "Digest(07b518af92a6196bc153752aabefedb34ff8e1a7d820c01ef978dfc3e7e52e05)");
 
-    assert_eq!(e.diagnostic_with_context(),
+    assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
        24(   / leaf /
