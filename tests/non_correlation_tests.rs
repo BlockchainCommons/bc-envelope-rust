@@ -37,7 +37,7 @@ fn test_envelope_non_correlation() {
     )
     "#}.trim());
 
-    assert_eq!(e2.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(e2.clone().tree_format(false), indoc! {r#"
     4f0f2d55 NODE
         8cc96cdb subj "Hello."
         dd412f1d ASSERTION

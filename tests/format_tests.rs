@@ -25,13 +25,13 @@ fn test_plaintext() {
     assert_eq!(envelope.format(), indoc! {r#"
     "Hello."
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(false), indoc! {r#"
     8cc96cdb "Hello."
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(true), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(true), indoc! {r#"
     "Hello."
     "#}.trim());
-    assert_eq!(envelope.elements_count(), envelope.tree_format_with_context(false).split('\n').count());
+    assert_eq!(envelope.elements_count(), envelope.tree_format(false).split('\n').count());
 }
 
 #[cfg(feature = "signature")]
@@ -45,20 +45,20 @@ fn test_signed_plaintext() {
         'verifiedBy': Signature
     ]
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(false), indoc! {r#"
     509d8ab2 NODE
         8cc96cdb subj "Hello."
         f761face ASSERTION
             d0e39e78 pred 'verifiedBy'
             0d868228 obj Signature
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(true), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(true), indoc! {r#"
     "Hello."
         ASSERTION
             'verifiedBy'
             Signature
     "#}.trim());
-    assert_eq!(envelope.elements_count(), envelope.tree_format_with_context(false).split('\n').count());
+    assert_eq!(envelope.elements_count(), envelope.tree_format(false).split('\n').count());
 }
 
 #[cfg(feature = "encrypt")]
@@ -73,20 +73,20 @@ fn test_encrypt_subject() {
         "knows": "Bob"
     ]
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(false), indoc! {r#"
     8955db5e NODE
         13941b48 subj ENCRYPTED
         78d666eb ASSERTION
             db7dd21c pred "knows"
             13b74194 obj "Bob"
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(true), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(true), indoc! {r#"
     ENCRYPTED
         ASSERTION
             "knows"
             "Bob"
     "#}.trim());
-    assert_eq!(envelope.elements_count(), envelope.tree_format_with_context(false).split('\n').count());
+    assert_eq!(envelope.elements_count(), envelope.tree_format(false).split('\n').count());
 }
 
 #[test]
@@ -95,17 +95,17 @@ fn test_top_level_assertion() {
     assert_eq!(envelope.format(), indoc! {r#"
     "knows": "Bob"
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(false), indoc! {r#"
     78d666eb ASSERTION
         db7dd21c pred "knows"
         13b74194 obj "Bob"
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(true), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(true), indoc! {r#"
     ASSERTION
         "knows"
         "Bob"
     "#}.trim());
-    assert_eq!(envelope.elements_count(), envelope.tree_format_with_context(false).split('\n').count());
+    assert_eq!(envelope.elements_count(), envelope.tree_format(false).split('\n').count());
 }
 
 #[test]
@@ -118,20 +118,20 @@ fn test_elided_object() {
         "knows": ELIDED
     ]
     "#}.trim());
-    assert_eq!(elided.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(elided.clone().tree_format(false), indoc! {r#"
     8955db5e NODE
         13941b48 subj "Alice"
         78d666eb ASSERTION
             db7dd21c pred "knows"
             13b74194 obj ELIDED
     "#}.trim());
-    assert_eq!(elided.clone().tree_format_with_context(true), indoc! {r#"
+    assert_eq!(elided.clone().tree_format(true), indoc! {r#"
     "Alice"
         ASSERTION
             "knows"
             ELIDED
     "#}.trim());
-    assert_eq!(elided.elements_count(), elided.tree_format_with_context(false).split('\n').count());
+    assert_eq!(elided.elements_count(), elided.tree_format(false).split('\n').count());
 }
 
 #[cfg(feature = "signature")]
@@ -149,7 +149,7 @@ fn test_signed_subject() {
         'verifiedBy': Signature
     ]
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(false), indoc! {r#"
     98457ac2 NODE
         13941b48 subj "Alice"
         4012caf2 ASSERTION
@@ -162,7 +162,7 @@ fn test_signed_subject() {
             db7dd21c pred "knows"
             13b74194 obj "Bob"
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(true), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(true), indoc! {r#"
     "Alice"
         ASSERTION
             "knows"
@@ -174,7 +174,7 @@ fn test_signed_subject() {
             "knows"
             "Bob"
     "#}.trim());
-    assert_eq!(envelope.elements_count(), envelope.clone().tree_format_with_context(false).split('\n').count());
+    assert_eq!(envelope.elements_count(), envelope.clone().tree_format(false).split('\n').count());
 
     // Elided assertions
     let mut target: HashSet<Digest> = HashSet::new();
@@ -186,20 +186,20 @@ fn test_signed_subject() {
         ELIDED (3)
     ]
     "#}.trim());
-    assert_eq!(elided.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(elided.clone().tree_format(false), indoc! {r#"
     98457ac2 NODE
         13941b48 subj "Alice"
         4012caf2 ELIDED
         6c31d926 ELIDED
         78d666eb ELIDED
 "#}.trim());
-    assert_eq!(elided.clone().tree_format_with_context(true), indoc! {r#"
+    assert_eq!(elided.clone().tree_format(true), indoc! {r#"
     "Alice"
         ELIDED
         ELIDED
         ELIDED
     "#}.trim());
-    assert_eq!(elided.elements_count(), elided.clone().tree_format_with_context(false).split('\n').count());
+    assert_eq!(elided.elements_count(), elided.clone().tree_format(false).split('\n').count());
 }
 
 #[cfg(feature = "signature")]
@@ -221,7 +221,7 @@ fn test_wrap_then_signed() {
         'verifiedBy': Signature
     ]
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(false), indoc! {r#"
     410ba52c NODE
         9e3b0673 subj WRAPPED
             b8d857f6 subj NODE
@@ -236,7 +236,7 @@ fn test_wrap_then_signed() {
             d0e39e78 pred 'verifiedBy'
             d08ddb0d obj Signature
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(true), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(true), indoc! {r#"
     WRAPPED
         "Alice"
             ASSERTION
@@ -249,7 +249,7 @@ fn test_wrap_then_signed() {
             'verifiedBy'
             Signature
     "#}.trim());
-    assert_eq!(envelope.elements_count(), envelope.clone().tree_format_with_context(false).split('\n').count());
+    assert_eq!(envelope.elements_count(), envelope.clone().tree_format(false).split('\n').count());
 }
 
 #[cfg(feature = "recipient")]
@@ -267,7 +267,7 @@ fn test_encrypt_to_recipients() {
         'hasRecipient': SealedMessage
     ]
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(false), indoc! {r#"
     310c90f6 NODE
         8cc96cdb subj ENCRYPTED
         93f3bf1d ASSERTION
@@ -277,7 +277,7 @@ fn test_encrypt_to_recipients() {
             943a35d1 pred 'hasRecipient'
             78a28897 obj SealedMessage
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(true), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(true), indoc! {r#"
     ENCRYPTED
         ASSERTION
             'hasRecipient'
@@ -286,7 +286,7 @@ fn test_encrypt_to_recipients() {
             'hasRecipient'
             SealedMessage
     "#}.trim());
-    assert_eq!(envelope.elements_count(), envelope.clone().tree_format_with_context(false).split('\n').count());
+    assert_eq!(envelope.elements_count(), envelope.clone().tree_format(false).split('\n').count());
 }
 
 #[test]
@@ -308,7 +308,7 @@ fn test_assertion_positions() {
         ]
     ]
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(false), indoc! {r#"
     e06d7003 NODE
         8e4e62eb subj "subject"
         91a436e0 ASSERTION
@@ -323,7 +323,7 @@ fn test_assertion_positions() {
                     88bb262f pred "object-predicate"
                     0bdb89a6 obj "object-object"
     "#}.trim());
-    assert_eq!(envelope.clone().tree_format_with_context(true), indoc! {r#"
+    assert_eq!(envelope.clone().tree_format(true), indoc! {r#"
     "subject"
         ASSERTION
             "predicate"
@@ -335,7 +335,7 @@ fn test_assertion_positions() {
                     "object-predicate"
                     "object-object"
     "#}.trim());
-    assert_eq!(envelope.elements_count(), envelope.clone().tree_format_with_context(false).split('\n').count());
+    assert_eq!(envelope.elements_count(), envelope.clone().tree_format(false).split('\n').count());
 }
 
 #[cfg(feature = "known_value")]
@@ -397,7 +397,7 @@ fn test_complex_metadata() {
     ]
     "#}.trim());
 
-    assert_eq!(book_metadata.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(book_metadata.clone().tree_format(false), indoc! {r#"
     c93370e7 NODE
         0c1e45b9 subj Digest(26d05af5)
         83b00bef ASSERTION
@@ -445,7 +445,7 @@ fn test_complex_metadata() {
                             6700869c obj "en"
     "#}.trim());
 
-    assert_eq!(book_metadata.clone().tree_format_with_context(true), indoc! {r#"
+    assert_eq!(book_metadata.clone().tree_format(true), indoc! {r#"
     Digest(26d05af5)
         ASSERTION
             'dereferenceVia'
@@ -487,7 +487,7 @@ fn test_complex_metadata() {
                             'language'
                             "en"
     "#}.trim());
-    assert_eq!(book_metadata.elements_count(), book_metadata.clone().tree_format_with_context(false).split('\n').count());
+    assert_eq!(book_metadata.elements_count(), book_metadata.clone().tree_format(false).split('\n').count());
 }
 
 #[cfg(feature = "signature")]
@@ -539,7 +539,7 @@ fn test_credential() {
         'verifiedBy': Signature
     ]
     "#}.trim());
-    assert_eq!(credential.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(credential.clone().tree_format(false), indoc! {r#"
     11d52de3 NODE
         397a2d4c subj WRAPPED
             8122ffa9 subj NODE
@@ -590,7 +590,7 @@ fn test_credential() {
             0fcd6a39 pred 'note'
             f106bad1 obj "Signed by Example Electrical Engineering…"
     "#}.trim());
-    assert_eq!(credential.clone().tree_format_with_context(true), indoc! {r#"
+    assert_eq!(credential.clone().tree_format(true), indoc! {r#"
     WRAPPED
         ARID(4676635a)
             ASSERTION
@@ -639,7 +639,7 @@ fn test_credential() {
             'note'
             "Signed by Example Electrical Engineering…"
     "#}.trim());
-    assert_eq!(credential.elements_count(), credential.tree_format_with_context(false).split('\n').count());
+    assert_eq!(credential.elements_count(), credential.tree_format(false).split('\n').count());
 }
 
 #[cfg(feature = "signature")]
@@ -698,7 +698,7 @@ fn test_redacted_credential() {
         'verifiedBy': Signature
     ]
     "#}.trim());
-    assert_eq!(warranty.clone().tree_format_with_context(false), indoc! {r#"
+    assert_eq!(warranty.clone().tree_format(false), indoc! {r#"
     a816c8ce NODE
         d4a527ac subj WRAPPED
             3e2b6cab subj NODE
@@ -751,7 +751,7 @@ fn test_redacted_credential() {
             0fcd6a39 pred 'note'
             f59806d2 obj "Signed by Employer Corp."
     "#}.trim());
-    assert_eq!(warranty.clone().tree_format_with_context(true), indoc! {r#"
+    assert_eq!(warranty.clone().tree_format(true), indoc! {r#"
     WRAPPED
         WRAPPED
             WRAPPED
@@ -800,5 +800,5 @@ fn test_redacted_credential() {
             'note'
             "Signed by Employer Corp."
     "#}.trim());
-    assert_eq!(warranty.elements_count(), warranty.tree_format_with_context(false).split('\n').count());
+    assert_eq!(warranty.elements_count(), warranty.tree_format(false).split('\n').count());
 }

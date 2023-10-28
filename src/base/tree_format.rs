@@ -11,16 +11,16 @@ use super::{walk::EdgeType, EnvelopeSummary, envelope::EnvelopeCase};
 /// Support for tree-formatting envelopes.
 impl Envelope {
     pub fn tree_format_opt(&self, hide_nodes: bool, context: Option<&FormatContext>) -> String {
-        self.tree_format_with_target(hide_nodes, &HashSet::new(), context)
+        self.tree_format_with_target_opt(hide_nodes, &HashSet::new(), context)
     }
 
-    pub fn tree_format_with_context(&self, hide_nodes: bool) -> String {
+    pub fn tree_format(&self, hide_nodes: bool) -> String {
         with_format_context!(|context| {
             self.tree_format_opt(hide_nodes, Some(context))
         })
     }
 
-    pub fn tree_format_with_target(&self, hide_nodes: bool, highlighting_target: &HashSet<Digest>, context: Option<&FormatContext>) -> String {
+    pub fn tree_format_with_target_opt(&self, hide_nodes: bool, highlighting_target: &HashSet<Digest>, context: Option<&FormatContext>) -> String {
         let elements: RefCell<Vec<TreeElement>> = RefCell::new(Vec::new());
         let visitor = |envelope: Self, level: usize, incoming_edge: EdgeType, _: Option<&()>| -> _ {
             let elem = TreeElement::new(
@@ -37,6 +37,12 @@ impl Envelope {
         s.walk(hide_nodes, &visitor);
         let elements = elements.borrow();
         elements.iter().map(|e| e.string(context.unwrap_or(&FormatContext::default()))).collect::<Vec<_>>().join("\n")
+    }
+
+    pub fn tree_format_with_target(&self, hide_nodes: bool, highlighting_target: &HashSet<Digest>) -> String {
+        with_format_context!(|context| {
+            self.tree_format_with_target_opt(hide_nodes, highlighting_target, Some(context))
+        })
     }
 }
 
