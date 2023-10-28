@@ -14,14 +14,9 @@ impl Envelope {
     }
 
     /// Returns the envelope notation for this envelope.
-    pub fn format(&self) -> String {
-        self.format_opt(None)
-    }
-
-    /// Returns the envelope notation for this envelope.
     ///
     /// Uses the current format context.
-    pub fn format_with_context(&self) -> String {
+    pub fn format(&self) -> String {
         with_format_context!(|context| {
             self.format_opt(Some(context))
         })

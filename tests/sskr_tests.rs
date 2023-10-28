@@ -42,7 +42,7 @@ fn test_sskr() -> anyhow::Result<()> {
         'sskrShare': SSKRShare
     ]
     "#}.trim();
-    assert_eq!(sent_envelopes[0].format_with_context(), expected_format);
+    assert_eq!(sent_envelopes[0].format(), expected_format);
 
     // Dan sends one envelope to each of Alice, Bob, and Carol.
 

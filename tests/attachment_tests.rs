@@ -19,7 +19,7 @@ fn test_attachment() -> anyhow::Result<()> {
         .add_attachment("Attachment Data V1", "com.example", Some("https://example.com/seed-attachment/v1"))
         .add_attachment("Attachment Data V2", "com.example", Some("https://example.com/seed-attachment/v2"));
 
-    assert_eq!(seed_envelope.format_with_context(),
+    assert_eq!(seed_envelope.format(),
     indoc! {r#"
     Bytes(16) [
         'isA': 'Seed'
@@ -52,7 +52,7 @@ fn test_attachment() -> anyhow::Result<()> {
 
     let v1_attachment = seed_envelope.clone().attachment_with_vendor_and_conforms_to(None, Some("https://example.com/seed-attachment/v1"))?;
     let payload = v1_attachment.clone().attachment_payload()?;
-    assert_eq!(payload.format_with_context(),
+    assert_eq!(payload.format(),
     indoc! {r#"
     "Attachment Data V1"
     "#}.trim()
