@@ -1,6 +1,6 @@
 use bc_components::{Digest, ARID};
 use dcbor::prelude::*;
-use crate::{Envelope, Assertion, string_utils::StringUtils, FormatContext};
+use crate::{Envelope, Assertion, string_utils::StringUtils, FormatContext, with_format_context};
 #[cfg(feature = "known_value")]
 use crate::extension::{KnownValue, known_values};
 
@@ -16,6 +16,15 @@ impl Envelope {
     /// Returns the envelope notation for this envelope.
     pub fn format(&self) -> String {
         self.format_opt(None)
+    }
+
+    /// Returns the envelope notation for this envelope.
+    ///
+    /// Uses the current format context.
+    pub fn format_with_context(&self) -> String {
+        with_format_context!(|context| {
+            self.format_opt(Some(context))
+        })
     }
 
     /// Returns the CBOR diagnostic notation for this envelope.
@@ -34,6 +43,18 @@ impl Envelope {
         self.diagnostic_opt(false, None)
     }
 
+    /// Returns the CBOR diagnostic notation for this envelope.
+    ///
+    /// Uses the current format context.
+    ///
+    /// See [RFC-8949 §8](https://www.rfc-editor.org/rfc/rfc8949.html#name-diagnostic-notation)
+    /// for information on CBOR diagnostic notation.
+    pub fn diagnostic_with_context(&self) -> String {
+        with_format_context!(|context| {
+            self.diagnostic_opt(true, Some(context))
+        })
+    }
+
     /// Returns the CBOR hex dump of this envelope.
     ///
     /// See [RFC-8949](https://www.rfc-editor.org/rfc/rfc8949.html) for information on
@@ -48,6 +69,18 @@ impl Envelope {
     /// the CBOR binary format.
     pub fn hex(&self) -> String {
         self.hex_opt(false, None)
+    }
+
+    /// Returns the CBOR hex dump of this envelope.
+    ///
+    /// Uses the current format context.
+    ///
+    /// See [RFC-8949](https://www.rfc-editor.org/rfc/rfc8949.html) for information on
+    /// the CBOR binary format.
+    pub fn hex_with_context(&self) -> String {
+        with_format_context!(|context| {
+            self.hex_opt(true, Some(context))
+        })
     }
 }
 

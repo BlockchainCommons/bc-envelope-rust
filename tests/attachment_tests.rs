@@ -19,29 +19,27 @@ fn test_attachment() -> anyhow::Result<()> {
         .add_attachment("Attachment Data V1", "com.example", Some("https://example.com/seed-attachment/v1"))
         .add_attachment("Attachment Data V2", "com.example", Some("https://example.com/seed-attachment/v2"));
 
-    with_format_context!(|context| {
-        assert_eq!(seed_envelope.format_opt(Some(context)),
-        indoc! {r#"
-        Bytes(16) [
-            'isA': 'Seed'
-            'attachment': {
-                "Attachment Data V1"
-            } [
-                'conformsTo': "https://example.com/seed-attachment/v1"
-                'vendor': "com.example"
-            ]
-            'attachment': {
-                "Attachment Data V2"
-            } [
-                'conformsTo': "https://example.com/seed-attachment/v2"
-                'vendor': "com.example"
-            ]
-            'hasName': "Alice's Seed"
-            'note': "This is the note."
+    assert_eq!(seed_envelope.format_with_context(),
+    indoc! {r#"
+    Bytes(16) [
+        'isA': 'Seed'
+        'attachment': {
+            "Attachment Data V1"
+        } [
+            'conformsTo': "https://example.com/seed-attachment/v1"
+            'vendor': "com.example"
         ]
-        "#}.trim()
-        );
-    });
+        'attachment': {
+            "Attachment Data V2"
+        } [
+            'conformsTo': "https://example.com/seed-attachment/v2"
+            'vendor': "com.example"
+        ]
+        'hasName': "Alice's Seed"
+        'note': "This is the note."
+    ]
+    "#}.trim()
+    );
 
     assert_eq!(seed_envelope.clone().attachments()?.len(), 2);
 
@@ -54,13 +52,11 @@ fn test_attachment() -> anyhow::Result<()> {
 
     let v1_attachment = seed_envelope.clone().attachment_with_vendor_and_conforms_to(None, Some("https://example.com/seed-attachment/v1"))?;
     let payload = v1_attachment.clone().attachment_payload()?;
-    with_format_context!(|context| {
-        assert_eq!(payload.format_opt(Some(context)),
-        indoc! {r#"
-        "Attachment Data V1"
-        "#}.trim()
-        );
-    });
+    assert_eq!(payload.format_with_context(),
+    indoc! {r#"
+    "Attachment Data V1"
+    "#}.trim()
+    );
     assert_eq!(v1_attachment.clone().attachment_vendor()?, "com.example");
     assert_eq!(v1_attachment.attachment_conforms_to()?, Some("https://example.com/seed-attachment/v1".to_string()));
 

@@ -37,14 +37,12 @@ fn test_sskr() -> anyhow::Result<()> {
     let sent_envelopes: Vec<_> = envelopes.into_iter().flatten().collect();
     let sent_urs: Vec<_> = sent_envelopes.iter().map(|e| e.ur()).collect();
 
-    with_format_context!(|context| {
-        let expected_format = indoc! {r#"
-        ENCRYPTED [
-            'sskrShare': SSKRShare
-        ]
-        "#}.trim();
-        assert_eq!(sent_envelopes[0].format_opt(Some(context)), expected_format);
-    });
+    let expected_format = indoc! {r#"
+    ENCRYPTED [
+        'sskrShare': SSKRShare
+    ]
+    "#}.trim();
+    assert_eq!(sent_envelopes[0].format_with_context(), expected_format);
 
     // Dan sends one envelope to each of Alice, Bob, and Carol.
 

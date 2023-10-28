@@ -21,6 +21,6 @@ pub use parameters::*;
 mod expression_impl;
 
 pub mod request;
-pub use request::Request;
+pub use request::{Request, RequestBody};
 pub mod response;
 pub use response::Response;

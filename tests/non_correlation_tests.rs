@@ -23,23 +23,21 @@ fn test_envelope_non_correlation() {
     ]
     "#}.trim());
 
-    with_format_context!(|context| {
-        assert_eq!(e2.clone().diagnostic_opt(true, Some(context)), indoc! {r#"
-        200(   / envelope /
-           [
-              24("Hello."),   / leaf /
-              {
-                 15:
-                 24(   / leaf /
-                    40018(h'b559bbbf6cce2632')   / salt /
-                 )
-              }
-           ]
-        )
-        "#}.trim());
-    });
+    assert_eq!(e2.clone().diagnostic_with_context(), indoc! {r#"
+    200(   / envelope /
+       [
+          24("Hello."),   / leaf /
+          {
+             15:
+             24(   / leaf /
+                40018(h'b559bbbf6cce2632')   / salt /
+             )
+          }
+       ]
+    )
+    "#}.trim());
 
-    assert_eq!(e2.clone().tree_format(false), indoc! {r#"
+    assert_eq!(e2.clone().tree_format_with_context(false), indoc! {r#"
     4f0f2d55 NODE
         8cc96cdb subj "Hello."
         dd412f1d ASSERTION

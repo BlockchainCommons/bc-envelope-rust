@@ -14,7 +14,7 @@ impl Envelope {
         self.tree_format_with_target(hide_nodes, &HashSet::new(), context)
     }
 
-    pub fn tree_format(&self, hide_nodes: bool) -> String {
+    pub fn tree_format_with_context(&self, hide_nodes: bool) -> String {
         with_format_context!(|context| {
             self.tree_format_opt(hide_nodes, Some(context))
         })

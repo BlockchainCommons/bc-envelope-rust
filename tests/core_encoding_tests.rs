@@ -16,15 +16,13 @@ fn test_digest() {
 fn test_1() -> Result<(), Box<dyn Error>> {
     let e = Envelope::new("Hello.");
 
-    with_format_context!(|context| {
-        assert_eq!(e.diagnostic_opt(true, Some(context)),
-        indoc! {r#"
-        200(   / envelope /
-           24("Hello.")   / leaf /
-        )
-        "#}.trim()
-        );
-    });
+    assert_eq!(e.diagnostic_with_context(),
+    indoc! {r#"
+    200(   / envelope /
+       24("Hello.")   / leaf /
+    )
+    "#}.trim()
+    );
 
     Ok(())
 }
@@ -34,17 +32,15 @@ fn test_2() -> Result<(), Box<dyn Error>> {
     let array: Vec<u64> = vec![1, 2, 3];
     let e = Envelope::new(array.cbor());
 
-    with_format_context!(|context| {
-        assert_eq!(e.diagnostic_opt(true, Some(context)),
-        indoc! {r#"
-        200(   / envelope /
-           24(   / leaf /
-              [1, 2, 3]
-           )
-        )
-        "#}.trim()
-        );
-    });
+    assert_eq!(e.diagnostic_with_context(),
+    indoc! {r#"
+    200(   / envelope /
+       24(   / leaf /
+          [1, 2, 3]
+       )
+    )
+    "#}.trim()
+    );
 
     Ok(())
 }
@@ -66,24 +62,22 @@ fn test_3() -> Result<(), Box<dyn Error>> {
         "#}.trim()
     );
 
-    with_format_context!(|context| {
-        assert_eq!(e4.diagnostic_opt(true, Some(context)),
-        indoc! {r#"
-        200(   / envelope /
-           [
-              {
-                 24("C"):   / leaf /
-                 24("D")   / leaf /
-              },
-              {
-                 24("E"):   / leaf /
-                 24("F")   / leaf /
-              }
-           ]
-        )
-        "#}.trim()
-        );
-    });
+    assert_eq!(e4.diagnostic_with_context(),
+    indoc! {r#"
+    200(   / envelope /
+       [
+          {
+             24("C"):   / leaf /
+             24("D")   / leaf /
+          },
+          {
+             24("E"):   / leaf /
+             24("F")   / leaf /
+          }
+       ]
+    )
+    "#}.trim()
+    );
 
     e4.clone().check_encoding()?;
 
@@ -103,30 +97,28 @@ fn test_3() -> Result<(), Box<dyn Error>> {
         "#}.trim()
     );
 
-    with_format_context!(|context| {
-        assert_eq!(e5.diagnostic_opt(true, Some(context)),
-        indoc! {r#"
-        200(   / envelope /
-           [
-              {
-                 24("A"):   / leaf /
-                 24("B")   / leaf /
-              },
-              [
-                 {
-                    24("C"):   / leaf /
-                    24("D")   / leaf /
-                 },
-                 {
-                    24("E"):   / leaf /
-                    24("F")   / leaf /
-                 }
-              ]
-           ]
-        )
-        "#}.trim()
-        );
-    });
+    assert_eq!(e5.diagnostic_with_context(),
+    indoc! {r#"
+    200(   / envelope /
+       [
+          {
+             24("A"):   / leaf /
+             24("B")   / leaf /
+          },
+          [
+             {
+                24("C"):   / leaf /
+                24("D")   / leaf /
+             },
+             {
+                24("E"):   / leaf /
+                24("F")   / leaf /
+             }
+          ]
+       ]
+    )
+    "#}.trim()
+    );
 
     Ok(())
 }

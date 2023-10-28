@@ -4,6 +4,9 @@ use crate::{Envelope, EnvelopeEncodable, EnvelopeDecodable, EnvelopeCodable};
 
 use super::Function;
 
+#[cfg(feature = "encrypt")]
+use bc_components::{PrivateKeyBase, PublicKeyBase};
+
 pub trait RequestBody: EnvelopeCodable {
     fn function() -> Function;
 }
@@ -47,43 +50,22 @@ impl<Body: RequestBody> Request<Body> {
     pub fn date(&self) -> Option<&dcbor::Date> {
         self.date.as_ref()
     }
+}
 
-    pub fn encrypt(self, sender: &PrivateKeyBase, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
-        Ok(self.envelope()
+#[cfg(all(feature = "signature", feature = "encrypt"))]
+impl Envelope {
+    pub fn sign_and_encrypt(&self, sender: &PrivateKeyBase, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
+        Ok(self
             .wrap_envelope()
             .sign_with(sender)
             .encrypt_subject_to_recipient(recipient)?)
     }
-}
 
-#[cfg(feature = "encrypt")]
-use bc_components::{PrivateKeyBase, PublicKeyBase};
-
-#[cfg(feature = "encrypt")]
-impl<Body: RequestBody> Request<Body> {
-    pub fn new_encrypted_request(
-        id: Option<ARID>,
-        body: Body,
-        note: String,
-        date: Option<dcbor::Date>,
-        sender: PrivateKeyBase,
-        recipient: PublicKeyBase
-    ) -> Envelope {
-        let request = Request::new(id, body, note, date);
-        request.envelope()
-            .wrap_envelope()
-            .sign_with(&sender)
-            .encrypt_subject_to_recipient(&recipient).unwrap()
-    }
-
-    pub fn parse_encrypted_request(request: Envelope, recipient: PrivateKeyBase) -> anyhow::Result<Request<Body>> {
-        let decrypted_request = request
-            .decrypt_to_recipient(&recipient)?
-            .unwrap_envelope()?;
-
-        let request = Request::from_envelope(decrypted_request)?;
-
-        Ok(request)
+    pub fn verify_and_decrypt(&self, sender: &PublicKeyBase, recipient: &PrivateKeyBase) -> anyhow::Result<Envelope> {
+        self
+            .decrypt_to_recipient(recipient)?
+            .unwrap_envelope()?
+            .verify_signature_from(sender)
     }
 }
 
@@ -122,8 +104,6 @@ impl<Body: RequestBody> EnvelopeDecodable for Request<Body> {
     }
 }
 
-impl<Body: RequestBody> EnvelopeCodable for Request<Body> {}
-
 impl<Body: RequestBody> TryFrom<Envelope> for Request<Body> {
     type Error = anyhow::Error;
 
@@ -131,3 +111,5 @@ impl<Body: RequestBody> TryFrom<Envelope> for Request<Body> {
         Self::from_envelope(value)
     }
 }
+
+impl<Body: RequestBody> EnvelopeCodable for Request<Body> {}
