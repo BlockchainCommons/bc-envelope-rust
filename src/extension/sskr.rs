@@ -5,7 +5,7 @@ pub use bc_components::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret, SSKRErro
 use bc_components::{sskr_generate_using, sskr_combine, SymmetricKey};
 use bc_rand::RandomNumberGenerator;
 
-use crate::{Envelope, EnvelopeError, impl_envelope_encodable};
+use crate::{Envelope, EnvelopeError, EnvelopeEncodable, impl_envelope_encodable};
 #[cfg(feature = "known_value")]
 use crate::extension::known_values;
 

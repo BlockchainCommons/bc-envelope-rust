@@ -2,7 +2,7 @@ use anyhow::bail;
 use bc_components::tags;
 use dcbor::prelude::*;
 
-use crate::{string_utils::StringUtils, Envelope};
+use crate::{string_utils::StringUtils, Envelope, EnvelopeEncodable, impl_envelope_encodable};
 
 use super::FunctionsStore;
 
@@ -172,8 +172,10 @@ impl Envelope {
     pub fn check_function(&self, function: &Function) -> anyhow::Result<()> {
         let envelope_function = self.function()?;
         if envelope_function != *function {
-            bail!("unknown function");
+            anyhow::bail!("Expected function {:?}, got {:?}", function, envelope_function);
         }
         Ok(())
     }
 }
+
+impl_envelope_encodable!(Function);

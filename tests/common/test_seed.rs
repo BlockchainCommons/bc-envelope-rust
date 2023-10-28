@@ -134,6 +134,12 @@ impl EnvelopeEncodable for &Seed {
     }
 }
 
+impl From<&Seed> for Envelope {
+    fn from(value: &Seed) -> Self {
+        value.envelope()
+    }
+}
+
 impl Seed {
     pub fn from_envelope(envelope: &Envelope) -> anyhow::Result<Self> {
         envelope.clone().check_type(&known_values::SEED_TYPE)?;

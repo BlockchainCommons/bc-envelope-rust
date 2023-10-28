@@ -39,6 +39,12 @@ impl EnvelopeEncodable for Response {
     }
 }
 
+impl From<Response> for Envelope {
+    fn from(response: Response) -> Self {
+        response.envelope()
+    }
+}
+
 impl EnvelopeDecodable for Response {
     fn from_envelope(envelope: Envelope) -> anyhow::Result<Self>
     where
@@ -51,12 +57,6 @@ impl EnvelopeDecodable for Response {
 }
 
 impl EnvelopeCodable for Response {}
-
-impl From<Response> for Envelope {
-    fn from(value: Response) -> Self {
-        value.envelope()
-    }
-}
 
 impl TryFrom<Envelope> for Response {
     type Error = anyhow::Error;

@@ -1,6 +1,6 @@
 use crate::Envelope;
 
-pub trait EnvelopeDecodable {
+pub trait EnvelopeDecodable: TryFrom<Envelope> {
     fn from_envelope(envelope: Envelope) -> anyhow::Result<Self>
     where
         Self: Sized;

@@ -1,7 +1,7 @@
 use anyhow::bail;
 use bc_components::tags;
 use dcbor::prelude::*;
-use crate::{string_utils::StringUtils, impl_envelope_encodable};
+use crate::{string_utils::StringUtils, impl_envelope_encodable, EnvelopeEncodable};
 
 use super::ParametersStore;
 

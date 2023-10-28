@@ -97,6 +97,12 @@ impl EnvelopeEncodable for KnownValue {
     }
 }
 
+impl From<KnownValue> for Envelope {
+    fn from(known_value: KnownValue) -> Self {
+        known_value.envelope()
+    }
+}
+
 impl DigestProvider for KnownValue {
     fn digest(&self) -> Cow<'_, Digest> {
         Cow::Owned(Digest::from_image(self.tagged_cbor().cbor_data()))

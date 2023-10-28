@@ -20,11 +20,7 @@ pub struct Assertion {
 
 impl Assertion {
     /// Creates an assertion and calculates its digest.
-    pub fn new<P, O>(predicate: P, object: O) -> Self
-    where
-        P: EnvelopeEncodable,
-        O: EnvelopeEncodable,
-    {
+    pub fn new(predicate: impl EnvelopeEncodable, object: impl EnvelopeEncodable) -> Self {
         let predicate = Envelope::new(predicate);
         let object = Envelope::new(object);
         let digest = Digest::from_digests(&[

@@ -1,8 +1,6 @@
 use std::sync::{Once, Mutex};
 use paste::paste;
 
-use crate::impl_envelope_encodable;
-
 use super::{Function, FunctionsStore};
 
 /// A macro that declares a function at compile time.
@@ -47,5 +45,3 @@ pub static GLOBAL_FUNCTIONS: LazyFunctions = LazyFunctions {
     init: Once::new(),
     data: Mutex::new(None),
 };
-
-impl_envelope_encodable!(Function);

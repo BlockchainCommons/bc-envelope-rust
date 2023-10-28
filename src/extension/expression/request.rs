@@ -1,36 +1,38 @@
 use bc_components::ARID;
 
-use crate::{Envelope, EnvelopeEncodable, EnvelopeDecodable, known_values::{DATE, NOTE}, EnvelopeCodable};
+use crate::{Envelope, EnvelopeEncodable, EnvelopeDecodable, EnvelopeCodable};
 
 use super::Function;
 
+pub trait RequestBody: EnvelopeCodable {
+    fn function() -> Function;
+}
+
 #[derive(Debug, Clone)]
-pub struct Request {
+pub struct Request<Body: RequestBody> {
     id: ARID,
-    body: Envelope,
+    body: Body,
     function: Function,
     note: String,
     date: Option<dcbor::Date>,
 }
 
-impl Request {
-    pub fn new(id: ARID, body: impl EnvelopeEncodable, note: String, date: Option<dcbor::Date>) -> Self {
-        let body = body.envelope();
-        let function = body.function().unwrap();
+impl<Body: RequestBody> Request<Body> {
+    pub fn new(id: Option<ARID>, body: Body, note: impl Into<String>, date: Option<dcbor::Date>) -> Self {
         Self {
-            id,
+            id: id.unwrap_or_default(),
             body,
-            function,
-            note,
+            function: Body::function(),
+            note: note.into(),
             date,
         }
     }
 
-    pub fn transaction_id(&self) -> &ARID {
+    pub fn id(&self) -> &ARID {
         &self.id
     }
 
-    pub fn body(&self) -> &Envelope {
+    pub fn body(&self) -> &Body {
         &self.body
     }
 
@@ -45,46 +47,84 @@ impl Request {
     pub fn date(&self) -> Option<&dcbor::Date> {
         self.date.as_ref()
     }
+
+    pub fn encrypt(self, sender: &PrivateKeyBase, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
+        Ok(self.envelope()
+            .wrap_envelope()
+            .sign_with(sender)
+            .encrypt_subject_to_recipient(recipient)?)
+    }
 }
 
-impl PartialEq for Request {
+#[cfg(feature = "encrypt")]
+use bc_components::{PrivateKeyBase, PublicKeyBase};
+
+#[cfg(feature = "encrypt")]
+impl<Body: RequestBody> Request<Body> {
+    pub fn new_encrypted_request(
+        id: Option<ARID>,
+        body: Body,
+        note: String,
+        date: Option<dcbor::Date>,
+        sender: PrivateKeyBase,
+        recipient: PublicKeyBase
+    ) -> Envelope {
+        let request = Request::new(id, body, note, date);
+        request.envelope()
+            .wrap_envelope()
+            .sign_with(&sender)
+            .encrypt_subject_to_recipient(&recipient).unwrap()
+    }
+
+    pub fn parse_encrypted_request(request: Envelope, recipient: PrivateKeyBase) -> anyhow::Result<Request<Body>> {
+        let decrypted_request = request
+            .decrypt_to_recipient(&recipient)?
+            .unwrap_envelope()?;
+
+        let request = Request::from_envelope(decrypted_request)?;
+
+        Ok(request)
+    }
+}
+
+impl<Body: RequestBody> PartialEq for Request<Body> {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
     }
 }
 
-impl Eq for Request {}
+impl<Body: RequestBody> Eq for Request<Body> {}
 
-impl EnvelopeEncodable for Request {
+impl<Body: RequestBody> EnvelopeEncodable for Request<Body> {
     fn envelope(self) -> Envelope {
-        Envelope::new_request(self.id, self.body)
-            .add_assertion_if(!self.note.is_empty(), NOTE, self.note)
-            .add_optional_assertion(DATE, self.date)
+        Envelope::new_request_with_metadata(self.id, self.body, self.note, self.date)
     }
 }
 
-impl EnvelopeDecodable for Request {
+impl<Body: RequestBody> From<Request<Body>> for Envelope {
+    fn from(request: Request<Body>) -> Self {
+        request.envelope()
+    }
+}
+
+impl<Body: RequestBody> EnvelopeDecodable for Request<Body> {
     fn from_envelope(envelope: Envelope) -> anyhow::Result<Self>
     where
         Self: Sized
     {
         let id = envelope.request_id()?;
-        let body = envelope.request_body()?;
-        let note = envelope.extract_optional_object_for_predicate::<String>(NOTE)?.unwrap_or_default();
-        let date = envelope.extract_optional_object_for_predicate::<dcbor::Date>(DATE)?;
-        Ok(Self::new(id, body, note, date))
+        let body_envelope = envelope.request_body()?;
+        body_envelope.check_function(&Body::function())?;
+        let body = Body::from_envelope(body_envelope)?;
+        let note = envelope.request_note()?;
+        let date = envelope.request_date()?;
+        Ok(Self::new(Some(id), body, note, date))
     }
 }
 
-impl EnvelopeCodable for Request {}
+impl<Body: RequestBody> EnvelopeCodable for Request<Body> {}
 
-impl From<Request> for Envelope {
-    fn from(value: Request) -> Self {
-        value.envelope()
-    }
-}
-
-impl TryFrom<Envelope> for Request {
+impl<Body: RequestBody> TryFrom<Envelope> for Request<Body> {
     type Error = anyhow::Error;
 
     fn try_from(value: Envelope) -> anyhow::Result<Self> {

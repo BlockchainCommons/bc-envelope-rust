@@ -2,7 +2,6 @@ use bc_components::{tags, ARID};
 use dcbor::prelude::*;
 
 use crate::{EnvelopeEncodable, Envelope, EnvelopeError};
-#[cfg(feature = "known_value")]
 use crate::extension::{known_values, KnownValue};
 
 use super::{Function, Parameter};
@@ -64,10 +63,22 @@ impl Envelope {
 
 /// Envelope Expressions: Request Construction
 impl Envelope {
-    /// Creates an envelope with an `ARID` subject and a `body: «function»` assertion.
-    pub fn new_request(request_id: impl AsRef<ARID>, body: impl EnvelopeEncodable) -> Self {
-        Envelope::new(CBOR::tagged_value(tags::REQUEST, request_id.as_ref()))
+    /// Creates an envelope with an `ARID` subject and a `body: «function»`
+    /// assertion.
+    ///
+    /// Also adds a `'note'` assertion if `note` is not empty, and a
+    /// `'date'` assertion if `date` is not `nil`.
+    pub fn new_request_with_metadata(id: impl AsRef<ARID>, body: impl EnvelopeEncodable, note: impl Into<String>, date: Option<dcbor::Date>) -> Self {
+        let note = note.into();
+        Envelope::new(CBOR::tagged_value(tags::REQUEST, id.as_ref()))
             .add_assertion(known_values::BODY, body)
+            .add_assertion_if(!note.is_empty(), known_values::NOTE, note)
+            .add_optional_assertion(known_values::DATE, date)
+    }
+
+    /// Creates an envelope with an `ARID` subject and a `body: «function»` assertion.
+    pub fn new_request(id: impl AsRef<ARID>, body: impl EnvelopeEncodable) -> Self {
+        Envelope::new_request_with_metadata(id, body, "", None)
     }
 }
 
@@ -83,6 +94,14 @@ impl Envelope {
 
     pub fn request_body(&self) -> Result<Self, EnvelopeError> {
         self.object_for_predicate(known_values::BODY)
+    }
+
+    pub fn request_note(&self) -> anyhow::Result<String> {
+        self.extract_object_for_predicate(known_values::NOTE)
+    }
+
+    pub fn request_date(&self) -> anyhow::Result<Option<dcbor::Date>> {
+        self.extract_optional_object_for_predicate(known_values::DATE)
     }
 }
 
