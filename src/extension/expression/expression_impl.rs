@@ -86,6 +86,7 @@ impl Envelope {
 impl Envelope {
     pub fn request_id(&self) -> anyhow::Result<ARID> {
         let id = self
+            .subject()
             .expect_leaf()?
             .expect_tagged_value(tags::REQUEST)?
             .try_into()?;

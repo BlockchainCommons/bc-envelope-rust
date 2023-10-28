@@ -62,10 +62,10 @@ impl Envelope {
     }
 
     pub fn verify_and_decrypt(&self, sender: &PublicKeyBase, recipient: &PrivateKeyBase) -> anyhow::Result<Envelope> {
-        self
+        Ok(self
+            .verify_signature_from(sender)?
             .decrypt_to_recipient(recipient)?
-            .unwrap_envelope()?
-            .verify_signature_from(sender)
+            .unwrap_envelope()?)
     }
 }
 
