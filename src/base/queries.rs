@@ -318,6 +318,7 @@ impl Envelope {
             .extract_subject()
     }
 
+    /// Returns the object of the assertion with the given predicate, or `None` if there is no matching predicate.
     pub fn extract_optional_object_for_predicate<T: CBORDecodable + 'static>(&self, predicate: impl EnvelopeEncodable) -> anyhow::Result<Option<T>> {
         if let Ok(object) = self.object_for_predicate(predicate) {
             Ok(Some(object.extract_subject()?))

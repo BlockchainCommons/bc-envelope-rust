@@ -53,7 +53,7 @@ impl Envelope {
     /// - Returns: The new envelope. If `value` is `None`, returns the original envelope.
     pub fn add_optional_parameter(
         &self,
-        param: Parameter,
+        param: impl Into<Parameter>,
         value: Option<impl EnvelopeEncodable>,
     ) -> Self {
         self.add_optional_assertion_envelope(Self::new_optional_parameter(param, value))
@@ -153,6 +153,14 @@ impl Envelope {
 
 /// Envelope Expressions: Parameter Decoding
 impl Envelope {
+    pub fn object_for_parameter(&self, param: impl Into<Parameter>) -> anyhow::Result<Envelope> {
+        Ok(self.object_for_predicate(param.into())?)
+    }
+
+    pub fn objects_for_parameter(&self, param: impl Into<Parameter>) -> Vec<Envelope> {
+        self.objects_for_predicate(param.into())
+    }
+
     /// Returns the argument for the given parameter, decoded as the given type.
     ///
     /// - Throws: Throws an exception if there is not exactly one matching `parameter`,
@@ -162,6 +170,11 @@ impl Envelope {
         T: CBORDecodable + 'static,
     {
         self.extract_object_for_predicate(param.into())
+    }
+
+    /// Returns the argument for the given parameter, or `None` if there is no matching parameter.
+    pub fn extract_optional_object_for_parameter<T: CBORDecodable + 'static>(&self, param: impl Into<Parameter>) -> anyhow::Result<Option<T>> {
+        self.extract_optional_object_for_predicate(param.into())
     }
 
     /// Returns an array of arguments for the given parameter, decoded as the given type.
