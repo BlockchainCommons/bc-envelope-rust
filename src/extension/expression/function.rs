@@ -58,6 +58,10 @@ impl Function {
         Self::Known(value, Some(FunctionName::Static(name)))
     }
 
+    pub const fn new_static_named(name: &'static str) -> Self {
+        Self::Named(FunctionName::Static(name))
+    }
+
     /// Returns the name of the function.
     pub fn name(&self) -> String {
         match self {
