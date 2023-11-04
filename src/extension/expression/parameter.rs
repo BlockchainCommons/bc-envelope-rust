@@ -57,6 +57,12 @@ impl Parameter {
         Self::Known(value, Some(ParameterName::Static(name)))
     }
 
+    /// Creates a new parameter with a static name.
+    /// This call can be used to declare a parameter at compile-time.
+    pub const fn new_static_named(name: &'static str) -> Self {
+        Self::Named(ParameterName::Static(name))
+    }
+
     /// Returns the name of the parameter.
     pub fn name(&self) -> String {
         match self {

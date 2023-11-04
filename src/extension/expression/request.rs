@@ -8,7 +8,8 @@ use super::Function;
 use bc_components::{PrivateKeyBase, PublicKeyBase};
 
 pub trait RequestBody: EnvelopeCodable {
-    fn function() -> Function;
+    const FUNCTION_NAME: &'static str;
+    const FUNCTION: &'static Function = &Function::new_static_named(Self::FUNCTION_NAME);
 }
 
 #[derive(Debug, Clone)]
@@ -25,7 +26,7 @@ impl<Body: RequestBody> Request<Body> {
         Self {
             id: id.unwrap_or_default(),
             body,
-            function: Body::function(),
+            function: Body::FUNCTION.clone(),
             note: note.into(),
             date,
         }
@@ -96,7 +97,7 @@ impl<Body: RequestBody> EnvelopeDecodable for Request<Body> {
     {
         let id = envelope.request_id()?;
         let body_envelope = envelope.request_body()?;
-        body_envelope.check_function(&Body::function())?;
+        body_envelope.check_function(Body::FUNCTION)?;
         let body = Body::from_envelope(body_envelope)?;
         let note = envelope.request_note()?;
         let date = envelope.request_date()?;

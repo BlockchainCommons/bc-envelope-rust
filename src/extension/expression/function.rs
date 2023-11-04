@@ -58,6 +58,12 @@ impl Function {
         Self::Known(value, Some(FunctionName::Static(name)))
     }
 
+    /// Creates a new function with a static name.
+    /// This call can be used to declare a function at compile-time.
+    pub const fn new_static_named(name: &'static str) -> Self {
+        Self::Named(FunctionName::Static(name))
+    }
+
     /// Returns the name of the function.
     pub fn name(&self) -> String {
         match self {
