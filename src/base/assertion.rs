@@ -93,4 +93,12 @@ impl CBORDecodable for Assertion {
     }
 }
 
+impl TryFrom<CBOR> for Assertion {
+    type Error = anyhow::Error;
+
+    fn try_from(value: CBOR) -> Result<Self, Self::Error> {
+        Self::from_cbor(&value)
+    }
+}
+
 impl CBORCodable for Assertion {}

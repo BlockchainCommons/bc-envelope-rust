@@ -104,6 +104,14 @@ impl CBORDecodable for Seed {
     }
 }
 
+impl TryFrom<CBOR> for Seed {
+    type Error = anyhow::Error;
+
+    fn try_from(cbor: CBOR) -> Result<Self, Self::Error> {
+        Self::from_cbor(&cbor)
+    }
+}
+
 impl CBORTaggedDecodable for Seed {
     fn from_untagged_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
         let map = cbor.expect_map()?;

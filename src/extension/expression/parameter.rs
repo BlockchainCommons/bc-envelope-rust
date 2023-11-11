@@ -146,6 +146,14 @@ impl CBORDecodable for Parameter {
     }
 }
 
+impl TryFrom<CBOR> for Parameter {
+    type Error = anyhow::Error;
+
+    fn try_from(cbor: CBOR) -> Result<Self, Self::Error> {
+        Self::from_cbor(&cbor)
+    }
+}
+
 impl CBORTaggedDecodable for Parameter {
     fn from_untagged_cbor(untagged_cbor: &CBOR) -> anyhow::Result<Self> {
         match untagged_cbor {
