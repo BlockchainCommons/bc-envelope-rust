@@ -101,6 +101,18 @@ impl EnvelopeEncodable for &str {
     }
 }
 
+impl EnvelopeEncodable for dcbor::Simple {
+    fn envelope(self) -> Envelope {
+        self.cbor().envelope()
+    }
+}
+
+impl From<dcbor::Simple> for Envelope {
+    fn from(simple: dcbor::Simple) -> Self {
+        simple.envelope()
+    }
+}
+
 impl From<&str> for Envelope {
     fn from(string: &str) -> Self {
         string.envelope()

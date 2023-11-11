@@ -136,3 +136,9 @@ impl UREncodable for Envelope { }
 impl URDecodable for Envelope { }
 
 impl URCodable for Envelope { }
+
+impl From<Envelope> for CBOR {
+    fn from(value: Envelope) -> Self {
+        value.tagged_cbor()
+    }
+}

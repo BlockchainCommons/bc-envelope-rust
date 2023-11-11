@@ -73,18 +73,24 @@ impl CBOREncodable for Seed {
     }
 }
 
+impl From<Seed> for CBOR {
+    fn from(value: Seed) -> Self {
+        value.cbor()
+    }
+}
+
 impl CBORTaggedEncodable for Seed {
     fn untagged_cbor(&self) -> CBOR {
         let mut map = dcbor::Map::new();
-        map.insert_into(1, CBOR::byte_string(self.data()));
+        map.insert(1, CBOR::byte_string(self.data()));
         if let Some(creation_date) = self.creation_date() {
-            map.insert_into(2, creation_date);
+            map.insert(2, creation_date);
         }
         if !self.name().is_empty() {
-            map.insert_into(3, self.name());
+            map.insert(3, self.name());
         }
         if !self.note().is_empty() {
-            map.insert_into(4, self.note());
+            map.insert(4, self.note());
         }
         map.cbor()
     }

@@ -59,6 +59,32 @@ pub enum EnvelopeCase {
     Compressed(Compressed),
 }
 
+impl Envelope {
+    pub fn r#false() -> Self {
+        Self::new_leaf(false)
+    }
+
+    pub fn r#true() -> Self {
+        Self::new_leaf(true)
+    }
+
+    pub fn null() -> Self {
+        Self::new_leaf(dcbor::Simple::Null)
+    }
+
+    pub fn is_false(&self) -> bool {
+        self.extract_subject().ok() == Some(false)
+    }
+
+    pub fn is_true(&self) -> bool {
+        self.extract_subject().ok() == Some(true)
+    }
+
+    pub fn is_null(&self) -> bool {
+        self.extract_subject().ok() == Some(dcbor::Simple::Null)
+    }
+}
+
 /// Support for basic envelope creation.
 impl Envelope {
     /// Creates an envelope with a `subject`, which

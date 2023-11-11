@@ -125,6 +125,12 @@ impl CBOREncodable for Parameter {
     }
 }
 
+impl From<Parameter> for CBOR {
+    fn from(value: Parameter) -> Self {
+        value.cbor()
+    }
+}
+
 impl CBORTaggedEncodable for Parameter {
     fn untagged_cbor(&self) -> CBOR {
         match self {

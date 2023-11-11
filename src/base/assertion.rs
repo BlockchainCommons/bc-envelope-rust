@@ -72,6 +72,12 @@ impl CBOREncodable for Assertion {
     }
 }
 
+impl From<Assertion> for CBOR {
+    fn from(value: Assertion) -> Self {
+        value.cbor()
+    }
+}
+
 impl CBORDecodable for Assertion {
     fn from_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
         if let CBOR::Map(map) = cbor {

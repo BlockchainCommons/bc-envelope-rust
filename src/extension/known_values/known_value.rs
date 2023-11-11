@@ -119,6 +119,12 @@ impl CBOREncodable for KnownValue {
     }
 }
 
+impl From<KnownValue> for CBOR {
+    fn from(value: KnownValue) -> Self {
+        value.cbor()
+    }
+}
+
 impl CBORDecodable for KnownValue {
     fn from_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
         Self::from_tagged_cbor(cbor)

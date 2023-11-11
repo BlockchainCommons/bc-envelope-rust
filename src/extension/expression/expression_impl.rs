@@ -190,6 +190,15 @@ impl Envelope {
 
 /// Envelope Expressions: Result Decoding
 impl Envelope {
+    pub fn response_id(&self) -> anyhow::Result<ARID> {
+        let id = self
+            .subject()
+            .expect_leaf()?
+            .expect_tagged_value(tags::RESPONSE)?
+            .try_into()?;
+        Ok(id)
+    }
+
     /// Returns the object of the `result` predicate.
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
