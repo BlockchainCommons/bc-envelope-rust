@@ -156,9 +156,9 @@ impl TryFrom<CBOR> for Parameter {
 
 impl CBORTaggedDecodable for Parameter {
     fn from_untagged_cbor(untagged_cbor: &CBOR) -> anyhow::Result<Self> {
-        match untagged_cbor {
-            CBOR::Unsigned(value) => Ok(Self::new_known(*value, None)),
-            CBOR::Text(name) => Ok(Self::new_named(name)),
+        match untagged_cbor.case() {
+            CBORCase::Unsigned(value) => Ok(Self::new_known(*value, None)),
+            CBORCase::Text(name) => Ok(Self::new_named(name)),
             _ => bail!("invalid parameter"),
         }
     }

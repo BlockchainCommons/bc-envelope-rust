@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use bc_components::{tags, ARID, URI, UUID, Digest};
-use dcbor::{CBOR, CBORTaggedDecodable};
+use dcbor::prelude::*;
 
 use crate::{FormatContext, string_utils::StringUtils};
 #[cfg(feature = "known_value")]
@@ -16,11 +16,11 @@ pub trait EnvelopeSummary {
 
 impl EnvelopeSummary for CBOR {
     fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> Result<String, Box<dyn Error>> {
-        match self {
-            CBOR::Unsigned(n) => Ok(n.to_string()),
-            CBOR::Negative(n) => Ok(n.to_string()),
-            CBOR::ByteString(data) => Ok(format!("Bytes({})", data.len())),
-            CBOR::Text(string) => {
+        match self.case() {
+            CBORCase::Unsigned(n) => Ok(n.to_string()),
+            CBORCase::Negative(n) => Ok(n.to_string()),
+            CBORCase::ByteString(data) => Ok(format!("Bytes({})", data.len())),
+            CBORCase::Text(string) => {
                 let string = if string.len() > max_length {
                     format!("{}…", string.chars().take(max_length).collect::<String>())
                 } else {
@@ -28,7 +28,7 @@ impl EnvelopeSummary for CBOR {
                 };
                 Ok(string.replace('\n', "\\n").flanked_by("\"", "\""))
             }
-            CBOR::Array(elements) => {
+            CBORCase::Array(elements) => {
                 Ok(elements
                     .iter()
                     .map(|element| element.envelope_summary(max_length, context))
@@ -37,13 +37,13 @@ impl EnvelopeSummary for CBOR {
                     .flanked_by("[", "]")
                 )
             },
-            CBOR::Map(_) => Ok("Map".to_string()),
-            CBOR::Tagged(tag, untagged_cbor) => {
+            CBORCase::Map(_) => Ok("Map".to_string()),
+            CBORCase::Tagged(tag, untagged_cbor) => {
                 match tag.value() {
                     tags::ENVELOPE_VALUE => Ok("Envelope".to_string()),
                     #[cfg(feature = "known_value")]
                     tags::KNOWN_VALUE_VALUE => {
-                        if let CBOR::Unsigned(raw_value) = &**untagged_cbor {
+                        if let CBORCase::Unsigned(raw_value) = untagged_cbor.case() {
                             Ok(KnownValuesStore::known_value_for_raw_value(*raw_value, Some(context.known_values()))
                                 .to_string().flanked_by("'", "'",))
                         } else {
@@ -101,7 +101,7 @@ impl EnvelopeSummary for CBOR {
                     }
                 }
             },
-            CBOR::Simple(v) => Ok(v.to_string()),
+            CBORCase::Simple(v) => Ok(v.to_string()),
         }
     }
 }

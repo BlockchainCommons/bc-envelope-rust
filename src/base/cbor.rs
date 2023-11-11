@@ -51,7 +51,7 @@ impl CBORTaggedEncodable for Envelope {
                 for assertion in assertions {
                     result.push(assertion.untagged_cbor());
                 }
-                CBOR::Array(result)
+                CBORCase::Array(result).into()
             }
             EnvelopeCase::Leaf { cbor, digest: _ } => CBOR::tagged_value(tags::LEAF, cbor.clone()),
             EnvelopeCase::Wrapped { envelope, digest: _ } => envelope.tagged_cbor(),
@@ -69,8 +69,8 @@ impl CBORTaggedEncodable for Envelope {
 
 impl CBORTaggedDecodable for Envelope {
     fn from_untagged_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
-        match cbor {
-            CBOR::Tagged(tag, item) => {
+        match cbor.case() {
+            CBORCase::Tagged(tag, item) => {
                 match tag.value() {
                     tags::LEAF_VALUE => {
                         let cbor = item.as_ref().clone();
@@ -95,10 +95,10 @@ impl CBORTaggedDecodable for Envelope {
                     _ => bail!("unknown envelope tag: {}", tag.value()),
                 }
             }
-            CBOR::ByteString(bytes) => {
+            CBORCase::ByteString(bytes) => {
                 Ok(Self::new_elided(Digest::from_data_ref(bytes)?))
             }
-            CBOR::Array(elements) => {
+            CBORCase::Array(elements) => {
                 if elements.len() < 2 {
                     bail!("node must have at least two elements")
                 }
@@ -115,12 +115,12 @@ impl CBORTaggedDecodable for Envelope {
                     .collect();
                 Ok(Self::new_with_assertions(subject, assertions)?)
             }
-            CBOR::Map(_) => {
+            CBORCase::Map(_) => {
                 let assertion = Assertion::from_cbor(cbor)?;
                 Ok(Self::new_with_assertion(assertion))
             }
             #[cfg(feature = "known_value")]
-            CBOR::Unsigned(value) => {
+            CBORCase::Unsigned(value) => {
                 let known_value = KnownValue::new(*value);
                 Ok(Self::new_with_known_value(known_value))
             }

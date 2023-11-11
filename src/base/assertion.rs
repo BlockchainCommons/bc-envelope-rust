@@ -80,7 +80,7 @@ impl From<Assertion> for CBOR {
 
 impl CBORDecodable for Assertion {
     fn from_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
-        if let CBOR::Map(map) = cbor {
+        if let CBORCase::Map(map) = cbor.case() {
             if map.len() != 1 {
                 bail!("assertion map must have exactly one element")
             }

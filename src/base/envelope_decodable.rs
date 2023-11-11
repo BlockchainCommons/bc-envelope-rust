@@ -8,7 +8,7 @@ pub trait EnvelopeDecodable: TryFrom<Envelope> {
 
 impl EnvelopeDecodable for Bytes {
     fn from_envelope(envelope: Envelope) -> anyhow::Result<Self> {
-        envelope.expect_leaf()?.try_into()
+        envelope.expect_leaf()?.clone().try_into()
     }
 }
 
