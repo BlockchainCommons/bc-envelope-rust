@@ -2,7 +2,7 @@ use bc_components::{tags, ARID};
 use dcbor::prelude::*;
 
 use crate::{EnvelopeEncodable, Envelope, EnvelopeError};
-use crate::extension::{known_values, KnownValue};
+use crate::extension::known_values;
 
 use super::{Function, Parameter};
 
@@ -236,7 +236,11 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
     pub fn is_result_ok(&self) -> anyhow::Result<bool> {
-        self.extract_result::<KnownValue>().map(|v| v == known_values::OK_VALUE)
+        println!("{}", self.format());
+        if let Some(k) = self.result()?.known_value() {
+            return Ok(k == &known_values::OK_VALUE);
+        }
+        Ok(false)
     }
 
     /// Returns the error value, decoded as the given type.

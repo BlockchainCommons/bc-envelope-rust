@@ -386,6 +386,9 @@ pub mod prelude;
 
 mod string_utils;
 
+#[cfg(all(feature = "signature", feature = "encrypt"))]
+use bc_components::{PrivateKeyBase, PublicKeyBase};
+
 #[cfg(feature = "known_value")]
 pub use extension::known_values::{self, known_value, KnownValue, KNOWN_VALUES, KnownValuesStore};
 
@@ -394,3 +397,22 @@ pub use extension::expression;
 
 #[cfg(feature = "expression")]
 pub use extension::expression::{functions, parameters, Function, Parameter};
+
+#[cfg(all(feature = "signature", feature = "encrypt"))]
+impl Envelope {
+    pub fn sign_and_encrypt(&self, sender: &PrivateKeyBase, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
+        Ok(self
+            .wrap_envelope()
+            .sign_with(sender)
+            .wrap_envelope()
+            .encrypt_subject_to_recipient(recipient)?)
+    }
+
+    pub fn verify_and_decrypt(&self, sender: &PublicKeyBase, recipient: &PrivateKeyBase) -> anyhow::Result<Envelope> {
+        Ok(self
+            .decrypt_to_recipient(recipient)?
+            .unwrap_envelope()?
+            .verify_signature_from(sender)?
+            .unwrap_envelope()?)
+    }
+}

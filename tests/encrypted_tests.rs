@@ -46,13 +46,10 @@ fn fake_nonce() -> Nonce {
 }
 
 fn encrypted_test(e1: Envelope) -> Result<(), Box<dyn Error>> {
-    // println!("{}", e1.hex_opt(true, None));
     let e2 = e1
         .clone()
         .encrypt_subject_opt(&symmetric_key(), Some(fake_nonce()))?
         .check_encoding()?;
-
-    // println!("{}", e2.hex_opt(true, None));
 
     assert!(e1.clone().is_equivalent_to(e2.clone()));
     assert!(e1.clone().subject().is_equivalent_to(e2.clone().subject()));
