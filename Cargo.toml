@@ -12,8 +12,8 @@ categories = ["data-structures", "encoding"]
 documentation = "https://docs.rs/bc-envelope"
 
 [dependencies]
-dcbor = { path = "../dcbor" }
-# dcbor = "0.10.0"
+dcbor = { path = "../dcbor", features = ["multithreaded"] }
+# dcbor = { version = "0.10.0", features = ["multithreaded"] }
 
 bc-rand = "0.1.0"
 
@@ -45,6 +45,7 @@ compress = []
 known_value = []
 encrypt = ["known_value"]
 expression = ["known_value"]
+multithreaded = ["dcbor/multithreaded"]
 proof = []
 recipient = ["encrypt"]
 salt = ["known_value"]

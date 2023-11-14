@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use bc_components::{Digest, DigestProvider};
 #[cfg(feature = "encrypt")]
 use bc_components::EncryptedMessage;
@@ -9,11 +8,17 @@ use crate::{base::Assertion, EnvelopeError, EnvelopeEncodable};
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
 
+#[cfg(feature = "multithreaded")]
+use std::sync::Arc as RefCounted;
+
+#[cfg(not(feature = "multithreaded"))]
+use std::rc::Rc as RefCounted;
+
 /// A flexible container for structured data.
 ///
 /// Envelopes are immutable. You create "mutations" by creating new envelopes from old envelopes.
 #[derive(Debug, Clone)]
-pub struct Envelope(Rc<EnvelopeCase>);
+pub struct Envelope(RefCounted<EnvelopeCase>);
 
 impl Envelope {
     pub fn case(&self) -> &EnvelopeCase {
@@ -23,7 +28,7 @@ impl Envelope {
 
 impl From<EnvelopeCase> for Envelope {
     fn from(case: EnvelopeCase) -> Self {
-        Self(Rc::new(case))
+        Self(RefCounted::new(case))
     }
 }
 
