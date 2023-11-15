@@ -128,25 +128,25 @@ impl Envelope {
         envelope
     }
 
-    /// Creates an envelope with an `ARID` subject and a `error: value` assertion.
-    pub fn new_error_response_with_id(response_id: impl AsRef<ARID>, error: impl EnvelopeEncodable) -> Self {
-        Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()))
-            .add_assertion(known_values::ERROR, error)
-    }
-
-    /// Creates an envelope with an `unknown` subject and a `error: value` assertion.
+    /// Creates an error response envelope.
     ///
-    /// If `error` is `None`, no assertion will be added.
-    ///
+    /// If `response_id` is `None`, the subject will be `unknown`.
     /// Used for an immediate response to a request without a proper ID, for example
     /// when a encrypted request envelope is received and the decryption fails, making
     /// it impossible to extract the request ID.
-    pub fn new_error_response(error: Option<impl EnvelopeEncodable>) -> Self {
+    ///
+    /// If `error` is `None`, no assertion will be added.
+    ///
+    pub fn new_error_response(response_id: Option<&ARID>, error: Option<impl EnvelopeEncodable>) -> Self {
+        let response_id = match response_id {
+            Some(id) => id.cbor(),
+            None => "unknown".cbor(),
+        };
         if let Some(error) = error {
-            Envelope::new(CBOR::tagged_value(tags::RESPONSE, "unknown"))
+            Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id))
                 .add_assertion(known_values::ERROR, error)
         } else {
-            Envelope::new(CBOR::tagged_value(tags::RESPONSE, "unknown"))
+            Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id))
         }
     }
 }
@@ -236,7 +236,6 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
     pub fn is_result_ok(&self) -> anyhow::Result<bool> {
-        println!("{}", self.format());
         if let Some(k) = self.result()?.known_value() {
             return Ok(k == &known_values::OK_VALUE);
         }
@@ -251,5 +250,10 @@ impl Envelope {
         T: CBORDecodable + 'static,
     {
         self.extract_object_for_predicate(known_values::ERROR)
+    }
+
+    /// Returns whether the envelope is an error response.
+    pub fn is_error(&self) -> bool {
+        self.assertion_with_predicate(known_values::ERROR).is_ok()
     }
 }

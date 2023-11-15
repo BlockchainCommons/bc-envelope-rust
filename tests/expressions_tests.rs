@@ -55,14 +55,14 @@ fn test_request() {
         ]
         "#}.trim());
 
-    let error_response = Envelope::new_error_response_with_id(request_id, "Internal Server Error");
+    let error_response = Envelope::new_error_response(Some(&request_id), Some("Internal Server Error"));
     assert_eq!(error_response.format(), indoc! {r#"
         response(ARID(c66be27d)) [
             'error': "Internal Server Error"
         ]
         "#}.trim());
 
-    let unknown_error_response = Envelope::new_error_response(Some("Decryption failure"));
+    let unknown_error_response = Envelope::new_error_response(None, Some("Decryption failure"));
     assert_eq!(unknown_error_response.format(), indoc! {r#"
         response("unknown") [
             'error': "Decryption failure"
