@@ -77,6 +77,15 @@ impl Function {
             Self::Named(name) => name.value().to_string().flanked_by("\"", "\""),
         }
     }
+
+    /// Returns the name of the named function, if any.
+    pub fn named_name(&self) -> Option<String> {
+        match self {
+            Self::Known(_, _) => None,
+            Self::Named(name) => Some(name.value().to_string()),
+        }
+    }
+    
 }
 
 impl PartialEq for Function {
