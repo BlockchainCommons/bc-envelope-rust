@@ -64,7 +64,7 @@ fn test_request() {
 
     let unknown_error_response = Envelope::new_error_response(None, Some("Decryption failure"));
     assert_eq!(unknown_error_response.format(), indoc! {r#"
-        response("unknown") [
+        response('Unknown') [
             'error': "Decryption failure"
         ]
         "#}.trim());

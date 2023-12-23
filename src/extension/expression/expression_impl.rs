@@ -140,7 +140,7 @@ impl Envelope {
     pub fn new_error_response(response_id: Option<&ARID>, error: Option<impl EnvelopeEncodable>) -> Self {
         let response_id = match response_id {
             Some(id) => id.cbor(),
-            None => "unknown".cbor(),
+            None => known_values::UNKNOWN_VALUE.cbor(),
         };
         if let Some(error) = error {
             Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id))

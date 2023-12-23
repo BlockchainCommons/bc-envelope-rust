@@ -14,10 +14,21 @@ macro_rules! function_constant {
     };
 }
 
-function_constant!(ADD, 1, "add");
-function_constant!(SUB, 2, "sub");
-function_constant!(MUL, 3, "mul");
-function_constant!(DIV, 4, "div");
+function_constant!(ADD, 1, "add"); // addition
+function_constant!(SUB, 2, "sub"); // subtraction
+function_constant!(MUL, 3, "mul"); // multiplication
+function_constant!(DIV, 4, "div"); // division
+function_constant!(NEG, 5, "neg"); // unary negation
+function_constant!(LT, 6, "lt"); // less than
+function_constant!(LE, 7, "le"); // less than or equal to
+function_constant!(GT, 8, "gt"); // greater than
+function_constant!(GE, 9, "ge"); // greater than or equal to
+function_constant!(EQ, 10, "eq"); // equal to
+function_constant!(NE, 11, "ne"); // not equal to
+function_constant!(AND, 12, "and"); // logical and
+function_constant!(OR, 13, "or"); // logical or
+function_constant!(XOR, 14, "xor"); // logical exclusive or
+function_constant!(NOT, 15, "not"); // logical not
 
 #[doc(hidden)]
 pub struct LazyFunctions {
