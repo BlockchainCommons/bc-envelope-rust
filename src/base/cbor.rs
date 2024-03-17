@@ -21,7 +21,7 @@ use super::envelope::EnvelopeCase;
 /// * `.leaf` is tagged #6.24, which is the IANA tag for embedded CBOR.
 /// * `.wrapped` is tagged with the `envelope` tag.
 /// * `.assertion` is a single-element map `{predicate: object}`.
-/// * `.knownValue` is a 64-bit signed numeric value.
+/// * `.knownValue` is an unsigned 64-bit integer.
 /// * `.encrypted` is tagged with the `crypto-msg` tag.
 /// * `.elided` is a byte string of length 32.
 
