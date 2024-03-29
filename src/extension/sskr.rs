@@ -59,7 +59,7 @@ impl Envelope {
         for group in shares {
             let mut group_result: Vec<Envelope> = Vec::new();
             for share in group {
-                let share_result = self.clone().add_sskr_share(&share);
+                let share_result = self.add_sskr_share(&share);
                 group_result.push(share_result);
             }
             result.push(group_result);
@@ -67,12 +67,12 @@ impl Envelope {
         Ok(result)
     }
 
-    fn sskr_shares_in(envelopes: &[Envelope]) -> anyhow::Result<HashMap<u16, Vec<SSKRShare>>> {
+    fn sskr_shares_in(envelopes: &[&Envelope]) -> anyhow::Result<HashMap<u16, Vec<SSKRShare>>> {
         let mut result: HashMap<u16, Vec<SSKRShare>> = HashMap::new();
         for envelope in envelopes {
-            for assertion in envelope.clone().assertions_with_predicate(known_values::SSKR_SHARE) {
+            for assertion in envelope.assertions_with_predicate(known_values::SSKR_SHARE) {
                 let share = assertion.object().unwrap().extract_subject::<SSKRShare>()?;
-                let identifier = share.clone().identifier();
+                let identifier = share.identifier();
                 if result.get(&identifier).is_none() {
                     result.insert(identifier, Vec::new());
                 }
@@ -93,7 +93,7 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if no quorum of shares can be found to reconstruct
     /// the original envelope.
-    pub fn sskr_join(envelopes: &[Envelope]) -> anyhow::Result<Envelope> {
+    pub fn sskr_join(envelopes: &[&Envelope]) -> anyhow::Result<Envelope> {
         if envelopes.is_empty() {
             bail!(EnvelopeError::InvalidShares);
         }
@@ -102,7 +102,7 @@ impl Envelope {
         for shares in grouped_shares {
             if let Ok(secret) = sskr_combine(&shares) {
                 if let Ok(content_key) = SymmetricKey::from_data_ref(&secret) {
-                    if let Ok(envelope) = envelopes.first().unwrap().clone().decrypt_subject(&content_key) {
+                    if let Ok(envelope) = envelopes.first().unwrap().decrypt_subject(&content_key) {
                         return Ok(envelope.subject());
                     }
                 }

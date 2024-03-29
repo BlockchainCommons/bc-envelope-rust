@@ -6,7 +6,7 @@ use bc_components::{SymmetricKey, Nonce};
 #[cfg(feature = "encrypt")]
 use dcbor::prelude::*;
 
-use crate::{Envelope, Assertion, EnvelopeError};
+use crate::{Assertion, Envelope, EnvelopeEncodable, EnvelopeError};
 
 use super::envelope::EnvelopeCase;
 
@@ -203,16 +203,16 @@ impl Envelope {
             assert!(&elided_assertion == assertion);
             Self::new_with_assertion(elided_assertion)
         } else if let EnvelopeCase::Node { subject, assertions, ..} = self.case() {
-            let elided_subject = subject.clone().elide_set_with_action(target, is_revealing, action);
+            let elided_subject = subject.elide_set_with_action(target, is_revealing, action);
             assert!(elided_subject.digest() == subject.digest());
             let elided_assertions = assertions.iter().map(|assertion| {
-                let elided_assertion = assertion.clone().elide_set_with_action(target, is_revealing, action);
+                let elided_assertion = assertion.elide_set_with_action(target, is_revealing, action);
                 assert!(elided_assertion.digest() == assertion.digest());
                 elided_assertion
             }).collect();
             Self::new_with_unchecked_assertions(elided_subject, elided_assertions)
         } else if let EnvelopeCase::Wrapped { envelope, .. } = self.case() {
-            let elided_envelope = envelope.clone().elide_set_with_action(target, is_revealing, action);
+            let elided_envelope = envelope.elide_set_with_action(target, is_revealing, action);
             assert!(elided_envelope.digest() == envelope.digest());
             Self::new_wrapped(elided_envelope)
         } else {
@@ -290,7 +290,8 @@ impl Envelope {
     /// Returns the unelided variant of this envelope.
     ///
     /// Returns the same envelope if it is already unelided.
-    pub fn unelide(&self, envelope: Self) -> Result<Self, EnvelopeError> {
+    pub fn unelide(&self, envelope: impl EnvelopeEncodable) -> Result<Self, EnvelopeError> {
+        let envelope = envelope.envelope();
         if self.digest() == envelope.digest() {
             Ok(envelope)
         } else {

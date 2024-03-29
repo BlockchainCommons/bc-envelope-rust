@@ -59,7 +59,7 @@ impl Seed {
     }
 
     pub fn set_creation_date(&mut self, creation_date: Option<impl AsRef<dcbor::Date>>) {
-        self.creation_date = creation_date.map(|x| x.as_ref().clone());
+        self.creation_date = creation_date.map(|s| s.as_ref().clone());
     }
 }
 
@@ -156,11 +156,11 @@ impl From<&Seed> for Envelope {
 
 impl Seed {
     pub fn from_envelope(envelope: &Envelope) -> anyhow::Result<Self> {
-        envelope.clone().check_type(&known_values::SEED_TYPE)?;
-        let data = envelope.clone().subject().expect_leaf()?.expect_byte_string()?.to_vec();
-        let name = envelope.clone().extract_optional_object_for_predicate::<String>(known_values::HAS_NAME)?.unwrap_or_default().to_string();
-        let note = envelope.clone().extract_optional_object_for_predicate::<String>(known_values::NOTE)?.unwrap_or_default().to_string();
-        let creation_date: Option<dcbor::Date> = envelope.clone().extract_optional_object_for_predicate::<dcbor::Date>(known_values::DATE)?.map(|s| s.as_ref().clone());
+        envelope.check_type(&known_values::SEED_TYPE)?;
+        let data = envelope.subject().expect_leaf()?.expect_byte_string()?.to_vec();
+        let name = envelope.extract_optional_object_for_predicate::<String>(known_values::HAS_NAME)?.unwrap_or_default().to_string();
+        let note = envelope.extract_optional_object_for_predicate::<String>(known_values::NOTE)?.unwrap_or_default().to_string();
+        let creation_date = envelope.extract_optional_object_for_predicate::<dcbor::Date>(known_values::DATE)?.map(|s| s.as_ref().clone());
         Ok(Self::new_opt(data, name, note, creation_date))
     }
 }

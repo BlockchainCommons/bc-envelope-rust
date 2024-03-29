@@ -145,7 +145,7 @@ impl Envelope {
         D: AsRef<[u8]>,
     {
         let signing_private_key = private_keys.signing_private_key();
-        let digest = *self.clone().subject().digest().data();
+        let digest = *self.subject().digest().data();
         let signature = Envelope::new(signing_private_key.schnorr_sign_using(digest, tag, rng))
             .add_assertion_envelopes(uncovered_assertions)
             .unwrap();
@@ -371,7 +371,7 @@ impl Envelope {
         signature: &Signature,
         key: &SigningPublicKey
     ) -> Result<Self, EnvelopeError> {
-        if !self.clone().is_signature_from_key(signature, key) {
+        if !self.is_signature_from_key(signature, key) {
             return Err(EnvelopeError::UnverifiedSignature);
         }
         Ok(self.clone())
@@ -384,10 +384,10 @@ impl Envelope {
     where
         T: AsRef<SigningPublicKey>,
     {
-        let signatures = self.clone().signatures();
+        let signatures = self.signatures();
         let signatures = signatures?;
         let result = signatures.iter().any(|signature| {
-            self.clone().is_signature_from_key(signature, key.as_ref())
+            self.is_signature_from_key(signature, key.as_ref())
         });
         Ok(result)
     }
@@ -396,7 +396,7 @@ impl Envelope {
         &self,
         key: &SigningPublicKey
     ) -> anyhow::Result<Self> {
-        if !self.clone().has_some_signature_from_key(key)? {
+        if !self.has_some_signature_from_key(key)? {
             bail!(EnvelopeError::UnverifiedSignature);
         }
         Ok(self.clone())
@@ -431,7 +431,7 @@ impl Envelope {
     where
         T: AsRef<SigningPublicKey>,
     {
-        if !self.clone().has_signatures_from_keys_threshold(keys, threshold)? {
+        if !self.has_signatures_from_keys_threshold(keys, threshold)? {
             bail!(EnvelopeError::UnverifiedSignature);
         }
         Ok(self.clone())

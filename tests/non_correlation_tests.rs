@@ -11,11 +11,11 @@ fn test_envelope_non_correlation() {
     let e1 = Envelope::new("Hello.");
 
     // e1 correlates with its elision
-    assert!(e1.clone().is_equivalent_to(e1.clone().elide()));
+    assert!(e1.is_equivalent_to(&e1.elide()));
 
     // e2 is the same message, but with random salt
     let mut rng = make_fake_random_number_generator();
-    let e2 = e1.clone().add_salt_using(&mut rng).check_encoding().unwrap();
+    let e2 = e1.add_salt_using(&mut rng).check_encoding().unwrap();
 
     assert_eq!(e2.format(), indoc! {r#"
     "Hello." [
@@ -23,7 +23,7 @@ fn test_envelope_non_correlation() {
     ]
     "#}.trim());
 
-    assert_eq!(e2.clone().diagnostic(), indoc! {r#"
+    assert_eq!(e2.diagnostic(), indoc! {r#"
     200(   / envelope /
        [
           201("Hello."),   / leaf /
@@ -37,7 +37,7 @@ fn test_envelope_non_correlation() {
     )
     "#}.trim());
 
-    assert_eq!(e2.clone().tree_format(false), indoc! {r#"
+    assert_eq!(e2.tree_format(false), indoc! {r#"
     4f0f2d55 NODE
         8cc96cdb subj "Hello."
         dd412f1d ASSERTION
@@ -46,10 +46,10 @@ fn test_envelope_non_correlation() {
     "#}.trim());
 
     // So even though its content is the same, it doesn't correlate.
-    assert!(!e1.clone().is_equivalent_to(e2.clone()));
+    assert!(!e1.is_equivalent_to(&e2));
 
     // And of course, neither does its elision.
-    assert!(!e1.is_equivalent_to(e2.elide()));
+    assert!(!e1.is_equivalent_to(&e2.elide()));
 }
 
 #[test]
@@ -69,12 +69,12 @@ fn test_predicate_correlation() {
     assert_eq!(e1.format(), e1_expected_format);
 
     // e1 and e2 have the same predicate
-    assert!(e1.clone().assertions().first().unwrap().clone().predicate().unwrap()
-        .is_equivalent_to(e2.assertions().first().unwrap().clone().predicate().unwrap()));
+    assert!(e1.assertions().first().unwrap().predicate().unwrap()
+        .is_equivalent_to(&e2.assertions().first().unwrap().predicate().unwrap()));
 
     // Redact the entire contents of e1 without
     // redacting the envelope itself.
-    let e1_elided = e1.clone().elide_revealing_target(&e1).check_encoding().unwrap();
+    let e1_elided = e1.elide_revealing_target(&e1).check_encoding().unwrap();
 
     let redacted_expected_format = indoc! {r#"
     ELIDED [
@@ -110,7 +110,7 @@ fn test_add_salt() {
     "#}.trim();
     assert_eq!(e1.format(), e1_expected_format);
 
-    let e1_elided = e1.clone().elide_revealing_target(&e1).check_encoding().unwrap();
+    let e1_elided = e1.elide_revealing_target(&e1).check_encoding().unwrap();
 
     let redacted_expected_format = indoc! {r#"
     ELIDED [

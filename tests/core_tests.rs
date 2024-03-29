@@ -23,8 +23,8 @@ use crate::common::check_encoding::*;
 fn test_read_legacy_leaf() {
     let legacy_envelope = Envelope::from_tagged_cbor_data(&hex_literal::hex!("d8c8d818182a")).unwrap();
     let e = Envelope::new(42);
-    assert!(legacy_envelope.is_identical_to(e.clone()));
-    assert!(legacy_envelope.is_equivalent_to(e));
+    assert!(legacy_envelope.is_identical_to(&e));
+    assert!(legacy_envelope.is_equivalent_to(&e));
 }
 
 #[test]
@@ -121,9 +121,9 @@ fn test_known_value_subject() {
 fn test_assertion_subject() {
     let e = assertion_envelope().check_encoding().unwrap();
 
-    assert_eq!(e.clone().predicate().unwrap().digest().to_string(), "Digest(db7dd21c5169b4848d2a1bcb0a651c9617cdd90bae29156baaefbb2a8abef5ba)");
-    assert_eq!(e.clone().object().unwrap().digest().to_string(), "Digest(13b741949c37b8e09cc3daa3194c58e4fd6b2f14d4b1d0f035a46d6d5a1d3f11)");
-    assert_eq!(e.clone().subject().digest().to_string(), "Digest(78d666eb8f4c0977a0425ab6aa21ea16934a6bc97c6f0c3abaefac951c1714a2)");
+    assert_eq!(e.predicate().unwrap().digest().to_string(), "Digest(db7dd21c5169b4848d2a1bcb0a651c9617cdd90bae29156baaefbb2a8abef5ba)");
+    assert_eq!(e.object().unwrap().digest().to_string(), "Digest(13b741949c37b8e09cc3daa3194c58e4fd6b2f14d4b1d0f035a46d6d5a1d3f11)");
+    assert_eq!(e.subject().digest().to_string(), "Digest(78d666eb8f4c0977a0425ab6aa21ea16934a6bc97c6f0c3abaefac951c1714a2)");
     assert_eq!(e.digest().to_string(), "Digest(78d666eb8f4c0977a0425ab6aa21ea16934a6bc97c6f0c3abaefac951c1714a2)");
 
     assert_eq!(e.diagnostic(),

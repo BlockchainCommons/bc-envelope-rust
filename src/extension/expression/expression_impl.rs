@@ -121,7 +121,7 @@ impl Envelope {
         for result in results {
             envelope = envelope.add_assertion(
                 known_values::RESULT,
-                result.clone(),
+                result,
             );
         }
 

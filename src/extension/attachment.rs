@@ -45,7 +45,7 @@ impl Assertion {
         let conforms_to: Option<String> = self.attachment_conforms_to()?;
         let assertion = Assertion::new_attachment(payload, vendor.as_str(), conforms_to.as_deref());
         let e = assertion.envelope();
-        if !e.is_equivalent_to(self.clone().envelope()) {
+        if !e.is_equivalent_to(&self.envelope()) {
             anyhow::bail!(EnvelopeError::InvalidAttachment);
         }
         Ok(())
@@ -91,7 +91,7 @@ impl Envelope {
     /// Returns the `vendor` of the given attachment envelope.
     pub fn attachment_vendor(&self) -> anyhow::Result<String> {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
-            Ok(assertion.clone().attachment_vendor()?)
+            Ok(assertion.attachment_vendor()?)
         } else {
             anyhow::bail!(EnvelopeError::InvalidAttachment);
         }
@@ -100,7 +100,7 @@ impl Envelope {
     /// Returns the `conformsTo` of the given attachment envelope.
     pub fn attachment_conforms_to(&self) -> anyhow::Result<Option<String>> {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
-            Ok(assertion.clone().attachment_conforms_to()?)
+            Ok(assertion.attachment_conforms_to()?)
         } else {
             anyhow::bail!(EnvelopeError::InvalidAttachment);
         }
@@ -117,21 +117,21 @@ impl Envelope {
     -> anyhow::Result<Vec<Self>>
     {
         let assertions = self.assertions_with_predicate(known_values::ATTACHMENT);
-        for assertion in assertions.clone() {
-            Self::validate_attachment(&assertion)?;
+        for assertion in &assertions {
+            Self::validate_attachment(assertion)?;
         }
         let matching_assertions: Vec<_> = assertions
             .into_iter()
             .filter(|assertion| {
                 if let Some(vendor) = vendor {
-                    if let Ok(v) = assertion.clone().attachment_vendor() {
+                    if let Ok(v) = assertion.attachment_vendor() {
                         if v != vendor {
                             return false;
                         }
                     }
                 }
                 if let Some(conforms_to) = conforms_to {
-                    if let Ok(c) = assertion.clone().attachment_conforms_to() {
+                    if let Ok(c) = assertion.attachment_conforms_to() {
                         if let Some(c) = c {
                             if c != conforms_to {
                                 return false;

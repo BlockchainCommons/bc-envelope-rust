@@ -44,7 +44,7 @@ fn test_friends_list() {
 
     // Alice provides just the root digest of her document to a third party. This is
     // simply an envelope in which everything has been elided and nothing revealed.
-    let alice_friends_root = alice_friends.clone().elide_revealing_set(&HashSet::new());
+    let alice_friends_root = alice_friends.elide_revealing_set(&HashSet::new());
     assert_eq!(alice_friends_root.format(), "ELIDED");
 
     // Now Alice wants to prove to the third party that her document contains a "knows
@@ -135,7 +135,7 @@ fn test_verifiable_credential() {
         .sign_with(&alice_private_keys)
         .add_assertion(known_values::NOTE, "Signed by the State of Example");
 
-    let credential_root = credential.clone().elide_revealing_set(&HashSet::new());
+    let credential_root = credential.elide_revealing_set(&HashSet::new());
 
     // In this case the holder of a credential wants to prove a single assertion from it, the address.
     let address_assertion = Envelope::new_assertion("address", "123 Main St.");
@@ -155,11 +155,11 @@ fn test_verifiable_credential() {
     "#}.trim());
 
     // The proof confirms the address, as intended.
-    assert!(credential_root.clone().confirm_contains_target(&address_assertion, &address_proof));
+    assert!(credential_root.confirm_contains_target(&address_assertion, &address_proof));
 
     // Assertions without salt can also be confirmed.
     let issuer_assertion = Envelope::new_assertion(known_values::ISSUER, "State of Example");
-    assert!(credential_root.clone().confirm_contains_target(&issuer_assertion, &address_proof));
+    assert!(credential_root.confirm_contains_target(&issuer_assertion, &address_proof));
 
     // The proof cannot be used to confirm salted assertions.
     let first_name_assertion = Envelope::new_assertion("firstName", "John");

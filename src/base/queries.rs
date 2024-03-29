@@ -278,7 +278,6 @@ impl Envelope {
             .into_iter()
             .filter(|assertion| {
                 assertion
-                    .clone()
                     .predicate()
                     .map(|p| p.digest() == predicate.digest())
                     .unwrap_or(false)

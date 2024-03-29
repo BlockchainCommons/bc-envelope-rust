@@ -79,7 +79,7 @@ fn test_3() -> Result<(), Box<dyn Error>> {
     "#}.trim()
     );
 
-    e4.clone().check_encoding()?;
+    e4.check_encoding()?;
 
     let e5 = e1.add_assertion_envelope(e4).unwrap().check_encoding()?;
 

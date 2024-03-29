@@ -53,7 +53,7 @@ impl CBORTaggedEncodable for Envelope {
                 }
                 CBORCase::Array(result).into()
             }
-            EnvelopeCase::Leaf { cbor, digest: _ } => CBOR::tagged_value(tags::LEAF, cbor.clone()),
+            EnvelopeCase::Leaf { cbor, digest: _ } => CBOR::tagged_value(tags::LEAF, cbor),
             EnvelopeCase::Wrapped { envelope, digest: _ } => envelope.tagged_cbor(),
             EnvelopeCase::Assertion(assertion) => assertion.cbor(),
             EnvelopeCase::Elided(digest) => digest.untagged_cbor(),
@@ -73,7 +73,7 @@ impl CBORTaggedDecodable for Envelope {
             CBORCase::Tagged(tag, item) => {
                 match tag.value() {
                     tags::LEAF_VALUE | tags::ENCODED_CBOR_VALUE => {
-                        let cbor = item.as_ref().clone();
+                        let cbor = item.as_ref();
                         Ok(Self::new_leaf(cbor))
                     },
                     tags::ENVELOPE_VALUE => {

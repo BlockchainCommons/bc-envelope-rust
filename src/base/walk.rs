@@ -50,13 +50,13 @@ impl Envelope {
         let next_level = level + 1;
         match self.case() {
             EnvelopeCase::Node { subject, assertions, .. } => {
-                subject.clone()._walk_structure(next_level, EdgeType::Subject, parent.clone(), visit);
+                subject._walk_structure(next_level, EdgeType::Subject, parent.clone(), visit);
                 for assertion in assertions {
-                    assertion.clone()._walk_structure(next_level, EdgeType::Assertion, parent.clone(), visit);
+                    assertion._walk_structure(next_level, EdgeType::Assertion, parent.clone(), visit);
                 }
             },
             EnvelopeCase::Wrapped { envelope, .. } => {
-                envelope.clone()._walk_structure(next_level, EdgeType::Wrapped, parent, visit);
+                envelope._walk_structure(next_level, EdgeType::Wrapped, parent, visit);
             },
             EnvelopeCase::Assertion(assertion) => {
                 assertion.predicate()._walk_structure(next_level, EdgeType::Predicate, parent.clone(), visit);
@@ -80,14 +80,14 @@ impl Envelope {
         }
         match self.case() {
             EnvelopeCase::Node { subject, assertions, .. } => {
-                let assertion_parent = subject.clone()._walk_tree(subject_level, parent.clone(), visit);
+                let assertion_parent = subject._walk_tree(subject_level, parent.clone(), visit);
                 let assertion_level = subject_level + 1;
                 for assertion in assertions {
-                    assertion.clone()._walk_tree(assertion_level, assertion_parent.clone(), visit);
+                    assertion._walk_tree(assertion_level, assertion_parent.clone(), visit);
                 }
             },
             EnvelopeCase::Wrapped { envelope, .. } => {
-                envelope.clone()._walk_tree(subject_level, parent.clone(), visit);
+                envelope._walk_tree(subject_level, parent.clone(), visit);
             },
             EnvelopeCase::Assertion(assertion) => {
                 assertion.predicate()._walk_tree(subject_level, parent.clone(), visit);

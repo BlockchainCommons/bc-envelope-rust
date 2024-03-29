@@ -122,7 +122,7 @@ impl Envelope {
     /// the two envelope's digests. The means that two envelopes with certain structural
     /// differences (e.g., one envelope is partially elided and the other is not) will
     /// still test as equivalent.
-    pub fn is_equivalent_to(&self, other: Self) -> bool {
+    pub fn is_equivalent_to(&self, other: &Self) -> bool {
         self.digest() == other.digest()
     }
 
@@ -133,8 +133,8 @@ impl Envelope {
     /// thus they *must* have different structures) and a complexity of `O(m + n)` where
     /// `m` and `n` are the number of elements in each of the two envelopes when they
     /// *are* semantically equivalent.
-    pub fn is_identical_to(&self, other: Self) -> bool {
-        if !self.clone().is_equivalent_to(other.clone()) {
+    pub fn is_identical_to(&self, other: &Self) -> bool {
+        if !self.is_equivalent_to(other) {
             return true;
         }
         self.structural_digest() == other.structural_digest()

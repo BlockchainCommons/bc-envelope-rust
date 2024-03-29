@@ -37,7 +37,7 @@ impl Envelope {
 
     /// Returns `true` if the envelope has an `'IsA'` type assertion with the given known value `t`.
     pub fn has_type(&self, t: &KnownValue) -> bool {
-        let type_envelope = t.clone().envelope();
+        let type_envelope = t.envelope();
         self.types().iter().any(|x| x.digest() == type_envelope.digest())
     }
 

@@ -22,7 +22,7 @@ impl Envelope {
     }
 
     #[doc(hidden)]
-    pub fn add_recipient_opt(&self, recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<Bytes>, test_nonce: Option<&Nonce>) -> Self {
+    pub fn add_recipient_opt(&self, recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<&Bytes>, test_nonce: Option<&Nonce>) -> Self {
         let assertion = Self::make_has_recipient(recipient, content_key, test_key_material, test_nonce);
         self.add_assertion_envelope(assertion).unwrap()
     }
@@ -35,7 +35,7 @@ impl Envelope {
             .assertions_with_predicate(known_values::HAS_RECIPIENT)
             .into_iter()
             .filter(|assertion| {
-                !assertion.clone().object().unwrap().is_obscured()
+                !assertion.object().unwrap().is_obscured()
             })
             .map(|assertion| {
                 assertion.object().unwrap().extract_subject::<SealedMessage>()
@@ -71,7 +71,7 @@ impl Envelope {
     pub fn encrypt_subject_to_recipients_opt<T>(
         &self,
         recipients: &[T],
-        test_key_material: Option<Bytes>,
+        test_key_material: Option<&Bytes>,
         test_nonce: Option<&Nonce>
     ) -> Result<Self, EnvelopeError>
     where
@@ -80,7 +80,7 @@ impl Envelope {
         let content_key = SymmetricKey::new();
         let mut e = self.encrypt_subject(&content_key)?;
         for recipient in recipients {
-            e = e.add_recipient_opt(recipient.as_ref(), &content_key, test_key_material.clone(), test_nonce);
+            e = e.add_recipient_opt(recipient.as_ref(), &content_key, test_key_material, test_nonce);
         }
         Ok(e)
     }
@@ -101,7 +101,7 @@ impl Envelope {
 
     #[cfg(feature = "encrypt")]
     #[doc(hidden)]
-    pub fn encrypt_subject_to_recipient_opt(&self, recipient: &PublicKeyBase, test_key_material: Option<Bytes>, test_nonce: Option<&Nonce>) -> Result<Self, EnvelopeError> {
+    pub fn encrypt_subject_to_recipient_opt(&self, recipient: &PublicKeyBase, test_key_material: Option<&Bytes>, test_nonce: Option<&Nonce>) -> Result<Self, EnvelopeError> {
         self.encrypt_subject_to_recipients_opt(&[recipient], test_key_material, test_nonce)
     }
 
@@ -142,9 +142,9 @@ impl Envelope {
     ///   - contentKey: The `SymmetricKey` that was used to encrypt the subject.
     ///
     /// - Returns: The assertion envelope.
-    fn make_has_recipient(recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<Bytes>, test_nonce: Option<&Nonce>) -> Self
+    fn make_has_recipient(recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<&Bytes>, test_nonce: Option<&Nonce>) -> Self
     {
-        let sealed_message = SealedMessage::new_opt(content_key.cbor_data(), recipient, None::<Bytes>, test_key_material, test_nonce);
+        let sealed_message = SealedMessage::new_opt(content_key.cbor_data(), recipient, None::<Bytes>, test_key_material.cloned(), test_nonce);
         Self::new_assertion(known_values::HAS_RECIPIENT, sealed_message)
     }
 }

@@ -13,7 +13,7 @@ fn test_predicate_enclosures() {
     let a = Envelope::new("A");
     let b = Envelope::new("B");
 
-    let knows_bob = Envelope::new_assertion(knows.clone(), bob.clone());
+    let knows_bob = Envelope::new_assertion(&knows, &bob);
     assert_eq!(knows_bob.format(),
     indoc! {r#"
     "knows": "Bob"
@@ -27,7 +27,7 @@ fn test_predicate_enclosures() {
     "#}.trim()
     );
 
-    let knows_ab_bob = Envelope::new_assertion(knows.clone().add_assertion_envelope(ab.clone()).unwrap(), bob.clone()).check_encoding().unwrap();
+    let knows_ab_bob = Envelope::new_assertion(knows.add_assertion_envelope(&ab).unwrap(), &bob).check_encoding().unwrap();
     assert_eq!(knows_ab_bob.format(),
     indoc! {r#"
     "knows" [
@@ -37,7 +37,7 @@ fn test_predicate_enclosures() {
     "#}.trim()
     );
 
-    let knows_bob_ab = Envelope::new_assertion(knows.clone(), bob.clone().add_assertion_envelope(ab.clone()).unwrap()).check_encoding().unwrap();
+    let knows_bob_ab = Envelope::new_assertion(&knows, bob.add_assertion_envelope(&ab).unwrap()).check_encoding().unwrap();
     assert_eq!(knows_bob_ab.format(),
     indoc! {r#"
     "knows": "Bob" [
@@ -46,8 +46,8 @@ fn test_predicate_enclosures() {
     "#}.trim()
     );
 
-    let knows_bob_enclose_ab = knows_bob.clone()
-        .add_assertion_envelope(ab.clone()).unwrap()
+    let knows_bob_enclose_ab = knows_bob
+        .add_assertion_envelope(&ab).unwrap()
         .check_encoding().unwrap();
     assert_eq!(knows_bob_enclose_ab.format(),
     indoc! {r#"
@@ -59,7 +59,7 @@ fn test_predicate_enclosures() {
     "#}.trim()
     );
 
-    let alice_knows_bob = alice.clone()
+    let alice_knows_bob = alice
         .add_assertion_envelope(knows_bob).unwrap()
         .check_encoding().unwrap();
     assert_eq!(alice_knows_bob.format(),
@@ -71,7 +71,7 @@ fn test_predicate_enclosures() {
     );
 
     let alice_ab_knows_bob = alice_knows_bob
-        .add_assertion_envelope(ab.clone()).unwrap()
+        .add_assertion_envelope(&ab).unwrap()
         .check_encoding().unwrap();
     assert_eq!(alice_ab_knows_bob.format(),
     indoc! {r#"
@@ -82,8 +82,8 @@ fn test_predicate_enclosures() {
     "#}.trim()
     );
 
-    let alice_knows_ab_bob = alice.clone()
-        .add_assertion_envelope(Envelope::new_assertion(knows.clone().add_assertion_envelope(ab.clone()).unwrap(), bob.clone())).unwrap()
+    let alice_knows_ab_bob = alice
+        .add_assertion_envelope(Envelope::new_assertion(knows.add_assertion_envelope(&ab).unwrap(), &bob)).unwrap()
         .check_encoding().unwrap();
     assert_eq!(alice_knows_ab_bob.format(),
     indoc! {r#"
@@ -96,8 +96,8 @@ fn test_predicate_enclosures() {
     "#}.trim()
     );
 
-    let alice_knows_bob_ab = alice.clone()
-        .add_assertion_envelope(Envelope::new_assertion(knows.clone(), bob.clone().add_assertion_envelope(ab.clone()).unwrap())).unwrap()
+    let alice_knows_bob_ab = alice
+        .add_assertion_envelope(Envelope::new_assertion(&knows, bob.add_assertion_envelope(&ab).unwrap())).unwrap()
         .check_encoding().unwrap();
     assert_eq!(alice_knows_bob_ab.format(),
     indoc! {r#"
@@ -109,8 +109,8 @@ fn test_predicate_enclosures() {
     "#}.trim()
     );
 
-    let alice_knows_ab_bob_ab = alice.clone()
-        .add_assertion_envelope(Envelope::new_assertion(knows.clone().add_assertion_envelope(ab.clone()).unwrap(), bob.clone().add_assertion_envelope(ab.clone()).unwrap())).unwrap()
+    let alice_knows_ab_bob_ab = alice
+        .add_assertion_envelope(Envelope::new_assertion(knows.add_assertion_envelope(&ab).unwrap(), bob.add_assertion_envelope(&ab).unwrap())).unwrap()
         .check_encoding().unwrap();
     assert_eq!(alice_knows_ab_bob_ab.format(),
     indoc! {r#"
@@ -125,9 +125,9 @@ fn test_predicate_enclosures() {
     "#}.trim()
     );
 
-    let alice_ab_knows_ab_bob_ab = alice.clone()
-        .add_assertion_envelope(ab.clone()).unwrap()
-        .add_assertion_envelope(Envelope::new_assertion(knows.clone().add_assertion_envelope(ab.clone()).unwrap(), bob.clone().add_assertion_envelope(ab.clone()).unwrap())).unwrap()
+    let alice_ab_knows_ab_bob_ab = alice
+        .add_assertion_envelope(&ab).unwrap()
+        .add_assertion_envelope(Envelope::new_assertion(knows.add_assertion_envelope(&ab).unwrap(), bob.add_assertion_envelope(&ab).unwrap())).unwrap()
         .check_encoding().unwrap();
     assert_eq!(alice_ab_knows_ab_bob_ab.format(),
     indoc! {r#"
@@ -144,8 +144,8 @@ fn test_predicate_enclosures() {
     );
 
     let alice_ab_knows_ab_bob_ab_enclose_ab = alice
-        .add_assertion_envelope(ab.clone()).unwrap()
-        .add_assertion_envelope(Envelope::new_assertion(knows.add_assertion_envelope(ab.clone()).unwrap(), bob.add_assertion_envelope(ab.clone()).unwrap()).add_assertion_envelope(ab).unwrap()).unwrap()
+        .add_assertion_envelope(&ab).unwrap()
+        .add_assertion_envelope(Envelope::new_assertion(knows.add_assertion_envelope(&ab).unwrap(), bob.add_assertion_envelope(&ab).unwrap()).add_assertion_envelope(ab).unwrap()).unwrap()
         .check_encoding().unwrap();
     assert_eq!(alice_ab_knows_ab_bob_ab_enclose_ab.format(),
     indoc! {r#"
@@ -175,8 +175,8 @@ fn test_nesting_plaintext() {
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
 
-    let elided_envelope = envelope.clone().elide();
-    assert!(elided_envelope.clone().is_equivalent_to(envelope));
+    let elided_envelope = envelope.elide();
+    assert!(elided_envelope.is_equivalent_to(&envelope));
 
     let expected_elided_format = indoc! {r#"
     ELIDED
@@ -202,7 +202,7 @@ fn test_nesting_once() {
         .wrap_envelope()
         .check_encoding().unwrap();
 
-    assert!(elided_envelope.clone().is_equivalent_to(envelope));
+    assert!(elided_envelope.is_equivalent_to(&envelope));
 
     let expected_elided_format = indoc! {r#"
     {
@@ -228,10 +228,10 @@ fn test_nesting_twice() {
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
 
-    let target = envelope.clone()
+    let target = envelope
         .unwrap_envelope().unwrap()
         .unwrap_envelope().unwrap();
-    let elided_envelope = envelope.clone().elide_removing_target(&target);
+    let elided_envelope = envelope.elide_removing_target(&target);
 
     let expected_elided_format = indoc! {r#"
     {
@@ -241,8 +241,8 @@ fn test_nesting_twice() {
     }
     "#}.trim();
     assert_eq!(elided_envelope.format(), expected_elided_format);
-    assert!(envelope.clone().is_equivalent_to(elided_envelope.clone()));
-    assert!(envelope.is_equivalent_to(elided_envelope));
+    assert!(envelope.is_equivalent_to(&elided_envelope));
+    assert!(envelope.is_equivalent_to(&elided_envelope));
 }
 
 #[test]

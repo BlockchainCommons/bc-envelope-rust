@@ -55,7 +55,7 @@ fn test_sskr() -> anyhow::Result<()> {
     let carol_envelope = Envelope::from_ur(&sent_urs[2])?;
 
     // At some future point, Dan retrieves two of the three envelopes so he can recover his seed.
-    let recovered_envelopes = [bob_envelope.clone(), carol_envelope];
+    let recovered_envelopes = [&bob_envelope, &carol_envelope];
     let recovered_seed_envelope = Envelope::sskr_join(&recovered_envelopes)?.unwrap_envelope()?;
 
     let recovered_seed = Seed::from_envelope(&recovered_seed_envelope)?;
@@ -67,7 +67,7 @@ fn test_sskr() -> anyhow::Result<()> {
     assert_eq!(dan_seed.note(), recovered_seed.note());
 
     // Attempting to recover with only one of the envelopes won't work.
-    assert!(Envelope::sskr_join(&[bob_envelope]).is_err());
+    assert!(Envelope::sskr_join(&[&bob_envelope]).is_err());
 
     Ok(())
 }

@@ -20,7 +20,7 @@ static SOURCE: &str = "Lorem ipsum dolor sit amet consectetur adipiscing elit mi
 fn test_compress() {
     let original = Envelope::new(SOURCE);
     assert_eq!(original.cbor_data().len(), 369);
-    let compressed = original.clone().compress().unwrap().check_encoding().unwrap();
+    let compressed = original.compress().unwrap().check_encoding().unwrap();
     assert_eq!(compressed.cbor_data().len(), 281);
 
     assert_eq!(original.digest(), compressed.digest());
@@ -40,7 +40,7 @@ fn test_compress_subject() {
         .wrap_envelope()
         .sign_with_using(&alice_private_keys(), &mut rng);
     assert_eq!(original.cbor_data().len(), 456);
-    let s = original.clone().tree_format(false);
+    let s = original.tree_format(false);
     assert_eq!(s, indoc! {r#"
     9ed291b0 NODE
         d7183f04 subj WRAPPED
@@ -53,9 +53,9 @@ fn test_compress_subject() {
             d0e39e78 pred 'verifiedBy'
             dd386db5 obj Signature
     "#}.trim());
-    let compressed = original.clone().compress_subject().unwrap().check_encoding().unwrap();
+    let compressed = original.compress_subject().unwrap().check_encoding().unwrap();
     assert_eq!(compressed.cbor_data().len(), 372);
-    let s = compressed.clone().tree_format(false);
+    let s = compressed.tree_format(false);
     assert_eq!(s, indoc! {r#"
     9ed291b0 NODE
         d7183f04 subj COMPRESSED

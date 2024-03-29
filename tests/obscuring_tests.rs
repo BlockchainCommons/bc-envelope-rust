@@ -26,16 +26,16 @@ fn test_obscuring() {
 
     #[cfg(feature = "encrypt")]
     {
-        let encrypted = envelope.clone().encrypt_subject(&key).unwrap();
+        let encrypted = envelope.encrypt_subject(&key).unwrap();
         assert!(encrypted.is_obscured());
     }
 
-    let elided = envelope.clone().elide();
+    let elided = envelope.elide();
     assert!(elided.is_obscured());
 
     #[cfg(feature = "compress")]
     {
-        let compressed = envelope.clone().compress().unwrap();
+        let compressed = envelope.compress().unwrap();
         assert!(compressed.is_obscured());
     }
     // ENCRYPTION
@@ -48,8 +48,8 @@ fn test_obscuring() {
     // which will change its digest.
     #[cfg(feature = "encrypt")]
     {
-        let encrypted = envelope.clone().encrypt_subject(&key).unwrap();
-        encrypted.clone().encrypt_subject(&key).unwrap_err();
+        let encrypted = envelope.encrypt_subject(&key).unwrap();
+        encrypted.encrypt_subject(&key).unwrap_err();
     }
 
     // Cannot encrypt an elided envelope.
@@ -57,14 +57,14 @@ fn test_obscuring() {
     // Elided envelopes have no data to encrypt.
     #[cfg(feature = "encrypt")]
     {
-        elided.clone().encrypt_subject(&key).unwrap_err();
+        elided.encrypt_subject(&key).unwrap_err();
     }
 
     #[cfg(all(feature = "compress", feature = "encrypt"))]
     {
         // OK to encrypt a compressed envelope.
-        let compressed = envelope.clone().compress().unwrap();
-        let encrypted_compressed = compressed.clone().encrypt_subject(&key).unwrap();
+        let compressed = envelope.compress().unwrap();
+        let encrypted_compressed = compressed.encrypt_subject(&key).unwrap();
         assert!(encrypted_compressed.is_encrypted());
     }
 
@@ -74,20 +74,20 @@ fn test_obscuring() {
     #[cfg(feature = "encrypt")]
     {
         // OK to elide an encrypted envelope.
-        let encrypted = envelope.clone().encrypt_subject(&key).unwrap();
-        let elided_encrypted = encrypted.clone().elide();
+        let encrypted = envelope.encrypt_subject(&key).unwrap();
+        let elided_encrypted = encrypted.elide();
         assert!(elided_encrypted.is_elided());
     }
 
     // Eliding an elided envelope is idempotent.
-    let elided_elided = elided.clone().elide();
+    let elided_elided = elided.elide();
     assert!(elided_elided.is_elided());
 
     #[cfg(feature = "compress")]
     {
         // OK to elide a compressed envelope.
-        let compressed = envelope.clone().compress().unwrap();
-        let elided_compressed = compressed.clone().elide();
+        let compressed = envelope.compress().unwrap();
+        let elided_compressed = compressed.elide();
         assert!(elided_compressed.is_elided());
     }
 
@@ -99,7 +99,7 @@ fn test_obscuring() {
     // and random data is not compressible.
     #[cfg(all(feature = "compress", feature = "encrypt"))]
     {
-        let encrypted = envelope.clone().encrypt_subject(&key).unwrap();
+        let encrypted = envelope.encrypt_subject(&key).unwrap();
         encrypted.compress().unwrap_err();
     }
 

@@ -16,8 +16,8 @@ impl Envelope {
     ///
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_assertion_envelope(&self, assertion_envelope: Self) -> Result<Self, EnvelopeError> {
-        self.add_optional_assertion_envelope(Some(assertion_envelope))
+    pub fn add_assertion_envelope(&self, assertion_envelope: impl EnvelopeEncodable) -> Result<Self, EnvelopeError> {
+        self.add_optional_assertion_envelope(Some(assertion_envelope.into()))
     }
 
     /// Returns the result of adding the given array of assertions to the envelope.
@@ -29,7 +29,7 @@ impl Envelope {
         for assertion in assertions {
             e = e.add_assertion_envelope(assertion.clone())?;
         }
-        Ok(e.clone())
+        Ok(e)
     }
 
     /// If the optional assertion is present, returns the result of adding it to
@@ -175,7 +175,7 @@ impl Envelope {
     /// Returns a new envelope with the given assertion removed. If the assertion does
     /// not exist, returns the same envelope.
     pub fn remove_assertion(&self, target: Self) -> Self {
-        let assertions = self.clone().assertions();
+        let assertions = self.assertions();
         let target = target.digest();
         if let Some(index) = assertions.iter().position(|a| a.digest() == target) {
             let mut assertions = assertions.clone();
@@ -198,6 +198,6 @@ impl Envelope {
 
     /// Returns a new envelope with its subject replaced by the provided one.
     pub fn replace_subject(&self, subject: Self) -> Self {
-        self.assertions().iter().fold(subject, |e, a| e.add_assertion_envelope(a.clone()).unwrap())
+        self.assertions().iter().fold(subject, |e, a| e.add_assertion_envelope(a).unwrap())
     }
 }
