@@ -72,7 +72,7 @@ impl CBORTaggedDecodable for Envelope {
         match cbor.case() {
             CBORCase::Tagged(tag, item) => {
                 match tag.value() {
-                    tags::LEAF_VALUE => {
+                    tags::LEAF_VALUE | tags::ENCODED_CBOR_VALUE => {
                         let cbor = item.as_ref().clone();
                         Ok(Self::new_leaf(cbor))
                     },

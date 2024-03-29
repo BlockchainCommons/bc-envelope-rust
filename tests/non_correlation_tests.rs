@@ -26,10 +26,10 @@ fn test_envelope_non_correlation() {
     assert_eq!(e2.clone().diagnostic(), indoc! {r#"
     200(   / envelope /
        [
-          24("Hello."),   / leaf /
+          201("Hello."),   / leaf /
           {
              15:
-             24(   / leaf /
+             201(   / leaf /
                 40018(h'b559bbbf6cce2632')   / salt /
              )
           }

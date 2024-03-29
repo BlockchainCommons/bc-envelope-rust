@@ -21,7 +21,7 @@ use crate::extension::expression::{FunctionsStore, ParametersStore, GLOBAL_FUNCT
 ///     assert_eq!(e.diagnostic_opt(true, Some(context)),
 ///     indoc! {r#"
 ///     200(   / envelope /
-///        24("Hello.")   / leaf /
+///        201("Hello.")   / leaf /
 ///     )
 ///     "#}.trim()
 ///     );

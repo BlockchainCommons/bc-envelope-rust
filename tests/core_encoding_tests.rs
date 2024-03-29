@@ -19,7 +19,7 @@ fn test_1() -> Result<(), Box<dyn Error>> {
     assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
-       24("Hello.")   / leaf /
+       201("Hello.")   / leaf /
     )
     "#}.trim()
     );
@@ -35,7 +35,7 @@ fn test_2() -> Result<(), Box<dyn Error>> {
     assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
-       24(   / leaf /
+       201(   / leaf /
           [1, 2, 3]
        )
     )
@@ -67,12 +67,12 @@ fn test_3() -> Result<(), Box<dyn Error>> {
     200(   / envelope /
        [
           {
-             24("C"):   / leaf /
-             24("D")   / leaf /
+             201("C"):   / leaf /
+             201("D")   / leaf /
           },
           {
-             24("E"):   / leaf /
-             24("F")   / leaf /
+             201("E"):   / leaf /
+             201("F")   / leaf /
           }
        ]
     )
@@ -102,17 +102,17 @@ fn test_3() -> Result<(), Box<dyn Error>> {
     200(   / envelope /
        [
           {
-             24("A"):   / leaf /
-             24("B")   / leaf /
+             201("A"):   / leaf /
+             201("B")   / leaf /
           },
           [
              {
-                24("C"):   / leaf /
-                24("D")   / leaf /
+                201("C"):   / leaf /
+                201("D")   / leaf /
              },
              {
-                24("E"):   / leaf /
-                24("F")   / leaf /
+                201("E"):   / leaf /
+                201("F")   / leaf /
              }
           ]
        ]

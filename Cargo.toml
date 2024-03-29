@@ -21,7 +21,7 @@ bc-rand = "0.1"
 bc-crypto = "0.3"
 
 # bc-components = { path = "../bc-components" }
-bc-components = "0.7"
+bc-components = "0.8"
 
 # bc-ur = { path = "../bc-ur" }
 bc-ur = "0.2"

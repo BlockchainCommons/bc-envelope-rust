@@ -6,6 +6,27 @@ mod common;
 use crate::common::test_data::*;
 use crate::common::check_encoding::*;
 
+// A previous version of the Envelope spec used tag #6.24 ("Encoded CBOR Item") as
+// the header for the Envelope `leaf` case. Unfortunately, this was not a correct
+// use of the tag, as the contents of #6.24 (RFC8949 §3.4.5.1) MUST always be a
+// byte string, while we were simply using it as a wrapper/header for any dCBOR
+// data item.
+//
+// https://www.rfc-editor.org/rfc/rfc8949.html#name-encoded-cbor-data-item
+//
+// The new leaf tag is #6.201, but we will still recognize #6.24 for backwards
+// compatibility.
+//
+// This test ensures that Envelopes encoded with the old tag are still
+// correctly decoded as `leaf` cases.
+#[test]
+fn test_read_legacy_leaf() {
+    let legacy_envelope = Envelope::from_tagged_cbor_data(&hex_literal::hex!("d8c8d818182a")).unwrap();
+    let e = Envelope::new(42);
+    assert!(legacy_envelope.is_identical_to(e.clone()));
+    assert!(legacy_envelope.is_equivalent_to(e));
+}
+
 #[test]
 fn test_int_subject() {
     let e = Envelope::new(42).check_encoding().unwrap();
@@ -13,7 +34,7 @@ fn test_int_subject() {
     assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
-       24(42)   / leaf /
+       201(42)   / leaf /
     )
     "#}.trim()
     );
@@ -36,7 +57,7 @@ fn test_negative_int_subject() {
     assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
-       24(-42)   / leaf /
+       201(-42)   / leaf /
     )
     "#}.trim()
     );
@@ -58,7 +79,7 @@ fn test_cbor_encodable_subject() {
     assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
-       24("Hello.")   / leaf /
+       201("Hello.")   / leaf /
     )
     "#}.trim()
     );
@@ -109,8 +130,8 @@ fn test_assertion_subject() {
     indoc! {r#"
     200(   / envelope /
        {
-          24("knows"):   / leaf /
-          24("Bob")   / leaf /
+          201("knows"):   / leaf /
+          201("Bob")   / leaf /
        }
     )
     "#}.trim()
@@ -133,10 +154,10 @@ fn test_subject_with_assertion() {
     indoc! {r#"
     200(   / envelope /
        [
-          24("Alice"),   / leaf /
+          201("Alice"),   / leaf /
           {
-             24("knows"):   / leaf /
-             24("Bob")   / leaf /
+             201("knows"):   / leaf /
+             201("Bob")   / leaf /
           }
        ]
     )
@@ -164,14 +185,14 @@ fn test_subject_with_two_assertions() {
     indoc! {r#"
     200(   / envelope /
        [
-          24("Alice"),   / leaf /
+          201("Alice"),   / leaf /
           {
-             24("knows"):   / leaf /
-             24("Carol")   / leaf /
+             201("knows"):   / leaf /
+             201("Carol")   / leaf /
           },
           {
-             24("knows"):   / leaf /
-             24("Bob")   / leaf /
+             201("knows"):   / leaf /
+             201("Bob")   / leaf /
           }
        ]
     )
@@ -200,7 +221,7 @@ fn test_wrapped() {
     indoc! {r#"
     200(   / envelope /
        200(   / envelope /
-          24("Hello.")   / leaf /
+          201("Hello.")   / leaf /
        )
     )
     "#}.trim()
@@ -226,7 +247,7 @@ fn test_double_wrapped() {
     200(   / envelope /
        200(   / envelope /
           200(   / envelope /
-             24("Hello.")   / leaf /
+             201("Hello.")   / leaf /
           )
        )
     )
@@ -283,7 +304,7 @@ fn test_digest_leaf() {
     assert_eq!(e.diagnostic(),
     indoc! {r#"
     200(   / envelope /
-       24(   / leaf /
+       201(   / leaf /
           40001(   / digest /
              h'8cc96cdb771176e835114a0f8936690b41cfed0df22d014eedd64edaea945d59'
           )

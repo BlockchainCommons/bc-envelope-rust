@@ -21,7 +21,7 @@ fn test_compress() {
     let original = Envelope::new(SOURCE);
     assert_eq!(original.cbor_data().len(), 369);
     let compressed = original.clone().compress().unwrap().check_encoding().unwrap();
-    assert_eq!(compressed.cbor_data().len(), 282);
+    assert_eq!(compressed.cbor_data().len(), 281);
 
     assert_eq!(original.digest(), compressed.digest());
     let uncompressed = compressed.uncompress().unwrap().check_encoding().unwrap();
@@ -54,7 +54,7 @@ fn test_compress_subject() {
             dd386db5 obj Signature
     "#}.trim());
     let compressed = original.clone().compress_subject().unwrap().check_encoding().unwrap();
-    assert_eq!(compressed.cbor_data().len(), 373);
+    assert_eq!(compressed.cbor_data().len(), 372);
     let s = compressed.clone().tree_format(false);
     assert_eq!(s, indoc! {r#"
     9ed291b0 NODE
