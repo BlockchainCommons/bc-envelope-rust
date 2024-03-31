@@ -55,7 +55,7 @@ impl EnvelopeSummary for CBOR {
                     tags::SALT_VALUE => Ok("Salt".to_string()),
                     tags::SEALED_MESSAGE_VALUE => Ok("SealedMessage".to_string()),
                     tags::SSKR_SHARE_VALUE => Ok("SSKRShare".to_string()),
-                    tags::PUBLIC_KEYBASE_VALUE => Ok("PublicKeyBase".to_string()),
+                    tags::PUBLIC_KEY_BASE_VALUE => Ok("PublicKeyBase".to_string()),
                     tags::DATE_VALUE => {
                         let date = dcbor::Date::from_untagged_cbor(untagged_cbor)?;
                         let s = date.to_string();

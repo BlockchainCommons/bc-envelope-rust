@@ -26,7 +26,9 @@ use super::envelope::EnvelopeCase;
 /// * `.elided` is a byte string of length 32.
 
 impl CBORTagged for Envelope {
-    const CBOR_TAG: Tag = tags::ENVELOPE;
+    fn cbor_tags() -> Vec<Tag> {
+        vec![tags::ENVELOPE]
+    }
 }
 
 impl CBOREncodable for Envelope {

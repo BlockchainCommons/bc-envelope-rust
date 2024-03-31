@@ -64,7 +64,9 @@ impl Seed {
 }
 
 impl CBORTagged for Seed {
-    const CBOR_TAG: Tag = tags::SEED;
+    fn cbor_tags() -> Vec<Tag> {
+        vec![tags::SEED]
+    }
 }
 
 impl CBOREncodable for Seed {

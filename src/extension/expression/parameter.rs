@@ -116,7 +116,9 @@ impl From<&Parameter> for Parameter {
 }
 
 impl CBORTagged for Parameter {
-    const CBOR_TAG: Tag = tags::PARAMETER;
+    fn cbor_tags() -> Vec<Tag> {
+        vec![tags::PARAMETER]
+    }
 }
 
 impl CBOREncodable for Parameter {

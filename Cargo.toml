@@ -13,7 +13,7 @@ documentation = "https://docs.rs/bc-envelope"
 
 [dependencies]
 # dcbor = { path = "../dcbor", features = ["multithreaded"] }
-dcbor = { version = "0.11", features = ["multithreaded"] }
+dcbor = { version = "0.13", features = ["multithreaded"] }
 
 bc-rand = "0.1"
 
@@ -21,10 +21,10 @@ bc-rand = "0.1"
 bc-crypto = "0.3"
 
 # bc-components = { path = "../bc-components" }
-bc-components = "0.8"
+bc-components = "0.9"
 
 # bc-ur = { path = "../bc-ur" }
-bc-ur = "0.2"
+bc-ur = "0.3"
 
 paste = "1.0.12"
 hex = "0.4.3"

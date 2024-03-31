@@ -259,7 +259,7 @@ impl EnvelopeFormat for ARID {
 impl EnvelopeFormat for CBOR {
     fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
         match self.case() {
-            CBORCase::Tagged(tag, cbor) if tag == &Envelope::CBOR_TAG => {
+            CBORCase::Tagged(tag, cbor) if tag == &Envelope::cbor_tags()[0] => {
                 Envelope::from_untagged_cbor(cbor)
                     .map(|envelope| envelope.format_item(context))
                     .unwrap_or_else(|_| "<error>".into())

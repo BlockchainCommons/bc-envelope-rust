@@ -85,7 +85,7 @@ impl Function {
             Self::Named(name) => Some(name.value().to_string()),
         }
     }
-    
+
 }
 
 impl PartialEq for Function {
@@ -126,7 +126,9 @@ impl From<&Function> for Function {
 }
 
 impl CBORTagged for Function {
-    const CBOR_TAG: Tag = tags::FUNCTION;
+    fn cbor_tags() -> Vec<Tag> {
+        vec![tags::FUNCTION]
+    }
 }
 
 impl CBOREncodable for Function {

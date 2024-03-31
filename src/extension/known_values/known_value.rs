@@ -110,7 +110,9 @@ impl DigestProvider for KnownValue {
 }
 
 impl CBORTagged for KnownValue {
-    const CBOR_TAG: Tag = tags::KNOWN_VALUE;
+    fn cbor_tags() -> Vec<Tag> {
+        vec![tags::KNOWN_VALUE]
+    }
 }
 
 impl CBOREncodable for KnownValue {
