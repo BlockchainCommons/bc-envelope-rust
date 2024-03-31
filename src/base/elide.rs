@@ -190,7 +190,7 @@ impl Envelope {
                 ObscureAction::Elide => self.elide(),
                 #[cfg(feature = "encrypt")]
                 ObscureAction::Encrypt(key) => {
-                    let message = key.encrypt(self.tagged_cbor().cbor_data(), Some(self_digest), None::<Nonce>);
+                    let message = key.encrypt_with_digest(self.tagged_cbor().cbor_data(), self_digest, None::<Nonce>);
                     Self::new_with_encrypted(message).unwrap()
                 },
                 #[cfg(feature = "compress")]
