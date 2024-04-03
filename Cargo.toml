@@ -1,6 +1,6 @@
 [package]
 name = "bc-envelope"
-version = "0.14.1"
+version = "0.15.0"
 edition = "2021"
 description = "Gordian Envelope for Rust."
 authors = ["Blockchain Commons"]
@@ -21,7 +21,7 @@ bc-rand = "0.1"
 bc-crypto = "0.3"
 
 # bc-components = { path = "../bc-components" }
-bc-components = "0.9"
+bc-components = "0.10"
 
 # bc-ur = { path = "../bc-ur" }
 bc-ur = "0.3"
