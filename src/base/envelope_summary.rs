@@ -18,7 +18,7 @@ impl EnvelopeSummary for CBOR {
     fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> Result<String, Box<dyn Error>> {
         match self.case() {
             CBORCase::Unsigned(n) => Ok(n.to_string()),
-            CBORCase::Negative(n) => Ok(n.to_string()),
+            CBORCase::Negative(n) => Ok((-1 - (*n as i128)).to_string()),
             CBORCase::ByteString(data) => Ok(format!("Bytes({})", data.len())),
             CBORCase::Text(string) => {
                 let string = if string.len() > max_length {
