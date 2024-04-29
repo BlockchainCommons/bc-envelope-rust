@@ -23,7 +23,7 @@ or any cryptographic signatures that rely on it.
 
 ```toml
 [dependencies]
-bc-envelope = "0.15.2"
+bc-envelope = "0.15.3"
 ```
 
 ## Specification

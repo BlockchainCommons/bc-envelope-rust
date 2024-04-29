@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/bc-envelope/0.15.2")]
+#![doc(html_root_url = "https://docs.rs/bc-envelope/0.15.3")]
 #![warn(rust_2018_idioms)]
 
 //! # Gordian Envelope: A Flexible Container for Structured Data
@@ -20,7 +20,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bc-envelope = "0.15.2"
+//! bc-envelope = "0.15.3"
 //! ```
 //!
 //! ## Specification
@@ -398,21 +398,50 @@ pub use extension::expression;
 #[cfg(feature = "expression")]
 pub use extension::expression::{functions, parameters, Function, Parameter};
 
-#[cfg(all(feature = "signature", feature = "encrypt"))]
+#[cfg(feature = "signature")]
 impl Envelope {
-    pub fn sign_and_encrypt(&self, sender: &PrivateKeyBase, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
-        Ok(self
+    pub fn sign(&self, sender: &PrivateKeyBase) -> Envelope {
+        self
             .wrap_envelope()
             .sign_with(sender)
-            .wrap_envelope()
-            .encrypt_subject_to_recipient(recipient)?)
     }
 
-    pub fn verify_and_decrypt(&self, sender: &PublicKeyBase, recipient: &PrivateKeyBase) -> anyhow::Result<Envelope> {
+    pub fn verify(&self, sender: &PublicKeyBase) -> anyhow::Result<Envelope> {
+        Ok(self
+            .verify_signature_from(sender)?
+            .unwrap_envelope()?
+        )
+    }
+}
+
+#[cfg(feature = "encrypt")]
+impl Envelope {
+    pub fn encrypt(&self, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
+        Ok(self
+            .wrap_envelope()
+            .encrypt_subject_to_recipient(recipient)?
+        )
+    }
+
+    pub fn decrypt(&self, recipient: &PrivateKeyBase) -> anyhow::Result<Envelope> {
         Ok(self
             .decrypt_to_recipient(recipient)?
             .unwrap_envelope()?
-            .verify_signature_from(sender)?
-            .unwrap_envelope()?)
+        )
+    }
+}
+
+#[cfg(all(feature = "signature", feature = "encrypt"))]
+impl Envelope {
+    pub fn sign_and_encrypt(&self, sender: &PrivateKeyBase, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
+        self
+            .sign(sender)
+            .encrypt(recipient)
+    }
+
+    pub fn verify_and_decrypt(&self, sender: &PublicKeyBase, recipient: &PrivateKeyBase) -> anyhow::Result<Envelope> {
+        self
+            .decrypt(recipient)?
+            .verify(sender)
     }
 }
