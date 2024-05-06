@@ -1,3 +1,6 @@
-use crate::{EnvelopeEncodable, EnvelopeDecodable};
+// use crate::{EnvelopeEncodable, EnvelopeDecodable};
 
-pub trait EnvelopeCodable: EnvelopeEncodable + EnvelopeDecodable { }
+// pub trait EnvelopeCodable { }
+
+// impl<'a, T> EnvelopeCodable for T
+// where T: EnvelopeEncodable + EnvelopeDecodable {}

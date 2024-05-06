@@ -22,7 +22,7 @@ fn test_sskr() -> anyhow::Result<()> {
     // representing SSKR groups and the inner array elements each holding the encrypted
     // seed and a single share.
     let content_key = SymmetricKey::new();
-    let seed_envelope = dan_seed.envelope();
+    let seed_envelope = dan_seed.clone().to_envelope();
     let encrypted_seed_envelope = seed_envelope
         .wrap_envelope()
         .encrypt_subject(&content_key)?;
@@ -51,14 +51,14 @@ fn test_sskr() -> anyhow::Result<()> {
     // Dan ➡️ ☁️ ➡️ Carol
 
     // let alice_envelope = Envelope::from_ur(&sent_urs[0])?; // UNRECOVERED
-    let bob_envelope = Envelope::from_ur(&sent_urs[1])?;
-    let carol_envelope = Envelope::from_ur(&sent_urs[2])?;
+    let bob_envelope = Envelope::from_ur(sent_urs[1].clone())?;
+    let carol_envelope = Envelope::from_ur(sent_urs[2].clone())?;
 
     // At some future point, Dan retrieves two of the three envelopes so he can recover his seed.
     let recovered_envelopes = [&bob_envelope, &carol_envelope];
     let recovered_seed_envelope = Envelope::sskr_join(&recovered_envelopes)?.unwrap_envelope()?;
 
-    let recovered_seed = Seed::from_envelope(&recovered_seed_envelope)?;
+    let recovered_seed: Seed = recovered_seed_envelope.try_into()?;
 
     // The recovered seed is correct.
     assert_eq!(dan_seed.data(), recovered_seed.data());

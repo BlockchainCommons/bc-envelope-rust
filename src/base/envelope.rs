@@ -4,7 +4,7 @@ use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 use dcbor::prelude::*;
-use crate::{base::Assertion, EnvelopeError, EnvelopeEncodable};
+use crate::{base::Assertion, EnvelopeEncodable, EnvelopeError};
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
 
@@ -29,6 +29,12 @@ impl Envelope {
 impl From<EnvelopeCase> for Envelope {
     fn from(case: EnvelopeCase) -> Self {
         Self(RefCounted::new(case))
+    }
+}
+
+impl From<&Envelope> for Envelope {
+    fn from(envelope: &Envelope) -> Self {
+        envelope.clone()
     }
 }
 
@@ -93,21 +99,30 @@ impl Envelope {
 /// Support for basic envelope creation.
 impl Envelope {
     /// Creates an envelope with a `subject`, which
-    /// can be any instance that implements ``IntoEnvelope``.
-    pub fn new<E>(subject: E) -> Self
-    where
-        E: EnvelopeEncodable,
-    {
-        subject.envelope()
+    /// can be any instance that implements ``EnvelopeEncodable``.
+    pub fn new(subject: impl EnvelopeEncodable) -> Self {
+        subject.to_envelope()
+    }
+
+    /// Creates an envelope with a `subject`, which
+    /// can be any instance that implements ``EnvelopeEncodable``.
+    ///
+    /// If `subject` is `None`, returns a null envelope.
+    pub fn new_or_null(subject: Option<impl EnvelopeEncodable>) -> Self {
+        subject.map_or_else(Self::null, Self::new)
+    }
+
+    /// Creates an envelope with a `subject`, which
+    /// can be any instance that implements ``EnvelopeEncodable``.
+    ///
+    /// If `subject` is `None`, returns `None`.
+    pub fn new_or_none(subject: Option<impl EnvelopeEncodable>) -> Option<Self> {
+        subject.map(Self::new)
     }
 
     /// Creates an assertion envelope with a `predicate` and `object`,
-    /// each of which can be any instance that implements ``IntoEnvelope``.
-    pub fn new_assertion<P, O>(predicate: P, object: O) -> Self
-    where
-        P: EnvelopeEncodable,
-        O: EnvelopeEncodable,
-    {
+    /// each of which can be any instance that implements ``EnvelopeEncodable``.
+    pub fn new_assertion(predicate: impl EnvelopeEncodable, object: impl EnvelopeEncodable) -> Self {
         Self::new_with_assertion(Assertion::new(predicate, object))
     }
 }
@@ -161,8 +176,8 @@ impl Envelope {
         EnvelopeCase::Elided(digest).into()
     }
 
-    pub(crate) fn new_leaf<T: CBOREncodable>(cbor: T) -> Self {
-        let cbor = cbor.cbor();
+    pub(crate) fn new_leaf(value: impl Into<CBOR>) -> Self {
+        let cbor: CBOR = value.into();
         let digest = Digest::from_image(cbor.cbor_data());
         (EnvelopeCase::Leaf { cbor, digest }).into()
     }
@@ -221,7 +236,7 @@ mod tests {
         let digest = data.digest().into_owned();
         let compressed = Compressed::from_uncompressed_data(data, Some(digest));
         let e1 = Envelope::new_with_compressed(compressed.clone()).unwrap();
-        let e2 = Envelope::new(compressed);
+        let e2: Envelope = compressed.try_into().unwrap();
         assert_eq!(e1.format(), e2.format());
         assert_eq!(e1.digest(), e2.digest());
     }

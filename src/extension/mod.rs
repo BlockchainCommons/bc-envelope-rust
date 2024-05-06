@@ -19,10 +19,16 @@ pub mod encrypt;
 ///
 /// Expressions Extension
 ///
-/// Includes distributed function evaluation.
-///
 #[cfg(feature = "expression")]
 pub mod expression;
+
+///
+/// Transactions Extension
+///
+/// Includes transaction signing and verification.
+///
+#[cfg(feature = "transaction")]
+pub mod transaction;
 
 ///
 /// Known Values Extension
@@ -34,7 +40,7 @@ pub use known_values::*;
 
 ///
 /// Inclusion Proof Extension
-/// 
+///
 #[cfg(feature = "proof")]
 pub mod proof;
 

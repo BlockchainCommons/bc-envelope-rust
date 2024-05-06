@@ -1,11 +1,36 @@
-pub use crate::{Envelope, EnvelopeEncodable, EnvelopeDecodable, EnvelopeCodable, FormatContext, with_format_context};
+pub use crate::{
+    Envelope,
+    // EnvelopeCodable,
+    // EnvelopeDecodable,
+    EnvelopeEncodable,
+    FormatContext,
+    with_format_context,
+};
 
 #[cfg(feature = "known_value")]
-pub use crate::{known_values, KnownValue, KnownValuesStore};
+pub use crate::{
+    known_values,
+    KnownValue,
+    KnownValuesStore,
+};
 
 #[cfg(feature = "expression")]
-pub use crate::{expression, functions, parameters, Parameter, Function};
+pub use crate::{
+    expression,
+    Function,
+    functions,
+    Parameter,
+    parameters,
+};
 
-pub use crate::elide::{self, ObscureAction};
-pub use bc_components::{DigestProvider, Digest};
+pub use crate::elide::{
+    ObscureAction,
+    self,
+};
+
+pub use bc_components::{
+    Digest,
+    DigestProvider,
+};
+
 pub use bc_ur::prelude::*;

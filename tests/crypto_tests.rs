@@ -34,7 +34,7 @@ fn plaintext() {
 fn test_signed_plaintext() {
     // Alice sends a signed plaintext message to Bob.
     let envelope = hello_envelope()
-        .sign_with(&alice_private_keys())
+        .add_signature_with(&alice_private_key())
         .check_encoding().unwrap();
     let ur = envelope.ur();
 
@@ -53,19 +53,19 @@ fn test_signed_plaintext() {
 
     // Bob receives the message, validates Alice's signature, and reads the message.
     let received_plaintext = received_envelope
-        .verify_signature_from(&alice_public_keys());
+        .verify_signature_from(&alice_public_key());
     let received_plaintext = received_plaintext.unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(received_plaintext, "Hello.");
 
     // Confirm that it wasn't signed by Carol.
-    assert!(received_envelope.verify_signature_from(&carol_public_keys()).is_err());
+    assert!(received_envelope.verify_signature_from(&carol_public_key()).is_err());
 
     // Confirm that it was signed by Alice OR Carol.
-    received_envelope.verify_signatures_from_threshold(&[&alice_public_keys(), &carol_public_keys()], Some(1)).unwrap();
+    received_envelope.verify_signatures_from_threshold(&[&alice_public_key(), &carol_public_key()], Some(1)).unwrap();
 
     // Confirm that it was not signed by Alice AND Carol.
-    assert!(received_envelope.verify_signatures_from_threshold(&[&alice_public_keys(), &carol_public_keys()], Some(2)).is_err());
+    assert!(received_envelope.verify_signatures_from_threshold(&[&alice_public_key(), &carol_public_key()], Some(2)).is_err());
 }
 
 #[cfg(feature = "signature")]
@@ -73,7 +73,7 @@ fn test_signed_plaintext() {
 fn multisigned_plaintext() {
     // Alice and Carol jointly send a signed plaintext message to Bob.
     let envelope = hello_envelope()
-        .sign_with_keys(&[&alice_private_keys(), &carol_private_keys()])
+        .add_signatures_with_keys(&[&alice_private_key(), &carol_private_key()])
         .check_encoding().unwrap();
     let ur = envelope.ur();
 
@@ -90,7 +90,7 @@ fn multisigned_plaintext() {
     // Bob receives the envelope and verifies the message was signed by both Alice and Carol.
     let received_plaintext = Envelope::from_ur(&ur).unwrap()
         .check_encoding().unwrap()
-        .verify_signatures_from(&[&alice_public_keys(), &carol_public_keys()]);
+        .verify_signatures_from(&[&alice_public_key(), &carol_public_key()]);
 
     // Bob reads the message.
     let received_plaintext = received_plaintext.unwrap()
@@ -189,7 +189,7 @@ fn sign_then_encrypt() {
 
     // Alice signs a plaintext message, then encrypts it.
     let envelope = hello_envelope()
-        .sign_with(&alice_private_keys())
+        .add_signature_with(&alice_private_key())
         .check_encoding().unwrap()
         .wrap_envelope()
         .check_encoding().unwrap()
@@ -211,7 +211,7 @@ fn sign_then_encrypt() {
         .check_encoding().unwrap()
         .unwrap_envelope().unwrap()
         .check_encoding().unwrap()
-        .verify_signature_from(&alice_public_keys());
+        .verify_signature_from(&alice_public_key());
 
     // Bob reads the message.
     let received_plaintext = received_plaintext.unwrap()
@@ -251,7 +251,7 @@ fn test_encrypt_then_sign() {
     // decryption, and may be checked before or after decryption.
     let envelope = hello_envelope()
         .encrypt_subject(&key).unwrap()
-        .sign_with(&alice_private_keys())
+        .add_signature_with(&alice_private_key())
         .check_encoding().unwrap();
     let ur = envelope.ur();
 
@@ -267,7 +267,7 @@ fn test_encrypt_then_sign() {
     // Bob receives the envelope, validates Alice's signature, then decrypts the message.
     let received_plaintext = Envelope::from_ur(&ur).unwrap()
         .check_encoding().unwrap()
-        .verify_signature_from(&alice_public_keys()).unwrap()
+        .verify_signature_from(&alice_public_key()).unwrap()
         .decrypt_subject(&key).unwrap()
         .check_encoding().unwrap()
         .extract_subject::<String>().unwrap();
@@ -282,8 +282,8 @@ fn test_multi_recipient() {
     let content_key = SymmetricKey::new();
     let envelope = hello_envelope()
         .encrypt_subject(&content_key).unwrap()
-        .add_recipient(&bob_public_keys(), &content_key)
-        .add_recipient(&carol_public_keys(), &content_key)
+        .add_recipient(&bob_public_key(), &content_key)
+        .add_recipient(&carol_public_key(), &content_key)
         .check_encoding().unwrap();
     let ur = envelope.ur();
 
@@ -303,20 +303,20 @@ fn test_multi_recipient() {
 
     // Bob decrypts and reads the message
     let bob_received_plaintext = received_envelope
-        .decrypt_to_recipient(&bob_private_keys()).unwrap()
+        .decrypt_to_recipient(&bob_private_key()).unwrap()
         .check_encoding().unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(bob_received_plaintext, PLAINTEXT_HELLO);
 
     // Carol decrypts and reads the message
     let carol_received_plaintext = received_envelope
-        .decrypt_to_recipient(&carol_private_keys()).unwrap()
+        .decrypt_to_recipient(&carol_private_key()).unwrap()
         .check_encoding().unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(carol_received_plaintext, PLAINTEXT_HELLO);
 
     // Alice didn't encrypt it to herself, so she can't read it.
-    assert!(received_envelope.decrypt_to_recipient(&alice_private_keys()).is_err());
+    assert!(received_envelope.decrypt_to_recipient(&alice_private_key()).is_err());
 }
 
 #[cfg(all(feature = "signature", feature = "recipient"))]
@@ -325,10 +325,10 @@ fn test_visible_signature_multi_recipient() {
     // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
     let content_key = SymmetricKey::new();
     let envelope = hello_envelope()
-        .sign_with(&alice_private_keys())
+        .add_signature_with(&alice_private_key())
         .encrypt_subject(&content_key).unwrap()
-        .add_recipient(&bob_public_keys(), &content_key)
-        .add_recipient(&carol_public_keys(), &content_key)
+        .add_recipient(&bob_public_key(), &content_key)
+        .add_recipient(&carol_public_key(), &content_key)
         .check_encoding().unwrap();
     let ur = envelope.ur();
 
@@ -349,22 +349,22 @@ fn test_visible_signature_multi_recipient() {
 
     // Bob validates Alice's signature, then decrypts and reads the message
     let bob_received_plaintext = received_envelope
-        .verify_signature_from(&alice_public_keys()).unwrap()
-        .decrypt_to_recipient(&bob_private_keys()).unwrap()
+        .verify_signature_from(&alice_public_key()).unwrap()
+        .decrypt_to_recipient(&bob_private_key()).unwrap()
         .check_encoding().unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(bob_received_plaintext, PLAINTEXT_HELLO);
 
     // Carol validates Alice's signature, then decrypts and reads the message
     let carol_received_plaintext = received_envelope
-        .verify_signature_from(&alice_public_keys()).unwrap()
-        .decrypt_to_recipient(&carol_private_keys()).unwrap()
+        .verify_signature_from(&alice_public_key()).unwrap()
+        .decrypt_to_recipient(&carol_private_key()).unwrap()
         .check_encoding().unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(carol_received_plaintext, PLAINTEXT_HELLO);
 
     // Alice didn't encrypt it to herself, so she can't read it.
-    assert!(received_envelope.decrypt_to_recipient(&alice_private_keys()).is_err());
+    assert!(received_envelope.decrypt_to_recipient(&alice_private_key()).is_err());
 }
 
 #[cfg(all(feature = "signature", feature = "recipient"))]
@@ -376,11 +376,11 @@ fn test_hidden_signature_multi_recipient() {
     // are able to validate the signature.
     let content_key = SymmetricKey::new();
     let envelope = hello_envelope()
-        .sign_with(&alice_private_keys())
+        .add_signature_with(&alice_private_key())
         .wrap_envelope()
         .encrypt_subject(&content_key).unwrap()
-        .add_recipient(&bob_public_keys(), &content_key)
-        .add_recipient(&carol_public_keys(), &content_key)
+        .add_recipient(&bob_public_key(), &content_key)
+        .add_recipient(&carol_public_key(), &content_key)
         .check_encoding().unwrap();
     let ur = envelope.ur();
 
@@ -401,23 +401,23 @@ fn test_hidden_signature_multi_recipient() {
     // Bob decrypts the envelope, then extracts the inner envelope and validates
     // Alice's signature, then reads the message
     let bob_received_plaintext = received_envelope
-        .decrypt_to_recipient(&bob_private_keys()).unwrap()
+        .decrypt_to_recipient(&bob_private_key()).unwrap()
         .unwrap_envelope().unwrap()
         .check_encoding().unwrap()
-        .verify_signature_from(&alice_public_keys()).unwrap()
+        .verify_signature_from(&alice_public_key()).unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(bob_received_plaintext, PLAINTEXT_HELLO);
 
     // Carol decrypts the envelope, then extracts the inner envelope and validates
     // Alice's signature, then reads the message
     let carol_received_plaintext = received_envelope
-        .decrypt_to_recipient(&carol_private_keys()).unwrap()
+        .decrypt_to_recipient(&carol_private_key()).unwrap()
         .unwrap_envelope().unwrap()
         .check_encoding().unwrap()
-        .verify_signature_from(&alice_public_keys()).unwrap()
+        .verify_signature_from(&alice_public_key()).unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(carol_received_plaintext, PLAINTEXT_HELLO);
 
     // Alice didn't encrypt it to herself, so she can't read it.
-    assert!(received_envelope.decrypt_to_recipient(&alice_private_keys()).is_err());
+    assert!(received_envelope.decrypt_to_recipient(&alice_private_key()).is_err());
 }

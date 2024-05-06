@@ -16,7 +16,7 @@ pub trait EnvelopeSummary {
 
 impl EnvelopeSummary for CBOR {
     fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> Result<String, Box<dyn Error>> {
-        match self.case() {
+        match self.as_case() {
             CBORCase::Unsigned(n) => Ok(n.to_string()),
             CBORCase::Negative(n) => Ok((-1 - (*n as i128)).to_string()),
             CBORCase::ByteString(data) => Ok(format!("Bytes({})", data.len())),
@@ -39,11 +39,12 @@ impl EnvelopeSummary for CBOR {
             },
             CBORCase::Map(_) => Ok("Map".to_string()),
             CBORCase::Tagged(tag, untagged_cbor) => {
+                let untagged_cbor = untagged_cbor.clone();
                 match tag.value() {
                     tags::ENVELOPE_VALUE => Ok("Envelope".to_string()),
                     #[cfg(feature = "known_value")]
                     tags::KNOWN_VALUE_VALUE => {
-                        if let CBORCase::Unsigned(raw_value) = untagged_cbor.case() {
+                        if let CBORCase::Unsigned(raw_value) = untagged_cbor.as_case() {
                             Ok(KnownValuesStore::known_value_for_raw_value(*raw_value, Some(context.known_values()))
                                 .to_string().flanked_by("'", "'",))
                         } else {

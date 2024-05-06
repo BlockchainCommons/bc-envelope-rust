@@ -1,7 +1,6 @@
 use anyhow::bail;
 use bc_components::tags;
 use bc_ur::prelude::*;
-
 use bc_envelope::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -69,24 +68,18 @@ impl CBORTagged for Seed {
     }
 }
 
-impl CBOREncodable for Seed {
-    fn cbor(&self) -> CBOR {
-        self.tagged_cbor()
-    }
-}
-
 impl From<Seed> for CBOR {
     fn from(value: Seed) -> Self {
-        value.cbor()
+        value.tagged_cbor()
     }
 }
 
 impl CBORTaggedEncodable for Seed {
     fn untagged_cbor(&self) -> CBOR {
         let mut map = dcbor::Map::new();
-        map.insert(1, CBOR::byte_string(self.data()));
+        map.insert(1, CBOR::to_byte_string(self.data()));
         if let Some(creation_date) = self.creation_date() {
-            map.insert(2, creation_date);
+            map.insert(2, creation_date.clone());
         }
         if !self.name().is_empty() {
             map.insert(3, self.name());
@@ -94,15 +87,7 @@ impl CBORTaggedEncodable for Seed {
         if !self.note().is_empty() {
             map.insert(4, self.note());
         }
-        map.cbor()
-    }
-}
-
-impl UREncodable for Seed { }
-
-impl CBORDecodable for Seed {
-    fn from_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
-        Self::from_tagged_cbor(cbor)
+        map.into()
     }
 }
 
@@ -110,14 +95,14 @@ impl TryFrom<CBOR> for Seed {
     type Error = anyhow::Error;
 
     fn try_from(cbor: CBOR) -> Result<Self, Self::Error> {
-        Self::from_cbor(&cbor)
+        Self::from_tagged_cbor(cbor)
     }
 }
 
 impl CBORTaggedDecodable for Seed {
-    fn from_untagged_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
-        let map = cbor.expect_map()?;
-        let data = map.extract::<i32, CBOR>(1)?.expect_byte_string()?.to_vec();
+    fn from_untagged_cbor(cbor: CBOR) -> anyhow::Result<Self> {
+        let map = cbor.try_into_map()?;
+        let data = map.extract::<i32, CBOR>(1)?.try_into_byte_string()?.to_vec();
         if data.is_empty() {
             bail!("invalid seed data");
         }
@@ -128,15 +113,11 @@ impl CBORTaggedDecodable for Seed {
     }
 }
 
-impl URDecodable for Seed { }
-
-impl URCodable for Seed { }
-
-impl EnvelopeEncodable for &Seed {
-    fn envelope(self) -> Envelope {
-        let mut e = Envelope::new(CBOR::byte_string(self.data()))
+impl EnvelopeEncodable for Seed {
+    fn to_envelope(self: &Seed) -> Envelope {
+        let mut e = Envelope::new(CBOR::to_byte_string(self.data()))
             .add_type(known_values::SEED_TYPE)
-            .add_optional_assertion(known_values::DATE, self.creation_date());
+            .add_optional_assertion(known_values::DATE, self.creation_date().cloned());
 
         if !self.name().is_empty() {
             e = e.add_assertion(known_values::HAS_NAME, self.name());
@@ -150,16 +131,12 @@ impl EnvelopeEncodable for &Seed {
     }
 }
 
-impl From<&Seed> for Envelope {
-    fn from(value: &Seed) -> Self {
-        value.envelope()
-    }
-}
+impl TryFrom<Envelope> for Seed {
+    type Error = anyhow::Error;
 
-impl Seed {
-    pub fn from_envelope(envelope: &Envelope) -> anyhow::Result<Self> {
+    fn try_from(envelope: Envelope) -> anyhow::Result<Self> {
         envelope.check_type(&known_values::SEED_TYPE)?;
-        let data = envelope.subject().expect_leaf()?.expect_byte_string()?.to_vec();
+        let data = envelope.subject().expect_leaf()?.try_into_byte_string()?.to_vec();
         let name = envelope.extract_optional_object_for_predicate::<String>(known_values::HAS_NAME)?.unwrap_or_default().to_string();
         let note = envelope.extract_optional_object_for_predicate::<String>(known_values::NOTE)?.unwrap_or_default().to_string();
         let creation_date = envelope.extract_optional_object_for_predicate::<dcbor::Date>(known_values::DATE)?.map(|s| s.as_ref().clone());

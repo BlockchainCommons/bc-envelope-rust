@@ -112,13 +112,8 @@ fn test_multi_position() {
 
 #[test]
 fn test_verifiable_credential() {
-    // ```swift
-    // let aliceSeed = Seed(data: ‡"82f32c855d3d542256180810797e0073")!
-    // let alicePrivateKeys = PrivateKeyBase(aliceSeed)
-    // ```
-
     let alice_seed = Seed::new(hex!("82f32c855d3d542256180810797e0073"));
-    let alice_private_keys = PrivateKeyBase::from_data(Bytes::copy_from_slice(alice_seed.data()));
+    let alice_private_key = PrivateKeyBase::from_data(Bytes::copy_from_slice(alice_seed.data()));
     let arid = Envelope::new(ARID::from_data_ref(hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")).unwrap());
     let credential = arid
         .add_assertion_salted("firstName", "John", true)
@@ -132,7 +127,7 @@ fn test_verifiable_credential() {
         .add_assertion(known_values::ISSUER, "State of Example")
         .add_assertion(known_values::CONTROLLER, "State of Example")
         .wrap_envelope()
-        .sign_with(&alice_private_keys)
+        .add_signature_with(&alice_private_key)
         .add_assertion(known_values::NOTE, "Signed by the State of Example");
 
     let credential_root = credential.elide_revealing_set(&HashSet::new());

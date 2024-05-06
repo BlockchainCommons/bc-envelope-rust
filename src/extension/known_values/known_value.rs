@@ -3,7 +3,7 @@ use std::{fmt::{Formatter, Display}, borrow::Cow};
 use bc_components::{tags, DigestProvider, Digest};
 use dcbor::prelude::*;
 
-use crate::{EnvelopeEncodable, Envelope};
+use crate::{Envelope, EnvelopeEncodable};
 
 #[derive(Debug, Clone)]
 enum KnownValueName {
@@ -92,16 +92,16 @@ impl Display for KnownValue {
 }
 
 impl EnvelopeEncodable for KnownValue {
-    fn envelope(self) -> Envelope {
-        Envelope::new_with_known_value(self)
+    fn to_envelope(&self) -> Envelope {
+        Envelope::new_with_known_value(self.clone())
     }
 }
 
-impl From<KnownValue> for Envelope {
-    fn from(known_value: KnownValue) -> Self {
-        known_value.envelope()
-    }
-}
+// impl From<&KnownValue> for Envelope {
+//     fn from(known_value: &KnownValue) -> Self {
+//         Envelope::new_with_known_value(known_value.clone())
+//     }
+// }
 
 impl DigestProvider for KnownValue {
     fn digest(&self) -> Cow<'_, Digest> {
@@ -115,48 +115,33 @@ impl CBORTagged for KnownValue {
     }
 }
 
-impl CBOREncodable for KnownValue {
-    fn cbor(&self) -> CBOR {
-        self.tagged_cbor()
-    }
-}
-
 impl From<KnownValue> for CBOR {
     fn from(value: KnownValue) -> Self {
-        value.cbor()
+        value.tagged_cbor()
     }
 }
 
-impl CBORDecodable for KnownValue {
-    fn from_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
-        Self::from_tagged_cbor(cbor)
-    }
-}
 
 impl TryFrom<CBOR> for KnownValue {
     type Error = anyhow::Error;
 
     fn try_from(cbor: CBOR) -> Result<Self, Self::Error> {
-        Self::from_cbor(&cbor)
+        Self::from_tagged_cbor(cbor)
     }
 }
 
-impl CBORCodable for KnownValue { }
-
 impl CBORTaggedEncodable for KnownValue {
     fn untagged_cbor(&self) -> CBOR {
-        self.value.cbor()
+        self.value.into()
     }
 }
 
 impl CBORTaggedDecodable for KnownValue {
-    fn from_untagged_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
-        let value = u64::from_cbor(cbor)?;
+    fn from_untagged_cbor(cbor: CBOR) -> anyhow::Result<Self> {
+        let value: u64 = cbor.try_into()?;
         Ok(Self::new(value))
     }
 }
-
-impl CBORTaggedCodable for KnownValue { }
 
 impl From<u64> for KnownValue {
     fn from(value: u64) -> Self {

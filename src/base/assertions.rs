@@ -1,6 +1,6 @@
 use bc_components::DigestProvider;
 
-use crate::{Envelope, EnvelopeError, EnvelopeEncodable};
+use crate::{Envelope, EnvelopeEncodable, EnvelopeError};
 
 use super::envelope::EnvelopeCase;
 
@@ -17,7 +17,7 @@ impl Envelope {
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
     pub fn add_assertion_envelope(&self, assertion_envelope: impl EnvelopeEncodable) -> Result<Self, EnvelopeError> {
-        self.add_optional_assertion_envelope(Some(assertion_envelope.into()))
+        self.add_optional_assertion_envelope(Some(assertion_envelope.to_envelope()))
     }
 
     /// Returns the result of adding the given array of assertions to the envelope.
@@ -198,6 +198,6 @@ impl Envelope {
 
     /// Returns a new envelope with its subject replaced by the provided one.
     pub fn replace_subject(&self, subject: Self) -> Self {
-        self.assertions().iter().fold(subject, |e, a| e.add_assertion_envelope(a).unwrap())
+        self.assertions().into_iter().fold(subject, |e, a| e.add_assertion_envelope(a).unwrap())
     }
 }

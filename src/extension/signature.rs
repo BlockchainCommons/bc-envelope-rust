@@ -2,7 +2,7 @@ use anyhow::bail;
 use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider};
 use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
 
-use crate::{Envelope, EnvelopeError, EnvelopeEncodable, impl_envelope_encodable};
+use crate::{Envelope, EnvelopeError};
 #[cfg(feature = "known_value")]
 use crate::extension::known_values;
 
@@ -11,25 +11,25 @@ impl Envelope {
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
     ///
     /// - Parameters:
-    ///   - privateKeys: The signer's `PrivateKeyBase`
+    ///   - private_key: The signer's `PrivateKeyBase`
     ///
     /// - Returns: The signed envelope.
-    pub fn sign_with(&self, private_keys: &PrivateKeyBase) -> Self {
-        self.sign_with_opt(private_keys, None, [])
+    pub fn add_signature_with(&self, private_key: &PrivateKeyBase) -> Self {
+        self.add_signature_with_opt(private_key, None, [])
     }
 
     #[doc(hidden)]
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
     ///
     /// - Parameters:
-    ///   - privateKeys: The signer's `PrivateKeyBase`
+    ///   - private_key: The signer's `PrivateKeyBase`
     ///   - note: Optional text note to add to the `Signature`
     ///   - rng: The random number generator to use.
     ///
     /// - Returns: The signed envelope.
-    pub fn sign_with_opt_using<D>(
+    pub fn add_signature_with_opt_using<D>(
         &self,
-        private_keys: &PrivateKeyBase,
+        private_key: &PrivateKeyBase,
         note: Option<&str>,
         tag: D,
         rng: &mut impl RandomNumberGenerator
@@ -41,19 +41,19 @@ impl Envelope {
         if let Some(note) = note {
             assertions.push(Self::new_assertion(known_values::NOTE, note));
         }
-        self.sign_with_uncovered_assertions_using(private_keys, &assertions, tag, rng)
+        self.add_signatures_with_uncovered_assertions_using(private_key, &assertions, tag, rng)
     }
 
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
     ///
     /// - Parameters:
-    ///   - privateKeys: The signer's `PrivateKeyBase`
+    ///   - private_key: The signer's `PrivateKeyBase`
     ///   - note: Optional text note to add to the `Signature`
     ///
     /// - Returns: The signed envelope.
-    pub fn sign_with_opt<D>(
+    pub fn add_signature_with_opt<D>(
         &self,
-        private_keys: &PrivateKeyBase,
+        private_key: &PrivateKeyBase,
         note: Option<&str>,
         tag: D,
     ) -> Self
@@ -61,37 +61,37 @@ impl Envelope {
         D: AsRef<[u8]>,
     {
         let mut rng = SecureRandomNumberGenerator;
-        self.sign_with_opt_using(private_keys, note, tag, &mut rng)
+        self.add_signature_with_opt_using(private_key, note, tag, &mut rng)
     }
 
     #[doc(hidden)]
-    pub fn sign_with_using(
+    pub fn add_signature_with_using(
         &self,
-        private_keys: &PrivateKeyBase,
+        private_key: &PrivateKeyBase,
         rng: &mut impl RandomNumberGenerator
     ) -> Self {
-        self.sign_with_opt_using(private_keys, None, [], rng)
+        self.add_signature_with_opt_using(private_key, None, [], rng)
     }
 
-    pub fn sign_with_keys<T>(
+    pub fn add_signatures_with_keys<T>(
         &self,
-        private_keys_array: &[T],
+        private_keys: &[T],
     ) -> Self
     where
         T: AsRef<PrivateKeyBase>,
     {
-        self.sign_with_keys_opt(private_keys_array, [])
+        self.add_signatures_with_keys_opt(private_keys, [])
     }
 
     /// Creates several signatures for the envelope's subject and returns a new envelope with additional `verifiedBy: Signature` assertions.
     ///
     /// - Parameters:
-    ///   - privateKeys: An array of signers' `PrivateKeyBase`s.
+    ///   - private_key: An array of signers' `PrivateKeyBase`s.
     ///
     /// - Returns: The signed envelope.
-    pub fn sign_with_keys_opt<D, T>(
+    pub fn add_signatures_with_keys_opt<D, T>(
         &self,
-        private_keys_array: &[T],
+        private_keys: &[T],
         tag: D,
     ) -> Self
     where
@@ -99,20 +99,20 @@ impl Envelope {
         T: AsRef<PrivateKeyBase>,
     {
         let mut rng = SecureRandomNumberGenerator;
-        self.sign_with_keys_opt_using(private_keys_array, tag, &mut rng)
+        self.add_signatures_with_keys_opt_using(private_keys, tag, &mut rng)
     }
 
     #[doc(hidden)]
     /// Creates several signatures for the envelope's subject and returns a new envelope with additional `verifiedBy: Signature` assertions.
     ///
     /// - Parameters:
-    ///   - privateKeys: An array of signers' `PrivateKeyBase`s.
+    ///   - private_key: An array of signers' `PrivateKeyBase`s.
     ///   - rng: The random number generator to use.
     ///
     /// - Returns: The signed envelope.
-    pub fn sign_with_keys_opt_using<D, T>(
+    pub fn add_signatures_with_keys_opt_using<D, T>(
         &self,
-        private_keys_array: &[T],
+        private_keys: &[T],
         tag: D,
         rng: &mut impl RandomNumberGenerator
     ) -> Self
@@ -120,8 +120,8 @@ impl Envelope {
         D: AsRef<[u8]> + Clone,
         T: AsRef<PrivateKeyBase>,
     {
-        private_keys_array.iter().fold(self.clone(), |envelope, private_key| {
-            envelope.sign_with_opt_using(private_key.as_ref(), None, tag.clone(), rng)
+        private_keys.iter().fold(self.clone(), |envelope, private_key| {
+            envelope.add_signature_with_opt_using(private_key.as_ref(), None, tag.clone(), rng)
         })
     }
 
@@ -129,14 +129,14 @@ impl Envelope {
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
     ///
     /// - Parameters:
-    ///   - privateKeys: The signer's `PrivateKeyBase`
+    ///   - private_key: The signer's `PrivateKeyBase`
     ///   - uncoveredAssertions: Assertions to add to the `Signature`.
     ///   - rng: The random number generator to use.
     ///
     /// - Returns: The signed envelope.
-    pub fn sign_with_uncovered_assertions_using<D>(
+    pub fn add_signatures_with_uncovered_assertions_using<D>(
         &self,
-        private_keys: &PrivateKeyBase,
+        private_key: &PrivateKeyBase,
         uncovered_assertions: &[Self],
         tag: D,
         rng: &mut impl RandomNumberGenerator
@@ -144,7 +144,7 @@ impl Envelope {
     where
         D: AsRef<[u8]>,
     {
-        let signing_private_key = private_keys.signing_private_key();
+        let signing_private_key = private_key.signing_private_key();
         let digest = *self.subject().digest().data();
         let signature = Envelope::new(signing_private_key.schnorr_sign_using(digest, tag, rng))
             .add_assertion_envelopes(uncovered_assertions)
@@ -155,13 +155,13 @@ impl Envelope {
     /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
     ///
     /// - Parameters:
-    ///   - privateKeys: The signer's `PrivateKeyBase`
+    ///   - private_key: The signer's `PrivateKeyBase`
     ///   - uncoveredAssertions: Assertions to add to the `Signature`.
     ///
     /// - Returns: The signed envelope.
-    pub fn sign_with_uncovered_assertions<D>(
+    pub fn add_signatures_with_uncovered_assertions<D>(
         &self,
-        private_keys: &PrivateKeyBase,
+        private_key: &PrivateKeyBase,
         uncovered_assertions: &[Self],
         tag: D,
     ) -> Self
@@ -169,7 +169,7 @@ impl Envelope {
         D: AsRef<[u8]>,
     {
         let mut rng = SecureRandomNumberGenerator;
-        self.sign_with_uncovered_assertions_using(private_keys, uncovered_assertions, tag, &mut rng)
+        self.add_signatures_with_uncovered_assertions_using(private_key, uncovered_assertions, tag, &mut rng)
     }
 
     /// Convenience constructor for a `verifiedBy: Signature` assertion envelope.
@@ -185,7 +185,7 @@ impl Envelope {
         note: Option<&str>
     ) -> Self {
         let verified_by = known_values::VERIFIED_BY;
-        let mut envelope = Envelope::new_assertion(verified_by, Envelope::new(signature));
+        let mut envelope = Envelope::new_assertion(verified_by, signature.clone());
         if let Some(note) = note {
             envelope = envelope.add_assertion(known_values::NOTE, note);
         }
@@ -208,15 +208,15 @@ impl Envelope {
     ///
     /// - Parameters:
     ///   - signature: The `Signature` to be checked.
-    ///   - publicKeys: The potential signer's `PublicKeyBase`.
+    ///   - public_key: The potential signer's `PublicKeyBase`.
     ///
     /// - Returns: `true` if the signature is valid for this envelope's subject, `false` otherwise.
     pub fn is_verified_signature(
         &self,
         signature: &Signature,
-        public_keys: &PublicKeyBase,
+        public_key: &PublicKeyBase,
     ) -> bool {
-        self.is_signature_from_key(signature, public_keys.signing_public_key())
+        self.is_signature_from_key(signature, public_key.signing_public_key())
     }
 
     /// Checks whether the given signature is valid for the given public key.
@@ -225,7 +225,7 @@ impl Envelope {
     ///
     /// - Parameters:
     ///   - signature: The `Signature` to be checked.
-    ///   - publicKeys: The potential signer's `PublicKeyBase`.
+    ///   - public_key: The potential signer's `PublicKeyBase`.
     ///
     /// - Returns: This envelope.
     ///
@@ -234,15 +234,15 @@ impl Envelope {
     pub fn verify_signature(
         &self,
         signature: &Signature,
-        public_keys: &PublicKeyBase,
+        public_key: &PublicKeyBase,
     ) -> Result<Self, EnvelopeError> {
-        self.verify_signature_from_key(signature, public_keys.signing_public_key())
+        self.verify_signature_from_key(signature, public_key.signing_public_key())
     }
 
     /// Returns whether the envelope's subject has a valid signature from the given public key.
     ///
     /// - Parameters:
-    ///   - publicKeys: The potential signer's `PublicKeyBase`.
+    ///   - public_key: The potential signer's `PublicKeyBase`.
     ///
     /// - Returns: `true` if the signature is valid for this envelope's subject, `false` otherwise.
     ///
@@ -250,9 +250,9 @@ impl Envelope {
     /// valid `Signature` as its object.
     pub fn has_signature_from(
         &self,
-        public_keys: &PublicKeyBase,
+        public_key: &PublicKeyBase,
     ) -> anyhow::Result<bool> {
-        self.has_some_signature_from_key(public_keys.signing_public_key())
+        self.has_some_signature_from_key(public_key.signing_public_key())
     }
 
     /// Returns whether the envelope's subject has a valid signature from the given public key.
@@ -260,7 +260,7 @@ impl Envelope {
     /// Used for chaining a series of operations that include validating signatures.
     ///
     /// - Parameters:
-    ///   - publicKeys: The potential signer's `PublicKeyBase`.
+    ///   - public_key: The potential signer's `PublicKeyBase`.
     ///
     /// - Returns: This envelope.
     ///
@@ -268,29 +268,29 @@ impl Envelope {
     /// valid.
     pub fn verify_signature_from(
         &self,
-        public_keys: &PublicKeyBase,
+        public_key: &PublicKeyBase,
     ) -> anyhow::Result<Self> {
-        self.verify_has_some_signature_from_key(public_keys.signing_public_key())
+        self.verify_has_some_signature_from_key(public_key.signing_public_key())
     }
 
     /// Checks whether the envelope's subject has a set of signatures.
     pub fn has_signatures_from<T>(
         &self,
-        public_keys_array: &[T],
+        public_keys: &[T],
     ) -> anyhow::Result<bool>
     where
         T: AsRef<PublicKeyBase>,
     {
-        self.has_signatures_from_threshold(public_keys_array, None)
+        self.has_signatures_from_threshold(public_keys, None)
     }
 
     /// Returns whether the envelope's subject has some threshold of signatures.
     ///
-    /// If `threshold` is `nil`, then *all* signers in `publicKeysArray` must have
+    /// If `threshold` is `nil`, then *all* signers in `public_keys` must have
     /// signed. If `threshold` is `1`, then at least one signer must have signed.
     ///
     /// - Parameters:
-    ///   - publicKeysArray: An array of potential signers' `PublicKeyBase`s.
+    ///   - public_keys: An array of potential signers' `PublicKeyBase`s.
     ///   - threshold: Optional minimum number of signers.
     ///
     /// - Returns: `true` if the threshold of valid signatures is met, `false` otherwise.
@@ -299,13 +299,13 @@ impl Envelope {
     /// valid `Signature` as its object.
     pub fn has_signatures_from_threshold<T>(
         &self,
-        public_keys_array: &[T],
+        public_keys: &[T],
         threshold: Option<usize>,
     ) -> anyhow::Result<bool>
     where
         T: AsRef<PublicKeyBase>,
     {
-        let public_keys = public_keys_array
+        let public_keys = public_keys
             .iter()
             .map(|public_key| public_key.as_ref())
             .collect::<Vec<_>>();
@@ -315,23 +315,23 @@ impl Envelope {
     /// Checks whether the envelope's subject has a set of signatures.
     pub fn verify_signatures_from<T>(
         &self,
-        public_keys_array: &[T],
+        public_keys: &[T],
     ) -> anyhow::Result<Self>
     where
         T: AsRef<PublicKeyBase>,
     {
-        self.verify_signatures_from_threshold(public_keys_array, None)
+        self.verify_signatures_from_threshold(public_keys, None)
     }
 
     /// Checks whether the envelope's subject has some threshold of signatures.
     ///
-    /// If `threshold` is `nil`, then *all* signers in `publicKeysArray` must have
+    /// If `threshold` is `nil`, then *all* signers in `public_keys` must have
     /// signed. If `threshold` is `1`, then at least one signer must have signed.
     ///
     /// Used for chaining a series of operations that include validating signatures.
     ///
     /// - Parameters:
-    ///   - publicKeysArray: An array of potential signers' `PublicKeyBase`s.
+    ///   - public_keys: An array of potential signers' `PublicKeyBase`s.
     ///   - threshold: Optional minimum number of signers.
     ///
     /// - Returns: This envelope.
@@ -339,13 +339,13 @@ impl Envelope {
     /// - Throws: Throws an exception if the threshold of valid signatures is not met.
     pub fn verify_signatures_from_threshold<T>(
         &self,
-        public_keys_array: &[T],
+        public_keys: &[T],
         threshold: Option<usize>,
     ) -> anyhow::Result<Self>
     where
         T: AsRef<PublicKeyBase>,
     {
-        let public_keys = public_keys_array
+        let public_keys = public_keys
             .iter()
             .map(|public_key| public_key.as_ref())
             .collect::<Vec<_>>();
@@ -437,5 +437,3 @@ impl Envelope {
         Ok(self.clone())
     }
 }
-
-impl_envelope_encodable!(Signature);

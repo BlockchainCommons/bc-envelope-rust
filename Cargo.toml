@@ -12,19 +12,19 @@ categories = ["data-structures", "encoding"]
 documentation = "https://docs.rs/bc-envelope"
 
 [dependencies]
-# dcbor = { path = "../dcbor", features = ["multithreaded"] }
-dcbor = { version = "^0.13.0", features = ["multithreaded"] }
+dcbor = { path = "../dcbor", features = ["multithreaded"] }
+# dcbor = { version = "^0.13.0", features = ["multithreaded"] }
 
 bc-rand = "^0.1.0"
 
 # bc-crypto = { path = "../bc-crypto" }
 bc-crypto = "^0.3.0"
 
-# bc-components = { path = "../bc-components" }
-bc-components = "^0.10.0"
+bc-components = { path = "../bc-components" }
+# bc-components = "^0.10.0"
 
-# bc-ur = { path = "../bc-ur" }
-bc-ur = "^0.3.0"
+bc-ur = { path = "../bc-ur" }
+# bc-ur = "^0.3.0"
 
 paste = "^1.0.12"
 hex = "^0.4.3"
@@ -51,6 +51,7 @@ recipient = ["encrypt"]
 salt = ["known_value"]
 signature = ["known_value"]
 sskr = ["encrypt"]
+transaction = ["expression", "signature", "recipient"]
 types = ["known_value"]
 
 default = [
@@ -64,5 +65,6 @@ default = [
     "salt",
     "signature",
     "sskr",
+    "transaction",
     "types",
 ]

@@ -2,7 +2,7 @@ use anyhow::bail;
 use bc_components::tags;
 use dcbor::prelude::*;
 
-use crate::{string_utils::StringUtils, Envelope, EnvelopeEncodable, impl_envelope_encodable};
+use crate::{string_utils::StringUtils, Envelope, EnvelopeEncodable};
 
 use super::FunctionsStore;
 
@@ -131,30 +131,18 @@ impl CBORTagged for Function {
     }
 }
 
-impl CBOREncodable for Function {
-    fn cbor(&self) -> CBOR {
-        self.tagged_cbor()
-    }
-}
-
 impl From<Function> for CBOR {
     fn from(value: Function) -> Self {
-        value.cbor()
+        value.tagged_cbor()
     }
 }
 
 impl CBORTaggedEncodable for Function {
     fn untagged_cbor(&self) -> CBOR {
         match self {
-            Function::Known(value, _) => value.cbor(),
-            Function::Named(name) => name.value().cbor(),
+            Function::Known(value, _) => (*value).into(),
+            Function::Named(name) => name.value().into(),
         }
-    }
-}
-
-impl CBORDecodable for Function {
-    fn from_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
-        Self::from_tagged_cbor(cbor)
     }
 }
 
@@ -162,13 +150,13 @@ impl TryFrom<CBOR> for Function {
     type Error = anyhow::Error;
 
     fn try_from(cbor: CBOR) -> Result<Self, Self::Error> {
-        Self::from_cbor(&cbor)
+        Self::from_tagged_cbor(cbor)
     }
 }
 
 impl CBORTaggedDecodable for Function {
-    fn from_untagged_cbor(untagged_cbor: &CBOR) -> anyhow::Result<Self> {
-        match untagged_cbor.case() {
+    fn from_untagged_cbor(untagged_cbor: CBOR) -> anyhow::Result<Self> {
+        match untagged_cbor.as_case() {
             CBORCase::Unsigned(value) => Ok(Self::new_known(*value, None)),
             CBORCase::Text(name) => Ok(Self::new_named(name)),
             _ => bail!("invalid function"),
@@ -200,13 +188,19 @@ impl Envelope {
         self.extract_subject()
     }
 
-    pub fn check_function(&self, function: &Function) -> anyhow::Result<()> {
-        let envelope_function = self.function()?;
-        if envelope_function != *function {
-            anyhow::bail!("Expected function {:?}, got {:?}", function, envelope_function);
+    pub fn check_function(&self, expected_function: Option<&Function>) -> anyhow::Result<Function> {
+        let function = self.function()?;
+        if let Some(expected_function) = expected_function {
+            if function != *expected_function {
+                anyhow::bail!("Expected function {:?}, got {:?}", expected_function, function);
+            }
         }
-        Ok(())
+        Ok(function)
     }
 }
 
-impl_envelope_encodable!(Function);
+impl EnvelopeEncodable for Function {
+    fn to_envelope(&self) -> Envelope {
+        Envelope::new_leaf(self.clone())
+    }
+}

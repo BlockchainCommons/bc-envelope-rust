@@ -106,9 +106,9 @@ impl Envelope {
     }
 
     #[cfg(feature = "encrypt")]
-    fn first_plaintext_in_sealed_messages(sealed_messages: &[SealedMessage], private_keys: &PrivateKeyBase) -> Result<Vec<u8>, EnvelopeError> {
+    fn first_plaintext_in_sealed_messages(sealed_messages: &[SealedMessage], private_key: &PrivateKeyBase) -> Result<Vec<u8>, EnvelopeError> {
         for sealed_message in sealed_messages {
-            let a = sealed_message.decrypt(private_keys).ok();
+            let a = sealed_message.decrypt(private_key).ok();
             if let Some(plaintext) = a {
                 return Ok(plaintext);
             }
@@ -129,7 +129,7 @@ impl Envelope {
     pub fn decrypt_to_recipient(&self, recipient: &PrivateKeyBase) -> anyhow::Result<Self> {
         let sealed_messages = self.clone().recipients()?;
         let content_key_data = Self::first_plaintext_in_sealed_messages(&sealed_messages, recipient)?;
-        let content_key = SymmetricKey::from_tagged_cbor_data(&content_key_data)?;
+        let content_key = SymmetricKey::from_tagged_cbor_data(content_key_data)?;
         self.decrypt_subject(&content_key)
     }
 
@@ -144,7 +144,7 @@ impl Envelope {
     /// - Returns: The assertion envelope.
     fn make_has_recipient(recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<&Bytes>, test_nonce: Option<&Nonce>) -> Self
     {
-        let sealed_message = SealedMessage::new_opt(content_key.cbor_data(), recipient, None::<Bytes>, test_key_material.cloned(), test_nonce);
+        let sealed_message = SealedMessage::new_opt(content_key.to_cbor_data(), recipient, None::<Bytes>, test_key_material.cloned(), test_nonce);
         Self::new_assertion(known_values::HAS_RECIPIENT, sealed_message)
     }
 }

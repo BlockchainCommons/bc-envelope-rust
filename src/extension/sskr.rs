@@ -5,7 +5,7 @@ pub use bc_components::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret, SSKRErro
 use bc_components::{sskr_generate_using, sskr_combine, SymmetricKey};
 use bc_rand::RandomNumberGenerator;
 
-use crate::{Envelope, EnvelopeError, EnvelopeEncodable, impl_envelope_encodable};
+use crate::{Envelope, EnvelopeError};
 #[cfg(feature = "known_value")]
 use crate::extension::known_values;
 
@@ -13,7 +13,7 @@ use crate::extension::known_values;
 impl Envelope {
     /// Returns a new ``Envelope`` with a `sskrShare: SSKRShare` assertion added.
     fn add_sskr_share(&self, share: &SSKRShare) -> Self {
-        self.add_assertion(known_values::SSKR_SHARE, share)
+        self.add_assertion(known_values::SSKR_SHARE, share.clone())
     }
 
     /// Splits the envelope into a set of SSKR shares.
@@ -73,9 +73,7 @@ impl Envelope {
             for assertion in envelope.assertions_with_predicate(known_values::SSKR_SHARE) {
                 let share = assertion.object().unwrap().extract_subject::<SSKRShare>()?;
                 let identifier = share.identifier();
-                if result.get(&identifier).is_none() {
-                    result.insert(identifier, Vec::new());
-                }
+                result.entry(identifier).or_default();
                 result.get_mut(&identifier).unwrap().push(share);
             }
         }
@@ -111,5 +109,3 @@ impl Envelope {
         bail!(EnvelopeError::InvalidShares)
     }
 }
-
-impl_envelope_encodable!(SSKRShare);

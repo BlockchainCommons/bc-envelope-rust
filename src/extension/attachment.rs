@@ -1,16 +1,14 @@
-use crate::{Assertion, EnvelopeEncodable, extension::known_values, Envelope, EnvelopeError, base::envelope::EnvelopeCase};
+use crate::{base::envelope::EnvelopeCase, extension::known_values, Assertion, Envelope, EnvelopeEncodable, EnvelopeError};
 
 impl Assertion {
     /// Creates an attachment assertion. See:
     /// [BCR-2023-006](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2023-006-envelope-attachment.md)
-    pub fn new_attachment<A>(payload: A, vendor: &str, conforms_to: Option<&str>) -> Self
-    where
-        A: EnvelopeEncodable,
-    {
+    pub fn new_attachment(payload: impl EnvelopeEncodable, vendor: &str, conforms_to: Option<&str>) -> Self {
         let conforms_to: Option<String> = conforms_to.map(|c| c.to_string());
         Self::new(
             known_values::ATTACHMENT,
-            payload.envelope()
+            payload
+                .to_envelope()
                 .wrap_envelope()
                 .add_assertion(known_values::VENDOR, vendor.to_string())
                 .add_optional_assertion(known_values::CONFORMS_TO, conforms_to)
@@ -44,8 +42,8 @@ impl Assertion {
         let vendor = self.attachment_vendor()?;
         let conforms_to: Option<String> = self.attachment_conforms_to()?;
         let assertion = Assertion::new_attachment(payload, vendor.as_str(), conforms_to.as_deref());
-        let e = assertion.envelope();
-        if !e.is_equivalent_to(&self.envelope()) {
+        let e: Envelope = assertion.to_envelope();
+        if !e.is_equivalent_to(&self.clone().to_envelope()) {
             anyhow::bail!(EnvelopeError::InvalidAttachment);
         }
         Ok(())
@@ -57,23 +55,18 @@ impl Envelope {
     ///
     /// The payload envelope has a `'vendor': String` assertion and an optional
     /// `'conformsTo': String` assertion.
-    pub fn new_attachment<A>(payload: A, vendor: &str, conforms_to: Option<&str>) -> Self
-    where
-        A: EnvelopeEncodable,
+    pub fn new_attachment(payload: impl EnvelopeEncodable, vendor: &str, conforms_to: Option<&str>) -> Self
     {
-        Assertion::new_attachment(payload, vendor, conforms_to).envelope()
+        Assertion::new_attachment(payload, vendor, conforms_to).to_envelope()
     }
 
     /// Returns a new envelope with an added `'attachment': Envelope` assertion.
     ///
     /// The payload envelope has a `'vendor': String` assertion and an optional
     /// `'conformsTo': String` assertion.
-    pub fn add_attachment<A>(&self, payload: A, vendor: &str, conforms_to: Option<&str>) -> Self
-    where
-        A: EnvelopeEncodable,
-    {
+    pub fn add_attachment(&self, payload: impl EnvelopeEncodable, vendor: &str, conforms_to: Option<&str>) -> Self {
         self.add_assertion_envelope(
-            Assertion::new_attachment(payload, vendor, conforms_to).envelope()
+            Assertion::new_attachment(payload, vendor, conforms_to)
         ).unwrap()
     }
 }

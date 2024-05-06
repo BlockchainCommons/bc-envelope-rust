@@ -1,176 +1,97 @@
-use bc_components::{SealedMessage, Digest, ARID, Salt, URI, UUID, PublicKeyBase, PrivateKeyBase};
+use bc_components::{Digest, PrivateKeyBase, PublicKeyBase, SSKRShare, Salt, SealedMessage, Signature, ARID, URI, UUID};
 #[cfg(feature = "encrypt")]
 use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 use bytes::Bytes;
-use dcbor::prelude::*;
+use dcbor::CBOR;
 
-use crate::{Envelope, Assertion};
+use crate::{Assertion, Envelope};
 
-/// A type that can be converted into an envelope.
-pub trait EnvelopeEncodable: Into<Envelope> {
-    fn envelope(self) -> Envelope;
+pub trait EnvelopeEncodable {
+    fn to_envelope(&self) -> Envelope;
 }
 
 impl EnvelopeEncodable for Envelope {
-    fn envelope(self) -> Envelope {
-        self
+    fn to_envelope(&self) -> Envelope {
+        self.clone()
+    }
+}
+
+impl EnvelopeEncodable for &Envelope {
+    fn to_envelope(&self) -> Envelope {
+        (*self).clone()
     }
 }
 
 impl EnvelopeEncodable for Assertion {
-    fn envelope(self) -> Envelope {
-        Envelope::new_with_assertion(self)
-    }
-}
-
-impl From<Assertion> for Envelope {
-    fn from(assertion: Assertion) -> Self {
-        assertion.envelope()
+    fn to_envelope(&self) -> Envelope {
+        Envelope::new_with_assertion(self.clone())
     }
 }
 
 #[cfg(feature = "encrypt")]
-impl EnvelopeEncodable for EncryptedMessage {
-    fn envelope(self) -> Envelope {
-        Envelope::new_with_encrypted(self).unwrap()
-    }
-}
+impl TryFrom<EncryptedMessage> for Envelope {
+    type Error = anyhow::Error;
 
-#[cfg(feature = "encrypt")]
-impl From<EncryptedMessage> for Envelope {
-    fn from(encrypted: EncryptedMessage) -> Self {
-        encrypted.envelope()
+    fn try_from(value: EncryptedMessage) -> Result<Self, Self::Error> {
+        Envelope::new_with_encrypted(value).map_err(|e| e.into())
     }
 }
 
 #[cfg(feature = "compress")]
-impl EnvelopeEncodable for Compressed {
-    fn envelope(self) -> Envelope {
-        Envelope::new_with_compressed(self).unwrap()
-    }
-}
+impl TryFrom<Compressed> for Envelope {
+    type Error = anyhow::Error;
 
-#[cfg(feature = "compress")]
-impl From<Compressed> for Envelope {
-    fn from(compressed: Compressed) -> Self {
-        compressed.envelope()
+    fn try_from(compressed: Compressed) -> anyhow::Result<Self> {
+        Envelope::new_with_compressed(compressed).map_err(|e| e.into())
     }
 }
 
 impl EnvelopeEncodable for CBOR {
-    fn envelope(self) -> Envelope {
-        Envelope::new_leaf(self)
+    fn to_envelope(&self) -> Envelope {
+        Envelope::new_leaf(self.clone())
     }
 }
 
-impl From<CBOR> for Envelope {
-    fn from(cbor: CBOR) -> Self {
-        cbor.envelope()
-    }
-}
+// impl From<CBOR> for Envelope {
+//     fn from(cbor: CBOR) -> Self {
+//         Envelope::new_leaf(cbor)
+//     }
+// }
 
-impl EnvelopeEncodable for Box<CBOR> {
-    fn envelope(self) -> Envelope {
-        self.as_ref().envelope()
-    }
-}
+// impl From<Box<CBOR>> for Envelope {
+//     fn from(cbor: Box<CBOR>) -> Self {
+//         Envelope::new_leaf(*cbor)
+//     }
+// }
 
-impl From<Box<CBOR>> for Envelope {
-    fn from(cbor: Box<CBOR>) -> Self {
-        cbor.envelope()
-    }
-}
+// impl From<&Box<CBOR>> for Envelope {
+//     fn from(cbor: &Box<CBOR>) -> Self {
+//         Envelope::new_leaf(*cbor.clone())
+//     }
+// }
 
 impl EnvelopeEncodable for String {
-    fn envelope(self) -> Envelope {
-        self.cbor().envelope()
-    }
-}
-
-impl From<String> for Envelope {
-    fn from(string: String) -> Self {
-        string.envelope()
+    fn to_envelope(&self) -> Envelope {
+        Envelope::new_leaf(self.clone())
     }
 }
 
 impl EnvelopeEncodable for &str {
-    fn envelope(self) -> Envelope {
-        self.cbor().envelope()
+    fn to_envelope(&self) -> Envelope {
+        Envelope::new_leaf(*self)
     }
 }
 
-impl EnvelopeEncodable for dcbor::Simple {
-    fn envelope(self) -> Envelope {
-        self.cbor().envelope()
-    }
-}
-
-impl From<dcbor::Simple> for Envelope {
-    fn from(simple: dcbor::Simple) -> Self {
-        simple.envelope()
-    }
-}
-
-impl From<&str> for Envelope {
-    fn from(string: &str) -> Self {
-        string.envelope()
-    }
-}
-
-impl<const N: usize> EnvelopeEncodable for [u8; N] {
-    fn envelope(self) -> Envelope {
-        self.cbor().envelope()
-    }
-}
-
-impl<const N: usize> From<[u8; N]> for Envelope {
-    fn from(bytes: [u8; N]) -> Self {
-        bytes.envelope()
-    }
-}
-
-impl EnvelopeEncodable for &[u8] {
-    fn envelope(self) -> Envelope {
-        self.to_vec().cbor().envelope()
-    }
-}
-
-impl From<&[u8]> for Envelope {
-    fn from(bytes: &[u8]) -> Self {
-        bytes.envelope()
-    }
-}
-
-impl<T> EnvelopeEncodable for &T where T: EnvelopeEncodable + Clone {
-    fn envelope(self) -> Envelope {
-        self.clone().envelope()
-    }
-}
-
-impl<T> From<&T> for Envelope where T: EnvelopeEncodable + Clone {
-    fn from(value: &T) -> Self {
-        value.envelope()
-    }
-}
-
-/// A macro that implements EnvelopeEncodable for a type and its reference.
-#[macro_export]
 macro_rules! impl_envelope_encodable {
     ($type:ty) => {
-        impl $crate::EnvelopeEncodable for $type {
-            fn envelope(self) -> $crate::Envelope {
-                <Self as dcbor::CBOREncodable>::cbor(&self).envelope()
+        impl EnvelopeEncodable for $type {
+            fn to_envelope(&self) -> Envelope {
+                Envelope::new_leaf(self.clone())
             }
         }
-
-        impl From<$type> for $crate::Envelope {
-            fn from(value: $type) -> Self {
-                value.envelope()
-            }
-        }
-    };
+    }
 }
 
 impl_envelope_encodable!(u8);
@@ -192,6 +113,8 @@ impl_envelope_encodable!(dcbor::Date);
 impl_envelope_encodable!(PublicKeyBase);
 impl_envelope_encodable!(PrivateKeyBase);
 impl_envelope_encodable!(SealedMessage);
+impl_envelope_encodable!(Signature);
+impl_envelope_encodable!(SSKRShare);
 impl_envelope_encodable!(Digest);
 impl_envelope_encodable!(ARID);
 impl_envelope_encodable!(Salt);

@@ -125,4 +125,13 @@ pub enum EnvelopeError {
     #[cfg(feature = "types")]
     #[error("ambiguous type")]
     AmbiguousType,
+
+
+    //
+    // Expressions Extension
+    //
+
+    #[cfg(feature = "expression")]
+    #[error("unexpected response ID")]
+    UnexpectedResponseID,
 }

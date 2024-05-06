@@ -79,5 +79,5 @@ fn test_encrypted() {
 // fn test_sign_wrap_encrypt() {
 //     let e1 = basic_envelope();
 //     let e2 =
-//         e1.sign(alice_private_keys())
+//         e1.sign(alice_private_key())
 // }

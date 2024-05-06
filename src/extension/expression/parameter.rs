@@ -1,7 +1,7 @@
 use anyhow::bail;
 use bc_components::tags;
 use dcbor::prelude::*;
-use crate::{string_utils::StringUtils, impl_envelope_encodable, EnvelopeEncodable};
+use crate::{string_utils::StringUtils, Envelope, EnvelopeEncodable};
 
 use super::ParametersStore;
 
@@ -121,30 +121,18 @@ impl CBORTagged for Parameter {
     }
 }
 
-impl CBOREncodable for Parameter {
-    fn cbor(&self) -> CBOR {
-        self.tagged_cbor()
-    }
-}
-
 impl From<Parameter> for CBOR {
     fn from(value: Parameter) -> Self {
-        value.cbor()
+        value.tagged_cbor()
     }
 }
 
 impl CBORTaggedEncodable for Parameter {
     fn untagged_cbor(&self) -> CBOR {
         match self {
-            Parameter::Known(value, _) => value.cbor(),
-            Parameter::Named(name) => name.value().cbor(),
+            Parameter::Known(value, _) => (*value).into(),
+            Parameter::Named(name) => name.value().into(),
         }
-    }
-}
-
-impl CBORDecodable for Parameter {
-    fn from_cbor(cbor: &CBOR) -> anyhow::Result<Self> {
-        Self::from_tagged_cbor(cbor)
     }
 }
 
@@ -152,13 +140,13 @@ impl TryFrom<CBOR> for Parameter {
     type Error = anyhow::Error;
 
     fn try_from(cbor: CBOR) -> Result<Self, Self::Error> {
-        Self::from_cbor(&cbor)
+        Self::from_tagged_cbor(cbor)
     }
 }
 
 impl CBORTaggedDecodable for Parameter {
-    fn from_untagged_cbor(untagged_cbor: &CBOR) -> anyhow::Result<Self> {
-        match untagged_cbor.case() {
+    fn from_untagged_cbor(untagged_cbor: CBOR) -> anyhow::Result<Self> {
+        match untagged_cbor.as_case() {
             CBORCase::Unsigned(value) => Ok(Self::new_known(*value, None)),
             CBORCase::Text(name) => Ok(Self::new_named(name)),
             _ => bail!("invalid parameter"),
@@ -185,4 +173,8 @@ impl std::fmt::Display for Parameter {
     }
 }
 
-impl_envelope_encodable!(Parameter);
+impl EnvelopeEncodable for Parameter {
+    fn to_envelope(&self) -> Envelope {
+        Envelope::new_leaf(self.clone())
+    }
+}

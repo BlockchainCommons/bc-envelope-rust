@@ -21,7 +21,7 @@ use crate::common::check_encoding::*;
 // correctly decoded as `leaf` cases.
 #[test]
 fn test_read_legacy_leaf() {
-    let legacy_envelope = Envelope::from_tagged_cbor_data(&hex_literal::hex!("d8c8d818182a")).unwrap();
+    let legacy_envelope = Envelope::from_tagged_cbor_data(hex_literal::hex!("d8c8d818182a")).unwrap();
     let e = Envelope::new(42);
     assert!(legacy_envelope.is_identical_to(&e));
     assert!(legacy_envelope.is_equivalent_to(&e));

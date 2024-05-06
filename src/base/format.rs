@@ -47,7 +47,8 @@ impl Envelope {
     /// See [RFC-8949](https://www.rfc-editor.org/rfc/rfc8949.html) for information on
     /// the CBOR binary format.
     pub fn hex_opt(&self, annotate: bool, context: Option<&FormatContext>) -> String {
-        self.cbor().hex_opt(annotate, Some(context.unwrap_or(&FormatContext::default()).tags()))
+        let cbor: CBOR = self.clone().into();
+        cbor.hex_opt(annotate, Some(context.unwrap_or(&FormatContext::default()).tags()))
     }
 
     /// Returns the CBOR hex dump of this envelope.
@@ -258,9 +259,9 @@ impl EnvelopeFormat for ARID {
 
 impl EnvelopeFormat for CBOR {
     fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
-        match self.case() {
+        match self.as_case() {
             CBORCase::Tagged(tag, cbor) if tag == &Envelope::cbor_tags()[0] => {
-                Envelope::from_untagged_cbor(cbor)
+                Envelope::from_untagged_cbor(cbor.clone())
                     .map(|envelope| envelope.format_item(context))
                     .unwrap_or_else(|_| "<error>".into())
             }

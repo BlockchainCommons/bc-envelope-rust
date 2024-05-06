@@ -9,15 +9,15 @@ impl Envelope {
     /// Returns the compressed variant of this envelope.
     ///
     /// Returns the same envelope if it is already compressed.
-    pub fn compress(&self) -> Result<Self, EnvelopeError> {
+    pub fn compress(&self) -> anyhow::Result<Self> {
         match self.case() {
             EnvelopeCase::Compressed(_) => Ok(self.clone()),
             #[cfg(feature = "encrypt")]
-            EnvelopeCase::Encrypted(_) => Err(EnvelopeError::AlreadyEncrypted),
-            EnvelopeCase::Elided(_) => Err(EnvelopeError::AlreadyElided),
+            EnvelopeCase::Encrypted(_) => Err(EnvelopeError::AlreadyEncrypted.into()),
+            EnvelopeCase::Elided(_) => Err(EnvelopeError::AlreadyElided.into()),
             _ => {
                 let compressed = Compressed::from_uncompressed_data(self.tagged_cbor().cbor_data(), Some(self.digest().into_owned()));
-                Ok(Envelope::new(compressed))
+                Ok(compressed.try_into()?)
             },
         }
     }
@@ -48,7 +48,7 @@ impl Envelope {
     /// Returns this envelope with its subject compressed.
     ///
     /// Returns the same envelope if its subject is already compressed.
-    pub fn compress_subject(&self) -> Result<Self, EnvelopeError> {
+    pub fn compress_subject(&self) -> anyhow::Result<Self> {
         if self.subject().is_compressed() {
             Ok(self.clone())
         } else {

@@ -375,8 +375,8 @@ pub mod base;
 pub use base::Assertion;
 pub use base::Envelope;
 pub use base::EnvelopeEncodable;
-pub use base::EnvelopeDecodable;
-pub use base::EnvelopeCodable;
+// pub use base::EnvelopeDecodable;
+// pub use base::EnvelopeCodable;
 pub use base::EnvelopeError;
 pub use base::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 pub use base::elide::{self, ObscureAction};
@@ -403,7 +403,7 @@ impl Envelope {
     pub fn sign(&self, sender: &PrivateKeyBase) -> Envelope {
         self
             .wrap_envelope()
-            .sign_with(sender)
+            .add_signature_with(sender)
     }
 
     pub fn verify(&self, sender: &PublicKeyBase) -> anyhow::Result<Envelope> {
@@ -433,13 +433,13 @@ impl Envelope {
 
 #[cfg(all(feature = "signature", feature = "encrypt"))]
 impl Envelope {
-    pub fn sign_and_encrypt(&self, sender: &PrivateKeyBase, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
+    pub fn seal(&self, sender: &PrivateKeyBase, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
         self
             .sign(sender)
             .encrypt(recipient)
     }
 
-    pub fn verify_and_decrypt(&self, sender: &PublicKeyBase, recipient: &PrivateKeyBase) -> anyhow::Result<Envelope> {
+    pub fn unseal(&self, sender: &PublicKeyBase, recipient: &PrivateKeyBase) -> anyhow::Result<Envelope> {
         self
             .decrypt(recipient)?
             .verify(sender)

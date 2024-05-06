@@ -39,7 +39,7 @@ fn test_plaintext() {
 fn test_signed_plaintext() {
     let mut rng = make_fake_random_number_generator();
     let envelope = Envelope::new(PLAINTEXT_HELLO)
-        .sign_with_using(&alice_private_keys(), &mut rng);
+        .add_signature_with_using(&alice_private_key(), &mut rng);
     assert_eq!(envelope.format(), indoc! {r#"
     "Hello." [
         'verifiedBy': Signature
@@ -112,7 +112,7 @@ fn test_top_level_assertion() {
 fn test_elided_object() {
     let envelope = Envelope::new("Alice")
         .add_assertion("knows", "Bob");
-    let elided = envelope.elide_removing_target(&"Bob".envelope());
+    let elided = envelope.elide_removing_target(&"Bob".to_envelope());
     assert_eq!(elided.format(), indoc! {r#"
     "Alice" [
         "knows": ELIDED
@@ -141,7 +141,7 @@ fn test_signed_subject() {
     let envelope = Envelope::new("Alice")
         .add_assertion("knows", "Bob")
         .add_assertion("knows", "Carol")
-        .sign_with_using(&alice_private_keys(), &mut rng);
+        .add_signature_with_using(&alice_private_key(), &mut rng);
     assert_eq!(envelope.format(), indoc! {r#"
     "Alice" [
         "knows": "Bob"
@@ -210,7 +210,7 @@ fn test_wrap_then_signed() {
         .add_assertion("knows", "Bob")
         .add_assertion("knows", "Carol")
         .wrap_envelope()
-        .sign_with_using(&alice_private_keys(), &mut rng);
+        .add_signature_with_using(&alice_private_key(), &mut rng);
     assert_eq!(envelope.format(), indoc! {r#"
     {
         "Alice" [
@@ -259,8 +259,8 @@ fn test_encrypt_to_recipients() {
 
     let envelope = Envelope::new(PLAINTEXT_HELLO)
         .encrypt_subject_opt(&fake_content_key(), Some(fake_nonce())).unwrap().check_encoding().unwrap()
-        .add_recipient_opt(&bob_public_keys(), &fake_content_key(), Some(&Bytes::copy_from_slice(fake_content_key().data())), Some(&fake_nonce())).check_encoding().unwrap()
-        .add_recipient_opt(&carol_public_keys(), &fake_content_key(), Some(&Bytes::copy_from_slice(fake_content_key().data())), Some(&fake_nonce())).check_encoding().unwrap();
+        .add_recipient_opt(&bob_public_key(), &fake_content_key(), Some(&Bytes::copy_from_slice(fake_content_key().data())), Some(&fake_nonce())).check_encoding().unwrap()
+        .add_recipient_opt(&carol_public_key(), &fake_content_key(), Some(&Bytes::copy_from_slice(fake_content_key().data())), Some(&fake_nonce())).check_encoding().unwrap();
     assert_eq!(envelope.format(), indoc! {r#"
     ENCRYPTED [
         'hasRecipient': SealedMessage
@@ -506,9 +506,9 @@ fn credential() -> Envelope {
         .add_assertion("subject", "RF and Microwave Engineering")
         .add_assertion("continuingEducationUnits", 1)
         .add_assertion("professionalDevelopmentHours", 15)
-        .add_assertion("topics", vec!["Subject 1", "Subject 2"].cbor())
+        .add_assertion("topics", vec!["Subject 1", "Subject 2"].to_cbor())
         .wrap_envelope()
-        .sign_with_using(&alice_private_keys(), &mut rng)
+        .add_signature_with_using(&alice_private_key(), &mut rng)
         .add_assertion(known_values::NOTE, "Signed by Example Electrical Engineering Board")
         .check_encoding().unwrap()
 }
@@ -670,7 +670,7 @@ fn test_redacted_credential() {
         .add_assertion("employeeStatus", "active")
         .wrap_envelope()
         .add_assertion(known_values::NOTE, "Signed by Employer Corp.")
-        .sign_with_using(&bob_private_keys(), &mut rng)
+        .add_signature_with_using(&bob_private_key(), &mut rng)
         .check_encoding().unwrap();
     assert_eq!(warranty.format(), indoc! {r#"
     {

@@ -1,7 +1,7 @@
 use bc_components::{tags, ARID};
 use dcbor::prelude::*;
 
-use crate::{EnvelopeEncodable, Envelope, EnvelopeError};
+use crate::{Envelope, EnvelopeEncodable, EnvelopeError};
 use crate::extension::known_values;
 
 use super::{Function, Parameter};
@@ -10,7 +10,7 @@ use super::{Function, Parameter};
 impl Envelope {
     /// Creates an envelope with a `«function»` subject.
     pub fn new_function(function: impl Into<Function>) -> Self {
-        Envelope::new(function.into())
+        Self::new(function.into())
     }
 }
 
@@ -63,100 +63,95 @@ impl Envelope {
 
 /// Envelope Expressions: Request Construction
 impl Envelope {
-    /// Creates an envelope with an `ARID` subject and a `body: «function»`
+    /// Creates an envelope with a `Request(ARID)` subject.
+    pub fn new_request(id: impl AsRef<ARID>) -> Envelope {
+        let subject = CBOR::to_tagged_value(tags::REQUEST, id.as_ref().clone());
+        Envelope::new(subject)
+    }
+
+    /// Creates an envelope with a `Request(ARID)` subject and a `body: «function»`
     /// assertion.
     ///
     /// Also adds a `'note'` assertion if `note` is not empty, and a
     /// `'date'` assertion if `date` is not `nil`.
-    pub fn new_request_with_metadata(id: impl AsRef<ARID>, body: impl EnvelopeEncodable, note: impl Into<String>, date: Option<dcbor::Date>) -> Self {
+    pub fn into_request_with_metadata(
+        self,
+        id: impl AsRef<ARID>,
+        note: impl Into<String>,
+        date: Option<dcbor::Date>,
+    ) -> Self {
         let note = note.into();
-        Envelope::new(CBOR::tagged_value(tags::REQUEST, id.as_ref()))
-            .add_assertion(known_values::BODY, body)
+
+        Self::new_request(id)
+            .add_assertion(known_values::BODY, self)
             .add_assertion_if(!note.is_empty(), known_values::NOTE, note)
             .add_optional_assertion(known_values::DATE, date)
     }
 
-    /// Creates an envelope with an `ARID` subject and a `body: «function»` assertion.
-    pub fn new_request(id: impl AsRef<ARID>, body: impl EnvelopeEncodable) -> Self {
-        Envelope::new_request_with_metadata(id, body, "", None)
+    /// Creates an envelope with a `Request(ARID)` subject and a `body: «function»`
+    /// assertion.
+    pub fn into_request(
+        self,
+        id: impl AsRef<ARID>,
+    ) -> Self {
+        self.into_request_with_metadata(id, "", None)
     }
 }
 
 /// Envelope Expression: Request Parsing
 impl Envelope {
+    /// Parses the request envelope and returns the id, body, note, and date.
+    pub fn from_request_with_metadata(&self, expected_function: Option<&Function>) -> anyhow::Result<(ARID, Envelope, Function, String, Option<dcbor::Date>)> {
+        let id = self.request_id()?;
+        let body = self.request_body()?;
+        let function = body.check_function(expected_function)?;
+        let note = self.request_note()?;
+        let date = self.request_date()?;
+        Ok((id, body, function, note, date))
+    }
+
+    /// Parses the request envelope and returns the id and body.
+    pub fn from_request(&self, expected_function: Option<&Function>) -> anyhow::Result<(ARID, Envelope, Function)> {
+        let id = self.request_id()?;
+        let body = self.request_body()?;
+        let function = body.check_function(expected_function)?;
+        Ok((id, body, function))
+    }
+
+    /// Parses the request envelope and returns the id.
     pub fn request_id(&self) -> anyhow::Result<ARID> {
         let id = self
             .subject()
             .expect_leaf()?
-            .expect_tagged_value(tags::REQUEST)?
+            .try_into_expected_tagged_value(tags::REQUEST)?
             .try_into()?;
         Ok(id)
     }
 
+    /// Parses the request envelope and returns the body.
     pub fn request_body(&self) -> Result<Self, EnvelopeError> {
         self.object_for_predicate(known_values::BODY)
     }
 
+    /// Parses the request envelope and returns the note.
     pub fn request_note(&self) -> anyhow::Result<String> {
-        self.extract_object_for_predicate(known_values::NOTE)
+        self.extract_object_for_predicate_with_default(known_values::NOTE, "".to_string())
     }
 
+    /// Parses the request envelope and returns the date.
     pub fn request_date(&self) -> anyhow::Result<Option<dcbor::Date>> {
         self.extract_optional_object_for_predicate(known_values::DATE)
     }
 }
 
-/// Envelope Expressions: Response Construction
-impl Envelope {
-    /// Creates an envelope with an `ARID` subject and a `result: value` assertion.
-    pub fn new_response(response_id: impl AsRef<ARID>, result: impl EnvelopeEncodable) -> Self {
-        Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()))
-            .add_assertion(known_values::RESULT, result)
-    }
-
-    /// Creates an envelope with an `ARID` subject and a `result: value` assertion for each provided result.
-    pub fn new_response_with_result(response_id: impl AsRef<ARID>, results: &[impl EnvelopeEncodable + Clone]) -> Self {
-        let mut envelope = Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id.as_ref()));
-
-        for result in results {
-            envelope = envelope.add_assertion(
-                known_values::RESULT,
-                result,
-            );
-        }
-
-        envelope
-    }
-
-    /// Creates an error response envelope.
-    ///
-    /// If `response_id` is `None`, the subject will be `unknown`.
-    /// Used for an immediate response to a request without a proper ID, for example
-    /// when a encrypted request envelope is received and the decryption fails, making
-    /// it impossible to extract the request ID.
-    ///
-    /// If `error` is `None`, no assertion will be added.
-    ///
-    pub fn new_error_response(response_id: Option<&ARID>, error: Option<impl EnvelopeEncodable>) -> Self {
-        let response_id = match response_id {
-            Some(id) => id.cbor(),
-            None => known_values::UNKNOWN_VALUE.cbor(),
-        };
-        if let Some(error) = error {
-            Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id))
-                .add_assertion(known_values::ERROR, error)
-        } else {
-            Envelope::new(CBOR::tagged_value(tags::RESPONSE, response_id))
-        }
-    }
-}
-
 /// Envelope Expressions: Parameter Decoding
 impl Envelope {
+    /// Returns the argument for the given parameter.
     pub fn object_for_parameter(&self, param: impl Into<Parameter>) -> anyhow::Result<Envelope> {
         Ok(self.object_for_predicate(param.into())?)
     }
 
+    /// Returns the arguments for the given possibly repeated parameter.
     pub fn objects_for_parameter(&self, param: impl Into<Parameter>) -> Vec<Envelope> {
         self.objects_for_predicate(param.into())
     }
@@ -167,13 +162,13 @@ impl Envelope {
     /// or if the parameter value is not the correct type.
     pub fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> anyhow::Result<T>
     where
-        T: CBORDecodable + 'static,
+        T: TryFrom<CBOR, Error = anyhow::Error> + 'static,
     {
         self.extract_object_for_predicate(param.into())
     }
 
     /// Returns the argument for the given parameter, or `None` if there is no matching parameter.
-    pub fn extract_optional_object_for_parameter<T: CBORDecodable + 'static>(&self, param: impl Into<Parameter>) -> anyhow::Result<Option<T>> {
+    pub fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = anyhow::Error> + 'static>(&self, param: impl Into<Parameter>) -> anyhow::Result<Option<T>> {
         self.extract_optional_object_for_predicate(param.into())
     }
 
@@ -182,57 +177,133 @@ impl Envelope {
     /// - Throws: Throws an exception if any of the parameter values are not the correct type.
     pub fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> anyhow::Result<Vec<T>>
     where
-        T: CBORDecodable + 'static,
+        T: TryFrom<CBOR, Error = anyhow::Error> + 'static,
     {
         self.extract_objects_for_predicate(param.into())
     }
 }
 
-/// Envelope Expressions: Result Decoding
+/// Envelope Expressions: Response Construction
 impl Envelope {
+    /// Creates an envelope with a `Response(ID)` subject.
+    ///
+    /// The `id` parameter is the ID of the response. Typically, this will be an
+    /// ARID that matches the corresponding request. In certain error cases,
+    /// there may not be a known ID, in which case `None` can be passed for
+    /// `id`.
+    pub fn new_response(id: Option<&ARID>) -> Envelope {
+        if let Some(id) = id {
+            Self::new(CBOR::to_tagged_value(tags::RESPONSE, id.clone()))
+        } else {
+            Self::new(CBOR::to_tagged_value(tags::RESPONSE, known_values::UNKNOWN_VALUE))
+        }
+    }
+
+    /// Creates an envelope with a `Response(ID)` subject and a `'result': value`
+    /// assertion, where `value` is `self`.
+    ///
+    /// The `id` parameter is the ID of the response. Typically, this will be an
+    /// ARID that matches the corresponding request. In certain error cases,
+    /// there may not be a known ID, in which case `None` can be passed for
+    /// `id`.
+    pub fn into_response(self, id: Option<&ARID>, is_success: bool) -> Self {
+        Self::new_response(id)
+            .add_assertion(
+                if is_success { known_values::RESULT } else { known_values::ERROR },
+                self
+            )
+    }
+
+    /// Creates an envelope with a `Response(ID)` subject and a `'result': value`
+    /// assertion, where `value` is `self`.
+    ///
+    /// The `id` parameter is the ID of the response. Typically, this will be an
+    /// ARID that matches the corresponding request.
+    pub fn into_success_response(self, id: impl AsRef<ARID>) -> Self {
+        self.into_response(Some(id.as_ref()), true)
+    }
+
+    /// Creates an envelope with a `Response(ID)` subject and a `'error': value`
+    /// assertion.
+    ///
+    /// The `id` parameter is the ID of the response. Typically, this will be an
+    /// ARID that matches the corresponding request.
+    ///
+    /// If there is no explicit result, the `result` predicate will be set to
+    /// the known value `OK`.
+    pub fn success_response(id: impl AsRef<ARID>, result: Option<Envelope>) -> Envelope {
+        result.unwrap_or_else(|| known_values::OK_VALUE.to_envelope()).into_success_response(id)
+    }
+
+    /// Creates an envelope with a `Response(ID)` subject and a `'error': value`
+    /// assertion, where `value` is `self`.
+    ///
+    /// The `id` parameter is the ID of the response. Typically, this will be an
+    /// ARID that matches the corresponding request. In certain error cases,
+    /// there may not be a known ID, in which case `None` can be passed for
+    /// `id`.
+    pub fn into_failure_response(self, id: Option<&ARID>) -> Self {
+        self.into_response(id, false)
+    }
+
+    /// Creates an envelope with a `Response(ID)` subject and a `'error': value`
+    /// assertion.
+    ///
+    /// The `id` parameter is the ID of the response. Typically, this will be an
+    /// ARID that matches the corresponding request. In certain error cases,
+    /// there may not be a known ID, in which case `None` can be passed for
+    /// `id`.
+    ///
+    /// If there is no known error, the `error` predicate will be set to the
+    /// known value `Unknown`.
+    pub fn failure_response(id: Option<&ARID>, error: Option<Envelope>) -> Envelope {
+        error.unwrap_or_else(|| known_values::UNKNOWN_VALUE.to_envelope()).into_failure_response(id)
+    }
+}
+
+/// Envelope Expressions: Response Decoding
+impl Envelope {
+    /// Returns whether the envelope is a success response.
+    pub fn is_success(&self) -> bool {
+        self.assertion_with_predicate(known_values::RESULT).is_ok()
+    }
+
+    /// Returns whether the envelope is a failure response.
+    pub fn is_failure(&self) -> bool {
+        self.assertion_with_predicate(known_values::ERROR).is_ok()
+    }
+
+    /// Returns the ID of the response.
+    ///
+    /// - Throws: Throws an exception if the subject is not a tagged value with
+    ///   the tag `RESPONSE`.
     pub fn response_id(&self) -> anyhow::Result<ARID> {
         let id = self
             .subject()
             .expect_leaf()?
-            .expect_tagged_value(tags::RESPONSE)?
+            .try_into_expected_tagged_value(tags::RESPONSE)?
             .try_into()?;
         Ok(id)
     }
 
-    /// Returns the object of the `result` predicate.
+    /// Returns the response's result.
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
     pub fn result(&self) -> Result<Self, EnvelopeError> {
         self.object_for_predicate(known_values::RESULT)
     }
 
-    /// Returns the objects of every `result` predicate.
-    pub fn results(&self) -> Vec<Self> {
-        self.objects_for_predicate(known_values::RESULT)
-    }
-
-    /// Returns the object of the `result` predicate, decoded as the given type.
+    /// Returns the response's result, decoded as the given type.
     ///
-    /// - Throws: Throws an exception if there is no `result` predicate, or if its
-    /// object cannot be decoded to the specified `type`.
+    /// - Throws: Throws an exception if there is no `result` predicate.
     pub fn extract_result<T>(&self) -> anyhow::Result<T>
     where
-        T: CBORDecodable + 'static,
+        T: TryFrom<CBOR, Error = anyhow::Error> + 'static,
     {
         self.extract_object_for_predicate(known_values::RESULT)
     }
 
-    /// Returns the objects of every `result` predicate, decoded as the given type.
-    ///
-    /// - Throws: Throws an if not all object cannot be decoded to the specified `type`.
-    pub fn extract_results<T>(&self) -> anyhow::Result<Vec<T>>
-    where
-        T: CBORDecodable + 'static,
-    {
-        self.extract_objects_for_predicate(known_values::RESULT)
-    }
-
-    /// Returns whether the `result` predicate has the `KnownValue` `.ok`.
+    /// Returns whether the response's result is the known value `OK`.
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
     pub fn is_result_ok(&self) -> anyhow::Result<bool> {
@@ -245,15 +316,60 @@ impl Envelope {
     /// Returns the error value, decoded as the given type.
     ///
     /// - Throws: Throws an exception if there is no `error` predicate.
-    pub fn error<T>(&self) -> anyhow::Result<T>
+    pub fn extract_error<T>(&self) -> anyhow::Result<T>
     where
-        T: CBORDecodable + 'static,
+        T: TryFrom<CBOR, Error = anyhow::Error> + 'static,
     {
         self.extract_object_for_predicate(known_values::ERROR)
     }
 
-    /// Returns whether the envelope is an error response.
-    pub fn is_error(&self) -> bool {
-        self.assertion_with_predicate(known_values::ERROR).is_ok()
+    /// Parses the response envelope and returns the result or error value, the
+    /// id, and a boolean that is `true` if the response represents success.
+    ///
+    /// If `expected_id` is provided, the response ID must match it.
+    pub fn from_response(&self, expected_id: Option<&ARID>) -> anyhow::Result<(Envelope, ARID, bool)> {
+        let id = self.response_id()?;
+        if let Some(expected_id) = expected_id {
+            if id != *expected_id {
+                return Err(EnvelopeError::UnexpectedResponseID.into());
+            }
+        }
+        let result_assertions = self.assertions_with_predicate(known_values::RESULT);
+        let error_assertions = self.assertions_with_predicate(known_values::ERROR);
+        if result_assertions.len() == 1 && error_assertions.is_empty() {
+            let result = result_assertions[0].object().unwrap();
+            Ok((result, id, true))
+        } else if error_assertions.len() == 1 && result_assertions.is_empty() {
+            let error = error_assertions[0].object().unwrap();
+            Ok((error, id, false))
+        } else {
+            Err(EnvelopeError::InvalidFormat.into())
+        }
+    }
+
+    /// Assuming success, parses the response envelope and returns the result
+    /// value and id.
+    ///
+    /// If `expected_id` is provided, the response ID must match it.
+    pub fn from_success_response(&self, expected_id: Option<&ARID>) -> anyhow::Result<(Envelope, ARID)> {
+        let (value, id, is_success) = self.from_response(expected_id)?;
+        if is_success {
+            Ok((value, id))
+        } else {
+            Err(EnvelopeError::InvalidFormat.into())
+        }
+    }
+
+    /// Assuming failure, parses the response envelope and returns the error
+    /// value and id.
+    ///
+    /// If `expected_id` is provided, the response ID must match it.
+    pub fn from_failure_response(&self, expected_id: Option<&ARID>) -> anyhow::Result<(Envelope, ARID)> {
+        let (value, id, is_success) = self.from_response(expected_id)?;
+        if !is_success {
+            Ok((value, id))
+        } else {
+            Err(EnvelopeError::InvalidFormat.into())
+        }
     }
 }

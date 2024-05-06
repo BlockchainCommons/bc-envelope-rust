@@ -30,7 +30,7 @@ fn test_1() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_2() -> Result<(), Box<dyn Error>> {
     let array: Vec<u64> = vec![1, 2, 3];
-    let e = Envelope::new(array.cbor());
+    let e = Envelope::new(Into::<CBOR>::into(array));
 
     assert_eq!(e.diagnostic(),
     indoc! {r#"
@@ -61,6 +61,8 @@ fn test_3() -> Result<(), Box<dyn Error>> {
         ]
         "#}.trim()
     );
+
+    // println!("{}", e4.diagnostic());
 
     assert_eq!(e4.diagnostic(),
     indoc! {r#"

@@ -7,7 +7,7 @@ use bc_components::Compressed;
 use dcbor::prelude::*;
 use std::any::{Any, TypeId};
 
-use crate::{Assertion, Envelope, EnvelopeError, EnvelopeEncodable};
+use crate::{Assertion, Envelope, EnvelopeEncodable, EnvelopeError};
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
 
@@ -81,15 +81,15 @@ impl Envelope {
     }
 
     /// The envelope's leaf CBOR object, or `None` if the envelope is not a leaf.
-    pub fn leaf(&self) -> Option<&CBOR> {
+    pub fn leaf(&self) -> Option<CBOR> {
         match self.case() {
-            EnvelopeCase::Leaf { cbor, .. } => Some(cbor),
+            EnvelopeCase::Leaf { cbor, .. } => Some(cbor.clone()),
             _ => None,
         }
     }
 
     /// The envelope's leaf CBOR object, or an error if the envelope is not a leaf.
-    pub fn expect_leaf(&self) -> Result<&CBOR, EnvelopeError> {
+    pub fn expect_leaf(&self) -> Result<CBOR, EnvelopeError> {
         self.leaf().ok_or(EnvelopeError::NotLeaf)
     }
 
@@ -238,7 +238,7 @@ impl Envelope {
     /// If the encoded type doesn't match the given type, returns `Error::InvalidFormat`.
     pub fn extract_subject<T>(&self) -> anyhow::Result<T>
     where
-        T: Any + CBORDecodable,
+        T: Any + TryFrom<CBOR, Error = anyhow::Error>,
     {
         fn extract_type<T, U>(value: &U) -> anyhow::Result<T>
         where
@@ -259,7 +259,10 @@ impl Envelope {
         match self.case() {
             EnvelopeCase::Wrapped { envelope, .. } => extract_type::<T, Self>(envelope),
             EnvelopeCase::Node { subject, .. } => subject.extract_subject::<T>(),
-            EnvelopeCase::Leaf { cbor, .. } => Ok(T::from_cbor(cbor)?),
+            EnvelopeCase::Leaf { cbor, .. } => {
+                let from_cbor: T = cbor.clone().try_into()?;
+                Ok(from_cbor)
+            },
             EnvelopeCase::Assertion(assertion) => extract_type::<T, Assertion>(assertion),
             EnvelopeCase::Elided(digest) => extract_type::<T, Digest>(digest),
             #[cfg(feature = "known_value")]
@@ -310,7 +313,7 @@ impl Envelope {
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_object_for_predicate<T: CBORDecodable + 'static>(&self, predicate: impl EnvelopeEncodable) -> anyhow::Result<T> {
+    pub fn extract_object_for_predicate<T: TryFrom<CBOR, Error = anyhow::Error> + 'static>(&self, predicate: impl EnvelopeEncodable) -> anyhow::Result<T> {
         self.assertion_with_predicate(predicate)?
             .object()
             .unwrap()
@@ -318,12 +321,18 @@ impl Envelope {
     }
 
     /// Returns the object of the assertion with the given predicate, or `None` if there is no matching predicate.
-    pub fn extract_optional_object_for_predicate<T: CBORDecodable + 'static>(&self, predicate: impl EnvelopeEncodable) -> anyhow::Result<Option<T>> {
+    pub fn extract_optional_object_for_predicate<T: TryFrom<CBOR, Error = anyhow::Error> + 'static>(&self, predicate: impl EnvelopeEncodable) -> anyhow::Result<Option<T>> {
         if let Ok(object) = self.object_for_predicate(predicate) {
             Ok(Some(object.extract_subject()?))
         } else {
             Ok(None)
         }
+    }
+
+    /// Returns the object of the assertion with the given predicate, or a default value if there is no matching predicate.
+    pub fn extract_object_for_predicate_with_default<T: TryFrom<CBOR, Error = anyhow::Error> + 'static>(&self, predicate: impl EnvelopeEncodable, default: T) -> anyhow::Result<T> {
+        self.extract_optional_object_for_predicate(predicate)?
+            .map_or(Ok(default), Ok)
     }
 
     /// Returns the objects of all assertions with the matching predicate.
@@ -338,11 +347,11 @@ impl Envelope {
     /// decoded as the given type.
     ///
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_objects_for_predicate<T: CBORDecodable>(&self, predicate: impl EnvelopeEncodable) -> anyhow::Result<Vec<T>> {
-        self.assertions_with_predicate(predicate)
+    pub fn extract_objects_for_predicate<T: TryFrom<CBOR, Error = anyhow::Error> + 'static>(&self, predicate: impl EnvelopeEncodable) -> anyhow::Result<Vec<T>> {
+        self.objects_for_predicate(predicate)
             .into_iter()
-            .map(|a| a.object().unwrap().extract_subject())
-            .collect()
+            .map(|a| a.extract_subject::<T>())
+            .collect::<anyhow::Result<Vec<T>>>()
     }
 
     /// Returns the number of structural elements in the envelope, including itself.

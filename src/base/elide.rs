@@ -6,7 +6,7 @@ use bc_components::{SymmetricKey, Nonce};
 #[cfg(feature = "encrypt")]
 use dcbor::prelude::*;
 
-use crate::{Assertion, Envelope, EnvelopeEncodable, EnvelopeError};
+use crate::{Assertion, Envelope, EnvelopeError};
 
 use super::envelope::EnvelopeCase;
 
@@ -290,8 +290,8 @@ impl Envelope {
     /// Returns the unelided variant of this envelope.
     ///
     /// Returns the same envelope if it is already unelided.
-    pub fn unelide(&self, envelope: impl EnvelopeEncodable) -> Result<Self, EnvelopeError> {
-        let envelope = envelope.envelope();
+    pub fn unelide(&self, envelope: impl Into<Envelope>) -> Result<Self, EnvelopeError> {
+        let envelope = envelope.into();
         if self.digest() == envelope.digest() {
             Ok(envelope)
         } else {

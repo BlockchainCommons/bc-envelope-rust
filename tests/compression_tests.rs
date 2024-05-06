@@ -19,9 +19,9 @@ static SOURCE: &str = "Lorem ipsum dolor sit amet consectetur adipiscing elit mi
 #[test]
 fn test_compress() {
     let original = Envelope::new(SOURCE);
-    assert_eq!(original.cbor_data().len(), 369);
+    assert_eq!(original.to_cbor_data().len(), 371);
     let compressed = original.compress().unwrap().check_encoding().unwrap();
-    assert_eq!(compressed.cbor_data().len(), 281);
+    assert_eq!(compressed.to_cbor_data().len(), 283);
 
     assert_eq!(original.digest(), compressed.digest());
     let uncompressed = compressed.uncompress().unwrap().check_encoding().unwrap();
@@ -38,8 +38,8 @@ fn test_compress_subject() {
     let original = Envelope::new("Alice")
         .add_assertion(known_values::NOTE, SOURCE)
         .wrap_envelope()
-        .sign_with_using(&alice_private_keys(), &mut rng);
-    assert_eq!(original.cbor_data().len(), 456);
+        .add_signature_with_using(&alice_private_key(), &mut rng);
+    assert_eq!(original.to_cbor_data().len(), 458);
     let s = original.tree_format(false);
     assert_eq!(s, indoc! {r#"
     9ed291b0 NODE
@@ -54,7 +54,7 @@ fn test_compress_subject() {
             dd386db5 obj Signature
     "#}.trim());
     let compressed = original.compress_subject().unwrap().check_encoding().unwrap();
-    assert_eq!(compressed.cbor_data().len(), 372);
+    assert_eq!(compressed.clone().to_cbor_data().len(), 374);
     let s = compressed.tree_format(false);
     assert_eq!(s, indoc! {r#"
     9ed291b0 NODE
