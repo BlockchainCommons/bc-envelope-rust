@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::bail;
+use anyhow::{bail, Result};
 pub use bc_components::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret, SSKRError};
 use bc_components::{sskr_generate_using, sskr_combine, SymmetricKey};
 use bc_rand::RandomNumberGenerator;
@@ -31,7 +31,7 @@ impl Envelope {
     /// - Returns: An array of arrays. Each element of the outer array represents an
     /// SSKR group, and the elements of each inner array are the envelope with a unique
     /// `sskrShare: SSKRShare` assertion added to each.
-    pub fn sskr_split(&self, spec: &SSKRSpec, content_key: &SymmetricKey) -> Result<Vec<Vec<Envelope>>, SSKRError> {
+    pub fn sskr_split(&self, spec: &SSKRSpec, content_key: &SymmetricKey) -> Result<Vec<Vec<Envelope>>> {
         let mut rng = bc_rand::SecureRandomNumberGenerator;
         self.sskr_split_using(spec, content_key, &mut rng)
     }
@@ -52,7 +52,7 @@ impl Envelope {
     /// - Returns: An array of arrays. Each element of the outer array represents an
     /// SSKR group, and the elements of each inner array are the envelope with a unique
     /// `sskrShare: SSKRShare` assertion added to each.
-    pub fn sskr_split_using(&self, spec: &SSKRSpec, content_key: &SymmetricKey, test_rng: &mut impl RandomNumberGenerator) -> Result<Vec<Vec<Envelope>>, SSKRError> {
+    pub fn sskr_split_using(&self, spec: &SSKRSpec, content_key: &SymmetricKey, test_rng: &mut impl RandomNumberGenerator) -> Result<Vec<Vec<Envelope>>> {
         let master_secret = SSKRSecret::new(content_key.data())?;
         let shares = sskr_generate_using(spec, &master_secret, test_rng)?;
         let mut result: Vec<Vec<Envelope>> = Vec::new();
@@ -67,7 +67,7 @@ impl Envelope {
         Ok(result)
     }
 
-    fn sskr_shares_in(envelopes: &[&Envelope]) -> anyhow::Result<HashMap<u16, Vec<SSKRShare>>> {
+    fn sskr_shares_in(envelopes: &[&Envelope]) -> Result<HashMap<u16, Vec<SSKRShare>>> {
         let mut result: HashMap<u16, Vec<SSKRShare>> = HashMap::new();
         for envelope in envelopes {
             for assertion in envelope.assertions_with_predicate(known_values::SSKR_SHARE) {
@@ -91,7 +91,7 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if no quorum of shares can be found to reconstruct
     /// the original envelope.
-    pub fn sskr_join(envelopes: &[&Envelope]) -> anyhow::Result<Envelope> {
+    pub fn sskr_join(envelopes: &[&Envelope]) -> Result<Envelope> {
         if envelopes.is_empty() {
             bail!(EnvelopeError::InvalidShares);
         }

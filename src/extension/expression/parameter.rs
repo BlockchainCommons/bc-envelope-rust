@@ -1,4 +1,4 @@
-use anyhow::bail;
+use anyhow::{bail, Error, Result};
 use bc_components::tags;
 use dcbor::prelude::*;
 use crate::{string_utils::StringUtils, Envelope, EnvelopeEncodable};
@@ -137,15 +137,15 @@ impl CBORTaggedEncodable for Parameter {
 }
 
 impl TryFrom<CBOR> for Parameter {
-    type Error = anyhow::Error;
+    type Error = Error;
 
-    fn try_from(cbor: CBOR) -> anyhow::Result<Self> {
+    fn try_from(cbor: CBOR) -> Result<Self> {
         Self::from_tagged_cbor(cbor)
     }
 }
 
 impl CBORTaggedDecodable for Parameter {
-    fn from_untagged_cbor(untagged_cbor: CBOR) -> anyhow::Result<Self> {
+    fn from_untagged_cbor(untagged_cbor: CBOR) -> Result<Self> {
         match untagged_cbor.as_case() {
             CBORCase::Unsigned(value) => Ok(Self::new_known(*value, None)),
             CBORCase::Text(name) => Ok(Self::new_named(name)),
@@ -174,7 +174,7 @@ impl std::fmt::Display for Parameter {
 }
 
 impl EnvelopeEncodable for Parameter {
-    fn to_envelope(&self) -> Envelope {
-        Envelope::new_leaf(self.clone())
+    fn into_envelope(self) -> Envelope {
+        Envelope::new_leaf(self)
     }
 }

@@ -1,4 +1,4 @@
-use anyhow::bail;
+use anyhow::{bail, Error, Result};
 use bc_components::tags;
 use dcbor::prelude::*;
 
@@ -147,15 +147,15 @@ impl CBORTaggedEncodable for Function {
 }
 
 impl TryFrom<CBOR> for Function {
-    type Error = anyhow::Error;
+    type Error = Error;
 
-    fn try_from(cbor: CBOR) -> anyhow::Result<Self> {
+    fn try_from(cbor: CBOR) -> Result<Self> {
         Self::from_tagged_cbor(cbor)
     }
 }
 
 impl CBORTaggedDecodable for Function {
-    fn from_untagged_cbor(untagged_cbor: CBOR) -> anyhow::Result<Self> {
+    fn from_untagged_cbor(untagged_cbor: CBOR) -> Result<Self> {
         match untagged_cbor.as_case() {
             CBORCase::Unsigned(value) => Ok(Self::new_known(*value, None)),
             CBORCase::Text(name) => Ok(Self::new_named(name)),
@@ -184,11 +184,11 @@ impl std::fmt::Display for Function {
 }
 
 impl Envelope {
-    pub fn function(&self) -> anyhow::Result<Function> {
+    pub fn function(&self) -> Result<Function> {
         self.extract_subject()
     }
 
-    pub fn check_function(&self, expected_function: Option<&Function>) -> anyhow::Result<Function> {
+    pub fn check_function(&self, expected_function: Option<&Function>) -> Result<Function> {
         let function = self.function()?;
         if let Some(expected_function) = expected_function {
             if function != *expected_function {
@@ -200,7 +200,7 @@ impl Envelope {
 }
 
 impl EnvelopeEncodable for Function {
-    fn to_envelope(&self) -> Envelope {
-        Envelope::new_leaf(self.clone())
+    fn into_envelope(self) -> Envelope {
+        Envelope::new_leaf(self)
     }
 }

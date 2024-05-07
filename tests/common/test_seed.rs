@@ -1,4 +1,6 @@
-use anyhow::bail;
+#![cfg(feature = "types")]
+
+use anyhow::{bail, Error, Result};
 use bc_components::tags;
 use bc_ur::prelude::*;
 use bc_envelope::prelude::*;
@@ -92,15 +94,15 @@ impl CBORTaggedEncodable for Seed {
 }
 
 impl TryFrom<CBOR> for Seed {
-    type Error = anyhow::Error;
+    type Error = Error;
 
-    fn try_from(cbor: CBOR) -> anyhow::Result<Self> {
+    fn try_from(cbor: CBOR) -> Result<Self> {
         Self::from_tagged_cbor(cbor)
     }
 }
 
 impl CBORTaggedDecodable for Seed {
-    fn from_untagged_cbor(cbor: CBOR) -> anyhow::Result<Self> {
+    fn from_untagged_cbor(cbor: CBOR) -> Result<Self> {
         let map = cbor.try_into_map()?;
         let data = map.extract::<i32, CBOR>(1)?.try_into_byte_string()?.to_vec();
         if data.is_empty() {
@@ -114,7 +116,7 @@ impl CBORTaggedDecodable for Seed {
 }
 
 impl EnvelopeEncodable for Seed {
-    fn to_envelope(self: &Seed) -> Envelope {
+    fn into_envelope(self: Seed) -> Envelope {
         let mut e = Envelope::new(CBOR::to_byte_string(self.data()))
             .add_type(known_values::SEED_TYPE)
             .add_optional_assertion(known_values::DATE, self.creation_date().cloned());
@@ -132,9 +134,9 @@ impl EnvelopeEncodable for Seed {
 }
 
 impl TryFrom<Envelope> for Seed {
-    type Error = anyhow::Error;
+    type Error = Error;
 
-    fn try_from(envelope: Envelope) -> anyhow::Result<Self> {
+    fn try_from(envelope: Envelope) -> Result<Self> {
         envelope.check_type(&known_values::SEED_TYPE)?;
         let data = envelope.subject().try_leaf()?.try_into_byte_string()?.to_vec();
         let name = envelope.extract_optional_object_for_predicate::<String>(known_values::HAS_NAME)?.unwrap_or_default().to_string();

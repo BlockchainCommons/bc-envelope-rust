@@ -1,4 +1,4 @@
-use anyhow::bail;
+use anyhow::{bail, Result};
 use bc_components::DigestProvider;
 
 use crate::{Envelope, EnvelopeEncodable, EnvelopeError};
@@ -18,7 +18,7 @@ impl Envelope {
     /// Gets a single `'IsA'` type assertion from the envelope.
     ///
     /// If there is more than one `'IsA'` type assertion, returns an error.
-    pub fn get_type(&self) -> anyhow::Result<Self> {
+    pub fn get_type(&self) -> Result<Self> {
         let t = self.types();
         if t.len() == 1 {
             Ok(t[0].clone())
@@ -29,7 +29,7 @@ impl Envelope {
 
     /// Returns `true` if the envelope has an `'IsA'` type assertion with the given envelope `t`'s digest.
     pub fn has_type_envelope(&self, t: impl EnvelopeEncodable) -> bool {
-        let e = t.to_envelope();
+        let e = t.into_envelope();
         self.types().iter().any(|x| x.digest() == e.digest())
     }
 
@@ -42,7 +42,7 @@ impl Envelope {
     /// Succeeds if the envelope has an `'IsA'` type assertion with the given known value `t`.
     ///
     /// Fails with `EnvelopeError::InvalidType` otherwise.
-    pub fn check_type(&self, t: &KnownValue) -> anyhow::Result<()> {
+    pub fn check_type(&self, t: &KnownValue) -> Result<()> {
         if self.has_type(t) {
             Ok(())
         } else {
@@ -53,7 +53,7 @@ impl Envelope {
     /// Succeeds if the envelope has an `'IsA'` type assertion with the given envelope `t`'s digest.
     ///
     /// Fails with `EnvelopeError::InvalidType` otherwise.
-    pub fn check_type_envelope(&self, t: impl EnvelopeEncodable) -> anyhow::Result<()> {
+    pub fn check_type_envelope(&self, t: impl EnvelopeEncodable) -> Result<()> {
         if self.has_type_envelope(t) {
             Ok(())
         } else {

@@ -1,4 +1,4 @@
-use anyhow::bail;
+use anyhow::{bail, Error, Result};
 use bc_components::{tags, ARID};
 use dcbor::prelude::*;
 
@@ -102,7 +102,7 @@ impl Envelope {
 /// Envelope Expression: Request Parsing
 impl Envelope {
     /// Parses the request envelope and returns the id, body, note, and date.
-    pub fn from_request_with_metadata(&self, expected_function: Option<&Function>) -> anyhow::Result<(ARID, Envelope, Function, String, Option<dcbor::Date>)> {
+    pub fn parse_request_with_metadata(&self, expected_function: Option<&Function>) -> Result<(ARID, Envelope, Function, String, Option<dcbor::Date>)> {
         let id = self.request_id()?;
         let body = self.request_body()?;
         let function = body.check_function(expected_function)?;
@@ -112,7 +112,7 @@ impl Envelope {
     }
 
     /// Parses the request envelope and returns the id and body.
-    pub fn from_request(&self, expected_function: Option<&Function>) -> anyhow::Result<(ARID, Envelope, Function)> {
+    pub fn from_request(&self, expected_function: Option<&Function>) -> Result<(ARID, Envelope, Function)> {
         let id = self.request_id()?;
         let body = self.request_body()?;
         let function = body.check_function(expected_function)?;
@@ -120,7 +120,7 @@ impl Envelope {
     }
 
     /// Parses the request envelope and returns the id.
-    pub fn request_id(&self) -> anyhow::Result<ARID> {
+    pub fn request_id(&self) -> Result<ARID> {
         let id = self
             .subject()
             .try_leaf()?
@@ -130,17 +130,17 @@ impl Envelope {
     }
 
     /// Parses the request envelope and returns the body.
-    pub fn request_body(&self) -> anyhow::Result<Self> {
+    pub fn request_body(&self) -> Result<Self> {
         self.object_for_predicate(known_values::BODY)
     }
 
     /// Parses the request envelope and returns the note.
-    pub fn request_note(&self) -> anyhow::Result<String> {
+    pub fn request_note(&self) -> Result<String> {
         self.extract_object_for_predicate_with_default(known_values::NOTE, "".to_string())
     }
 
     /// Parses the request envelope and returns the date.
-    pub fn request_date(&self) -> anyhow::Result<Option<dcbor::Date>> {
+    pub fn request_date(&self) -> Result<Option<dcbor::Date>> {
         self.extract_optional_object_for_predicate(known_values::DATE)
     }
 }
@@ -148,7 +148,7 @@ impl Envelope {
 /// Envelope Expressions: Parameter Decoding
 impl Envelope {
     /// Returns the argument for the given parameter.
-    pub fn object_for_parameter(&self, param: impl Into<Parameter>) -> anyhow::Result<Envelope> {
+    pub fn object_for_parameter(&self, param: impl Into<Parameter>) -> Result<Envelope> {
         self.object_for_predicate(param.into())
     }
 
@@ -161,24 +161,24 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if there is not exactly one matching `parameter`,
     /// or if the parameter value is not the correct type.
-    pub fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> anyhow::Result<T>
+    pub fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
     where
-        T: TryFrom<CBOR, Error = anyhow::Error> + 'static,
+        T: TryFrom<CBOR, Error = Error> + 'static,
     {
         self.extract_object_for_predicate(param.into())
     }
 
     /// Returns the argument for the given parameter, or `None` if there is no matching parameter.
-    pub fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = anyhow::Error> + 'static>(&self, param: impl Into<Parameter>) -> anyhow::Result<Option<T>> {
+    pub fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = Error> + 'static>(&self, param: impl Into<Parameter>) -> Result<Option<T>> {
         self.extract_optional_object_for_predicate(param.into())
     }
 
     /// Returns an array of arguments for the given parameter, decoded as the given type.
     ///
     /// - Throws: Throws an exception if any of the parameter values are not the correct type.
-    pub fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> anyhow::Result<Vec<T>>
+    pub fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
     where
-        T: TryFrom<CBOR, Error = anyhow::Error> + 'static,
+        T: TryFrom<CBOR, Error = Error> + 'static,
     {
         self.extract_objects_for_predicate(param.into())
     }
@@ -232,7 +232,7 @@ impl Envelope {
     ///
     /// If there is no explicit result, the `result` predicate will be set to
     /// the known value `OK`.
-    pub fn success_response(id: impl AsRef<ARID>, result: Option<Envelope>) -> Envelope {
+    pub fn new_success_response(id: impl AsRef<ARID>, result: Option<Envelope>) -> Envelope {
         result.unwrap_or_else(|| known_values::OK_VALUE.to_envelope()).into_success_response(id)
     }
 
@@ -257,7 +257,7 @@ impl Envelope {
     ///
     /// If there is no known error, the `error` predicate will be set to the
     /// known value `Unknown`.
-    pub fn failure_response(id: Option<&ARID>, error: Option<Envelope>) -> Envelope {
+    pub fn new_failure_response(id: Option<&ARID>, error: Option<Envelope>) -> Envelope {
         error.unwrap_or_else(|| known_values::UNKNOWN_VALUE.to_envelope()).into_failure_response(id)
     }
 }
@@ -278,7 +278,7 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if the subject is not a tagged value with
     ///   the tag `RESPONSE`.
-    pub fn response_id(&self) -> anyhow::Result<ARID> {
+    pub fn response_id(&self) -> Result<ARID> {
         let id = self
             .subject()
             .try_leaf()?
@@ -290,16 +290,16 @@ impl Envelope {
     /// Returns the response's result.
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
-    pub fn result(&self) -> anyhow::Result<Self> {
+    pub fn result(&self) -> Result<Self> {
         self.object_for_predicate(known_values::RESULT)
     }
 
     /// Returns the response's result, decoded as the given type.
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
-    pub fn extract_result<T>(&self) -> anyhow::Result<T>
+    pub fn extract_result<T>(&self) -> Result<T>
     where
-        T: TryFrom<CBOR, Error = anyhow::Error> + 'static,
+        T: TryFrom<CBOR, Error = Error> + 'static,
     {
         self.extract_object_for_predicate(known_values::RESULT)
     }
@@ -307,7 +307,7 @@ impl Envelope {
     /// Returns whether the response's result is the known value `OK`.
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
-    pub fn is_result_ok(&self) -> anyhow::Result<bool> {
+    pub fn is_result_ok(&self) -> Result<bool> {
         if let Some(k) = self.result()?.as_known_value() {
             return Ok(k == &known_values::OK_VALUE);
         }
@@ -317,9 +317,9 @@ impl Envelope {
     /// Returns the error value, decoded as the given type.
     ///
     /// - Throws: Throws an exception if there is no `error` predicate.
-    pub fn extract_error<T>(&self) -> anyhow::Result<T>
+    pub fn extract_error<T>(&self) -> Result<T>
     where
-        T: TryFrom<CBOR, Error = anyhow::Error> + 'static,
+        T: TryFrom<CBOR, Error = Error> + 'static,
     {
         self.extract_object_for_predicate(known_values::ERROR)
     }
@@ -328,7 +328,7 @@ impl Envelope {
     /// id, and a boolean that is `true` if the response represents success.
     ///
     /// If `expected_id` is provided, the response ID must match it.
-    pub fn from_response(&self, expected_id: Option<&ARID>) -> anyhow::Result<(Envelope, ARID, bool)> {
+    pub fn parse_response(&self, expected_id: Option<&ARID>) -> Result<(Envelope, ARID, bool)> {
         let id = self.response_id()?;
         if let Some(expected_id) = expected_id {
             if id != *expected_id {
@@ -352,8 +352,8 @@ impl Envelope {
     /// value and id.
     ///
     /// If `expected_id` is provided, the response ID must match it.
-    pub fn from_success_response(&self, expected_id: Option<&ARID>) -> anyhow::Result<(Envelope, ARID)> {
-        let (value, id, is_success) = self.from_response(expected_id)?;
+    pub fn parse_success_response(&self, expected_id: Option<&ARID>) -> Result<(Envelope, ARID)> {
+        let (value, id, is_success) = self.parse_response(expected_id)?;
         if is_success {
             Ok((value, id))
         } else {
@@ -365,8 +365,8 @@ impl Envelope {
     /// value and id.
     ///
     /// If `expected_id` is provided, the response ID must match it.
-    pub fn from_failure_response(&self, expected_id: Option<&ARID>) -> anyhow::Result<(Envelope, ARID)> {
-        let (value, id, is_success) = self.from_response(expected_id)?;
+    pub fn parse_failure_response(&self, expected_id: Option<&ARID>) -> Result<(Envelope, ARID)> {
+        let (value, id, is_success) = self.parse_response(expected_id)?;
         if !is_success {
             Ok((value, id))
         } else {

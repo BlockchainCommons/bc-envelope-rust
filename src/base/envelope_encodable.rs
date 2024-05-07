@@ -4,67 +4,72 @@ use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 use bytes::Bytes;
+#[cfg(any(feature = "encrypt", feature = "compress"))]
+use anyhow::{Error, Result};
 use dcbor::CBOR;
 
 use crate::{Assertion, Envelope};
 
 pub trait EnvelopeEncodable {
-    fn to_envelope(&self) -> Envelope;
+    fn into_envelope(self) -> Envelope;
+    fn to_envelope(&self) -> Envelope where Self: Clone {
+        self.clone().into_envelope()
+    }
 }
 
 impl<T> EnvelopeEncodable for T where T: Into<Envelope> + Clone {
-    fn to_envelope(&self) -> Envelope {
-        self.clone().into()
+    fn into_envelope(self) -> Envelope {
+        self.into()
     }
 }
 
 impl EnvelopeEncodable for Assertion {
-    fn to_envelope(&self) -> Envelope {
-        Envelope::new_with_assertion(self.clone())
+    fn into_envelope(self) -> Envelope {
+        Envelope::new_with_assertion(self)
     }
 }
 
 #[cfg(feature = "encrypt")]
 impl TryFrom<EncryptedMessage> for Envelope {
-    type Error = anyhow::Error;
+    type Error = Error;
 
-    fn try_from(value: EncryptedMessage) -> anyhow::Result<Self> {
+    fn try_from(value: EncryptedMessage) -> Result<Self> {
         Envelope::new_with_encrypted(value)
     }
 }
 
 #[cfg(feature = "compress")]
 impl TryFrom<Compressed> for Envelope {
-    type Error = anyhow::Error;
+    type Error = Error;
 
-    fn try_from(compressed: Compressed) -> anyhow::Result<Self> {
+    fn try_from(compressed: Compressed) -> Result<Self> {
         Envelope::new_with_compressed(compressed)
     }
 }
 
 impl EnvelopeEncodable for CBOR {
-    fn to_envelope(&self) -> Envelope {
-        Envelope::new_leaf(self.clone())
+    fn into_envelope(self) -> Envelope {
+        Envelope::new_leaf(self)
     }
 }
 
 impl EnvelopeEncodable for String {
-    fn to_envelope(&self) -> Envelope {
-        Envelope::new_leaf(self.clone())
+    fn into_envelope(self) -> Envelope {
+        Envelope::new_leaf(self)
     }
 }
 
 impl EnvelopeEncodable for &str {
-    fn to_envelope(&self) -> Envelope {
-        Envelope::new_leaf(*self)
+    fn into_envelope(self) -> Envelope {
+        Envelope::new_leaf(self)
     }
 }
 
 macro_rules! impl_envelope_encodable {
     ($type:ty) => {
         impl EnvelopeEncodable for $type {
-            fn to_envelope(&self) -> Envelope {
-                Envelope::new_leaf(self.clone())
+            fn into_envelope(self) -> Envelope {
+                Envelope::new_leaf(self)
             }
         }
     }

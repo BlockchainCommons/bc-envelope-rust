@@ -1,4 +1,5 @@
 use bc_components::{PrivateKeyBase, PublicKeyBase, ARID};
+use anyhow::Result;
 
 use crate::{known_values, Envelope, Function};
 
@@ -51,7 +52,7 @@ impl Envelope {
         recipient: &PublicKeyBase,
         note: impl Into<String>,
         date: Option<dcbor::Date>,
-    ) -> anyhow::Result<Envelope> {
+    ) -> Result<Envelope> {
         self.into_transaction_request_with_metadata(id, sender.public_key(), note, date)
             .seal(sender, recipient)
     }
@@ -86,7 +87,7 @@ impl Envelope {
         id: impl AsRef<ARID>,
         sender: &PrivateKeyBase,
         recipient: &PublicKeyBase,
-    ) -> anyhow::Result<Envelope> {
+    ) -> Result<Envelope> {
         self.into_sealed_transaction_request_with_metadata(id, sender, recipient, "", None)
     }
 }
@@ -95,8 +96,8 @@ impl Envelope {
 impl Envelope {
     /// Parses the transaction request envelope and returns the id, sender,
     /// body, note, and date.
-    pub fn from_transaction_request_with_metadata(&self, expected_function: Option<&Function>) -> anyhow::Result<(ARID, PublicKeyBase, Envelope, Function, String, Option<dcbor::Date>)> {
-        let (id, body, function, note, date) = self.from_request_with_metadata(expected_function)?;
+    pub fn parse_transaction_request_with_metadata(&self, expected_function: Option<&Function>) -> Result<(ARID, PublicKeyBase, Envelope, Function, String, Option<dcbor::Date>)> {
+        let (id, body, function, note, date) = self.parse_request_with_metadata(expected_function)?;
         let sender: PublicKeyBase = self.extract_object_for_predicate(known_values::SENDER_PUBLIC_KEY)?;
         Ok((id, sender, body, function, note, date))
     }
@@ -104,9 +105,9 @@ impl Envelope {
     /// Parses the signed transaction request envelope and verifies the
     /// signature from the sender, then returns the id, sender, body, note, and
     /// date.
-    pub fn from_signed_transaction_request_with_metadata(&self, expected_function: Option<&Function>) -> anyhow::Result<(ARID, PublicKeyBase, Envelope, Function, String, Option<dcbor::Date>)> {
+    pub fn parse_signed_transaction_request_with_metadata(&self, expected_function: Option<&Function>) -> Result<(ARID, PublicKeyBase, Envelope, Function, String, Option<dcbor::Date>)> {
         let inner = self.unwrap_envelope()?;
-        let (id, sender, body, function, note, date) = inner.from_transaction_request_with_metadata(expected_function)?;
+        let (id, sender, body, function, note, date) = inner.parse_transaction_request_with_metadata(expected_function)?;
         self.verify_signature_from(&sender)?;
         Ok((id, sender, body, function, note, date))
     }
@@ -114,15 +115,15 @@ impl Envelope {
     /// Decrypts the sealed transaction request envelope to the recipient,
     /// verifies the signature from the sender, and returns the id, sender,
     /// body, note, and date.
-    pub fn from_sealed_transaction_request_with_metadata(&self, expected_function: Option<&Function>, recipient: &PrivateKeyBase) -> anyhow::Result<(ARID, PublicKeyBase, Envelope, Function, String, Option<dcbor::Date>)> {
+    pub fn parse_sealed_transaction_request_with_metadata(&self, expected_function: Option<&Function>, recipient: &PrivateKeyBase) -> Result<(ARID, PublicKeyBase, Envelope, Function, String, Option<dcbor::Date>)> {
         let signed = self.decrypt(recipient)?;
-        let (id, sender, body, function, note, date) = signed.from_transaction_request_with_metadata(expected_function)?;
+        let (id, sender, body, function, note, date) = signed.parse_transaction_request_with_metadata(expected_function)?;
         Ok((id, sender, body, function, note, date))
     }
 
     /// Parses the transaction request envelope and returns the id, sender, and
     /// body.
-    pub fn from_transaction_request(&self, expected_function: Option<&Function>) -> anyhow::Result<(ARID, PublicKeyBase, Envelope, Function)> {
+    pub fn parse_transaction_request(&self, expected_function: Option<&Function>) -> Result<(ARID, PublicKeyBase, Envelope, Function)> {
         let (id, body, function) = self.from_request(expected_function)?;
         let sender: PublicKeyBase = self.extract_object_for_predicate(known_values::SENDER_PUBLIC_KEY)?;
         Ok((id, sender, body, function))
@@ -130,9 +131,9 @@ impl Envelope {
 
     /// Parses the signed transaction request envelope and verifies the
     /// signature from the sender, then returns the id, sender, and body.
-    pub fn from_signed_transaction_request(&self, expected_function: Option<&Function>) -> anyhow::Result<(ARID, PublicKeyBase, Envelope, Function)> {
+    pub fn parse_signed_transaction_request(&self, expected_function: Option<&Function>) -> Result<(ARID, PublicKeyBase, Envelope, Function)> {
         let inner = self.unwrap_envelope()?;
-        let (id, sender, body, function) = inner.from_transaction_request(expected_function)?;
+        let (id, sender, body, function) = inner.parse_transaction_request(expected_function)?;
         self.verify_signature_from(&sender)?;
         Ok((id, sender, body, function))
     }
@@ -140,9 +141,9 @@ impl Envelope {
     /// Decrypts the sealed transaction request envelope to the recipient,
     /// verifies the signature from the sender, and returns the id, sender, and
     /// body.
-    pub fn from_sealed_transaction_request(&self, expected_function: Option<&Function>, recipient: &PrivateKeyBase) -> anyhow::Result<(ARID, PublicKeyBase, Envelope, Function)> {
+    pub fn parse_sealed_transaction_request(&self, expected_function: Option<&Function>, recipient: &PrivateKeyBase) -> Result<(ARID, PublicKeyBase, Envelope, Function)> {
         let signed = self.decrypt(recipient)?;
-        let (id, sender, body, function) = signed.from_signed_transaction_request(expected_function)?;
+        let (id, sender, body, function) = signed.parse_signed_transaction_request(expected_function)?;
         Ok((id, sender, body, function))
     }
 }

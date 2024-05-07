@@ -70,7 +70,7 @@ fn test_request() {
         ]
         "#}.trim());
 
-    let completely_unknown_error_response = Envelope::failure_response(None, None);
+    let completely_unknown_error_response = Envelope::new_failure_response(None, None);
     assert_eq!(completely_unknown_error_response.format(), indoc! {r#"
         response('Unknown') [
             'error': 'Unknown'

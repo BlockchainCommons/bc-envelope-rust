@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use anyhow::bail;
+use anyhow::{bail, Result};
 use bc_components::{DigestProvider, Digest};
 #[cfg(feature = "encrypt")]
 use bc_components::{SymmetricKey, Nonce};
@@ -191,7 +191,7 @@ impl Envelope {
                 ObscureAction::Elide => self.elide(),
                 #[cfg(feature = "encrypt")]
                 ObscureAction::Encrypt(key) => {
-                    let message = key.encrypt_with_digest(self.tagged_cbor().cbor_data(), self_digest, None::<Nonce>);
+                    let message = key.encrypt_with_digest(self.tagged_cbor().to_cbor_data(), self_digest, None::<Nonce>);
                     Self::new_with_encrypted(message).unwrap()
                 },
                 #[cfg(feature = "compress")]
@@ -291,7 +291,7 @@ impl Envelope {
     /// Returns the unelided variant of this envelope.
     ///
     /// Returns the same envelope if it is already unelided.
-    pub fn unelide(&self, envelope: impl Into<Envelope>) -> anyhow::Result<Self> {
+    pub fn unelide(&self, envelope: impl Into<Envelope>) -> Result<Self> {
         let envelope = envelope.into();
         if self.digest() == envelope.digest() {
             Ok(envelope)

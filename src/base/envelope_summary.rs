@@ -1,3 +1,4 @@
+use anyhow::Result;
 use bc_components::{tags, ARID, URI, UUID, Digest};
 use dcbor::prelude::*;
 
@@ -9,11 +10,11 @@ use crate::extension::known_values::KnownValuesStore;
 use crate::{Envelope, extension::expression::{Function, FunctionsStore, Parameter, ParametersStore}};
 
 pub trait EnvelopeSummary {
-    fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> anyhow::Result<String>;
+    fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> Result<String>;
 }
 
 impl EnvelopeSummary for CBOR {
-    fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> anyhow::Result<String> {
+    fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> Result<String> {
         match self.as_case() {
             CBORCase::Unsigned(n) => Ok(n.to_string()),
             CBORCase::Negative(n) => Ok((-1 - (*n as i128)).to_string()),
@@ -30,7 +31,7 @@ impl EnvelopeSummary for CBOR {
                 Ok(elements
                     .iter()
                     .map(|element| element.envelope_summary(max_length, context))
-                    .collect::<anyhow::Result<Vec<String>>>()?
+                    .collect::<Result<Vec<String>>>()?
                     .join(", ")
                     .flanked_by("[", "]")
                 )

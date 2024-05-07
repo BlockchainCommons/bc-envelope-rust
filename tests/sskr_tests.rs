@@ -1,4 +1,4 @@
-#![cfg(feature = "sskr")]
+#![cfg(all(feature = "sskr", feature = "types"))]
 use bc_components::{SymmetricKey, SSKRGroupSpec, SSKRSpec};
 use hex_literal::hex;
 use bc_envelope::prelude::*;

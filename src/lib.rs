@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/bc-envelope/0.15.3")]
+#![doc(html_root_url = "https://docs.rs/bc-envelope/0.16.0")]
 #![warn(rust_2018_idioms)]
 
 //! # Gordian Envelope: A Flexible Container for Structured Data
@@ -20,7 +20,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bc-envelope = "0.15.3"
+//! bc-envelope = "0.16.0"
 //! ```
 //!
 //! ## Specification
@@ -386,7 +386,7 @@ pub mod prelude;
 
 mod string_utils;
 
-#[cfg(all(feature = "signature", feature = "encrypt"))]
+#[cfg(any(feature = "signature", feature = "recipient"))]
 use bc_components::{PrivateKeyBase, PublicKeyBase};
 
 #[cfg(feature = "known_value")]
@@ -413,7 +413,7 @@ impl Envelope {
     }
 }
 
-#[cfg(feature = "encrypt")]
+#[cfg(feature = "recipient")]
 impl Envelope {
     pub fn encrypt(&self, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
         self
@@ -428,7 +428,7 @@ impl Envelope {
     }
 }
 
-#[cfg(all(feature = "signature", feature = "encrypt"))]
+#[cfg(all(feature = "signature", feature = "recipient"))]
 impl Envelope {
     pub fn seal(&self, sender: &PrivateKeyBase, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
         self

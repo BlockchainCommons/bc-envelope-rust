@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use anyhow::bail;
+use anyhow::{bail, Error, Result};
 use bc_components::{Digest, DigestProvider};
 use dcbor::prelude::*;
 
@@ -20,8 +20,8 @@ pub struct Assertion {
 impl Assertion {
     /// Creates an assertion and calculates its digest.
     pub fn new(predicate: impl EnvelopeEncodable, object: impl EnvelopeEncodable) -> Self {
-        let predicate = predicate.to_envelope();
-        let object = object.to_envelope();
+        let predicate = predicate.into_envelope();
+        let object = object.into_envelope();
         let digest = Digest::from_digests(&[
             predicate.digest().into_owned(),
             object.digest().into_owned(),
@@ -72,9 +72,9 @@ impl From<Assertion> for CBOR {
 }
 
 impl TryFrom<CBOR> for Assertion {
-    type Error = anyhow::Error;
+    type Error = Error;
 
-    fn try_from(value: CBOR) -> anyhow::Result<Self> {
+    fn try_from(value: CBOR) -> Result<Self> {
         if let CBORCase::Map(map) = value.as_case() {
             return map.clone().try_into();
         }
@@ -83,9 +83,9 @@ impl TryFrom<CBOR> for Assertion {
 }
 
 impl TryFrom<Map> for Assertion {
-    type Error = anyhow::Error;
+    type Error = Error;
 
-    fn try_from(map: Map) -> anyhow::Result<Self> {
+    fn try_from(map: Map) -> Result<Self> {
         if map.len() != 1 {
             bail!("assertion map must have exactly one element")
         }

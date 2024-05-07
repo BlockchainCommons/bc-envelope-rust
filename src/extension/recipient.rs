@@ -2,6 +2,7 @@ use crate::{Envelope, EnvelopeError};
 #[cfg(feature = "known_value")]
 use crate::extension::known_values;
 
+use anyhow::{bail, Result};
 use bc_components::{SealedMessage, PublicKeyBase, SymmetricKey, Nonce, PrivateKeyBase};
 use bytes::Bytes;
 use dcbor::prelude::*;
@@ -30,7 +31,7 @@ impl Envelope {
     /// Returns an array of `SealedMessage`s from all of the envelope's `hasRecipient` assertions.
     ///
     /// - Throws: Throws an exception if any `hasRecipient` assertions do not have a `SealedMessage` as their object.
-    pub fn recipients(&self) -> anyhow::Result<Vec<SealedMessage>> {
+    pub fn recipients(&self) -> Result<Vec<SealedMessage>> {
         self
             .assertions_with_predicate(known_values::HAS_RECIPIENT)
             .into_iter()
@@ -59,7 +60,7 @@ impl Envelope {
     pub fn encrypt_subject_to_recipients<T>(
         &self,
         recipients: &[T]
-    ) -> anyhow::Result<Self>
+    ) -> Result<Self>
     where
         T: AsRef<PublicKeyBase>
     {
@@ -73,7 +74,7 @@ impl Envelope {
         recipients: &[T],
         test_key_material: Option<&Bytes>,
         test_nonce: Option<&Nonce>
-    ) -> anyhow::Result<Self>
+    ) -> Result<Self>
     where
         T: AsRef<PublicKeyBase>
     {
@@ -95,20 +96,18 @@ impl Envelope {
     ///
     /// - Returns: The encrypted envelope.
     #[cfg(feature = "encrypt")]
-    pub fn encrypt_subject_to_recipient(&self, recipient: &PublicKeyBase) -> anyhow::Result<Self> {
+    pub fn encrypt_subject_to_recipient(&self, recipient: &PublicKeyBase) -> Result<Self> {
         self.encrypt_subject_to_recipient_opt(recipient, None, None::<&Nonce>)
     }
 
     #[cfg(feature = "encrypt")]
     #[doc(hidden)]
-    pub fn encrypt_subject_to_recipient_opt(&self, recipient: &PublicKeyBase, test_key_material: Option<&Bytes>, test_nonce: Option<&Nonce>) -> anyhow::Result<Self> {
+    pub fn encrypt_subject_to_recipient_opt(&self, recipient: &PublicKeyBase, test_key_material: Option<&Bytes>, test_nonce: Option<&Nonce>) -> Result<Self> {
         self.encrypt_subject_to_recipients_opt(&[recipient], test_key_material, test_nonce)
     }
 
     #[cfg(feature = "encrypt")]
-    fn first_plaintext_in_sealed_messages(sealed_messages: &[SealedMessage], private_key: &PrivateKeyBase) -> anyhow::Result<Vec<u8>> {
-        use anyhow::bail;
-
+    fn first_plaintext_in_sealed_messages(sealed_messages: &[SealedMessage], private_key: &PrivateKeyBase) -> Result<Vec<u8>> {
         for sealed_message in sealed_messages {
             let a = sealed_message.decrypt(private_key).ok();
             if let Some(plaintext) = a {
@@ -128,7 +127,7 @@ impl Envelope {
     /// - Throws: If a `SealedMessage` for `recipient` is not found among the
     /// `hasRecipient` assertions on the envelope.
     #[cfg(feature = "encrypt")]
-    pub fn decrypt_to_recipient(&self, recipient: &PrivateKeyBase) -> anyhow::Result<Self> {
+    pub fn decrypt_to_recipient(&self, recipient: &PrivateKeyBase) -> Result<Self> {
         let sealed_messages = self.clone().recipients()?;
         let content_key_data = Self::first_plaintext_in_sealed_messages(&sealed_messages, recipient)?;
         let content_key = SymmetricKey::from_tagged_cbor_data(content_key_data)?;

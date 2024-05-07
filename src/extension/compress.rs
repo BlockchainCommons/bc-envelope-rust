@@ -1,4 +1,4 @@
-use anyhow::bail;
+use anyhow::{bail, Result};
 use bc_components::{Compressed, DigestProvider};
 use dcbor::prelude::*;
 
@@ -9,14 +9,14 @@ impl Envelope {
     /// Returns the compressed variant of this envelope.
     ///
     /// Returns the same envelope if it is already compressed.
-    pub fn compress(&self) -> anyhow::Result<Self> {
+    pub fn compress(&self) -> Result<Self> {
         match self.case() {
             EnvelopeCase::Compressed(_) => Ok(self.clone()),
             #[cfg(feature = "encrypt")]
             EnvelopeCase::Encrypted(_) => bail!(EnvelopeError::AlreadyEncrypted),
             EnvelopeCase::Elided(_) => bail!(EnvelopeError::AlreadyElided),
             _ => {
-                let compressed = Compressed::from_uncompressed_data(self.tagged_cbor().cbor_data(), Some(self.digest().into_owned()));
+                let compressed = Compressed::from_uncompressed_data(self.tagged_cbor().to_cbor_data(), Some(self.digest().into_owned()));
                 Ok(compressed.try_into()?)
             },
         }
@@ -25,7 +25,7 @@ impl Envelope {
     /// Returns the uncompressed variant of this envelope.
     ///
     /// Returns the same envelope if it is already uncompressed.
-    pub fn uncompress(&self) -> anyhow::Result<Self> {
+    pub fn uncompress(&self) -> Result<Self> {
         if let EnvelopeCase::Compressed(compressed) = self.case() {
             if let Some(digest) = compressed.digest_ref_opt() {
                 if digest != self.digest().as_ref() {
@@ -48,7 +48,7 @@ impl Envelope {
     /// Returns this envelope with its subject compressed.
     ///
     /// Returns the same envelope if its subject is already compressed.
-    pub fn compress_subject(&self) -> anyhow::Result<Self> {
+    pub fn compress_subject(&self) -> Result<Self> {
         if self.subject().is_compressed() {
             Ok(self.clone())
         } else {
@@ -60,7 +60,7 @@ impl Envelope {
     /// Returns this envelope with its subject uncompressed.
     ///
     /// Returns the same envelope if its subject is already uncompressed.
-    pub fn uncompress_subject(&self) -> anyhow::Result<Self> {
+    pub fn uncompress_subject(&self) -> Result<Self> {
         if self.subject().is_compressed() {
             let subject = self.subject().uncompress()?;
             Ok(self.replace_subject(subject))

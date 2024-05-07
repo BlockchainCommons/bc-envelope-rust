@@ -1,4 +1,4 @@
-use anyhow::bail;
+use anyhow::{bail, Result};
 use bc_components::{PrivateKeyBase, Signature, PublicKeyBase, SigningPublicKey, DigestProvider};
 use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
 
@@ -196,7 +196,7 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if any `verifiedBy` assertion doesn't contain a
     /// valid `Signature` as its object.
-    pub fn signatures(&self) -> anyhow::Result<Vec<Signature>> {
+    pub fn signatures(&self) -> Result<Vec<Signature>> {
         let verified_by = known_values::VERIFIED_BY;
         self
             .assertions_with_predicate(verified_by).into_iter()
@@ -235,7 +235,7 @@ impl Envelope {
         &self,
         signature: &Signature,
         public_key: &PublicKeyBase,
-    ) -> anyhow::Result<Self> {
+    ) -> Result<Self> {
         self.verify_signature_from_key(signature, public_key.signing_public_key())
     }
 
@@ -251,7 +251,7 @@ impl Envelope {
     pub fn has_signature_from(
         &self,
         public_key: &PublicKeyBase,
-    ) -> anyhow::Result<bool> {
+    ) -> Result<bool> {
         self.has_some_signature_from_key(public_key.signing_public_key())
     }
 
@@ -269,7 +269,7 @@ impl Envelope {
     pub fn verify_signature_from(
         &self,
         public_key: &PublicKeyBase,
-    ) -> anyhow::Result<Self> {
+    ) -> Result<Self> {
         self.verify_has_some_signature_from_key(public_key.signing_public_key())
     }
 
@@ -277,7 +277,7 @@ impl Envelope {
     pub fn has_signatures_from<T>(
         &self,
         public_keys: &[T],
-    ) -> anyhow::Result<bool>
+    ) -> Result<bool>
     where
         T: AsRef<PublicKeyBase>,
     {
@@ -301,7 +301,7 @@ impl Envelope {
         &self,
         public_keys: &[T],
         threshold: Option<usize>,
-    ) -> anyhow::Result<bool>
+    ) -> Result<bool>
     where
         T: AsRef<PublicKeyBase>,
     {
@@ -316,7 +316,7 @@ impl Envelope {
     pub fn verify_signatures_from<T>(
         &self,
         public_keys: &[T],
-    ) -> anyhow::Result<Self>
+    ) -> Result<Self>
     where
         T: AsRef<PublicKeyBase>,
     {
@@ -341,7 +341,7 @@ impl Envelope {
         &self,
         public_keys: &[T],
         threshold: Option<usize>,
-    ) -> anyhow::Result<Self>
+    ) -> Result<Self>
     where
         T: AsRef<PublicKeyBase>,
     {
@@ -370,7 +370,7 @@ impl Envelope {
         &self,
         signature: &Signature,
         key: &SigningPublicKey
-    ) -> anyhow::Result<Self> {
+    ) -> Result<Self> {
         if !self.is_signature_from_key(signature, key) {
             bail!(EnvelopeError::UnverifiedSignature);
         }
@@ -380,7 +380,7 @@ impl Envelope {
     fn has_some_signature_from_key<T>(
         &self,
         key: T
-    ) -> anyhow::Result<bool>
+    ) -> Result<bool>
     where
         T: AsRef<SigningPublicKey>,
     {
@@ -395,7 +395,7 @@ impl Envelope {
     fn verify_has_some_signature_from_key(
         &self,
         key: &SigningPublicKey
-    ) -> anyhow::Result<Self> {
+    ) -> Result<Self> {
         if !self.has_some_signature_from_key(key)? {
             bail!(EnvelopeError::UnverifiedSignature);
         }
@@ -406,7 +406,7 @@ impl Envelope {
         &self,
         keys: &[T],
         threshold: Option<usize>
-    ) -> anyhow::Result<bool>
+    ) -> Result<bool>
     where
         T: AsRef<SigningPublicKey>,
     {
@@ -427,7 +427,7 @@ impl Envelope {
         &self,
         keys: &[T],
         threshold: Option<usize>
-    ) -> anyhow::Result<Self>
+    ) -> Result<Self>
     where
         T: AsRef<SigningPublicKey>,
     {

@@ -4,6 +4,7 @@ use crate::Envelope;
 #[cfg(feature = "known_value")]
 use crate::extension::known_values;
 
+use anyhow::Result;
 use bc_components::Salt;
 use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
 use dcbor::prelude::*;
@@ -24,7 +25,7 @@ impl Envelope {
     /// Add a specified number of bytes of salt.
     ///
     /// Returns an error if the number of bytes is less than 8.
-    pub fn add_salt_with_len(&self, count: usize) -> anyhow::Result<Self> {
+    pub fn add_salt_with_len(&self, count: usize) -> Result<Self> {
         let mut rng = SecureRandomNumberGenerator;
         self.add_salt_with_len_using(count, &mut rng)
     }
@@ -33,7 +34,7 @@ impl Envelope {
     /// Add a specified number of bytes of salt.
     ///
     /// Returns an error if the number of bytes is less than 8.
-    pub fn add_salt_with_len_using(&self, count: usize, rng: &mut impl RandomNumberGenerator) -> anyhow::Result<Self> {
+    pub fn add_salt_with_len_using(&self, count: usize, rng: &mut impl RandomNumberGenerator) -> Result<Self> {
         let salt = Salt::new_with_len_using(count, rng)?;
         Ok(self.add_salt_instance(salt))
     }
@@ -41,7 +42,7 @@ impl Envelope {
     /// Add a number of bytes of salt chosen randomly from the given range.
     ///
     /// Returns an error if the minimum number of bytes is less than 8.
-    pub fn add_salt_in_range(&self, range: RangeInclusive<usize>) -> anyhow::Result<Self> {
+    pub fn add_salt_in_range(&self, range: RangeInclusive<usize>) -> Result<Self> {
         let mut rng = SecureRandomNumberGenerator;
         self.add_salt_in_range_using(&range, &mut rng)
     }
@@ -50,7 +51,7 @@ impl Envelope {
     /// Add a number of bytes of salt chosen randomly from the given range.
     ///
     /// Returns an error if the minimum number of bytes is less than 8.
-    pub fn add_salt_in_range_using(&self, range: &RangeInclusive<usize>, rng: &mut impl RandomNumberGenerator) -> anyhow::Result<Self> {
+    pub fn add_salt_in_range_using(&self, range: &RangeInclusive<usize>, rng: &mut impl RandomNumberGenerator) -> Result<Self> {
         Ok(self.add_salt_instance(Salt::new_in_range_using(range, rng)?))
     }
 
@@ -59,7 +60,7 @@ impl Envelope {
     ///
     /// Only used for testing.
     pub fn add_salt_using(&self, rng: &mut impl RandomNumberGenerator) -> Self {
-        let salt = Salt::new_for_size_using(self.tagged_cbor().cbor_data().len(), rng);
+        let salt = Salt::new_for_size_using(self.tagged_cbor().to_cbor_data().len(), rng);
         self.add_salt_instance(salt)
     }
 }

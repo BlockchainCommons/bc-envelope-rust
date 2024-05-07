@@ -1,14 +1,21 @@
-#![cfg(feature = "proof")]
+#![cfg(all(feature = "proof", feature = "salt"))]
 
 use std::collections::HashSet;
 
-use bc_components::{ARID, PrivateKeyBase};
 use bc_envelope::prelude::*;
-use bytes::Bytes;
-use dcbor::Date;
 use indoc::indoc;
 mod common;
-use crate::common::{check_encoding::*, test_seed::Seed};
+use crate::common::check_encoding::*;
+
+#[cfg(feature = "types")]
+use crate::common::test_seed::Seed;
+#[cfg(feature = "types")]
+use bc_components::{ARID, PrivateKeyBase};
+#[cfg(feature = "types")]
+use bytes::Bytes;
+#[cfg(feature = "types")]
+use dcbor::Date;
+#[cfg(feature = "types")]
 use hex_literal::hex;
 
 #[test]
@@ -111,6 +118,7 @@ fn test_multi_position() {
 }
 
 #[test]
+#[cfg(feature = "types")]
 fn test_verifiable_credential() {
     let alice_seed = Seed::new(hex!("82f32c855d3d542256180810797e0073"));
     let alice_private_key = PrivateKeyBase::from_data(Bytes::copy_from_slice(alice_seed.data()));

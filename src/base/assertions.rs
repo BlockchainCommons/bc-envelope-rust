@@ -1,4 +1,4 @@
-use anyhow::bail;
+use anyhow::{bail, Result};
 use bc_components::DigestProvider;
 
 use crate::{Envelope, EnvelopeEncodable, EnvelopeError};
@@ -17,15 +17,15 @@ impl Envelope {
     ///
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_assertion_envelope(&self, assertion_envelope: impl EnvelopeEncodable) -> anyhow::Result<Self> {
-        self.add_optional_assertion_envelope(Some(assertion_envelope.to_envelope()))
+    pub fn add_assertion_envelope(&self, assertion_envelope: impl EnvelopeEncodable) -> Result<Self> {
+        self.add_optional_assertion_envelope(Some(assertion_envelope.into_envelope()))
     }
 
     /// Returns the result of adding the given array of assertions to the envelope.
     ///
     /// Each assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_assertion_envelopes(&self, assertions: &[Self]) -> anyhow::Result<Self> {
+    pub fn add_assertion_envelopes(&self, assertions: &[Self]) -> Result<Self> {
         let mut e = self.clone();
         for assertion in assertions {
             e = e.add_assertion_envelope(assertion.clone())?;
@@ -38,7 +38,7 @@ impl Envelope {
     ///
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_optional_assertion_envelope(&self, assertion: Option<Self>) -> anyhow::Result<Self> {
+    pub fn add_optional_assertion_envelope(&self, assertion: Option<Self>) -> Result<Self> {
         match assertion {
             Some(assertion) => {
                 if !assertion.is_subject_assertion() && !assertion.is_subject_obscured() {
@@ -98,7 +98,7 @@ impl Envelope {
 
     /// If the condition is true, returns the result of adding the given assertion to the envelope.
     /// Otherwise, returns the envelope unchanged.
-    pub fn add_assertion_envelope_if(&self, condition: bool, assertion_envelope: Self) -> anyhow::Result<Self> {
+    pub fn add_assertion_envelope_if(&self, condition: bool, assertion_envelope: Self) -> Result<Self> {
         if condition {
             self.add_assertion_envelope(assertion_envelope)
         } else {
@@ -124,7 +124,7 @@ impl Envelope {
     ///
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_assertion_envelope_salted(&self, assertion_envelope: Self, salted: bool) -> anyhow::Result<Self> {
+    pub fn add_assertion_envelope_salted(&self, assertion_envelope: Self, salted: bool) -> Result<Self> {
         self.add_optional_assertion_envelope_salted(Some(assertion_envelope), salted)
     }
 
@@ -133,7 +133,7 @@ impl Envelope {
     ///
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_optional_assertion_envelope_salted(&self, assertion: Option<Self>, salted: bool) -> anyhow::Result<Self> {
+    pub fn add_optional_assertion_envelope_salted(&self, assertion: Option<Self>, salted: bool) -> Result<Self> {
         match assertion {
             Some(assertion) => {
                 if !assertion.is_subject_assertion() && !assertion.is_subject_obscured() {
@@ -193,7 +193,7 @@ impl Envelope {
 
     /// Returns a new envelope with the given assertion replaced by the provided one. If
     /// the targeted assertion does not exist, returns the same envelope.
-    pub fn replace_assertion(&self, assertion: Self, new_assertion: Self) -> anyhow::Result<Self> {
+    pub fn replace_assertion(&self, assertion: Self, new_assertion: Self) -> Result<Self> {
         self.remove_assertion(assertion).add_assertion_envelope(new_assertion)
     }
 

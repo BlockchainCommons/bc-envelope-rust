@@ -1,4 +1,4 @@
-use anyhow::bail;
+use anyhow::{bail, Error, Result};
 use dcbor::prelude::*;
 use bc_components::{tags, Digest};
 #[cfg(feature = "encrypt")]
@@ -38,9 +38,9 @@ impl From<Envelope> for CBOR {
 }
 
 impl TryFrom<CBOR> for Envelope {
-    type Error = anyhow::Error;
+    type Error = Error;
 
-    fn try_from(value: CBOR) -> anyhow::Result<Self> {
+    fn try_from(value: CBOR) -> Result<Self> {
         Self::from_tagged_cbor(value)
     }
 }
@@ -70,7 +70,7 @@ impl CBORTaggedEncodable for Envelope {
 }
 
 impl CBORTaggedDecodable for Envelope {
-    fn from_untagged_cbor(cbor: CBOR) -> anyhow::Result<Self> {
+    fn from_untagged_cbor(cbor: CBOR) -> Result<Self> {
         match cbor.as_case() {
             CBORCase::Tagged(tag, item) => {
                 match tag.value() {
@@ -108,7 +108,7 @@ impl CBORTaggedDecodable for Envelope {
                     .iter()
                     .cloned()
                     .map(Self::from_untagged_cbor)
-                    .collect::<Result<Vec<Self>, anyhow::Error>>()?;
+                    .collect::<Result<Vec<Self>, Error>>()?;
                 Ok(Self::new_with_assertions(subject, assertions)?)
             }
             CBORCase::Map(_) => {

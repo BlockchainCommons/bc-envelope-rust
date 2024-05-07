@@ -1,5 +1,6 @@
 use std::{fmt::{Formatter, Display}, borrow::Cow};
 
+use anyhow::{Result, Error};
 use bc_components::{tags, DigestProvider, Digest};
 use dcbor::prelude::*;
 
@@ -92,14 +93,14 @@ impl Display for KnownValue {
 }
 
 impl EnvelopeEncodable for KnownValue {
-    fn to_envelope(&self) -> Envelope {
-        Envelope::new_with_known_value(self.clone())
+    fn into_envelope(self) -> Envelope {
+        Envelope::new_with_known_value(self)
     }
 }
 
 impl DigestProvider for KnownValue {
     fn digest(&self) -> Cow<'_, Digest> {
-        Cow::Owned(Digest::from_image(self.tagged_cbor().cbor_data()))
+        Cow::Owned(Digest::from_image(self.tagged_cbor().to_cbor_data()))
     }
 }
 
@@ -117,9 +118,9 @@ impl From<KnownValue> for CBOR {
 
 
 impl TryFrom<CBOR> for KnownValue {
-    type Error = anyhow::Error;
+    type Error = Error;
 
-    fn try_from(cbor: CBOR) -> anyhow::Result<Self> {
+    fn try_from(cbor: CBOR) -> Result<Self> {
         Self::from_tagged_cbor(cbor)
     }
 }
@@ -131,7 +132,7 @@ impl CBORTaggedEncodable for KnownValue {
 }
 
 impl CBORTaggedDecodable for KnownValue {
-    fn from_untagged_cbor(cbor: CBOR) -> anyhow::Result<Self> {
+    fn from_untagged_cbor(cbor: CBOR) -> Result<Self> {
         let value: u64 = cbor.try_into()?;
         Ok(Self::new(value))
     }

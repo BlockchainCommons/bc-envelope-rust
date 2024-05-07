@@ -1,6 +1,6 @@
 [package]
 name = "bc-envelope"
-version = "0.15.3"
+version = "0.16.0"
 edition = "2021"
 description = "Gordian Envelope for Rust."
 authors = ["Blockchain Commons"]
@@ -12,19 +12,16 @@ categories = ["data-structures", "encoding"]
 documentation = "https://docs.rs/bc-envelope"
 
 [dependencies]
-dcbor = { path = "../dcbor", features = ["multithreaded"] }
-# dcbor = { version = "^0.13.0", features = ["multithreaded"] }
+dcbor = { version = "^0.14.0", features = ["multithreaded"] }
 
 bc-rand = "^0.1.0"
 
 # bc-crypto = { path = "../bc-crypto" }
 bc-crypto = "^0.3.0"
 
-bc-components = { path = "../bc-components" }
-# bc-components = "^0.10.0"
+bc-components = "^0.11.0"
 
-bc-ur = { path = "../bc-ur" }
-# bc-ur = "^0.3.0"
+bc-ur = "^0.4.0"
 
 paste = "^1.0.12"
 hex = "^0.4.3"
@@ -40,11 +37,11 @@ indoc = "^2.0.0"
 version-sync = "^0.9.0"
 
 [features]
-attachment = ["known_value"]
+attachment = ["known_value", "types"]
 compress = []
-known_value = []
 encrypt = ["known_value"]
 expression = ["known_value"]
+known_value = []
 multithreaded = ["dcbor/multithreaded"]
 proof = []
 recipient = ["encrypt"]
@@ -57,9 +54,9 @@ types = ["known_value"]
 default = [
     "attachment",
     "compress",
-    "known_value",
     "encrypt",
     "expression",
+    "known_value",
     "proof",
     "recipient",
     "salt",
@@ -68,3 +65,18 @@ default = [
     "transaction",
     "types",
 ]
+
+# cargo test
+# cargo test --no-default-features
+# cargo test --no-default-features --features attachment
+# cargo test --no-default-features --features compress
+# cargo test --no-default-features --features encrypt
+# cargo test --no-default-features --features expression
+# cargo test --no-default-features --features known_value
+# cargo test --no-default-features --features proof
+# cargo test --no-default-features --features recipient
+# cargo test --no-default-features --features salt
+# cargo test --no-default-features --features signature
+# cargo test --no-default-features --features sskr
+# cargo test --no-default-features --features transaction
+# cargo test --no-default-features --features types
