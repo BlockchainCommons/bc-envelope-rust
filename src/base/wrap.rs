@@ -1,3 +1,5 @@
+use anyhow::bail;
+
 use crate::{Envelope, EnvelopeError};
 
 use super::envelope::EnvelopeCase;
@@ -12,10 +14,10 @@ impl Envelope {
     /// Unwraps and returns the inner envelope.
     ///
     /// Returns an error if this is not a wrapped envelope.
-    pub fn unwrap_envelope(&self) -> Result<Self, EnvelopeError> {
+    pub fn unwrap_envelope(&self) -> anyhow::Result<Self> {
         match self.subject().case() {
             EnvelopeCase::Wrapped { envelope, .. } => Ok(envelope.clone()),
-            _ => Err(EnvelopeError::NotWrapped),
+            _ => bail!(EnvelopeError::NotWrapped),
         }
     }
 }

@@ -13,8 +13,8 @@ impl Envelope {
         match self.case() {
             EnvelopeCase::Compressed(_) => Ok(self.clone()),
             #[cfg(feature = "encrypt")]
-            EnvelopeCase::Encrypted(_) => Err(EnvelopeError::AlreadyEncrypted.into()),
-            EnvelopeCase::Elided(_) => Err(EnvelopeError::AlreadyElided.into()),
+            EnvelopeCase::Encrypted(_) => bail!(EnvelopeError::AlreadyEncrypted),
+            EnvelopeCase::Elided(_) => bail!(EnvelopeError::AlreadyElided),
             _ => {
                 let compressed = Compressed::from_uncompressed_data(self.tagged_cbor().cbor_data(), Some(self.digest().into_owned()));
                 Ok(compressed.try_into()?)

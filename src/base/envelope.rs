@@ -1,3 +1,4 @@
+use anyhow::bail;
 use bc_components::{Digest, DigestProvider};
 #[cfg(feature = "encrypt")]
 use bc_components::EncryptedMessage;
@@ -139,9 +140,9 @@ impl Envelope {
         (EnvelopeCase::Node { subject, assertions: sorted_assertions, digest }).into()
     }
 
-    pub(crate) fn new_with_assertions(subject: Self, assertions: Vec<Self>) -> Result<Self, EnvelopeError> {
+    pub(crate) fn new_with_assertions(subject: Self, assertions: Vec<Self>) -> anyhow::Result<Self> {
         if !assertions.iter().all(|a| a.is_subject_assertion() || a.is_subject_obscured()) {
-            return Err(EnvelopeError::InvalidFormat);
+            bail!(EnvelopeError::InvalidFormat);
         }
         Ok(Self::new_with_unchecked_assertions(subject, assertions))
     }
@@ -157,17 +158,17 @@ impl Envelope {
     }
 
     #[cfg(feature = "encrypt")]
-    pub(crate) fn new_with_encrypted(encrypted_message: EncryptedMessage) -> Result<Self, EnvelopeError> {
+    pub(crate) fn new_with_encrypted(encrypted_message: EncryptedMessage) -> anyhow::Result<Self> {
         if !encrypted_message.has_digest() {
-            return Err(EnvelopeError::MissingDigest);
+            bail!(EnvelopeError::MissingDigest);
         }
         Ok(EnvelopeCase::Encrypted(encrypted_message).into())
     }
 
     #[cfg(feature = "compress")]
-    pub(crate) fn new_with_compressed(compressed: Compressed) -> Result<Self, EnvelopeError> {
+    pub(crate) fn new_with_compressed(compressed: Compressed) -> anyhow::Result<Self> {
         if !compressed.has_digest() {
-            return Err(EnvelopeError::MissingDigest);
+            bail!(EnvelopeError::MissingDigest);
         }
         Ok(EnvelopeCase::Compressed(compressed).into())
     }

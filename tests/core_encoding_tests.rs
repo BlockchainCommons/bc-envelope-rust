@@ -1,6 +1,5 @@
 use dcbor::prelude::*;
 use indoc::indoc;
-use std::error::Error;
 use bc_components::Digest;
 use bc_envelope::prelude::*;
 
@@ -13,7 +12,7 @@ fn test_digest() {
 }
 
 #[test]
-fn test_1() -> Result<(), Box<dyn Error>> {
+fn test_1() -> anyhow::Result<()> {
     let e = Envelope::new("Hello.");
 
     assert_eq!(e.diagnostic(),
@@ -28,7 +27,7 @@ fn test_1() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_2() -> Result<(), Box<dyn Error>> {
+fn test_2() -> anyhow::Result<()> {
     let array: Vec<u64> = vec![1, 2, 3];
     let e = Envelope::new(Into::<CBOR>::into(array));
 
@@ -46,7 +45,7 @@ fn test_2() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_3() -> Result<(), Box<dyn Error>> {
+fn test_3() -> anyhow::Result<()> {
     let e1 = Envelope::new_assertion("A", "B").check_encoding()?;
     let e2 = Envelope::new_assertion("C", "D").check_encoding()?;
     let e3 = Envelope::new_assertion("E", "F").check_encoding()?;

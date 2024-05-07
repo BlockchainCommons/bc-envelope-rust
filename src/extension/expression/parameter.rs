@@ -139,7 +139,7 @@ impl CBORTaggedEncodable for Parameter {
 impl TryFrom<CBOR> for Parameter {
     type Error = anyhow::Error;
 
-    fn try_from(cbor: CBOR) -> Result<Self, Self::Error> {
+    fn try_from(cbor: CBOR) -> anyhow::Result<Self> {
         Self::from_tagged_cbor(cbor)
     }
 }

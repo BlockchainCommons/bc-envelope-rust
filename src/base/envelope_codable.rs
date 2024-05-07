@@ -1,6 +1,5 @@
-// use crate::{EnvelopeEncodable, EnvelopeDecodable};
+use crate::{Envelope, EnvelopeEncodable};
 
-// pub trait EnvelopeCodable { }
+pub trait EnvelopeCodable { }
 
-// impl<'a, T> EnvelopeCodable for T
-// where T: EnvelopeEncodable + EnvelopeDecodable {}
+impl<T> EnvelopeCodable for T where T: TryFrom<Envelope> + EnvelopeEncodable { }

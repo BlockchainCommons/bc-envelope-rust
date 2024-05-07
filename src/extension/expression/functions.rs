@@ -31,6 +31,7 @@ function_constant!(XOR, 14, "xor"); // logical exclusive or
 function_constant!(NOT, 15, "not"); // logical not
 
 #[doc(hidden)]
+#[derive(Debug)]
 pub struct LazyFunctions {
     init: Once,
     data: Mutex<Option<FunctionsStore>>,

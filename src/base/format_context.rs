@@ -108,6 +108,7 @@ impl Default for FormatContext {
     }
 }
 
+#[derive(Debug)]
 pub struct LazyFormatContext {
     init: Once,
     data: Mutex<Option<FormatContext>>,

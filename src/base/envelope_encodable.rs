@@ -12,15 +12,9 @@ pub trait EnvelopeEncodable {
     fn to_envelope(&self) -> Envelope;
 }
 
-impl EnvelopeEncodable for Envelope {
+impl<T> EnvelopeEncodable for T where T: Into<Envelope> + Clone {
     fn to_envelope(&self) -> Envelope {
-        self.clone()
-    }
-}
-
-impl EnvelopeEncodable for &Envelope {
-    fn to_envelope(&self) -> Envelope {
-        (*self).clone()
+        self.clone().into()
     }
 }
 
@@ -34,8 +28,8 @@ impl EnvelopeEncodable for Assertion {
 impl TryFrom<EncryptedMessage> for Envelope {
     type Error = anyhow::Error;
 
-    fn try_from(value: EncryptedMessage) -> Result<Self, Self::Error> {
-        Envelope::new_with_encrypted(value).map_err(|e| e.into())
+    fn try_from(value: EncryptedMessage) -> anyhow::Result<Self> {
+        Envelope::new_with_encrypted(value)
     }
 }
 
@@ -44,7 +38,7 @@ impl TryFrom<Compressed> for Envelope {
     type Error = anyhow::Error;
 
     fn try_from(compressed: Compressed) -> anyhow::Result<Self> {
-        Envelope::new_with_compressed(compressed).map_err(|e| e.into())
+        Envelope::new_with_compressed(compressed)
     }
 }
 
@@ -53,24 +47,6 @@ impl EnvelopeEncodable for CBOR {
         Envelope::new_leaf(self.clone())
     }
 }
-
-// impl From<CBOR> for Envelope {
-//     fn from(cbor: CBOR) -> Self {
-//         Envelope::new_leaf(cbor)
-//     }
-// }
-
-// impl From<Box<CBOR>> for Envelope {
-//     fn from(cbor: Box<CBOR>) -> Self {
-//         Envelope::new_leaf(*cbor)
-//     }
-// }
-
-// impl From<&Box<CBOR>> for Envelope {
-//     fn from(cbor: &Box<CBOR>) -> Self {
-//         Envelope::new_leaf(*cbor.clone())
-//     }
-// }
 
 impl EnvelopeEncodable for String {
     fn to_envelope(&self) -> Envelope {

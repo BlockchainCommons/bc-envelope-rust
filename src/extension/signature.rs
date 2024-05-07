@@ -200,7 +200,7 @@ impl Envelope {
         let verified_by = known_values::VERIFIED_BY;
         self
             .assertions_with_predicate(verified_by).into_iter()
-            .map(|assertion| assertion.object().unwrap().extract_subject::<Signature>())
+            .map(|assertion| assertion.as_object().unwrap().extract_subject::<Signature>())
             .collect()
     }
 
@@ -235,7 +235,7 @@ impl Envelope {
         &self,
         signature: &Signature,
         public_key: &PublicKeyBase,
-    ) -> Result<Self, EnvelopeError> {
+    ) -> anyhow::Result<Self> {
         self.verify_signature_from_key(signature, public_key.signing_public_key())
     }
 
@@ -370,9 +370,9 @@ impl Envelope {
         &self,
         signature: &Signature,
         key: &SigningPublicKey
-    ) -> Result<Self, EnvelopeError> {
+    ) -> anyhow::Result<Self> {
         if !self.is_signature_from_key(signature, key) {
-            return Err(EnvelopeError::UnverifiedSignature);
+            bail!(EnvelopeError::UnverifiedSignature);
         }
         Ok(self.clone())
     }

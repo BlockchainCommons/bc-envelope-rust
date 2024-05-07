@@ -71,7 +71,7 @@ impl Envelope {
         let mut result: HashMap<u16, Vec<SSKRShare>> = HashMap::new();
         for envelope in envelopes {
             for assertion in envelope.assertions_with_predicate(known_values::SSKR_SHARE) {
-                let share = assertion.object().unwrap().extract_subject::<SSKRShare>()?;
+                let share = assertion.as_object().unwrap().extract_subject::<SSKRShare>()?;
                 let identifier = share.identifier();
                 result.entry(identifier).or_default();
                 result.get_mut(&identifier).unwrap().push(share);

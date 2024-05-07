@@ -1,3 +1,5 @@
+use anyhow::bail;
+
 use crate::{base::envelope::EnvelopeCase, extension::known_values, Assertion, Envelope, EnvelopeEncodable, EnvelopeError};
 
 impl Assertion {
@@ -16,7 +18,7 @@ impl Assertion {
     }
 
     /// Returns the payload of the given attachment assertion.
-    pub fn attachment_payload(&self) -> Result<Envelope, EnvelopeError> {
+    pub fn attachment_payload(&self) -> anyhow::Result<Envelope> {
         self.object().unwrap_envelope()
     }
 
@@ -44,7 +46,7 @@ impl Assertion {
         let assertion = Assertion::new_attachment(payload, vendor.as_str(), conforms_to.as_deref());
         let e: Envelope = assertion.to_envelope();
         if !e.is_equivalent_to(&self.clone().to_envelope()) {
-            anyhow::bail!(EnvelopeError::InvalidAttachment);
+            bail!(EnvelopeError::InvalidAttachment);
         }
         Ok(())
     }
@@ -73,11 +75,11 @@ impl Envelope {
 
 impl Envelope {
     /// Returns the payload of the given attachment envelope.
-    pub fn attachment_payload(&self) -> Result<Self, EnvelopeError> {
+    pub fn attachment_payload(&self) -> anyhow::Result<Self> {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.attachment_payload()?)
         } else {
-            Err(EnvelopeError::InvalidAttachment)
+            bail!(EnvelopeError::InvalidAttachment)
         }
     }
 
@@ -86,7 +88,7 @@ impl Envelope {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.attachment_vendor()?)
         } else {
-            anyhow::bail!(EnvelopeError::InvalidAttachment);
+            bail!(EnvelopeError::InvalidAttachment);
         }
     }
 
@@ -95,7 +97,7 @@ impl Envelope {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.attachment_conforms_to()?)
         } else {
-            anyhow::bail!(EnvelopeError::InvalidAttachment);
+            bail!(EnvelopeError::InvalidAttachment);
         }
     }
 
@@ -157,7 +159,7 @@ impl Envelope {
             assertion.validate_attachment()?;
             Ok(())
         } else {
-            anyhow::bail!(EnvelopeError::InvalidAttachment);
+            bail!(EnvelopeError::InvalidAttachment);
         }
     }
 
@@ -174,10 +176,10 @@ impl Envelope {
     {
         let attachments = self.attachments_with_vendor_and_conforms_to(vendor, conforms_to)?;
         if attachments.is_empty() {
-            anyhow::bail!(EnvelopeError::NonexistentAttachment);
+            bail!(EnvelopeError::NonexistentAttachment);
         }
         if attachments.len() > 1 {
-            anyhow::bail!(EnvelopeError::AmbiguousAttachment);
+            bail!(EnvelopeError::AmbiguousAttachment);
         }
         Ok(attachments.first().unwrap().clone())
     }

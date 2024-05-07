@@ -97,12 +97,6 @@ impl EnvelopeEncodable for KnownValue {
     }
 }
 
-// impl From<&KnownValue> for Envelope {
-//     fn from(known_value: &KnownValue) -> Self {
-//         Envelope::new_with_known_value(known_value.clone())
-//     }
-// }
-
 impl DigestProvider for KnownValue {
     fn digest(&self) -> Cow<'_, Digest> {
         Cow::Owned(Digest::from_image(self.tagged_cbor().cbor_data()))
@@ -125,7 +119,7 @@ impl From<KnownValue> for CBOR {
 impl TryFrom<CBOR> for KnownValue {
     type Error = anyhow::Error;
 
-    fn try_from(cbor: CBOR) -> Result<Self, Self::Error> {
+    fn try_from(cbor: CBOR) -> anyhow::Result<Self> {
         Self::from_tagged_cbor(cbor)
     }
 }

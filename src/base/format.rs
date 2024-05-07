@@ -320,8 +320,8 @@ impl EnvelopeFormat for Envelope {
                             #[cfg(feature = "known_value")]
                             {
                                 let mut is_type_assertion = false;
-                                if let Some(predicate) = assertion.predicate() {
-                                    if let Some(known_value) = predicate.subject().known_value() {
+                                if let Some(predicate) = assertion.as_predicate() {
+                                    if let Some(known_value) = predicate.subject().as_known_value() {
                                         if *known_value == known_values::IS_A {
                                             is_type_assertion = true;
                                         }

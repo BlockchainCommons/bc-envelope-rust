@@ -1,5 +1,4 @@
 #![cfg(feature = "encrypt")]
-use std::error::Error;
 use bc_envelope::prelude::*;
 use bc_components::{DigestProvider, SymmetricKey, Nonce, EncryptedMessage};
 use hex_literal::hex;
@@ -45,7 +44,7 @@ fn fake_nonce() -> Nonce {
     Nonce::from_data(hex!("4d785658f36c22fb5aed3ac0"))
 }
 
-fn encrypted_test(e1: Envelope) -> Result<(), Box<dyn Error>> {
+fn encrypted_test(e1: Envelope) -> anyhow::Result<()> {
     let e2 = e1
         .encrypt_subject_opt(&symmetric_key(), Some(fake_nonce()))?
         .check_encoding()?;

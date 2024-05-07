@@ -1,4 +1,4 @@
-use std::{error::Error, collections::HashSet};
+use std::collections::HashSet;
 use bc_envelope::prelude::*;
 use indoc::indoc;
 
@@ -25,7 +25,7 @@ fn double_assertion_envelope() -> Envelope {
 }
 
 #[test]
-fn test_envelope_elision() -> Result<(), Box<dyn Error>> {
+fn test_envelope_elision() -> anyhow::Result<()> {
     let e1 = basic_envelope();
 
     let e2 = e1.elide();
@@ -58,7 +58,7 @@ fn test_envelope_elision() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_single_assertion_remove_elision() -> Result<(), Box<dyn Error>> {
+fn test_single_assertion_remove_elision() -> anyhow::Result<()> {
     // The original Envelope
     let e1 = single_assertion_envelope();
     assert_eq!(e1.format(),
@@ -121,7 +121,7 @@ fn test_single_assertion_remove_elision() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_double_assertion_remove_elision() -> Result<(), Box<dyn Error>> {
+fn test_double_assertion_remove_elision() -> anyhow::Result<()> {
     // The original Envelope
     let e1 = double_assertion_envelope();
     assert_eq!(e1.format(),
@@ -189,7 +189,7 @@ fn test_double_assertion_remove_elision() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_single_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
+fn test_single_assertion_reveal_elision() -> anyhow::Result<()> {
     // The original Envelope
     let e1 = single_assertion_envelope();
     assert_eq!(e1.format(),
@@ -262,7 +262,7 @@ fn test_single_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_double_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
+fn test_double_assertion_reveal_elision() -> anyhow::Result<()> {
     // The original Envelope
     let e1 = double_assertion_envelope();
     assert_eq!(e1.format(),
@@ -339,7 +339,7 @@ fn test_double_assertion_reveal_elision() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_digests() -> Result<(), Box<dyn Error>> {
+fn test_digests() -> anyhow::Result<()> {
     let e1 = double_assertion_envelope();
     assert_eq!(e1.format(),
     indoc! {r#"
@@ -390,7 +390,7 @@ fn test_digests() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_target_reveal() -> Result<(), Box<dyn Error>> {
+fn test_target_reveal() -> anyhow::Result<()> {
     let e1 = double_assertion_envelope()
         .add_assertion("livesAt", "123 Main St.");
     assert_eq!(e1.format(),
@@ -427,7 +427,7 @@ fn test_target_reveal() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_targeted_remove() -> Result<(), Box<dyn Error>> {
+fn test_targeted_remove() -> anyhow::Result<()> {
     let e1 = double_assertion_envelope()
         .add_assertion("livesAt", "123 Main St.");
     assert_eq!(e1.format(),

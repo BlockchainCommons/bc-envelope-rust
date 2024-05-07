@@ -71,6 +71,7 @@ impl Envelope {
     }
 }
 
+#[derive(Debug)]
 struct TreeElement {
     level: usize,
     envelope: Envelope,

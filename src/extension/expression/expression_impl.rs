@@ -1,3 +1,4 @@
+use anyhow::bail;
 use bc_components::{tags, ARID};
 use dcbor::prelude::*;
 
@@ -122,14 +123,14 @@ impl Envelope {
     pub fn request_id(&self) -> anyhow::Result<ARID> {
         let id = self
             .subject()
-            .expect_leaf()?
+            .try_leaf()?
             .try_into_expected_tagged_value(tags::REQUEST)?
             .try_into()?;
         Ok(id)
     }
 
     /// Parses the request envelope and returns the body.
-    pub fn request_body(&self) -> Result<Self, EnvelopeError> {
+    pub fn request_body(&self) -> anyhow::Result<Self> {
         self.object_for_predicate(known_values::BODY)
     }
 
@@ -148,7 +149,7 @@ impl Envelope {
 impl Envelope {
     /// Returns the argument for the given parameter.
     pub fn object_for_parameter(&self, param: impl Into<Parameter>) -> anyhow::Result<Envelope> {
-        Ok(self.object_for_predicate(param.into())?)
+        self.object_for_predicate(param.into())
     }
 
     /// Returns the arguments for the given possibly repeated parameter.
@@ -280,7 +281,7 @@ impl Envelope {
     pub fn response_id(&self) -> anyhow::Result<ARID> {
         let id = self
             .subject()
-            .expect_leaf()?
+            .try_leaf()?
             .try_into_expected_tagged_value(tags::RESPONSE)?
             .try_into()?;
         Ok(id)
@@ -289,7 +290,7 @@ impl Envelope {
     /// Returns the response's result.
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
-    pub fn result(&self) -> Result<Self, EnvelopeError> {
+    pub fn result(&self) -> anyhow::Result<Self> {
         self.object_for_predicate(known_values::RESULT)
     }
 
@@ -307,7 +308,7 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if there is no `result` predicate.
     pub fn is_result_ok(&self) -> anyhow::Result<bool> {
-        if let Some(k) = self.result()?.known_value() {
+        if let Some(k) = self.result()?.as_known_value() {
             return Ok(k == &known_values::OK_VALUE);
         }
         Ok(false)
@@ -331,19 +332,19 @@ impl Envelope {
         let id = self.response_id()?;
         if let Some(expected_id) = expected_id {
             if id != *expected_id {
-                return Err(EnvelopeError::UnexpectedResponseID.into());
+                bail!(EnvelopeError::UnexpectedResponseID);
             }
         }
         let result_assertions = self.assertions_with_predicate(known_values::RESULT);
         let error_assertions = self.assertions_with_predicate(known_values::ERROR);
         if result_assertions.len() == 1 && error_assertions.is_empty() {
-            let result = result_assertions[0].object().unwrap();
+            let result = result_assertions[0].as_object().unwrap();
             Ok((result, id, true))
         } else if error_assertions.len() == 1 && result_assertions.is_empty() {
-            let error = error_assertions[0].object().unwrap();
+            let error = error_assertions[0].as_object().unwrap();
             Ok((error, id, false))
         } else {
-            Err(EnvelopeError::InvalidFormat.into())
+            bail!(EnvelopeError::InvalidFormat)
         }
     }
 
@@ -356,7 +357,7 @@ impl Envelope {
         if is_success {
             Ok((value, id))
         } else {
-            Err(EnvelopeError::InvalidFormat.into())
+            bail!(EnvelopeError::InvalidFormat)
         }
     }
 
@@ -369,7 +370,7 @@ impl Envelope {
         if !is_success {
             Ok((value, id))
         } else {
-            Err(EnvelopeError::InvalidFormat.into())
+            bail!(EnvelopeError::InvalidFormat)
         }
     }
 }

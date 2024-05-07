@@ -407,27 +407,24 @@ impl Envelope {
     }
 
     pub fn verify(&self, sender: &PublicKeyBase) -> anyhow::Result<Envelope> {
-        Ok(self
+        self
             .verify_signature_from(sender)?
-            .unwrap_envelope()?
-        )
+            .unwrap_envelope()
     }
 }
 
 #[cfg(feature = "encrypt")]
 impl Envelope {
     pub fn encrypt(&self, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
-        Ok(self
+        self
             .wrap_envelope()
-            .encrypt_subject_to_recipient(recipient)?
-        )
+            .encrypt_subject_to_recipient(recipient)
     }
 
     pub fn decrypt(&self, recipient: &PrivateKeyBase) -> anyhow::Result<Envelope> {
-        Ok(self
+        self
             .decrypt_to_recipient(recipient)?
-            .unwrap_envelope()?
-        )
+            .unwrap_envelope()
     }
 }
 

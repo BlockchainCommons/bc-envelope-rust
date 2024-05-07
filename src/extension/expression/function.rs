@@ -149,7 +149,7 @@ impl CBORTaggedEncodable for Function {
 impl TryFrom<CBOR> for Function {
     type Error = anyhow::Error;
 
-    fn try_from(cbor: CBOR) -> Result<Self, Self::Error> {
+    fn try_from(cbor: CBOR) -> anyhow::Result<Self> {
         Self::from_tagged_cbor(cbor)
     }
 }
@@ -192,7 +192,7 @@ impl Envelope {
         let function = self.function()?;
         if let Some(expected_function) = expected_function {
             if function != *expected_function {
-                anyhow::bail!("Expected function {:?}, got {:?}", expected_function, function);
+                bail!("Expected function {:?}, got {:?}", expected_function, function);
             }
         }
         Ok(function)

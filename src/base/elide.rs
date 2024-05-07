@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use anyhow::bail;
 use bc_components::{DigestProvider, Digest};
 #[cfg(feature = "encrypt")]
 use bc_components::{SymmetricKey, Nonce};
@@ -290,12 +291,12 @@ impl Envelope {
     /// Returns the unelided variant of this envelope.
     ///
     /// Returns the same envelope if it is already unelided.
-    pub fn unelide(&self, envelope: impl Into<Envelope>) -> Result<Self, EnvelopeError> {
+    pub fn unelide(&self, envelope: impl Into<Envelope>) -> anyhow::Result<Self> {
         let envelope = envelope.into();
         if self.digest() == envelope.digest() {
             Ok(envelope)
         } else {
-            Err(EnvelopeError::InvalidDigest)
+            bail!(EnvelopeError::InvalidDigest)
         }
     }
 }

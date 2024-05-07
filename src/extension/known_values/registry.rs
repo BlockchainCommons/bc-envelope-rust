@@ -69,6 +69,7 @@ known_value_constant!(PSBT_TYPE, 506, "PSBT");
 known_value_constant!(OUTPUT_DESCRIPTOR_TYPE, 507, "OutputDescriptor");
 
 #[doc(hidden)]
+#[derive(Debug)]
 pub struct LazyKnownValues {
     init: Once,
     data: Mutex<Option<KnownValuesStore>>,

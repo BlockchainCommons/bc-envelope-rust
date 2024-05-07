@@ -19,19 +19,19 @@ impl Envelope {
     /// - Returns: The encrypted envelope.
     ///
     /// - Throws: If the envelope is already encrypted.
-    pub fn encrypt_subject(&self, key: &SymmetricKey) -> Result<Self, EnvelopeError> {
+    pub fn encrypt_subject(&self, key: &SymmetricKey) -> anyhow::Result<Self> {
         self.encrypt_subject_opt(key, None)
     }
 
     #[doc(hidden)]
-    pub fn encrypt_subject_opt(&self, key: &SymmetricKey, test_nonce: Option<Nonce>) -> Result<Self, EnvelopeError> {
+    pub fn encrypt_subject_opt(&self, key: &SymmetricKey, test_nonce: Option<Nonce>) -> anyhow::Result<Self> {
         let result: Self;
         let original_digest: Cow<'_, Digest>;
 
         match self.case() {
             EnvelopeCase::Node { subject, assertions, digest: envelope_digest } => {
                 if subject.is_encrypted() {
-                    return Err(EnvelopeError::AlreadyEncrypted);
+                    bail!(EnvelopeError::AlreadyEncrypted);
                 }
                 let encoded_cbor = subject.tagged_cbor().cbor_data();
                 let digest = subject.digest();
@@ -66,7 +66,7 @@ impl Envelope {
                 original_digest = digest;
             }
             EnvelopeCase::Encrypted { .. } => {
-                return Err(EnvelopeError::AlreadyEncrypted);
+                bail!(EnvelopeError::AlreadyEncrypted);
             }
             #[cfg(feature = "compress")]
             EnvelopeCase::Compressed(compressed) => {
@@ -77,7 +77,7 @@ impl Envelope {
                 original_digest = digest;
             }
             EnvelopeCase::Elided { .. } => {
-                return Err(EnvelopeError::AlreadyElided);
+                bail!(EnvelopeError::AlreadyElided);
             }
         }
         assert_eq!(result.digest(), original_digest);

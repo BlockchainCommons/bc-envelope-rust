@@ -94,7 +94,7 @@ impl CBORTaggedEncodable for Seed {
 impl TryFrom<CBOR> for Seed {
     type Error = anyhow::Error;
 
-    fn try_from(cbor: CBOR) -> Result<Self, Self::Error> {
+    fn try_from(cbor: CBOR) -> anyhow::Result<Self> {
         Self::from_tagged_cbor(cbor)
     }
 }
@@ -136,7 +136,7 @@ impl TryFrom<Envelope> for Seed {
 
     fn try_from(envelope: Envelope) -> anyhow::Result<Self> {
         envelope.check_type(&known_values::SEED_TYPE)?;
-        let data = envelope.subject().expect_leaf()?.try_into_byte_string()?.to_vec();
+        let data = envelope.subject().try_leaf()?.try_into_byte_string()?.to_vec();
         let name = envelope.extract_optional_object_for_predicate::<String>(known_values::HAS_NAME)?.unwrap_or_default().to_string();
         let note = envelope.extract_optional_object_for_predicate::<String>(known_values::NOTE)?.unwrap_or_default().to_string();
         let creation_date = envelope.extract_optional_object_for_predicate::<dcbor::Date>(known_values::DATE)?.map(|s| s.as_ref().clone());

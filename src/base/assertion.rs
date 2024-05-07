@@ -74,7 +74,7 @@ impl From<Assertion> for CBOR {
 impl TryFrom<CBOR> for Assertion {
     type Error = anyhow::Error;
 
-    fn try_from(value: CBOR) -> Result<Self, Self::Error> {
+    fn try_from(value: CBOR) -> anyhow::Result<Self> {
         if let CBORCase::Map(map) = value.as_case() {
             return map.clone().try_into();
         }
@@ -85,7 +85,7 @@ impl TryFrom<CBOR> for Assertion {
 impl TryFrom<Map> for Assertion {
     type Error = anyhow::Error;
 
-    fn try_from(map: Map) -> Result<Self, Self::Error> {
+    fn try_from(map: Map) -> anyhow::Result<Self> {
         if map.len() != 1 {
             bail!("assertion map must have exactly one element")
         }

@@ -69,8 +69,8 @@ fn test_predicate_correlation() {
     assert_eq!(e1.format(), e1_expected_format);
 
     // e1 and e2 have the same predicate
-    assert!(e1.assertions().first().unwrap().predicate().unwrap()
-        .is_equivalent_to(&e2.assertions().first().unwrap().predicate().unwrap()));
+    assert!(e1.assertions().first().unwrap().as_predicate().unwrap()
+        .is_equivalent_to(&e2.assertions().first().unwrap().as_predicate().unwrap()));
 
     // Redact the entire contents of e1 without
     // redacting the envelope itself.
