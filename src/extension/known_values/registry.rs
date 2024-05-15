@@ -34,6 +34,8 @@ known_value_constant!(SALT, 15, "salt");
 known_value_constant!(DATE, 16, "date");
 known_value_constant!(UNKNOWN_VALUE, 17, "Unknown");
 known_value_constant!(DIFF_EDITS, 20, "edits");
+known_value_constant!(VALID_FROM, 21, "validFrom");
+known_value_constant!(VALID_UNTIL, 22, "validUntil");
 
 known_value_constant!(ATTACHMENT, 50, "attachment");
 known_value_constant!(VENDOR, 51, "vendor");
@@ -45,6 +47,8 @@ known_value_constant!(ERROR, 102, "error");
 known_value_constant!(OK_VALUE, 103, "OK");
 known_value_constant!(PROCESSING_VALUE, 104, "Processing");
 known_value_constant!(SENDER_PUBLIC_KEY, 105, "senderPublicKey");
+known_value_constant!(SENDER_CONTINUATION, 106, "senderContinuation");
+known_value_constant!(RECIPIENT_CONTINUATION, 107, "recipientContinuation");
 
 known_value_constant!(SEED_TYPE, 200, "Seed");
 known_value_constant!(PRIVATE_KEY_TYPE, 201, "PrivateKey");
@@ -97,6 +101,8 @@ impl LazyKnownValues {
                 DATE,
                 UNKNOWN_VALUE,
                 DIFF_EDITS,
+                VALID_FROM,
+                VALID_UNTIL,
 
                 ATTACHMENT,
                 VENDOR,
@@ -108,6 +114,8 @@ impl LazyKnownValues {
                 OK_VALUE,
                 PROCESSING_VALUE,
                 SENDER_PUBLIC_KEY,
+                SENDER_CONTINUATION,
+                RECIPIENT_CONTINUATION,
 
                 SEED_TYPE,
                 PRIVATE_KEY_TYPE,

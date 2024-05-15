@@ -14,7 +14,7 @@ fn test_sskr() -> anyhow::Result<()> {
     // into a basic SSKR share.
     let mut dan_seed = Seed::new(hex!("59f2293a5bce7d4de59e71b4207ac5d2"));
     dan_seed.set_name("Dark Purple Aqua Love");
-    dan_seed.set_creation_date(Some(dcbor::Date::new_from_string("2021-02-24").unwrap()));
+    dan_seed.set_creation_date(Some(dcbor::Date::from_string("2021-02-24").unwrap()));
     dan_seed.set_note("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.");
 
     // Dan encrypts the seed and then splits the content key into a single group

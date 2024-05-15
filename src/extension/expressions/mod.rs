@@ -18,4 +18,13 @@ pub use parameters_store::ParametersStore;
 pub mod parameters;
 pub use parameters::*;
 
-mod expression_impl;
+// mod expression_impl;
+
+pub mod expression;
+pub use expression::{Expression, IntoExpression};
+
+pub mod request;
+pub use request::Request;
+
+pub mod response;
+pub use response::Response;

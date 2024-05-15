@@ -371,12 +371,12 @@
 //!   `KnownValue` `.ok`.
 //! * [`Envelope::error`] Returns the error value, decoded as the given type.
 
+pub use anyhow::Result;
+
 pub mod base;
 pub use base::Assertion;
 pub use base::Envelope;
 pub use base::EnvelopeEncodable;
-// pub use base::EnvelopeDecodable;
-// pub use base::EnvelopeCodable;
 pub use base::EnvelopeError;
 pub use base::{FormatContext, GLOBAL_FORMAT_CONTEXT};
 pub use base::elide::{self, ObscureAction};
@@ -393,10 +393,10 @@ use bc_components::{PrivateKeyBase, PublicKeyBase};
 pub use extension::known_values::{self, known_value, KnownValue, KNOWN_VALUES, KnownValuesStore};
 
 #[cfg(feature = "expression")]
-pub use extension::expression;
+pub use extension::expressions::{functions, parameters, Function, Parameter, Expression, IntoExpression, Request, Response};
 
-#[cfg(feature = "expression")]
-pub use extension::expression::{functions, parameters, Function, Parameter};
+#[cfg(feature = "transaction")]
+pub use extension::{SealedRequest, SealedResponse};
 
 #[cfg(feature = "signature")]
 impl Envelope {
@@ -406,7 +406,7 @@ impl Envelope {
             .add_signature_with(sender)
     }
 
-    pub fn verify(&self, sender: &PublicKeyBase) -> anyhow::Result<Envelope> {
+    pub fn verify(&self, sender: &PublicKeyBase) -> Result<Envelope> {
         self
             .verify_signature_from(sender)?
             .unwrap_envelope()
@@ -415,30 +415,31 @@ impl Envelope {
 
 #[cfg(feature = "recipient")]
 impl Envelope {
-    pub fn encrypt(&self, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
+    pub fn encrypt_to_recipient(&self, recipient: &PublicKeyBase) -> Envelope {
         self
             .wrap_envelope()
             .encrypt_subject_to_recipient(recipient)
+            .unwrap()
     }
 
-    pub fn decrypt(&self, recipient: &PrivateKeyBase) -> anyhow::Result<Envelope> {
+    pub fn decrypt_to_recipient(&self, recipient: &PrivateKeyBase) -> Result<Envelope> {
         self
-            .decrypt_to_recipient(recipient)?
+            .decrypt_subject_to_recipient(recipient)?
             .unwrap_envelope()
     }
 }
 
 #[cfg(all(feature = "signature", feature = "recipient"))]
 impl Envelope {
-    pub fn seal(&self, sender: &PrivateKeyBase, recipient: &PublicKeyBase) -> anyhow::Result<Envelope> {
+    pub fn seal(&self, sender: &PrivateKeyBase, recipient: &PublicKeyBase) -> Envelope {
         self
             .sign(sender)
-            .encrypt(recipient)
+            .encrypt_to_recipient(recipient)
     }
 
-    pub fn unseal(&self, sender: &PublicKeyBase, recipient: &PrivateKeyBase) -> anyhow::Result<Envelope> {
+    pub fn unseal(&self, sender: &PublicKeyBase, recipient: &PrivateKeyBase) -> Result<Envelope> {
         self
-            .decrypt(recipient)?
+            .decrypt_to_recipient(recipient)?
             .verify(sender)
     }
 }

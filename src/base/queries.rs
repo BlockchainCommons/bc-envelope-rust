@@ -309,6 +309,20 @@ impl Envelope {
         Ok(self.assertion_with_predicate(predicate)?.as_object().unwrap())
     }
 
+    /// Returns the object of the assertion with the given predicate, or `None` if there is no matching predicate.
+    ///
+    /// Returns an error if there are multiple matching predicates.
+    pub fn optional_object_for_predicate(&self, predicate: impl EnvelopeEncodable) -> Result<Option<Self>> {
+        let a = self.assertions_with_predicate(predicate);
+        if a.is_empty() {
+            Ok(None)
+        } else if a.len() == 1 {
+            Ok(Some(a[0].as_object().unwrap()))
+        } else {
+            bail!(EnvelopeError::AmbiguousPredicate);
+        }
+    }
+
     /// Returns the object of the assertion, decoded as the given type.
     ///
     /// Returns an error if the envelope is not an assertion.
@@ -337,12 +351,11 @@ impl Envelope {
     }
 
     /// Returns the object of the assertion with the given predicate, or `None` if there is no matching predicate.
+    ///
+    /// Returns an error if there are multiple matching predicates.
     pub fn extract_optional_object_for_predicate<T: TryFrom<CBOR, Error = Error> + 'static>(&self, predicate: impl EnvelopeEncodable) -> Result<Option<T>> {
-        if let Ok(object) = self.object_for_predicate(predicate) {
-            Ok(Some(object.extract_subject()?))
-        } else {
-            Ok(None)
-        }
+        self.optional_object_for_predicate(predicate)?
+            .map_or(Ok(None), |o| Ok(Some(o.extract_subject()?)))
     }
 
     /// Returns the object of the assertion with the given predicate, or a default value if there is no matching predicate.

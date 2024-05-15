@@ -92,8 +92,8 @@ pub enum EnvelopeError {
     //
 
     #[cfg(feature = "recipient")]
-    #[error("no recipient matches the given key")]
-    InvalidRecipient,
+    #[error("unknown recipient")]
+    UnknownRecipient,
 
 
     //

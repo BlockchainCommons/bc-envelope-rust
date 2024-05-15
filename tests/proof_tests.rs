@@ -127,7 +127,7 @@ fn test_verifiable_credential() {
         .add_assertion_salted("firstName", "John", true)
         .add_assertion_salted("lastName", "Smith", true)
         .add_assertion_salted("address", "123 Main St.", true)
-        .add_assertion_salted("birthDate", Date::new_from_string("1970-01-01").unwrap(), true)
+        .add_assertion_salted("birthDate", Date::from_string("1970-01-01").unwrap(), true)
         .add_assertion_salted("photo", "This is John Smith's photo.", true)
         .add_assertion_salted("dlNumber", "123-456-789", true)
         .add_assertion_salted("nonCommercialVehicleEndorsement", true, true)

@@ -303,20 +303,20 @@ fn test_multi_recipient() {
 
     // Bob decrypts and reads the message
     let bob_received_plaintext = received_envelope
-        .decrypt_to_recipient(&bob_private_key()).unwrap()
+        .decrypt_subject_to_recipient(&bob_private_key()).unwrap()
         .check_encoding().unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(bob_received_plaintext, PLAINTEXT_HELLO);
 
     // Carol decrypts and reads the message
     let carol_received_plaintext = received_envelope
-        .decrypt_to_recipient(&carol_private_key()).unwrap()
+        .decrypt_subject_to_recipient(&carol_private_key()).unwrap()
         .check_encoding().unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(carol_received_plaintext, PLAINTEXT_HELLO);
 
     // Alice didn't encrypt it to herself, so she can't read it.
-    assert!(received_envelope.decrypt_to_recipient(&alice_private_key()).is_err());
+    assert!(received_envelope.decrypt_subject_to_recipient(&alice_private_key()).is_err());
 }
 
 #[cfg(all(feature = "signature", feature = "recipient"))]
@@ -350,7 +350,7 @@ fn test_visible_signature_multi_recipient() {
     // Bob validates Alice's signature, then decrypts and reads the message
     let bob_received_plaintext = received_envelope
         .verify_signature_from(&alice_public_key()).unwrap()
-        .decrypt_to_recipient(&bob_private_key()).unwrap()
+        .decrypt_subject_to_recipient(&bob_private_key()).unwrap()
         .check_encoding().unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(bob_received_plaintext, PLAINTEXT_HELLO);
@@ -358,13 +358,13 @@ fn test_visible_signature_multi_recipient() {
     // Carol validates Alice's signature, then decrypts and reads the message
     let carol_received_plaintext = received_envelope
         .verify_signature_from(&alice_public_key()).unwrap()
-        .decrypt_to_recipient(&carol_private_key()).unwrap()
+        .decrypt_subject_to_recipient(&carol_private_key()).unwrap()
         .check_encoding().unwrap()
         .extract_subject::<String>().unwrap();
     assert_eq!(carol_received_plaintext, PLAINTEXT_HELLO);
 
     // Alice didn't encrypt it to herself, so she can't read it.
-    assert!(received_envelope.decrypt_to_recipient(&alice_private_key()).is_err());
+    assert!(received_envelope.decrypt_subject_to_recipient(&alice_private_key()).is_err());
 }
 
 #[cfg(all(feature = "signature", feature = "recipient"))]
@@ -401,7 +401,7 @@ fn test_hidden_signature_multi_recipient() {
     // Bob decrypts the envelope, then extracts the inner envelope and validates
     // Alice's signature, then reads the message
     let bob_received_plaintext = received_envelope
-        .decrypt_to_recipient(&bob_private_key()).unwrap()
+        .decrypt_subject_to_recipient(&bob_private_key()).unwrap()
         .unwrap_envelope().unwrap()
         .check_encoding().unwrap()
         .verify_signature_from(&alice_public_key()).unwrap()
@@ -411,7 +411,7 @@ fn test_hidden_signature_multi_recipient() {
     // Carol decrypts the envelope, then extracts the inner envelope and validates
     // Alice's signature, then reads the message
     let carol_received_plaintext = received_envelope
-        .decrypt_to_recipient(&carol_private_key()).unwrap()
+        .decrypt_subject_to_recipient(&carol_private_key()).unwrap()
         .unwrap_envelope().unwrap()
         .check_encoding().unwrap()
         .verify_signature_from(&alice_public_key()).unwrap()
@@ -419,5 +419,5 @@ fn test_hidden_signature_multi_recipient() {
     assert_eq!(carol_received_plaintext, PLAINTEXT_HELLO);
 
     // Alice didn't encrypt it to herself, so she can't read it.
-    assert!(received_envelope.decrypt_to_recipient(&alice_private_key()).is_err());
+    assert!(received_envelope.decrypt_subject_to_recipient(&alice_private_key()).is_err());
 }

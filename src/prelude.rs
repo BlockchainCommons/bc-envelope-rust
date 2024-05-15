@@ -1,7 +1,5 @@
 pub use crate::{
     Envelope,
-    // EnvelopeCodable,
-    // EnvelopeDecodable,
     EnvelopeEncodable,
     FormatContext,
     with_format_context,
@@ -16,12 +14,18 @@ pub use crate::{
 
 #[cfg(feature = "expression")]
 pub use crate::{
-    expression,
     Function,
     functions,
     Parameter,
     parameters,
+    Expression,
+    IntoExpression,
+    Request,
+    Response,
 };
+
+#[cfg(feature = "transaction")]
+pub use crate::{SealedRequest, SealedResponse};
 
 pub use crate::elide::{
     ObscureAction,

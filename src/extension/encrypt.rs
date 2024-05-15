@@ -36,33 +36,33 @@ impl Envelope {
                 let encoded_cbor = subject.tagged_cbor().to_cbor_data();
                 let digest = subject.digest();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
-                let encrypted_subject = Self::new_with_encrypted(encrypted_message)?;
+                let encrypted_subject = Self::new_with_encrypted(encrypted_message).unwrap();
                 result = Self::new_with_unchecked_assertions(encrypted_subject, assertions.clone());
                 original_digest = Cow::Borrowed(envelope_digest);
             }
             EnvelopeCase::Leaf { cbor, digest } => {
                 let encoded_cbor = CBOR::to_tagged_value(ENVELOPE, CBOR::to_tagged_value(LEAF, cbor.clone())).to_cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
-                result = Self::new_with_encrypted(encrypted_message)?;
+                result = Self::new_with_encrypted(encrypted_message).unwrap();
                 original_digest = Cow::Borrowed(digest);
             }
             EnvelopeCase::Wrapped { digest, .. } => {
                 let encoded_cbor = self.tagged_cbor().to_cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
-                result = Self::new_with_encrypted(encrypted_message)?;
+                result = Self::new_with_encrypted(encrypted_message).unwrap();
                 original_digest = Cow::Borrowed(digest);
             }
             EnvelopeCase::KnownValue { value, digest } => {
                 let encoded_cbor = CBOR::to_tagged_value(ENVELOPE, value.untagged_cbor()).to_cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
-                result = Self::new_with_encrypted(encrypted_message)?;
+                result = Self::new_with_encrypted(encrypted_message).unwrap();
                 original_digest = Cow::Borrowed(digest);
             }
             EnvelopeCase::Assertion(assertion) => {
                 let digest = assertion.digest();
                 let encoded_cbor = CBOR::to_tagged_value(ENVELOPE, assertion.clone()).to_cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
-                result = Self::new_with_encrypted(encrypted_message)?;
+                result = Self::new_with_encrypted(encrypted_message).unwrap();
                 original_digest = digest;
             }
             EnvelopeCase::Encrypted { .. } => {
@@ -73,7 +73,7 @@ impl Envelope {
                 let digest = compressed.digest();
                 let encoded_cbor = CBOR::to_tagged_value(ENVELOPE, compressed.tagged_cbor()).to_cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
-                result = Self::new_with_encrypted(encrypted_message)?;
+                result = Self::new_with_encrypted(encrypted_message).unwrap();
                 original_digest = digest;
             }
             EnvelopeCase::Elided { .. } => {

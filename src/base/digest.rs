@@ -140,3 +140,18 @@ impl Envelope {
         self.structural_digest() == other.structural_digest()
     }
 }
+
+/// Implement `PartialEq` for `Envelope` to allow for structural comparison.
+///
+/// Note that we deliberately do *not* also implement `Eq` as this comparison
+/// for identicality is potentially expensive, and structures like `HashMap`
+/// require that `Eq` be implemented for its keys. This should be a fast/cheap
+/// operation.
+///
+/// If you want to use envelopes as keys in such structures, you can pre-compute
+/// an envelope's `structural_digest` and use that as the key.
+impl PartialEq for Envelope {
+    fn eq(&self, other: &Self) -> bool {
+        self.is_identical_to(other)
+    }
+}

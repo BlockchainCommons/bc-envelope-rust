@@ -114,7 +114,7 @@ impl Envelope {
                 return Ok(plaintext);
             }
         }
-        bail!(EnvelopeError::InvalidRecipient)
+        bail!(EnvelopeError::UnknownRecipient)
     }
 
     /// Returns a new envelope with its subject decrypted using the recipient's
@@ -127,7 +127,7 @@ impl Envelope {
     /// - Throws: If a `SealedMessage` for `recipient` is not found among the
     /// `hasRecipient` assertions on the envelope.
     #[cfg(feature = "encrypt")]
-    pub fn decrypt_to_recipient(&self, recipient: &PrivateKeyBase) -> Result<Self> {
+    pub fn decrypt_subject_to_recipient(&self, recipient: &PrivateKeyBase) -> Result<Self> {
         let sealed_messages = self.clone().recipients()?;
         let content_key_data = Self::first_plaintext_in_sealed_messages(&sealed_messages, recipient)?;
         let content_key = SymmetricKey::from_tagged_cbor_data(content_key_data)?;

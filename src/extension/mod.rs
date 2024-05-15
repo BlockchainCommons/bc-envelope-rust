@@ -20,7 +20,8 @@ pub mod encrypt;
 /// Expressions Extension
 ///
 #[cfg(feature = "expression")]
-pub mod expression;
+pub mod expressions;
+pub use expressions::{Expression, IntoExpression, Request, Response};
 
 ///
 /// Transactions Extension
@@ -29,6 +30,8 @@ pub mod expression;
 ///
 #[cfg(feature = "transaction")]
 pub mod transaction;
+#[cfg(feature = "transaction")]
+pub use transaction::{SealedRequest, SealedResponse};
 
 ///
 /// Known Values Extension

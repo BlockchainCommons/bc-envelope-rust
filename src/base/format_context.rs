@@ -5,7 +5,7 @@ use std::sync::{Once, Mutex};
 use crate::extension::known_values::{KnownValuesStore, KNOWN_VALUES};
 
 #[cfg(feature = "expression")]
-use crate::extension::expression::{FunctionsStore, ParametersStore, GLOBAL_FUNCTIONS, GLOBAL_PARAMETERS};
+use crate::extension::expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNCTIONS, GLOBAL_PARAMETERS};
 
 /// The envelope formatting functions take a `FormatContext` as an argument. This type
 /// defines information about CBOR tags, known values, functions and parameters that

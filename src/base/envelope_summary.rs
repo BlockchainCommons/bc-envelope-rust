@@ -7,7 +7,7 @@ use crate::{FormatContext, string_utils::StringUtils};
 use crate::extension::known_values::KnownValuesStore;
 
 #[cfg(feature = "expression")]
-use crate::{Envelope, extension::expression::{Function, FunctionsStore, Parameter, ParametersStore}};
+use crate::{Envelope, extension::expressions::{Function, FunctionsStore, Parameter, ParametersStore}};
 
 pub trait EnvelopeSummary {
     fn envelope_summary(&self, max_length: usize, context: &FormatContext) -> Result<String>;

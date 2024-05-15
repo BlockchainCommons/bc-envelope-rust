@@ -499,8 +499,8 @@ fn credential() -> Envelope {
         .add_assertion(known_values::CONTROLLER, "Example Electrical Engineering Board")
         .add_assertion("firstName", "James")
         .add_assertion("lastName", "Maxwell")
-        .add_assertion("issueDate", dcbor::Date::new_from_string("2020-01-01").unwrap())
-        .add_assertion("expirationDate", dcbor::Date::new_from_string("2028-01-01").unwrap())
+        .add_assertion("issueDate", dcbor::Date::from_string("2020-01-01").unwrap())
+        .add_assertion("expirationDate", dcbor::Date::from_string("2028-01-01").unwrap())
         .add_assertion("photo", "This is James Maxwell's photo.")
         .add_assertion("certificateNumber", "123-456-789")
         .add_assertion("subject", "RF and Microwave Engineering")
@@ -666,7 +666,7 @@ fn test_redacted_credential() {
     let mut rng = make_fake_random_number_generator();
     let warranty = redacted_credential
         .wrap_envelope()
-        .add_assertion("employeeHiredDate", dcbor::Date::new_from_string("2022-01-01").unwrap())
+        .add_assertion("employeeHiredDate", dcbor::Date::from_string("2022-01-01").unwrap())
         .add_assertion("employeeStatus", "active")
         .wrap_envelope()
         .add_assertion(known_values::NOTE, "Signed by Employer Corp.")
