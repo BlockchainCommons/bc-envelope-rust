@@ -21,6 +21,7 @@ pub mod encrypt;
 ///
 #[cfg(feature = "expression")]
 pub mod expressions;
+#[cfg(feature = "expression")]
 pub use expressions::{Expression, IntoExpression, Request, Response};
 
 ///
