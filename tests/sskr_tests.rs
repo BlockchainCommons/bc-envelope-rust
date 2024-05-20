@@ -58,7 +58,7 @@ fn test_sskr() -> anyhow::Result<()> {
     let recovered_envelopes = [&bob_envelope, &carol_envelope];
     let recovered_seed_envelope = Envelope::sskr_join(&recovered_envelopes)?.unwrap_envelope()?;
 
-    let recovered_seed: Seed = recovered_seed_envelope.try_into()?;
+    let recovered_seed = Seed::try_from(recovered_seed_envelope)?;
 
     // The recovered seed is correct.
     assert_eq!(dan_seed.data(), recovered_seed.data());

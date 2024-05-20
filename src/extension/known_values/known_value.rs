@@ -133,7 +133,7 @@ impl CBORTaggedEncodable for KnownValue {
 
 impl CBORTaggedDecodable for KnownValue {
     fn from_untagged_cbor(cbor: CBOR) -> Result<Self> {
-        let value: u64 = cbor.try_into()?;
+        let value = u64::try_from(cbor)?;
         Ok(Self::new(value))
     }
 }

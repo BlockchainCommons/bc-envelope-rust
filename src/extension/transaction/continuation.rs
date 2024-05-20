@@ -147,7 +147,7 @@ mod tests {
     }
 
     fn request_date() -> Date {
-        "2024-07-04T11:11:11Z".try_into().unwrap()
+        Date::try_from("2024-07-04T11:11:11Z").unwrap()
     }
 
     fn request_continuation() -> Continuation {
@@ -180,7 +180,7 @@ mod tests {
         ]
         "#}.trim());
 
-        let parsed_continuation: Continuation = (envelope, Some(&request_id()), None).try_into()?;
+        let parsed_continuation = Continuation::try_from((envelope, Some(&request_id()), None))?;
         assert_eq!(continuation.state(), parsed_continuation.state());
         assert_eq!(continuation.id(), parsed_continuation.id());
         assert_eq!(continuation.valid_until(), parsed_continuation.valid_until());
@@ -204,7 +204,7 @@ mod tests {
         ]
         "#}.trim());
 
-        let parsed_continuation: Continuation = (envelope, None, None).try_into()?;
+        let parsed_continuation = Continuation::try_from((envelope, None, None))?;
         assert_eq!(continuation.state(), parsed_continuation.state());
         assert_eq!(continuation.id(), parsed_continuation.id());
         assert_eq!(continuation.valid_until(), parsed_continuation.valid_until());
@@ -230,18 +230,18 @@ mod tests {
         "#}.trim());
 
         let valid_now = Some(request_date() + Duration::from_secs(30));
-        let parsed_continuation: Continuation = (envelope.clone(), Some(&request_id()), valid_now.as_ref(), &sender_private_key).try_into()?;
+        let parsed_continuation = Continuation::try_from((envelope.clone(), Some(&request_id()), valid_now.as_ref(), &sender_private_key))?;
         assert_eq!(continuation.state(), parsed_continuation.state());
         assert_eq!(continuation.id(), parsed_continuation.id());
         assert_eq!(continuation.valid_until(), parsed_continuation.valid_until());
         assert_eq!(continuation, parsed_continuation);
 
         let invalid_now = Some(request_date() + Duration::from_secs(90));
-        let invalid_continuation_error: Result<Continuation> = (envelope.clone(), Some(&request_id()), invalid_now.as_ref(), &sender_private_key).try_into();
+        let invalid_continuation_error = Continuation::try_from((envelope.clone(), Some(&request_id()), invalid_now.as_ref(), &sender_private_key));
         assert!(invalid_continuation_error.is_err());
 
         let invalid_id = ARID::new();
-        let invalid_continuation_error: Result<Continuation> = (envelope, Some(&invalid_id), valid_now.as_ref(), &sender_private_key).try_into();
+        let invalid_continuation_error = Continuation::try_from((envelope, Some(&invalid_id), valid_now.as_ref(), &sender_private_key));
         assert!(invalid_continuation_error.is_err());
 
         Ok(())

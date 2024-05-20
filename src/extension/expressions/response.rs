@@ -181,7 +181,7 @@ impl TryFrom<Envelope> for Response {
             let id_value = envelope
                 .subject().try_leaf()?
                 .try_into_expected_tagged_value(tags::RESPONSE)?;
-            let known_value: Result<KnownValue> = id_value.clone().try_into();
+            let known_value = KnownValue::try_from(id_value.clone());
             let id: Option<ARID>;
             if let Ok(known_value) = known_value {
                 if known_value == known_values::UNKNOWN_VALUE {

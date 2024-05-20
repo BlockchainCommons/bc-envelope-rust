@@ -141,7 +141,7 @@ impl TryFrom<(Envelope, Option<&Function>)> for Request {
     fn try_from((envelope, expected_function): (Envelope, Option<&Function>)) -> Result<Self> {
         let body_envelope = envelope.object_for_predicate(known_values::BODY)?;
         Ok(Self {
-            body: (body_envelope, expected_function).try_into()?,
+            body: Expression::try_from((body_envelope, expected_function))?,
             id: envelope.subject().try_leaf()?
                 .try_into_expected_tagged_value(tags::REQUEST)?
                 .try_into()?,
@@ -187,7 +187,7 @@ mod tests {
         ]
         "#}.trim());
 
-        let parsed_request: Request = envelope.try_into()?;
+        let parsed_request = Request::try_from(envelope)?;
         assert_eq!(parsed_request.extract_object_for_parameter::<i32>("param1")?, 42);
         assert_eq!(parsed_request.extract_object_for_parameter::<String>("param2")?, "hello");
         assert_eq!(parsed_request.note(), "");
@@ -200,7 +200,7 @@ mod tests {
 
     #[test]
     fn test_request_with_metadata() -> Result<()> {
-        let request_date = "2024-07-04T11:11:11Z".try_into()?;
+        let request_date = Date::try_from("2024-07-04T11:11:11Z")?;
         let request = Request::new("test", request_id())
             .with_parameter("param1", 42)
             .with_parameter("param2", "hello")
@@ -221,7 +221,7 @@ mod tests {
         ]
         "#}.trim());
 
-        let parsed_request: Request = envelope.try_into()?;
+        let parsed_request = Request::try_from(envelope)?;
         assert_eq!(parsed_request.extract_object_for_parameter::<i32>("param1")?, 42);
         assert_eq!(parsed_request.extract_object_for_parameter::<String>("param2")?, "hello");
         assert_eq!(parsed_request.note(), "This is a test");

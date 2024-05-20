@@ -1,4 +1,3 @@
-mod transaction_impl;
 mod continuation;
 pub use continuation::Continuation;
 mod sealed_request;

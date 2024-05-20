@@ -260,7 +260,7 @@ impl Envelope {
             EnvelopeCase::Wrapped { envelope, .. } => extract_type::<T, Self>(envelope),
             EnvelopeCase::Node { subject, .. } => subject.extract_subject::<T>(),
             EnvelopeCase::Leaf { cbor, .. } => {
-                let from_cbor: T = cbor.clone().try_into()?;
+                let from_cbor = T::try_from(cbor.clone())?;
                 Ok(from_cbor)
             },
             EnvelopeCase::Assertion(assertion) => extract_type::<T, Assertion>(assertion),

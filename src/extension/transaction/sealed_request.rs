@@ -252,12 +252,12 @@ impl TryFrom<(Envelope, Option<&ARID>, Option<&Date>, &PrivateKeyBase)> for Seal
         let encrypted_continuation = request_envelope.optional_object_for_predicate(known_values::RECIPIENT_CONTINUATION)?;
         let state: Option<Envelope>;
         if let Some(encrypted_continuation) = encrypted_continuation {
-            let continuation: Continuation = (encrypted_continuation, id, now, recipient_private_key).try_into()?;
+            let continuation = Continuation::try_from((encrypted_continuation, id, now, recipient_private_key))?;
             state = Some(continuation.state().clone());
         } else {
             state = None;
         }
-        let request: Request = request_envelope.try_into()?;
+        let request = Request::try_from(request_envelope)?;
         Ok(Self {
             request,
             sender: sender_public_key,
@@ -272,7 +272,7 @@ impl TryFrom<(Envelope, &ARID, &Date, &PrivateKeyBase)> for SealedRequest {
     type Error = Error;
 
     fn try_from((encrypted_envelope, id, now, recipient_private_key): (Envelope, &ARID, &Date, &PrivateKeyBase)) -> Result<Self> {
-        (encrypted_envelope, Some(id), Some(now), recipient_private_key).try_into()
+        Self::try_from((encrypted_envelope, Some(id), Some(now), recipient_private_key))
     }
 }
 
@@ -281,7 +281,7 @@ impl TryFrom<(Envelope, &ARID, &PrivateKeyBase)> for SealedRequest {
     type Error = Error;
 
     fn try_from((encrypted_envelope, id, recipient_private_key): (Envelope, &ARID, &PrivateKeyBase)) -> Result<Self> {
-        (encrypted_envelope, Some(id), None, recipient_private_key).try_into()
+        Self::try_from((encrypted_envelope, Some(id), None, recipient_private_key))
     }
 }
 
@@ -290,7 +290,7 @@ impl TryFrom<(Envelope, &Date, &PrivateKeyBase)> for SealedRequest {
     type Error = Error;
 
     fn try_from((encrypted_envelope, now, recipient_private_key): (Envelope, &Date, &PrivateKeyBase)) -> Result<Self> {
-        (encrypted_envelope, None, Some(now), recipient_private_key).try_into()
+        Self::try_from((encrypted_envelope, None, Some(now), recipient_private_key))
     }
 }
 
@@ -299,7 +299,7 @@ impl TryFrom<(Envelope, &PrivateKeyBase)> for SealedRequest {
     type Error = Error;
 
     fn try_from((encrypted_envelope, recipient_private_key): (Envelope, &PrivateKeyBase)) -> Result<Self> {
-        (encrypted_envelope, None, None, recipient_private_key).try_into()
+        Self::try_from((encrypted_envelope, None, None, recipient_private_key))
     }
 }
 
@@ -329,7 +329,7 @@ mod tests {
         let client_private_key = PrivateKeyBase::new();
         let client_public_key = client_private_key.public_key();
 
-        let now: Date = "2024-07-04T11:11:11Z".try_into()?;
+        let now = Date::try_from("2024-07-04T11:11:11Z")?;
 
         //
         // The server has previously sent the client this continuation. To the
@@ -413,7 +413,7 @@ mod tests {
         // any returned continuation has not expired.
         //
 
-        let parsed_client_request: SealedRequest = (sealed_client_request_envelope, None, Some(&now), &server_private_key).try_into()?;
+        let parsed_client_request = SealedRequest::try_from((sealed_client_request_envelope, None, Some(&now), &server_private_key))?;
         assert_eq!(*parsed_client_request.function(), Into::<Function>::into("test"));
         assert_eq!(parsed_client_request.extract_object_for_parameter::<i32>("param1")?, 42);
         assert_eq!(parsed_client_request.extract_object_for_parameter::<String>("param2")?, "hello");
@@ -491,7 +491,7 @@ mod tests {
         // that any returned continuation has not expired.
         //
 
-        let parsed_server_response: SealedResponse = (sealed_server_response_envelope, Some(parsed_client_request.id()), Some(&now), &client_private_key).try_into()?;
+        let parsed_server_response = SealedResponse::try_from((sealed_server_response_envelope, Some(parsed_client_request.id()), Some(&now), &client_private_key))?;
 
         // println!("{}", parsed_server_response.result()?.format());
         assert_eq!(parsed_server_response.result()?.format(),

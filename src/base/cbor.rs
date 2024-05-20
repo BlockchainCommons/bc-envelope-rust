@@ -78,7 +78,7 @@ impl CBORTaggedDecodable for Envelope {
                         Ok(Self::new_leaf(item.clone()))
                     },
                     tags::ENVELOPE_VALUE => {
-                        let envelope: Envelope = cbor.try_into()?;
+                        let envelope = Envelope::try_from(cbor)?;
                         Ok(Self::new_wrapped(envelope))
                     },
                     #[cfg(feature = "encrypt")]
@@ -112,7 +112,7 @@ impl CBORTaggedDecodable for Envelope {
                 Ok(Self::new_with_assertions(subject, assertions)?)
             }
             CBORCase::Map(_) => {
-                let assertion: Assertion = cbor.try_into()?;
+                let assertion = Assertion::try_from(cbor)?;
                 Ok(Self::new_with_assertion(assertion))
             }
             #[cfg(feature = "known_value")]

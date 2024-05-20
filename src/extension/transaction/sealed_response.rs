@@ -243,12 +243,12 @@ impl TryFrom<(Envelope, Option<&ARID>, Option<&Date>, &PrivateKeyBase)> for Seal
         let encrypted_continuation = response_envelope.optional_object_for_predicate(known_values::RECIPIENT_CONTINUATION)?;
         let state: Option<Envelope>;
         if let Some(encrypted_continuation) = encrypted_continuation {
-            let continuation: Continuation = (encrypted_continuation, id, now, recipient_private_key).try_into()?;
+            let continuation = Continuation::try_from((encrypted_continuation, id, now, recipient_private_key))?;
             state = Some(continuation.state().clone());
         } else {
             state = None;
         }
-        let response: Response = response_envelope.try_into()?;
+        let response = Response::try_from(response_envelope)?;
         Ok(Self {
             response,
             sender: sender_public_key,
@@ -263,6 +263,6 @@ impl TryFrom<(Envelope, &PrivateKeyBase)> for SealedResponse {
     type Error = Error;
 
     fn try_from((encrypted_envelope, recipient_private_key): (Envelope, &PrivateKeyBase)) -> Result<Self> {
-        (encrypted_envelope, None, None, recipient_private_key).try_into()
+        Self::try_from((encrypted_envelope, None, None, recipient_private_key))
     }
 }

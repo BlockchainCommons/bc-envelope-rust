@@ -113,7 +113,7 @@ impl TryFrom<(Envelope, Option<&Function>)> for Expression {
     type Error = Error;
 
     fn try_from((envelope, expected_function): (Envelope, Option<&Function>)) -> Result<Self> {
-        let expression: Expression = envelope.try_into()?;
+        let expression = Expression::try_from(envelope)?;
         if let Some(expected_function) = expected_function {
             if expression.function() != expected_function {
                 bail!("Expected function {:?}, but found {:?}", expected_function, expression.function());
@@ -161,7 +161,7 @@ mod tests {
         ]
         "#}.trim());
 
-        let parsed_expression: Expression = envelope.try_into()?;
+        let parsed_expression = Expression::try_from(envelope)?;
 
         assert_eq!(parsed_expression.extract_object_for_parameter::<i32>(parameters::LHS)?, 2);
         assert_eq!(parsed_expression.extract_object_for_parameter::<i32>(parameters::RHS)?, 3);
@@ -189,7 +189,7 @@ mod tests {
         ]
         "#}.trim());
 
-        let parsed_expression: Expression = envelope.try_into()?;
+        let parsed_expression = Expression::try_from(envelope)?;
 
         assert_eq!(parsed_expression.extract_object_for_parameter::<String>("bar")?, "baz");
         assert_eq!(parsed_expression.extract_optional_object_for_parameter::<i32>("qux")?, None);
