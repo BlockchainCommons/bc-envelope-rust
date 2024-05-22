@@ -2,7 +2,7 @@ use anyhow::{Error, Result};
 use bc_components::{PrivateKeyBase, PublicKeyBase, ARID};
 use dcbor::{prelude::*, Date};
 
-use crate::{known_values, Envelope, EnvelopeEncodable, Expression, Function, Parameter, Request};
+use crate::{known_values, Envelope, EnvelopeEncodable, Expression, ExpressionBehavior, Function, Parameter, Request, RequestBehavior};
 
 use super::Continuation;
 
@@ -37,132 +37,142 @@ impl SealedRequest {
             peer_continuation: None,
         }
     }
+}
 
-    /// Adds a parameter to the request.
-    pub fn with_parameter(mut self, parameter: impl Into<Parameter>, value: impl EnvelopeEncodable) -> Self {
+impl ExpressionBehavior for SealedRequest {
+    fn with_parameter(mut self, parameter: impl Into<Parameter>, value: impl EnvelopeEncodable) -> Self {
         self.request = self.request.with_parameter(parameter, value);
         self
     }
 
-    /// Adds a parameter to the request, if the value is not `None`.
-    pub fn with_optional_parameter(mut self, parameter: impl Into<Parameter>, value: Option<impl EnvelopeEncodable>) -> Self {
+    fn with_optional_parameter(mut self, parameter: impl Into<Parameter>, value: Option<impl EnvelopeEncodable>) -> Self {
         self.request = self.request.with_optional_parameter(parameter, value);
         self
     }
 
-    /// Adds a note to the request.
-    pub fn with_note(mut self, note: impl Into<String>) -> Self {
-        self.request = self.request.with_note(note);
-        self
-    }
-
-    /// Adds a date to the request.
-    pub fn with_date(mut self, date: impl AsRef<Date>) -> Self {
-        self.request = self.request.with_date(date);
-        self
-    }
-
-    /// Adds state to the request that the receiver must return in the response.
-    pub fn with_state(mut self, state: impl EnvelopeEncodable) -> Self {
-        self.state = Some(state.into_envelope());
-        self
-    }
-
-    /// Adds a continuation we previously received from the recipient and want to send back to them.
-    pub fn with_peer_continuation(mut self, peer_continuation: Envelope) -> Self {
-        self.peer_continuation = Some(peer_continuation);
-        self
-    }
-
-    /// Adds a continuation we previously received from the recipient and want to send back to them.
-    pub fn with_optional_peer_continuation(mut self, peer_continuation: Option<Envelope>) -> Self {
-        self.peer_continuation = peer_continuation;
-        self
-    }
-}
-
-//
-// Parsing
-//
-impl SealedRequest {
-    /// Returns the function of the request.
-    pub fn function(&self) -> &Function {
+    fn function(&self) -> &Function {
         self.request.function()
     }
 
-    /// Returns the body of the request.
-    pub fn body(&self) -> &Expression {
-        self.request.body()
+    fn expression_envelope(&self) -> &Envelope {
+        self.request.expression_envelope()
     }
 
-    /// Returns the request.
-    pub fn request(&self) -> &Request {
-        &self.request
-    }
-
-    /// Returns the argument for the given parameter.
-    pub fn object_for_parameter(&self, param: impl Into<Parameter>) -> Result<Envelope> {
+    fn object_for_parameter(&self, param: impl Into<Parameter>) -> Result<Envelope> {
         self.request.body().object_for_parameter(param)
     }
 
-    /// Returns the arguments for the given possibly repeated parameter.
-    pub fn objects_for_parameter(&self, param: impl Into<Parameter>) -> Vec<Envelope> {
+    fn objects_for_parameter(&self, param: impl Into<Parameter>) -> Vec<Envelope> {
         self.request.body().objects_for_parameter(param)
     }
 
-    /// Returns the argument for the given parameter, decoded as the given type.
-    ///
-    /// - Throws: Throws an exception if there is not exactly one matching `parameter`,
-    /// or if the parameter value is not the correct type.
-    pub fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
+    fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
     where
         T: TryFrom<CBOR, Error = Error> + 'static,
     {
         self.request.body().extract_object_for_parameter(param)
     }
 
-    /// Returns the argument for the given parameter, or `None` if there is no matching parameter.
-    pub fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = Error> + 'static>(&self, param: impl Into<Parameter>) -> Result<Option<T>> {
+    fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = Error> + 'static>(&self, param: impl Into<Parameter>) -> Result<Option<T>> {
         self.request.body().extract_optional_object_for_parameter(param)
     }
 
-    /// Returns an array of arguments for the given parameter, decoded as the given type.
-    ///
-    /// - Throws: Throws an exception if any of the parameter values are not the correct type.
-    pub fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
+    fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
     where
         T: TryFrom<CBOR, Error = Error> + 'static,
     {
         self.request.body().extract_objects_for_parameter(param)
     }
+}
 
-    /// Returns the ID of the request.
-    pub fn id(&self) -> &ARID {
+impl RequestBehavior for SealedRequest {
+    fn with_note(mut self, note: impl Into<String>) -> Self {
+        self.request = self.request.with_note(note);
+        self
+    }
+
+    fn with_date(mut self, date: impl AsRef<Date>) -> Self {
+        self.request = self.request.with_date(date);
+        self
+    }
+
+    fn body(&self) -> &Expression {
+        self.request.body()
+    }
+
+    fn id(&self) -> &ARID {
         self.request.id()
     }
 
-    /// Returns the note of the request.
-    pub fn note(&self) -> &str {
+    fn note(&self) -> &str {
         self.request.note()
     }
 
-    /// Returns the date of the request.
-    pub fn date(&self) -> Option<&Date> {
+    fn date(&self) -> Option<&Date> {
         self.request.date()
     }
+}
+
+pub trait SealedRequestBehavior: RequestBehavior {
+    //
+    // Composition
+    //
+
+    /// Adds state to the request that the receiver must return in the response.
+    fn with_state(self, state: impl EnvelopeEncodable) -> Self;
+
+    /// Adds a continuation we previously received from the recipient and want to send back to them.
+    fn with_peer_continuation(self, peer_continuation: Envelope) -> Self;
+
+    /// Adds a continuation we previously received from the recipient and want to send back to them.
+    fn with_optional_peer_continuation(self, peer_continuation: Option<Envelope>) -> Self;
+
+    //
+    // Parsing
+    //
+
+    /// Returns the request.
+    fn request(&self) -> &Request;
 
     /// Returns the sender of the request.
-    pub fn sender(&self) -> &PublicKeyBase {
+    fn sender(&self) -> &PublicKeyBase;
+
+    /// Returns the continuation we're going to self-encrypt and send to the recipient.
+    fn state(&self) -> Option<&Envelope>;
+
+    /// Returns the continuation we previously received from the recipient and want to send back to them.
+    fn peer_continuation(&self) -> Option<&Envelope>;
+}
+
+impl SealedRequestBehavior for SealedRequest {
+    fn with_state(mut self, state: impl EnvelopeEncodable) -> Self {
+        self.state = Some(state.into_envelope());
+        self
+    }
+
+    fn with_peer_continuation(mut self, peer_continuation: Envelope) -> Self {
+        self.peer_continuation = Some(peer_continuation);
+        self
+    }
+
+    fn with_optional_peer_continuation(mut self, peer_continuation: Option<Envelope>) -> Self {
+        self.peer_continuation = peer_continuation;
+        self
+    }
+
+    fn request(&self) -> &Request {
+        &self.request
+    }
+
+    fn sender(&self) -> &PublicKeyBase {
         &self.sender
     }
 
-    /// Returns the continuation we're going to self-encrypt and send to the recipient.
-    pub fn state(&self) -> Option<&Envelope> {
+    fn state(&self) -> Option<&Envelope> {
         self.state.as_ref()
     }
 
-    /// Returns the continuation we previously received from the recipient and want to send back to them.
-    pub fn peer_continuation(&self) -> Option<&Envelope> {
+    fn peer_continuation(&self) -> Option<&Envelope> {
         self.peer_continuation.as_ref()
     }
 }
@@ -238,6 +248,24 @@ impl From<(SealedRequest, &PrivateKeyBase, &PublicKeyBase)> for Envelope {
     }
 }
 
+/// Envelope -> SealedRequest
+impl TryFrom<Envelope> for SealedRequest {
+    type Error = Error;
+
+    fn try_from(signed_envelope: Envelope) -> Result<Self> {
+        let sender_public_key: PublicKeyBase = signed_envelope.unwrap_envelope()?.extract_object_for_predicate(known_values::SENDER_PUBLIC_KEY)?;
+        let request_envelope = signed_envelope.verify(&sender_public_key)?;
+        let peer_continuation = request_envelope.optional_object_for_predicate(known_values::SENDER_CONTINUATION)?;
+        let request = Request::try_from(request_envelope)?;
+        Ok(Self {
+            request,
+            sender: sender_public_key,
+            state: None,
+            peer_continuation,
+        })
+    }
+}
+
 /// Envelope + optional expected ID + optional valid until date + sender private key -> SealedRequest
 ///
 /// Sender private key is needed to self-encrypt the state continuation.
@@ -306,12 +334,12 @@ impl TryFrom<(Envelope, &PrivateKeyBase)> for SealedRequest {
 #[cfg(test)]
 mod tests {
     use std::time::Duration;
-
-    use crate::SealedResponse;
-
-    use super::*;
+    use anyhow::Result;
+    use crate::{extension::transaction::Continuation, prelude::*};
+    use bc_components::{PrivateKeyBase, ARID};
     use hex_literal::hex;
     use indoc::indoc;
+    use dcbor::Date;
 
     fn request_id() -> ARID {
         ARID::from_data(hex!("c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc"))

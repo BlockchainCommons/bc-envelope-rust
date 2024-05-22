@@ -21,10 +21,20 @@ pub use parameters::*;
 // mod expression_impl;
 
 pub mod expression;
-pub use expression::{Expression, IntoExpression};
+pub use expression::{
+    Expression,
+    ExpressionBehavior,
+    IntoExpression,
+};
 
 pub mod request;
-pub use request::Request;
+pub use request::{
+    Request,
+    RequestBehavior,
+};
 
 pub mod response;
-pub use response::Response;
+pub use response::{
+    Response,
+    ResponseBehavior,
+};

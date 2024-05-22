@@ -19,15 +19,93 @@ impl Envelope {
     }
 }
 
-//
-// Success Composition
-//
 impl Response {
+    //
+    // Success Composition
+    //
+
     pub fn new_success(id: impl AsRef<ARID>) -> Self {
         Self(Ok((id.as_ref().clone(), Envelope::ok())))
     }
 
-    pub fn with_result(mut self, result: impl EnvelopeEncodable) -> Self {
+    //
+    // Failure Composition
+    //
+
+    pub fn new_failure(id: impl AsRef<ARID>) -> Self {
+        Self(Err((Some(id.as_ref().clone()), Envelope::unknown())))
+    }
+
+    /// An early failure takes place before the message has been decrypted,
+    /// and therefore the ID is not known.
+    pub fn new_early_failure() -> Self {
+        Self(Err((None, Envelope::unknown())))
+    }
+}
+
+pub trait ResponseBehavior {
+    //
+    // Success Composition
+    //
+
+    fn with_result(self, result: impl EnvelopeEncodable) -> Self;
+
+    /// If the result is `None`, the value of the response will be the null envelope.
+    fn with_optional_result(self, result: Option<impl EnvelopeEncodable>) -> Self;
+
+    //
+    // Failure Composition
+    //
+
+    /// If no error is provided, the value of the response will be the unknown value.
+    fn with_error(self, error: impl EnvelopeEncodable) -> Self;
+
+    /// If the error is `None`, the value of the response will be the unknown value.
+    fn with_optional_error(self, error: Option<impl EnvelopeEncodable>) -> Self;
+
+    //
+    // Parsing
+    //
+
+    fn is_ok(&self) -> bool;
+
+    fn is_err(&self) -> bool;
+
+    fn ok(&self) -> Option<&(ARID, Envelope)>;
+
+    fn err(&self) -> Option<&(Option<ARID>, Envelope)>;
+
+    fn id(&self) -> Option<&ARID>;
+
+    fn expect_id(&self) -> &ARID {
+        self.id().expect("Expected an ID")
+    }
+
+    fn result(&self) -> Result<&Envelope> {
+        self.ok().map(|(_, result)| result).ok_or_else(|| Error::msg("Cannot get result from failed response"))
+    }
+
+    fn extract_result<T>(&self) -> Result<T>
+    where
+        T: TryFrom<CBOR, Error = Error> + 'static,
+    {
+        self.result()?.extract_subject()
+    }
+
+    fn error(&self) -> Result<&Envelope> {
+        self.err().map(|(_, error)| error).ok_or_else(|| Error::msg("Cannot get error from successful response"))
+    }
+
+    fn extract_error<T>(&self) -> Result<T>
+    where
+        T: TryFrom<CBOR, Error = Error> + 'static,
+    {
+        self.error()?.extract_subject()
+    }
+}
+
+impl ResponseBehavior for Response {
+    fn with_result(mut self, result: impl EnvelopeEncodable) -> Self {
         match self.0 {
             Ok(_) => {
                 self.0 = Ok((self.0.unwrap().0, result.into_envelope()));
@@ -40,30 +118,15 @@ impl Response {
     }
 
     /// If the result is `None`, the value of the response will be the null envelope.
-    pub fn with_optional_result(self, result: Option<impl EnvelopeEncodable>) -> Self {
+    fn with_optional_result(self, result: Option<impl EnvelopeEncodable>) -> Self {
         if let Some(result) = result {
             return self.with_result(result);
         }
         self.with_result(Envelope::null())
     }
-}
-
-//
-// Failure Composition
-//
-impl Response {
-    pub fn new_failure(id: impl AsRef<ARID>) -> Self {
-        Self(Err((Some(id.as_ref().clone()), Envelope::unknown())))
-    }
-
-    /// An early failure takes place before the message has been decrypted,
-    /// and therefore the ID is not known.
-    pub fn new_early_failure() -> Self {
-        Self(Err((None, Envelope::unknown())))
-    }
 
     /// If no error is provided, the value of the response will be the unknown value.
-    pub fn with_error(mut self, error: impl EnvelopeEncodable) -> Self {
+    fn with_error(mut self, error: impl EnvelopeEncodable) -> Self {
         match self.0 {
             Ok(_) => {
                 panic!("Cannot set error on a successful response");
@@ -76,66 +139,36 @@ impl Response {
     }
 
     /// If the error is `None`, the value of the response will be the unknown value.
-    pub fn with_optional_error(self, error: Option<impl EnvelopeEncodable>) -> Self {
+    fn with_optional_error(self, error: Option<impl EnvelopeEncodable>) -> Self {
         if let Some(error) = error {
             return self.with_error(error);
         }
         self
     }
-}
 
-//
-// Parsing
-//
-impl Response {
-    pub fn is_ok(&self) -> bool {
+    fn is_ok(&self) -> bool {
         self.0.is_ok()
     }
 
-    pub fn is_err(&self) -> bool {
+    fn is_err(&self) -> bool {
         self.0.is_err()
     }
 
-    pub fn ok(&self) -> Option<&(ARID, Envelope)> {
+    fn ok(&self) -> Option<&(ARID, Envelope)> {
         self.0.as_ref().ok()
     }
 
-    pub fn err(&self) -> Option<&(Option<ARID>, Envelope)> {
+    fn err(&self) -> Option<&(Option<ARID>, Envelope)> {
         self.0.as_ref().err()
     }
 
-    pub fn id(&self) -> Option<&ARID> {
+    fn id(&self) -> Option<&ARID> {
         match &self.0 {
             Ok((id, _)) => Some(id),
             Err((id, _)) => id.as_ref(),
         }
     }
 
-    pub fn expect_id(&self) -> &ARID {
-        self.id().expect("Expected an ID")
-    }
-
-    pub fn result(&self) -> Result<&Envelope> {
-        self.ok().map(|(_, result)| result).ok_or_else(|| Error::msg("Cannot get result from failed response"))
-    }
-
-    pub fn extract_result<T>(&self) -> Result<T>
-    where
-        T: TryFrom<CBOR, Error = Error> + 'static,
-    {
-        self.result()?.extract_subject()
-    }
-
-    pub fn error(&self) -> Result<&Envelope> {
-        self.err().map(|(_, error)| error).ok_or_else(|| Error::msg("Cannot get error from successful response"))
-    }
-
-    pub fn extract_error<T>(&self) -> Result<T>
-    where
-        T: TryFrom<CBOR, Error = Error> + 'static,
-    {
-        self.error()?.extract_subject()
-    }
 }
 
 impl From<Response> for Envelope {

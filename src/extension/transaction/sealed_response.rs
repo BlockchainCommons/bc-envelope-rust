@@ -2,7 +2,7 @@ use anyhow::{Result, Error};
 use bc_components::{PrivateKeyBase, PublicKeyBase, ARID};
 use dcbor::{prelude::*, Date};
 
-use crate::{known_values, Envelope, EnvelopeEncodable, Response};
+use crate::{known_values, Envelope, EnvelopeEncodable, Response, ResponseBehavior};
 
 use super::Continuation;
 
@@ -16,10 +16,11 @@ pub struct SealedResponse {
     peer_continuation: Option<Envelope>,
 }
 
-//
-// Success Composition
-//
 impl SealedResponse {
+    //
+    // Success Composition
+    //
+
     pub fn new_success(id: impl AsRef<ARID>, sender: impl AsRef<PublicKeyBase>) -> Self {
         Self {
             response: Response::new_success(id),
@@ -29,22 +30,10 @@ impl SealedResponse {
         }
     }
 
-    pub fn with_result(mut self, result: impl EnvelopeEncodable) -> Self {
-        self.response = self.response.with_result(result);
-        self
-    }
+    //
+    // Failure Composition
+    //
 
-    /// If the result is `None`, the value of the response will be the null envelope.
-    pub fn with_optional_result(mut self, result: Option<impl EnvelopeEncodable>) -> Self {
-        self.response = self.response.with_optional_result(result);
-        self
-    }
-}
-
-//
-// Failure Composition
-//
-impl SealedResponse {
     pub fn new_failure(id: impl AsRef<ARID>, sender: impl AsRef<PublicKeyBase>) -> Self {
         Self {
             response: Response::new_failure(id),
@@ -64,26 +53,39 @@ impl SealedResponse {
             peer_continuation: None,
         }
     }
-
-    /// If no error is provided, the value of the response will be the unknown value.
-    pub fn with_error(mut self, error: impl EnvelopeEncodable) -> Self {
-        self.response = self.response.with_error(error);
-        self
-    }
-
-    /// If the error is `None`, the value of the response will be the unknown value.
-    pub fn with_optional_error(mut self, error: Option<impl EnvelopeEncodable>) -> Self {
-        self.response = self.response.with_optional_error(error);
-        self
-    }
 }
 
-//
-// Composition
-//
-impl SealedResponse {
+pub trait SealedResponseBehavior: ResponseBehavior {
+    //
+    // Composition
+    //
+
     /// Adds state to the request that the peer may return at some future time.
-    pub fn with_state(mut self, state: impl EnvelopeEncodable) -> Self {
+    fn with_state(self, state: impl EnvelopeEncodable) -> Self;
+
+    fn with_optional_state(self, state: Option<impl EnvelopeEncodable>) -> Self;
+
+    /// Adds a continuation we previously received from the recipient and want to send back to them.
+    fn with_peer_continuation(self, peer_continuation: Option<&Envelope>) -> Self;
+
+    //
+    // Parsing
+    //
+
+    fn sender(&self) -> &PublicKeyBase;
+
+    fn state(&self) -> Option<&Envelope>;
+
+    fn peer_continuation(&self) -> Option<&Envelope>;
+}
+
+impl SealedResponseBehavior for SealedResponse {
+    //
+    // Composition
+    //
+
+    /// Adds state to the request that the peer may return at some future time.
+    fn with_state(mut self, state: impl EnvelopeEncodable) -> Self {
         if self.response.is_ok() {
             self.state = Some(state.into_envelope());
         } else {
@@ -92,7 +94,7 @@ impl SealedResponse {
         self
     }
 
-    pub fn with_optional_state(mut self, state: Option<impl EnvelopeEncodable>) -> Self {
+    fn with_optional_state(mut self, state: Option<impl EnvelopeEncodable>) -> Self {
         if let Some(state) = state {
             self.with_state(state)
         } else {
@@ -102,72 +104,96 @@ impl SealedResponse {
     }
 
     /// Adds a continuation we previously received from the recipient and want to send back to them.
-    pub fn with_peer_continuation(mut self, peer_continuation: Option<&Envelope>) -> Self {
+    fn with_peer_continuation(mut self, peer_continuation: Option<&Envelope>) -> Self {
         self.peer_continuation = peer_continuation.cloned();
         self
     }
-}
 
-//
-// Parsing
-//
-impl SealedResponse {
-    pub fn is_ok(&self) -> bool {
-        self.response.is_ok()
-    }
+    //
+    // Parsing
+    //
 
-    pub fn is_err(&self) -> bool {
-        self.response.is_err()
-    }
-
-    pub fn ok(&self) -> Option<&(ARID, Envelope)> {
-        self.response.ok()
-    }
-
-    pub fn err(&self) -> Option<&(Option<ARID>, Envelope)> {
-        self.response.err()
-    }
-
-    pub fn id(&self) -> Option<&ARID> {
-        self.response.id()
-    }
-
-    pub fn expect_id(&self) -> &ARID {
-        self.response.expect_id()
-    }
-
-    pub fn sender(&self) -> &PublicKeyBase {
+    fn sender(&self) -> &PublicKeyBase {
         self.sender.as_ref()
     }
 
-    pub fn result(&self) -> Result<&Envelope> {
+    fn state(&self) -> Option<&Envelope> {
+        self.state.as_ref()
+    }
+
+    fn peer_continuation(&self) -> Option<&Envelope> {
+        self.peer_continuation.as_ref()
+    }
+}
+
+impl ResponseBehavior for SealedResponse {
+    fn with_result(mut self, result: impl EnvelopeEncodable) -> Self {
+        self.response = self.response.with_result(result);
+        self
+    }
+
+    /// If the result is `None`, the value of the response will be the null envelope.
+    fn with_optional_result(mut self, result: Option<impl EnvelopeEncodable>) -> Self {
+        self.response = self.response.with_optional_result(result);
+        self
+    }
+
+    /// If no error is provided, the value of the response will be the unknown value.
+    fn with_error(mut self, error: impl EnvelopeEncodable) -> Self {
+        self.response = self.response.with_error(error);
+        self
+    }
+
+    /// If the error is `None`, the value of the response will be the unknown value.
+    fn with_optional_error(mut self, error: Option<impl EnvelopeEncodable>) -> Self {
+        self.response = self.response.with_optional_error(error);
+        self
+    }
+
+    fn is_ok(&self) -> bool {
+        self.response.is_ok()
+    }
+
+    fn is_err(&self) -> bool {
+        self.response.is_err()
+    }
+
+    fn ok(&self) -> Option<&(ARID, Envelope)> {
+        self.response.ok()
+    }
+
+    fn err(&self) -> Option<&(Option<ARID>, Envelope)> {
+        self.response.err()
+    }
+
+    fn id(&self) -> Option<&ARID> {
+        self.response.id()
+    }
+
+    fn expect_id(&self) -> &ARID {
+        self.response.expect_id()
+    }
+
+    fn result(&self) -> Result<&Envelope> {
         self.response.result()
     }
 
-    pub fn extract_result<T>(&self) -> Result<T>
+    fn extract_result<T>(&self) -> Result<T>
     where
         T: TryFrom<CBOR, Error = Error> + 'static,
     {
         self.response.extract_result()
     }
 
-    pub fn error(&self) -> Result<&Envelope> {
+    fn error(&self) -> Result<&Envelope> {
         self.response.error()
     }
 
-    pub fn extract_error<T>(&self) -> Result<T>
+    fn extract_error<T>(&self) -> Result<T>
     where
         T: TryFrom<CBOR, Error = Error> + 'static,
     {
         self.response.extract_error()
-    }
-
-    pub fn state(&self) -> Option<&Envelope> {
-        self.state.as_ref()
-    }
-
-    pub fn peer_continuation(&self) -> Option<&Envelope> {
-        self.peer_continuation.as_ref()
     }
 }
 
@@ -231,7 +257,7 @@ impl From<(SealedResponse, &PrivateKeyBase, &PublicKeyBase)> for Envelope {
     }
 }
 
-/// Encrypted Envelope + optional recipient ID + optional current date + recipient private key -> SealedResponse
+/// Encrypted Envelope + optional request ID + optional current date + recipient private key -> SealedResponse
 impl TryFrom<(Envelope, Option<&ARID>, Option<&Date>, &PrivateKeyBase)> for SealedResponse {
     type Error = Error;
 

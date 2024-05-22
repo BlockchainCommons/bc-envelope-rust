@@ -19,13 +19,21 @@ pub use crate::{
     Parameter,
     parameters,
     Expression,
+    ExpressionBehavior,
     IntoExpression,
     Request,
+    RequestBehavior,
     Response,
+    ResponseBehavior,
 };
 
 #[cfg(feature = "transaction")]
-pub use crate::{SealedRequest, SealedResponse};
+pub use crate::{
+    SealedRequest,
+    SealedRequestBehavior,
+    SealedResponse,
+    SealedResponseBehavior,
+};
 
 pub use crate::elide::{
     ObscureAction,

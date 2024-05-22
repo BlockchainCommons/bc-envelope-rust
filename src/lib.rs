@@ -390,13 +390,36 @@ mod string_utils;
 use bc_components::{PrivateKeyBase, PublicKeyBase};
 
 #[cfg(feature = "known_value")]
-pub use extension::known_values::{self, known_value, KnownValue, KNOWN_VALUES, KnownValuesStore};
+pub use extension::known_values::{
+    self,
+    known_value,
+    KnownValue,
+    KNOWN_VALUES,
+    KnownValuesStore,
+};
 
 #[cfg(feature = "expression")]
-pub use extension::expressions::{functions, parameters, Function, Parameter, Expression, IntoExpression, Request, Response};
+pub use extension::expressions::{
+    functions,
+    parameters,
+    Function,
+    Parameter,
+    Expression,
+    ExpressionBehavior,
+    IntoExpression,
+    Request,
+    RequestBehavior,
+    Response,
+    ResponseBehavior,
+};
 
 #[cfg(feature = "transaction")]
-pub use extension::{SealedRequest, SealedResponse};
+pub use extension::{
+    SealedRequest,
+    SealedRequestBehavior,
+    SealedResponse,
+    SealedResponseBehavior,
+};
 
 #[cfg(feature = "signature")]
 impl Envelope {

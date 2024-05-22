@@ -2,7 +2,7 @@ use anyhow::{Error, Result};
 use bc_components::{tags, ARID};
 use dcbor::{Date, prelude::*};
 
-use crate::{known_values, Envelope, EnvelopeEncodable, Expression, Function, Parameter};
+use crate::{known_values, Envelope, EnvelopeEncodable, Expression, ExpressionBehavior, Function, Parameter};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Request {
@@ -11,10 +11,34 @@ pub struct Request {
     note: String,
     date: Option<Date>,
 }
+pub trait RequestBehavior: ExpressionBehavior {
+    //
+    // Composition
+    //
 
-//
-// Composition
-//
+    /// Adds a note to the request.
+    fn with_note(self, note: impl Into<String>) -> Self;
+
+    /// Adds a date to the request.
+    fn with_date(self, date: impl AsRef<Date>) -> Self;
+
+    //
+    // Parsing
+    //
+
+    /// Returns the body of the request.
+    fn body(&self) -> &Expression;
+
+    /// Returns the ID of the request.
+    fn id(&self) -> &ARID;
+
+    /// Returns the note of the request.
+    fn note(&self) -> &str;
+
+    /// Returns the date of the request.
+    fn date(&self) -> Option<&Date>;
+}
+
 impl Request {
     pub fn new_with_body(body: Expression, id: impl AsRef<ARID>) -> Self {
         Self {
@@ -28,94 +52,84 @@ impl Request {
     pub fn new(function: impl Into<Function>, id: impl AsRef<ARID>) -> Self {
         Self::new_with_body(Expression::new(function), id)
     }
+}
 
-    /// Adds a parameter to the request.
-    pub fn with_parameter(mut self, parameter: impl Into<Parameter>, value: impl EnvelopeEncodable) -> Self {
+impl ExpressionBehavior for Request {
+    fn with_parameter(mut self, parameter: impl Into<Parameter>, value: impl EnvelopeEncodable) -> Self {
         self.body = self.body.with_parameter(parameter, value);
         self
     }
 
-    /// Adds a parameter to the request, if the value is not `None`.
-    pub fn with_optional_parameter(mut self, parameter: impl Into<Parameter>, value: Option<impl EnvelopeEncodable>) -> Self {
+    fn with_optional_parameter(mut self, parameter: impl Into<Parameter>, value: Option<impl EnvelopeEncodable>) -> Self {
         self.body = self.body.with_optional_parameter(parameter, value);
         self
     }
 
-    /// Adds a note to the request.
-    pub fn with_note(mut self, note: impl Into<String>) -> Self {
-        self.note = note.into();
-        self
-    }
-
-    /// Adds a date to the request.
-    pub fn with_date(mut self, date: impl AsRef<Date>) -> Self {
-        self.date = Some(date.as_ref().clone());
-        self
-    }
-}
-
-//
-// Parsing
-//
-impl Request {
-    /// Returns the function of the request.
-    pub fn function(&self) -> &Function {
+    fn function(&self) -> &Function {
         self.body.function()
     }
 
-    /// Returns the body of the request.
-    pub fn body(&self) -> &Expression {
-        &self.body
+    fn expression_envelope(&self) -> &Envelope {
+        self.body.expression_envelope()
     }
 
-    /// Returns the argument for the given parameter.
-    pub fn object_for_parameter(&self, param: impl Into<Parameter>) -> Result<Envelope> {
+    fn object_for_parameter(&self, param: impl Into<Parameter>) -> Result<Envelope> {
         self.body.object_for_parameter(param)
     }
 
-    /// Returns the arguments for the given possibly repeated parameter.
-    pub fn objects_for_parameter(&self, param: impl Into<Parameter>) -> Vec<Envelope> {
+    fn objects_for_parameter(&self, param: impl Into<Parameter>) -> Vec<Envelope> {
         self.body.objects_for_parameter(param)
     }
 
-    /// Returns the argument for the given parameter, decoded as the given type.
-    ///
-    /// - Throws: Throws an exception if there is not exactly one matching `parameter`,
-    /// or if the parameter value is not the correct type.
-    pub fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
+    fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
     where
         T: TryFrom<CBOR, Error = Error> + 'static,
     {
         self.body.extract_object_for_parameter(param)
     }
 
-    /// Returns the argument for the given parameter, or `None` if there is no matching parameter.
-    pub fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = Error> + 'static>(&self, param: impl Into<Parameter>) -> Result<Option<T>> {
+    fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = Error> + 'static>(&self, param: impl Into<Parameter>) -> Result<Option<T>> {
         self.body.extract_optional_object_for_parameter(param)
     }
 
-    /// Returns an array of arguments for the given parameter, decoded as the given type.
-    ///
-    /// - Throws: Throws an exception if any of the parameter values are not the correct type.
-    pub fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
+    fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
     where
         T: TryFrom<CBOR, Error = Error> + 'static,
     {
         self.body.extract_objects_for_parameter(param)
     }
+}
+
+impl RequestBehavior for Request {
+    /// Adds a note to the request.
+    fn with_note(mut self, note: impl Into<String>) -> Self {
+        self.note = note.into();
+        self
+    }
+
+    /// Adds a date to the request.
+    fn with_date(mut self, date: impl AsRef<Date>) -> Self {
+        self.date = Some(date.as_ref().clone());
+        self
+    }
+
+    /// Returns the body of the request.
+    fn body(&self) -> &Expression {
+        &self.body
+    }
 
     /// Returns the ID of the request.
-    pub fn id(&self) -> &ARID {
+    fn id(&self) -> &ARID {
         &self.id
     }
 
     /// Returns the note of the request.
-    pub fn note(&self) -> &str {
+    fn note(&self) -> &str {
         &self.note
     }
 
     /// Returns the date of the request.
-    pub fn date(&self) -> Option<&Date> {
+    fn date(&self) -> Option<&Date> {
         self.date.as_ref()
     }
 }
