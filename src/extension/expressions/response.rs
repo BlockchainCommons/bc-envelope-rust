@@ -6,8 +6,43 @@ use dcbor::CBOR;
 
 use crate::{known_values, Envelope, EnvelopeEncodable, KnownValue};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Response (Result<(ARID, Envelope), (Option<ARID>, Envelope)>);
+
+impl std::fmt::Debug for Response {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.0 {
+            Ok((id, result)) => {
+                f.debug_tuple("Ok")
+                    .field(id)
+                    .field(result)
+                    .finish()
+            }
+            Err((id, error)) => {
+                f.debug_tuple("Err")
+                    .field(id)
+                    .field(error)
+                    .finish()
+            }
+        }
+    }
+}
+
+impl std::fmt::Display for Response {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.0 {
+            Ok((id, result)) => write!(f, "Success({}): {}", id.short_description(), result.format()),
+            Err((id, error)) => {
+                if let Some(id) = id {
+                    write!(f, "Failure({}): {}", id.short_description(), error.format())
+                } else {
+                    write!(f, "Failure('Unknown'): {}", error.format())
+                }
+            }
+        }
+    }
+}
+
 
 impl Envelope {
     pub fn unknown() -> Self {

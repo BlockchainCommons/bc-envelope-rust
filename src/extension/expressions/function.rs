@@ -183,24 +183,16 @@ impl std::fmt::Display for Function {
     }
 }
 
-// impl Envelope {
-//     pub fn function(&self) -> Result<Function> {
-//         self.extract_subject()
-//     }
-
-//     pub fn check_function(&self, expected_function: Option<&Function>) -> Result<Function> {
-//         let function = self.function()?;
-//         if let Some(expected_function) = expected_function {
-//             if function != *expected_function {
-//                 bail!("Expected function {:?}, got {:?}", expected_function, function);
-//             }
-//         }
-//         Ok(function)
-//     }
-// }
-
 impl EnvelopeEncodable for Function {
     fn into_envelope(self) -> Envelope {
         Envelope::new_leaf(self)
+    }
+}
+
+impl TryFrom<Envelope> for Function {
+    type Error = Error;
+
+    fn try_from(envelope: Envelope) -> Result<Self> {
+        Function::try_from(envelope.try_leaf()?)
     }
 }

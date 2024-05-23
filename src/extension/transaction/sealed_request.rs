@@ -6,7 +6,7 @@ use crate::{known_values, Envelope, EnvelopeEncodable, Expression, ExpressionBeh
 
 use super::Continuation;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct SealedRequest {
     request: Request,
     sender: PublicKeyBase,
@@ -14,6 +14,23 @@ pub struct SealedRequest {
     state: Option<Envelope>,
     // This is a continuation we previously received from the peer and want to send back to them.
     peer_continuation: Option<Envelope>,
+}
+
+impl std::fmt::Debug for SealedRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SealedRequest")
+            .field("request", &self.request)
+            .field("sender", &self.sender)
+            .field("state", &self.state)
+            .field("peer_continuation", &self.peer_continuation)
+            .finish()
+    }
+}
+
+impl std::fmt::Display for SealedRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} state: {:?}", self.request, self.state)
+    }
 }
 
 //
