@@ -25,6 +25,7 @@ fn test_plaintext() {
     assert_eq!(envelope.format(), indoc! {r#"
     "Hello."
     "#}.trim());
+    assert_eq!(envelope.format_flat(), r#""Hello.""#);
     assert_eq!(envelope.tree_format(false), indoc! {r#"
     8cc96cdb "Hello."
     "#}.trim());
@@ -45,6 +46,7 @@ fn test_signed_plaintext() {
         'verifiedBy': Signature
     ]
     "#}.trim());
+    assert_eq!(envelope.format_flat(), r#""Hello." [ 'verifiedBy': Signature ]"#);
     assert_eq!(envelope.tree_format(false), indoc! {r#"
     509d8ab2 NODE
         8cc96cdb subj "Hello."
@@ -73,6 +75,7 @@ fn test_encrypt_subject() {
         "knows": "Bob"
     ]
     "#}.trim());
+    assert_eq!(envelope.format_flat(), r#"ENCRYPTED [ "knows": "Bob" ]"#);
     assert_eq!(envelope.tree_format(false), indoc! {r#"
     8955db5e NODE
         13941b48 subj ENCRYPTED
@@ -95,6 +98,7 @@ fn test_top_level_assertion() {
     assert_eq!(envelope.format(), indoc! {r#"
     "knows": "Bob"
     "#}.trim());
+    assert_eq!(envelope.format_flat(), r#""knows": "Bob""#);
     assert_eq!(envelope.tree_format(false), indoc! {r#"
     78d666eb ASSERTION
         db7dd21c pred "knows"
@@ -118,6 +122,7 @@ fn test_elided_object() {
         "knows": ELIDED
     ]
     "#}.trim());
+    assert_eq!(elided.format_flat(), r#""Alice" [ "knows": ELIDED ]"#);
     assert_eq!(elided.tree_format(false), indoc! {r#"
     8955db5e NODE
         13941b48 subj "Alice"
@@ -149,6 +154,7 @@ fn test_signed_subject() {
         'verifiedBy': Signature
     ]
     "#}.trim());
+    assert_eq!(envelope.format_flat(), r#""Alice" [ "knows": "Bob", "knows": "Carol", 'verifiedBy': Signature ]"#);
     assert_eq!(envelope.tree_format(false), indoc! {r#"
     98457ac2 NODE
         13941b48 subj "Alice"
@@ -186,6 +192,7 @@ fn test_signed_subject() {
         ELIDED (3)
     ]
     "#}.trim());
+    assert_eq!(elided.format_flat(), r#""Alice" [ ELIDED (3) ]"#);
     assert_eq!(elided.tree_format(false), indoc! {r#"
     98457ac2 NODE
         13941b48 subj "Alice"
@@ -221,6 +228,7 @@ fn test_wrap_then_signed() {
         'verifiedBy': Signature
     ]
     "#}.trim());
+    assert_eq!(envelope.format_flat(), r#"{ "Alice" [ "knows": "Bob", "knows": "Carol" ] } [ 'verifiedBy': Signature ]"#);
     assert_eq!(envelope.tree_format(false), indoc! {r#"
     410ba52c NODE
         9e3b0673 subj WRAPPED
@@ -267,6 +275,7 @@ fn test_encrypt_to_recipients() {
         'hasRecipient': SealedMessage
     ]
     "#}.trim());
+    assert_eq!(envelope.format_flat(), r#"ENCRYPTED [ 'hasRecipient': SealedMessage, 'hasRecipient': SealedMessage ]"#);
     assert_eq!(envelope.tree_format(false), indoc! {r#"
     310c90f6 NODE
         8cc96cdb subj ENCRYPTED
@@ -308,6 +317,7 @@ fn test_assertion_positions() {
         ]
     ]
     "#}.trim());
+    assert_eq!(envelope.format_flat(), r#""subject" [ "predicate" [ "predicate-predicate": "predicate-object" ] : "object" [ "object-predicate": "object-object" ] ]"#);
     assert_eq!(envelope.tree_format(false), indoc! {r#"
     e06d7003 NODE
         8e4e62eb subj "subject"
@@ -396,6 +406,7 @@ fn test_complex_metadata() {
         'dereferenceVia': "IPFS"
     ]
     "#}.trim());
+    assert_eq!(book_metadata.format_flat(), r#"Digest(26d05af5) [ "format": "EPUB", "work": ARID(7fb90a9d) [ 'isA': "novel", "author": ARID(9c747ace) [ 'dereferenceVia': "LibraryOfCongress", 'hasName': "Ayn Rand" ], "isbn": "9780451191144", 'dereferenceVia': "LibraryOfCongress", 'hasName': "Atlas Shrugged" [ 'language': "en" ], 'hasName': "La rebelión de Atlas" [ 'language': "es" ] ], 'dereferenceVia': "IPFS" ]"#);
 
     assert_eq!(book_metadata.tree_format(false), indoc! {r#"
     c93370e7 NODE
@@ -539,6 +550,7 @@ fn test_credential() {
         'verifiedBy': Signature
     ]
     "#}.trim());
+    assert_eq!(credential.format_flat(), r#"{ ARID(4676635a) [ 'isA': "Certificate of Completion", "certificateNumber": "123-456-789", "continuingEducationUnits": 1, "expirationDate": 2028-01-01, "firstName": "James", "issueDate": 2020-01-01, "lastName": "Maxwell", "photo": "This is James Maxwell's photo.", "professionalDevelopmentHours": 15, "subject": "RF and Microwave Engineering", "topics": ["Subject 1", "Subject 2"], 'controller': "Example Electrical Engineering Board", 'issuer': "Example Electrical Engineering Board" ] } [ 'note': "Signed by Example Electrical Engineering Board", 'verifiedBy': Signature ]"#);
     assert_eq!(credential.tree_format(false), indoc! {r#"
     11d52de3 NODE
         397a2d4c subj WRAPPED
@@ -698,6 +710,7 @@ fn test_redacted_credential() {
         'verifiedBy': Signature
     ]
     "#}.trim());
+    assert_eq!(warranty.format_flat(), r#"{ { { ARID(4676635a) [ 'isA': "Certificate of Completion", "expirationDate": 2028-01-01, "firstName": "James", "lastName": "Maxwell", "subject": "RF and Microwave Engineering", 'issuer': "Example Electrical Engineering Board", ELIDED (7) ] } [ 'note': "Signed by Example Electrical Engineering Board", 'verifiedBy': Signature ] } [ "employeeHiredDate": 2022-01-01, "employeeStatus": "active" ] } [ 'note': "Signed by Employer Corp.", 'verifiedBy': Signature ]"#);
     assert_eq!(warranty.tree_format(false), indoc! {r#"
     a816c8ce NODE
         d4a527ac subj WRAPPED

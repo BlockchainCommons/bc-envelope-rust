@@ -10,7 +10,8 @@ use super::{EnvelopeSummary, envelope::EnvelopeCase};
 impl Envelope {
     /// Returns the envelope notation for this envelope.
     pub fn format_opt(&self, context: Option<&FormatContext>) -> String {
-        self.format_item(context.unwrap_or(&FormatContext::default())).format().trim().to_string()
+        let context = context.cloned().unwrap_or(FormatContext::default());
+        self.format_item(&context).format(context.is_flat()).trim().to_string()
     }
 
     /// Returns the envelope notation for this envelope.
@@ -19,6 +20,16 @@ impl Envelope {
     pub fn format(&self) -> String {
         with_format_context!(|context| {
             self.format_opt(Some(context))
+        })
+    }
+
+    /// Returns the envelope notation for this envelope in flat format.
+    ///
+    /// In flat format, the envelope is printed on a single line.
+    pub fn format_flat(&self) -> String {
+        with_format_context!(|context: &FormatContext| {
+            let context = context.clone().set_flat(true);
+            self.format_opt(Some(&context))
         })
     }
 
@@ -87,7 +98,7 @@ impl EnvelopeFormatItem {
         }
     }
 
-    fn nicen(&self, items: &[EnvelopeFormatItem]) -> Vec<EnvelopeFormatItem> {
+    fn nicen(items: &[EnvelopeFormatItem]) -> Vec<EnvelopeFormatItem> {
         let mut input = items.to_vec();
         let mut result: Vec<EnvelopeFormatItem> = vec![];
 
@@ -113,11 +124,11 @@ impl EnvelopeFormatItem {
         result
     }
 
-    fn indent(&self, level: usize) -> String {
+    fn indent(level: usize) -> String {
         " ".repeat(level * 4)
     }
 
-    fn add_space_at_end_if_needed(&self, s: &str) -> String {
+    fn add_space_at_end_if_needed(s: &str) -> String {
         if s.is_empty() {
             " ".to_string()
         } else if s.ends_with(' ') {
@@ -127,39 +138,79 @@ impl EnvelopeFormatItem {
         }
     }
 
-    fn format(&self) -> String {
+    fn format(&self, is_flat: bool) -> String {
+        if is_flat {
+            return self.format_flat();
+        }
+        self.format_hierarchical()
+    }
+
+    fn format_flat(&self) -> String {
+        let mut line: String = "".to_string();
+        let items = self.flatten();
+        for item in items {
+            match item {
+                EnvelopeFormatItem::Begin(s) => {
+                    if !line.ends_with(' ') {
+                        line += " ";
+                    }
+                    line += &s;
+                    line += " ";
+                },
+                EnvelopeFormatItem::End(s) => {
+                    if !line.ends_with(' ') {
+                        line += " ";
+                    }
+                    line += &s;
+                    line += " ";
+                },
+                EnvelopeFormatItem::Item(s) => line += &s,
+                EnvelopeFormatItem::Separator => {
+                    line = line.trim_end().to_string() + ", ";
+                },
+                EnvelopeFormatItem::List(items) => {
+                    for item in items {
+                        line += &item.format_flat();
+                    }
+                }
+            }
+        }
+        line
+    }
+
+    fn format_hierarchical(&self) -> String {
         let mut lines: Vec<String> = vec![];
         let mut level = 0;
         let mut current_line = "".to_string();
-        let items = self.nicen(&self.flatten());
+        let items = Self::nicen(&self.flatten());
         for item in items {
             match item {
-                EnvelopeFormatItem::Begin(string) => {
-                    if !string.is_empty() {
+                EnvelopeFormatItem::Begin(delimiter) => {
+                    if !delimiter.is_empty() {
                         let c = if current_line.is_empty() {
-                            string
+                            delimiter
                         } else {
-                            self.add_space_at_end_if_needed(&current_line) + &string
+                            Self::add_space_at_end_if_needed(&current_line) + &delimiter
                         };
-                        lines.push(self.indent(level) + &c + "\n");
+                        lines.push(Self::indent(level) + &c + "\n");
                     }
                     level += 1;
                     current_line = "".to_string();
                 }
-                EnvelopeFormatItem::End(string) => {
+                EnvelopeFormatItem::End(delimiter) => {
                     if !current_line.is_empty() {
-                        lines.push(self.indent(level) + &current_line + "\n");
+                        lines.push(Self::indent(level) + &current_line + "\n");
                         current_line = "".to_string();
                     }
                     level -= 1;
-                    lines.push(self.indent(level) + &string + "\n");
+                    lines.push(Self::indent(level) + &delimiter + "\n");
                 }
                 EnvelopeFormatItem::Item(string) => {
                     current_line += &string;
                 }
                 EnvelopeFormatItem::Separator => {
                     if !current_line.is_empty() {
-                        lines.push(self.indent(level) + &current_line + "\n");
+                        lines.push(Self::indent(level) + &current_line + "\n");
                         current_line = "".to_string();
                     }
                 }

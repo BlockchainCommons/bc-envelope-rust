@@ -29,6 +29,7 @@ use crate::extension::expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNC
 /// ```
 #[derive(Clone, Debug)]
 pub struct FormatContext {
+    flat: bool,
     tags: TagsStore,
     #[cfg(feature = "known_value")]
     known_values: KnownValuesStore,
@@ -40,6 +41,7 @@ pub struct FormatContext {
 
 impl FormatContext {
     pub fn new(
+        flat: bool,
         tags: Option<&TagsStore>,
         #[cfg(feature = "known_value")]
         known_values: Option<&KnownValuesStore>,
@@ -49,6 +51,7 @@ impl FormatContext {
         parameters: Option<&ParametersStore>,
     ) -> Self {
         Self {
+            flat,
             tags: tags.cloned().unwrap_or_default(),
             #[cfg(feature = "known_value")]
             known_values: known_values.cloned().unwrap_or_default(),
@@ -57,6 +60,15 @@ impl FormatContext {
             #[cfg(feature = "expression")]
             parameters: parameters.cloned().unwrap_or_default(),
         }
+    }
+
+    pub fn is_flat(&self) -> bool {
+        self.flat
+    }
+
+    pub fn set_flat(mut self, flat: bool) -> Self {
+        self.flat = flat;
+        self
     }
 
     pub fn tags(&self) -> &TagsStore {
@@ -98,6 +110,7 @@ impl FormatContext {
 impl Default for FormatContext {
     fn default() -> Self {
         Self::new(
+            false,
             None,
             #[cfg(feature = "known_value")]
             None,
@@ -135,6 +148,7 @@ impl LazyFormatContext {
             let parameters = parameters_binding.as_ref().unwrap();
 
             let context = FormatContext::new(
+                false,
                 Some(tags),
                 #[cfg(feature = "known_value")]
                 Some(known_values),
