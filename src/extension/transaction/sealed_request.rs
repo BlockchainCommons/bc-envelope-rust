@@ -1,4 +1,4 @@
-use anyhow::{Error, Result};
+use anyhow::{bail, Error, Result};
 use bc_components::{PrivateKeyBase, PublicKeyBase, ARID};
 use dcbor::{prelude::*, Date};
 
@@ -6,7 +6,7 @@ use crate::{known_values, Envelope, EnvelopeEncodable, Expression, ExpressionBeh
 
 use super::Continuation;
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SealedRequest {
     request: Request,
     sender: PublicKeyBase,
@@ -16,20 +16,13 @@ pub struct SealedRequest {
     peer_continuation: Option<Envelope>,
 }
 
-impl std::fmt::Debug for SealedRequest {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("SealedRequest")
-            .field("request", &self.request)
-            .field("sender", &self.sender)
-            .field("state", &self.state)
-            .field("peer_continuation", &self.peer_continuation)
-            .finish()
-    }
-}
-
 impl std::fmt::Display for SealedRequest {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} state: {:?}", self.request, self.state)
+        write!(f, "SealedRequest({}, state: {}, peer_continuation: {})",
+            self.request.summary(),
+            self.state.clone().map_or_else(|| "None".to_string(), |state| state.format_flat()),
+            self.peer_continuation.clone().map_or_else(|| "None".to_string(), |_| "Some".to_string())
+        )
     }
 }
 
@@ -294,6 +287,11 @@ impl TryFrom<(Envelope, Option<&ARID>, Option<&Date>, &PrivateKeyBase)> for Seal
         let sender_public_key: PublicKeyBase = signed_envelope.unwrap_envelope()?.extract_object_for_predicate(known_values::SENDER_PUBLIC_KEY)?;
         let request_envelope = signed_envelope.verify(&sender_public_key)?;
         let peer_continuation = request_envelope.optional_object_for_predicate(known_values::SENDER_CONTINUATION)?;
+        if let Some(some_peer_continuation) = peer_continuation.clone() {
+            if !some_peer_continuation.subject().is_encrypted() {
+                bail!("Peer continuation must be encrypted");
+            }
+        }
         let encrypted_continuation = request_envelope.optional_object_for_predicate(known_values::RECIPIENT_CONTINUATION)?;
         let state: Option<Envelope>;
         if let Some(encrypted_continuation) = encrypted_continuation {

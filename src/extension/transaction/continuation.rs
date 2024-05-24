@@ -110,10 +110,10 @@ impl TryFrom<(Envelope, Option<&ARID>, Option<&Date>)> for Continuation {
             valid_until: envelope.extract_optional_object_for_predicate(known_values::VALID_UNTIL)?,
         };
         if !continuation.is_valid_date(now) {
-            bail!("Continuation expired.");
+            bail!("Continuation expired");
         }
         if !continuation.is_valid_id(id) {
-            bail!("Continuation ID invalid.");
+            bail!("Continuation ID invalid");
         }
         Ok(continuation)
     }

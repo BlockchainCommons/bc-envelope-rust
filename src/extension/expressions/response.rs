@@ -6,43 +6,29 @@ use dcbor::CBOR;
 
 use crate::{known_values, Envelope, EnvelopeEncodable, KnownValue};
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Response (Result<(ARID, Envelope), (Option<ARID>, Envelope)>);
-
-impl std::fmt::Debug for Response {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.0 {
-            Ok((id, result)) => {
-                f.debug_tuple("Ok")
-                    .field(id)
-                    .field(result)
-                    .finish()
-            }
-            Err((id, error)) => {
-                f.debug_tuple("Err")
-                    .field(id)
-                    .field(error)
-                    .finish()
-            }
-        }
-    }
-}
 
 impl std::fmt::Display for Response {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Response({})", self.summary())
+    }
+}
+
+impl Response {
+    pub fn summary(&self) -> String {
         match &self.0 {
-            Ok((id, result)) => write!(f, "Success({}): {}", id.short_description(), result.format()),
+            Ok((id, result)) => format!("id: {}, result: {}", id.short_description(), result.format_flat()),
             Err((id, error)) => {
                 if let Some(id) = id {
-                    write!(f, "Failure({}): {}", id.short_description(), error.format())
+                    format!("id: {} error: {}", id.short_description(), error.format_flat())
                 } else {
-                    write!(f, "Failure('Unknown'): {}", error.format())
+                    format!("id: 'Unknown' error: {}", error.format_flat())
                 }
             }
         }
     }
 }
-
 
 impl Envelope {
     pub fn unknown() -> Self {

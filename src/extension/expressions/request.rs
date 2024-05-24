@@ -4,7 +4,7 @@ use dcbor::{Date, prelude::*};
 
 use crate::{known_values, Envelope, EnvelopeEncodable, Expression, ExpressionBehavior, Function, Parameter};
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Request {
     body: Expression,
     id: ARID,
@@ -14,18 +14,13 @@ pub struct Request {
 
 impl std::fmt::Display for Request {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Request({}) {}", self.id.short_description(), self.body)
+        write!(f, "Request({})", self.summary())
     }
 }
 
-impl std::fmt::Debug for Request {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Request")
-            .field("id", &self.id)
-            .field("body", &self.body)
-            .field("note", &self.note)
-            .field("date", &self.date)
-            .finish()
+impl Request {
+    pub fn summary(&self) -> String {
+        format!("id: {}, body: {}", self.id.short_description(), self.body.expression_envelope().format_flat())
     }
 }
 

@@ -4,7 +4,7 @@ use dcbor::prelude::*;
 
 use crate::{Envelope, EnvelopeEncodable, Function, Parameter};
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     function: Function,
     envelope: Envelope,
@@ -22,13 +22,7 @@ impl Expression {
 
 impl std::fmt::Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.envelope)
-    }
-}
-
-impl std::fmt::Debug for Expression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.envelope.format())
+        write!(f, "{:?}", self.envelope.format())
     }
 }
 
