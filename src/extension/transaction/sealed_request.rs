@@ -131,6 +131,9 @@ pub trait SealedRequestBehavior: RequestBehavior {
     /// Adds state to the request that the receiver must return in the response.
     fn with_state(self, state: impl EnvelopeEncodable) -> Self;
 
+    /// Adds state to the request that the receiver must return in the response.
+    fn with_optional_state(self, state: Option<impl EnvelopeEncodable>) -> Self;
+
     /// Adds a continuation we previously received from the recipient and want to send back to them.
     fn with_peer_continuation(self, peer_continuation: Envelope) -> Self;
 
@@ -157,6 +160,11 @@ pub trait SealedRequestBehavior: RequestBehavior {
 impl SealedRequestBehavior for SealedRequest {
     fn with_state(mut self, state: impl EnvelopeEncodable) -> Self {
         self.state = Some(state.into_envelope());
+        self
+    }
+
+    fn with_optional_state(mut self, state: Option<impl EnvelopeEncodable>) -> Self {
+        self.state = state.map(|state| state.into_envelope());
         self
     }
 
@@ -199,24 +207,20 @@ impl From<SealedRequest> for Expression {
     }
 }
 
-/// SealedRequst + optional valid until date -> Envelope
+/// SealedRequest + optional valid_until date -> Envelope
 impl From<(SealedRequest, Option<&Date>)> for Envelope {
     fn from((sealed_request, valid_until): (SealedRequest, Option<&Date>)) -> Self {
-        let sender_continuation: Option<Envelope>;
-        if let Some(state) = &sealed_request.state {
-            sender_continuation =
-                Some((
-                    Continuation::new_request(state, sealed_request.id())
-                        .with_optional_valid_until(valid_until),
-                    &sealed_request.sender
-                ).into());
-        } else {
-            sender_continuation = None;
-        }
+        // Even if no state is provided, requests always include a continuation
+        // that at least specifies the required valid response ID.
+        let state = sealed_request.state.clone().unwrap_or(Envelope::null());
+        let continuation = Continuation::new(state)
+                    .with_valid_id(sealed_request.id())
+                    .with_optional_valid_until(valid_until);
+        let sender_continuation: Envelope = (continuation, &sealed_request.sender).into();
 
         sealed_request.request.into_envelope()
             .add_assertion(known_values::SENDER_PUBLIC_KEY, sealed_request.sender.to_envelope())
-            .add_optional_assertion(known_values::SENDER_CONTINUATION, sender_continuation)
+            .add_assertion(known_values::SENDER_CONTINUATION, sender_continuation)
             .add_optional_assertion(known_values::RECIPIENT_CONTINUATION, sealed_request.peer_continuation)
     }
 }
@@ -266,6 +270,9 @@ impl TryFrom<Envelope> for SealedRequest {
         let sender_public_key: PublicKeyBase = signed_envelope.unwrap_envelope()?.extract_object_for_predicate(known_values::SENDER_PUBLIC_KEY)?;
         let request_envelope = signed_envelope.verify(&sender_public_key)?;
         let peer_continuation = request_envelope.optional_object_for_predicate(known_values::SENDER_CONTINUATION)?;
+        if peer_continuation.is_none() {
+            bail!("Requests must contain a peer continuation");
+        }
         let request = Request::try_from(request_envelope)?;
         Ok(Self {
             request,
@@ -390,7 +397,7 @@ mod tests {
         // Normally you'll never need to compose a `Continuation` struct directly.
         // It is indirectly constructed using the `state` attribute of a `SealedRequest`
         // or `SealedResponse` struct.
-        let server_continuation = Continuation::new_response(server_state)
+        let server_continuation = Continuation::new(server_state)
             .with_valid_until(server_continuation_valid_until);
         let server_continuation: Envelope = (server_continuation, &server_public_key).into();
 

@@ -212,7 +212,7 @@ impl From<(SealedResponse, Option<&Date>)> for Envelope {
     fn from((sealed_response, valid_until): (SealedResponse, Option<&Date>)) -> Self {
         let sender_continuation: Option<Envelope>;
         if let Some(state) = &sealed_response.state {
-            let continuation = Continuation::new_response(state)
+            let continuation = Continuation::new(state)
                         .with_optional_valid_until(valid_until);
             sender_continuation =
                 Some((
@@ -223,10 +223,12 @@ impl From<(SealedResponse, Option<&Date>)> for Envelope {
             sender_continuation = None;
         }
 
+        let peer_continuation = sealed_response.peer_continuation.expect("Responses require a peer continuation");
+
         sealed_response.response.into_envelope()
             .add_assertion(known_values::SENDER_PUBLIC_KEY, sealed_response.sender.to_envelope())
             .add_optional_assertion(known_values::SENDER_CONTINUATION, sender_continuation)
-            .add_optional_assertion(known_values::RECIPIENT_CONTINUATION, sealed_response.peer_continuation)
+            .add_assertion(known_values::RECIPIENT_CONTINUATION, peer_continuation)
     }
 }
 
@@ -285,7 +287,11 @@ impl TryFrom<(Envelope, Option<&ARID>, Option<&Date>, &PrivateKeyBase)> for Seal
         let state: Option<Envelope>;
         if let Some(encrypted_continuation) = encrypted_continuation {
             let continuation = Continuation::try_from((encrypted_continuation, id, now, recipient_private_key))?;
-            state = Some(continuation.state().clone());
+            if continuation.state().is_null() {
+                state = None;
+            } else {
+                state = Some(continuation.state().clone());
+            }
         } else {
             state = None;
         }

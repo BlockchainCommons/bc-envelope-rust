@@ -23,20 +23,24 @@ impl PartialEq for Continuation {
 // Composition
 //
 impl Continuation {
-    pub fn new_request(state: impl EnvelopeEncodable, valid_id: impl AsRef<ARID>) -> Self {
-        Self {
-            state: state.into_envelope(),
-            valid_id: Some(valid_id.as_ref().clone()),
-            valid_until: None,
-        }
-    }
-
-    pub fn new_response(state: impl EnvelopeEncodable) -> Self {
+    pub fn new(state: impl EnvelopeEncodable) -> Self {
         Self {
             state: state.into_envelope(),
             valid_id: None,
             valid_until: None,
         }
+    }
+
+    pub fn with_valid_id(mut self, valid_id: impl AsRef<ARID>) -> Self {
+        self.valid_id = Some(valid_id.as_ref().clone());
+        self
+    }
+
+    pub fn with_optional_valid_id(self, valid_id: Option<impl AsRef<ARID>>) -> Self {
+        if let Some(valid_id) = valid_id {
+            return self.with_valid_id(valid_id);
+        }
+        self
     }
 
     pub fn with_valid_until(mut self, valid_until: impl AsRef<Date>) -> Self {
@@ -153,14 +157,15 @@ mod tests {
     fn request_continuation() -> Continuation {
         let valid_duration = Duration::from_secs(60);
         let valid_until = request_date() + valid_duration;
-        Continuation::new_request("The state of things.", request_id())
+        Continuation::new("The state of things.")
+            .with_valid_id(request_id())
             .with_valid_until(valid_until)
     }
 
     fn response_continuation() -> Continuation {
         let valid_duration = Duration::from_secs(60 * 60);
         let valid_until = request_date() + valid_duration;
-        Continuation::new_response("The state of things.")
+        Continuation::new("The state of things.")
             .with_valid_until(valid_until)
     }
 
