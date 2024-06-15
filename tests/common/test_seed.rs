@@ -115,18 +115,18 @@ impl CBORTaggedDecodable for Seed {
     }
 }
 
-impl EnvelopeEncodable for Seed {
-    fn into_envelope(self: Seed) -> Envelope {
-        let mut e = Envelope::new(CBOR::to_byte_string(self.data()))
+impl From<Seed> for Envelope {
+    fn from(seed: Seed) -> Self {
+        let mut e = Envelope::new(CBOR::to_byte_string(seed.data()))
             .add_type(known_values::SEED_TYPE)
-            .add_optional_assertion(known_values::DATE, self.creation_date().cloned());
+            .add_optional_assertion(known_values::DATE, seed.creation_date().cloned());
 
-        if !self.name().is_empty() {
-            e = e.add_assertion(known_values::HAS_NAME, self.name());
+        if !seed.name().is_empty() {
+            e = e.add_assertion(known_values::HAS_NAME, seed.name());
         }
 
-        if !self.note().is_empty() {
-            e = e.add_assertion(known_values::NOTE, self.note());
+        if !seed.note().is_empty() {
+            e = e.add_assertion(known_values::NOTE, seed.note());
         }
 
         e
