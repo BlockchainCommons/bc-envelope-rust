@@ -19,14 +19,14 @@ impl Envelope {
     /// Splits the envelope into a set of SSKR shares.
     ///
     /// The envelope subject should already be encrypted by a specific `SymmetricKey`
-    /// known as the `contentKey`.
+    /// known as the `content_key`.
     ///
     /// Each returned envelope will have an `sskrShare: SSKRShare` assertion added to
     /// it.
     ///
     /// - Parameters:
     ///   - spec: The SSKR split specification.
-    ///   - contentKey: The `SymmetricKey` used to encrypt the envelope's subject.
+    ///   - content_key: The `SymmetricKey` used to encrypt the envelope's subject.
     ///
     /// - Returns: An array of arrays. Each element of the outer array represents an
     /// SSKR group, and the elements of each inner array are the envelope with a unique
@@ -36,18 +36,36 @@ impl Envelope {
         self.sskr_split_using(spec, content_key, &mut rng)
     }
 
-    #[doc(hidden)]
     /// Splits the envelope into a set of SSKR shares.
     ///
     /// The envelope subject should already be encrypted by a specific `SymmetricKey`
-    /// known as the `contentKey`.
+    /// known as the `content_key`.
     ///
     /// Each returned envelope will have an `sskrShare: SSKRShare` assertion added to
     /// it.
     ///
     /// - Parameters:
     ///   - spec: The SSKR split specification.
-    ///   - contentKey: The `SymmetricKey` used to encrypt the envelope's subject.
+    ///   - content_key: The `SymmetricKey` used to encrypt the envelope's subject.
+    ///
+    /// - Returns: An array of shares. Each element of the array represents an
+    /// SSKR share.
+    pub fn sskr_split_flattened(&self, spec: &SSKRSpec, content_key: &SymmetricKey) -> Result<Vec<Envelope>> {
+        Ok(self.sskr_split(spec, content_key)?.into_iter().flatten().collect())
+    }
+
+    #[doc(hidden)]
+    /// Splits the envelope into a set of SSKR shares.
+    ///
+    /// The envelope subject should already be encrypted by a specific `SymmetricKey`
+    /// known as the `content_key`.
+    ///
+    /// Each returned envelope will have an `sskrShare: SSKRShare` assertion added to
+    /// it.
+    ///
+    /// - Parameters:
+    ///   - spec: The SSKR split specification.
+    ///   - content_key: The `SymmetricKey` used to encrypt the envelope's subject.
     ///
     /// - Returns: An array of arrays. Each element of the outer array represents an
     /// SSKR group, and the elements of each inner array are the envelope with a unique

@@ -386,6 +386,7 @@ pub mod prelude;
 
 mod string_utils;
 
+use bc_components::SymmetricKey;
 #[cfg(any(feature = "signature", feature = "recipient"))]
 use bc_components::{PrivateKeyBase, PublicKeyBase};
 
@@ -420,6 +421,22 @@ pub use extension::{
     SealedResponse,
     SealedResponseBehavior,
 };
+
+#[cfg(feature = "encrypt")]
+impl Envelope {
+    pub fn encrypt(&self, key: &SymmetricKey) -> Envelope {
+        self
+            .wrap_envelope()
+            .encrypt_subject(key)
+            .unwrap()
+    }
+
+    pub fn decrypt(&self, key: &SymmetricKey) -> Result<Envelope> {
+        self
+            .decrypt_subject(key)?
+            .unwrap_envelope()
+    }
+}
 
 #[cfg(feature = "signature")]
 impl Envelope {
