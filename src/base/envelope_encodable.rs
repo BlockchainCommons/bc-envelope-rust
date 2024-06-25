@@ -3,7 +3,6 @@ use bc_components::{Digest, PrivateKeyBase, PublicKeyBase, SSKRShare, Salt, Seal
 use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
-use bytes::Bytes;
 #[cfg(any(feature = "encrypt", feature = "compress"))]
 use anyhow::{Error, Result};
 use dcbor::CBOR;
@@ -88,7 +87,7 @@ impl_envelope_encodable!(bool);
 impl_envelope_encodable!(f64);
 impl_envelope_encodable!(f32);
 
-impl_envelope_encodable!(Bytes);
+impl_envelope_encodable!(dcbor::ByteString);
 
 impl_envelope_encodable!(dcbor::Date);
 impl_envelope_encodable!(PublicKeyBase);

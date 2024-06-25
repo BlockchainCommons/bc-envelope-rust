@@ -31,8 +31,8 @@ impl Envelope {
                 if digest != self.digest().as_ref() {
                     bail!(EnvelopeError::InvalidDigest);
                 }
-                let a = compressed.uncompress()?;
-                let envelope = Envelope::from_tagged_cbor_data(&a)?;
+                let uncompressed_data = compressed.uncompress()?;
+                let envelope = Envelope::from_tagged_cbor_data(uncompressed_data)?;
                 if envelope.digest().as_ref() != digest {
                     bail!(EnvelopeError::InvalidDigest);
                 }

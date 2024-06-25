@@ -32,13 +32,17 @@ fn test_compress() {
 #[cfg(feature = "signature")]
 #[test]
 fn test_compress_subject() {
+    use std::{cell::RefCell, rc::Rc};
+
+    use bc_components::SigningOptions;
     use bc_envelope::known_values;
 
-    let mut rng = make_fake_random_number_generator();
+    let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
+    let options = SigningOptions::Schnorr { tag: vec![], rng };
     let original = Envelope::new("Alice")
         .add_assertion(known_values::NOTE, SOURCE)
         .wrap_envelope()
-        .add_signature_with_using(&alice_private_key(), &mut rng);
+        .add_signature_opt(&alice_private_key(), Some(options), None);
     assert_eq!(original.to_cbor_data().len(), 458);
     let s = original.tree_format(false);
     assert_eq!(s, indoc! {r#"

@@ -34,7 +34,7 @@ fn plaintext() {
 fn test_signed_plaintext() {
     // Alice sends a signed plaintext message to Bob.
     let envelope = hello_envelope()
-        .add_signature_with(&alice_private_key())
+        .add_signature(&alice_private_key())
         .check_encoding().unwrap();
     let ur = envelope.ur();
 
@@ -73,7 +73,7 @@ fn test_signed_plaintext() {
 fn multisigned_plaintext() {
     // Alice and Carol jointly send a signed plaintext message to Bob.
     let envelope = hello_envelope()
-        .add_signatures_with_keys(&[&alice_private_key(), &carol_private_key()])
+        .add_signatures(&[&alice_private_key(), &carol_private_key()])
         .check_encoding().unwrap();
     let ur = envelope.ur();
 
@@ -189,7 +189,7 @@ fn sign_then_encrypt() {
 
     // Alice signs a plaintext message, then encrypts it.
     let envelope = hello_envelope()
-        .add_signature_with(&alice_private_key())
+        .add_signature(&alice_private_key())
         .check_encoding().unwrap()
         .wrap_envelope()
         .check_encoding().unwrap()
@@ -251,7 +251,7 @@ fn test_encrypt_then_sign() {
     // decryption, and may be checked before or after decryption.
     let envelope = hello_envelope()
         .encrypt_subject(&key).unwrap()
-        .add_signature_with(&alice_private_key())
+        .add_signature(&alice_private_key())
         .check_encoding().unwrap();
     let ur = envelope.ur();
 
@@ -325,7 +325,7 @@ fn test_visible_signature_multi_recipient() {
     // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
     let content_key = SymmetricKey::new();
     let envelope = hello_envelope()
-        .add_signature_with(&alice_private_key())
+        .add_signature(&alice_private_key())
         .encrypt_subject(&content_key).unwrap()
         .add_recipient(&bob_public_key(), &content_key)
         .add_recipient(&carol_public_key(), &content_key)
@@ -376,7 +376,7 @@ fn test_hidden_signature_multi_recipient() {
     // are able to validate the signature.
     let content_key = SymmetricKey::new();
     let envelope = hello_envelope()
-        .add_signature_with(&alice_private_key())
+        .add_signature(&alice_private_key())
         .wrap_envelope()
         .encrypt_subject(&content_key).unwrap()
         .add_recipient(&bob_public_key(), &content_key)

@@ -4,7 +4,6 @@ use crate::extension::known_values;
 
 use anyhow::{bail, Result};
 use bc_components::{SealedMessage, PublicKeyBase, SymmetricKey, Nonce, PrivateKeyBase};
-use bytes::Bytes;
 use dcbor::prelude::*;
 
 /// Support for public key encryption.
@@ -23,7 +22,7 @@ impl Envelope {
     }
 
     #[doc(hidden)]
-    pub fn add_recipient_opt(&self, recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<&Bytes>, test_nonce: Option<&Nonce>) -> Self {
+    pub fn add_recipient_opt(&self, recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<&[u8]>, test_nonce: Option<&Nonce>) -> Self {
         let assertion = Self::make_has_recipient(recipient, content_key, test_key_material, test_nonce);
         self.add_assertion_envelope(assertion).unwrap()
     }
@@ -72,7 +71,7 @@ impl Envelope {
     pub fn encrypt_subject_to_recipients_opt<T>(
         &self,
         recipients: &[T],
-        test_key_material: Option<&Bytes>,
+        test_key_material: Option<&[u8]>,
         test_nonce: Option<&Nonce>
     ) -> Result<Self>
     where
@@ -102,7 +101,7 @@ impl Envelope {
 
     #[cfg(feature = "encrypt")]
     #[doc(hidden)]
-    pub fn encrypt_subject_to_recipient_opt(&self, recipient: &PublicKeyBase, test_key_material: Option<&Bytes>, test_nonce: Option<&Nonce>) -> Result<Self> {
+    pub fn encrypt_subject_to_recipient_opt(&self, recipient: &PublicKeyBase, test_key_material: Option<&[u8]>, test_nonce: Option<&Nonce>) -> Result<Self> {
         self.encrypt_subject_to_recipients_opt(&[recipient], test_key_material, test_nonce)
     }
 
@@ -143,9 +142,9 @@ impl Envelope {
     ///   - contentKey: The `SymmetricKey` that was used to encrypt the subject.
     ///
     /// - Returns: The assertion envelope.
-    fn make_has_recipient(recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<&Bytes>, test_nonce: Option<&Nonce>) -> Self
+    fn make_has_recipient(recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<&[u8]>, test_nonce: Option<&Nonce>) -> Self
     {
-        let sealed_message = SealedMessage::new_opt(content_key.to_cbor_data(), recipient, None::<Bytes>, test_key_material.cloned(), test_nonce);
+        let sealed_message = SealedMessage::new_opt(content_key.to_cbor_data(), recipient, None::<Vec<u8>>, test_key_material, test_nonce);
         Self::new_assertion(known_values::HAS_RECIPIENT, sealed_message)
     }
 }

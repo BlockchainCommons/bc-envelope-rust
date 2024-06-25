@@ -18,6 +18,10 @@ use bc_rand::make_fake_random_number_generator;
 use std::collections::HashSet;
 #[cfg(feature = "signature")]
 use bc_components::DigestProvider;
+#[cfg(feature = "signature")]
+use std::{cell::RefCell, rc::Rc};
+#[cfg(feature = "signature")]
+use bc_components::SigningOptions;
 
 #[test]
 fn test_plaintext() {
@@ -38,9 +42,10 @@ fn test_plaintext() {
 #[cfg(feature = "signature")]
 #[test]
 fn test_signed_plaintext() {
-    let mut rng = make_fake_random_number_generator();
+    let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
+    let options = SigningOptions::Schnorr { tag: vec![], rng };
     let envelope = Envelope::new(PLAINTEXT_HELLO)
-        .add_signature_with_using(&alice_private_key(), &mut rng);
+        .add_signature_opt(&alice_private_key(), Some(options), None);
     assert_eq!(envelope.format(), indoc! {r#"
     "Hello." [
         'verifiedBy': Signature
@@ -142,11 +147,12 @@ fn test_elided_object() {
 #[cfg(feature = "signature")]
 #[test]
 fn test_signed_subject() {
-    let mut rng = make_fake_random_number_generator();
+    let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
+    let options = SigningOptions::Schnorr { tag: vec![], rng };
     let envelope = Envelope::new("Alice")
         .add_assertion("knows", "Bob")
         .add_assertion("knows", "Carol")
-        .add_signature_with_using(&alice_private_key(), &mut rng);
+        .add_signature_opt(&alice_private_key(), Some(options), None);
     assert_eq!(envelope.format(), indoc! {r#"
     "Alice" [
         "knows": "Bob"
@@ -212,12 +218,13 @@ fn test_signed_subject() {
 #[cfg(feature = "signature")]
 #[test]
 fn test_wrap_then_signed() {
-    let mut rng = make_fake_random_number_generator();
+    let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
+    let options = SigningOptions::Schnorr { tag: vec![], rng };
     let envelope = Envelope::new("Alice")
         .add_assertion("knows", "Bob")
         .add_assertion("knows", "Carol")
         .wrap_envelope()
-        .add_signature_with_using(&alice_private_key(), &mut rng);
+        .add_signature_opt(&alice_private_key(), Some(options), None);
     assert_eq!(envelope.format(), indoc! {r#"
     {
         "Alice" [
@@ -263,12 +270,10 @@ fn test_wrap_then_signed() {
 #[cfg(feature = "recipient")]
 #[test]
 fn test_encrypt_to_recipients() {
-    use bytes::Bytes;
-
     let envelope = Envelope::new(PLAINTEXT_HELLO)
         .encrypt_subject_opt(&fake_content_key(), Some(fake_nonce())).unwrap().check_encoding().unwrap()
-        .add_recipient_opt(&bob_public_key(), &fake_content_key(), Some(&Bytes::copy_from_slice(fake_content_key().data())), Some(&fake_nonce())).check_encoding().unwrap()
-        .add_recipient_opt(&carol_public_key(), &fake_content_key(), Some(&Bytes::copy_from_slice(fake_content_key().data())), Some(&fake_nonce())).check_encoding().unwrap();
+        .add_recipient_opt(&bob_public_key(), &fake_content_key(), Some(fake_content_key().data()), Some(&fake_nonce())).check_encoding().unwrap()
+        .add_recipient_opt(&carol_public_key(), &fake_content_key(), Some(fake_content_key().data()), Some(&fake_nonce())).check_encoding().unwrap();
     assert_eq!(envelope.format(), indoc! {r#"
     ENCRYPTED [
         'hasRecipient': SealedMessage
@@ -503,7 +508,8 @@ fn test_complex_metadata() {
 
 #[cfg(feature = "signature")]
 fn credential() -> Envelope {
-    let mut rng = make_fake_random_number_generator();
+    let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
+    let options = SigningOptions::Schnorr { tag: vec![], rng };
     Envelope::new(ARID::from_data(hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")))
         .add_assertion(known_values::IS_A, "Certificate of Completion")
         .add_assertion(known_values::ISSUER, "Example Electrical Engineering Board")
@@ -519,7 +525,7 @@ fn credential() -> Envelope {
         .add_assertion("professionalDevelopmentHours", 15)
         .add_assertion("topics", vec!["Subject 1", "Subject 2"].to_cbor())
         .wrap_envelope()
-        .add_signature_with_using(&alice_private_key(), &mut rng)
+        .add_signature_opt(&alice_private_key(), Some(options), None)
         .add_assertion(known_values::NOTE, "Signed by Example Electrical Engineering Board")
         .check_encoding().unwrap()
 }
@@ -675,14 +681,15 @@ fn test_redacted_credential() {
     target.extend(content.assertion_with_predicate("subject").unwrap().shallow_digests());
     target.extend(content.assertion_with_predicate("expirationDate").unwrap().shallow_digests());
     let redacted_credential = credential.elide_revealing_set(&target);
-    let mut rng = make_fake_random_number_generator();
+    let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
+    let options = SigningOptions::Schnorr { tag: vec![], rng };
     let warranty = redacted_credential
         .wrap_envelope()
         .add_assertion("employeeHiredDate", dcbor::Date::from_string("2022-01-01").unwrap())
         .add_assertion("employeeStatus", "active")
         .wrap_envelope()
         .add_assertion(known_values::NOTE, "Signed by Employer Corp.")
-        .add_signature_with_using(&bob_private_key(), &mut rng)
+        .add_signature_opt(&bob_private_key(), Some(options), None)
         .check_encoding().unwrap();
     assert_eq!(warranty.format(), indoc! {r#"
     {

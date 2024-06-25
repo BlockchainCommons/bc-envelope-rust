@@ -24,6 +24,7 @@ itertools = "^0.11.0"
 thiserror = "^1.0.48"
 anyhow = "^1.0.0"
 bytes = "^1.5.0"
+ssh-key = { version = "=0.6.6", optional = true, default-features = false, features = ["ecdsa", "rand_core", "std", "crypto"] }
 
 [dev-dependencies]
 hex-literal = "^0.4.1"
@@ -42,6 +43,7 @@ proof = []
 recipient = ["encrypt"]
 salt = ["known_value"]
 signature = ["known_value"]
+ssh = ["dep:ssh-key", "signature"]
 sskr = ["encrypt"]
 transaction = ["expression", "signature", "recipient"]
 types = ["known_value"]
@@ -55,6 +57,7 @@ default = [
     "proof",
     "recipient",
     "salt",
+    "ssh",
     "signature",
     "sskr",
     "transaction",

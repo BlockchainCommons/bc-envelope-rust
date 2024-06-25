@@ -386,6 +386,7 @@ pub mod prelude;
 
 mod string_utils;
 
+use bc_components::Signer;
 use bc_components::SymmetricKey;
 #[cfg(any(feature = "signature", feature = "recipient"))]
 use bc_components::{PrivateKeyBase, PublicKeyBase};
@@ -440,10 +441,10 @@ impl Envelope {
 
 #[cfg(feature = "signature")]
 impl Envelope {
-    pub fn sign(&self, sender: &PrivateKeyBase) -> Envelope {
+    pub fn sign(&self, sender: &impl Signer) -> Envelope {
         self
             .wrap_envelope()
-            .add_signature_with(sender)
+            .add_signature(sender)
     }
 
     pub fn verify(&self, sender: &PublicKeyBase) -> Result<Envelope> {
@@ -471,7 +472,7 @@ impl Envelope {
 
 #[cfg(all(feature = "signature", feature = "recipient"))]
 impl Envelope {
-    pub fn seal(&self, sender: &PrivateKeyBase, recipient: &PublicKeyBase) -> Envelope {
+    pub fn seal(&self, sender: &impl Signer, recipient: &PublicKeyBase) -> Envelope {
         self
             .sign(sender)
             .encrypt_to_recipient(recipient)

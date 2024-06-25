@@ -1,14 +1,14 @@
-use bytes::Bytes;
 use dcbor::prelude::*;
 use anyhow::{Error, Result};
 
 use crate::Envelope;
 
-impl TryFrom<Envelope> for Bytes {
+impl TryFrom<Envelope> for ByteString {
     type Error = Error;
 
     fn try_from(envelope: Envelope) -> Result<Self> {
-        envelope.try_leaf()?.try_into()
+        let cbor = envelope.try_leaf()?;
+        cbor.try_into()
     }
 }
 
@@ -17,7 +17,7 @@ impl Envelope {
         cbor.try_into()
     }
 
-    pub fn try_from_cbor_data(data: Bytes) -> Result<Self> {
+    pub fn try_from_cbor_data(data: Vec<u8>) -> Result<Self> {
         let cbor = CBOR::try_from_data(data)?;
         Self::try_from_cbor(cbor)
     }

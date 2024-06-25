@@ -223,12 +223,10 @@ impl From<(SealedResponse, Option<&Date>)> for Envelope {
             sender_continuation = None;
         }
 
-        let peer_continuation = sealed_response.peer_continuation.expect("Responses require a peer continuation");
-
         sealed_response.response.into_envelope()
             .add_assertion(known_values::SENDER_PUBLIC_KEY, sealed_response.sender.to_envelope())
             .add_optional_assertion(known_values::SENDER_CONTINUATION, sender_continuation)
-            .add_assertion(known_values::RECIPIENT_CONTINUATION, peer_continuation)
+            .add_optional_assertion(known_values::RECIPIENT_CONTINUATION, sealed_response.peer_continuation)
     }
 }
 
