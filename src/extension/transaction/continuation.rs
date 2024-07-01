@@ -221,7 +221,7 @@ mod tests {
     #[test]
     fn test_encrypted_continuation() -> Result<()> {
         let sender_private_key = PrivateKeyBase::new();
-        let sender_public_key = sender_private_key.public_key();
+        let sender_public_key = sender_private_key.schnorr_public_key_base();
 
         let continuation = request_continuation();
         let envelope: Envelope = (continuation.clone(), &sender_public_key).into();

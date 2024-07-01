@@ -1,6 +1,6 @@
 [package]
 name = "bc-envelope"
-version = "0.17.5"
+version = "0.18.0"
 edition = "2021"
 description = "Gordian Envelope for Rust."
 authors = ["Blockchain Commons"]
@@ -12,11 +12,11 @@ categories = ["data-structures", "encoding"]
 documentation = "https://docs.rs/bc-envelope"
 
 [dependencies]
-dcbor = { version = "^0.14.0", features = ["multithreaded"] }
-bc-rand = "^0.1.0"
-bc-crypto = "^0.3.0"
-bc-components = "^0.11.0"
-bc-ur = "^0.4.0"
+dcbor = { version = "^0.15.0", features = ["multithreaded"] }
+bc-rand = "^0.2.0"
+bc-crypto = "^0.4.0"
+bc-components = "^0.12.0"
+bc-ur = "^0.5.0"
 
 paste = "^1.0.12"
 hex = "^0.4.3"

@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/bc-envelope/0.17.5")]
+#![doc(html_root_url = "https://docs.rs/bc-envelope/0.18.0")]
 #![warn(rust_2018_idioms)]
 
 //! # Gordian Envelope: A Flexible Container for Structured Data
@@ -20,7 +20,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bc-envelope = "0.17.5"
+//! bc-envelope = "0.18.0"
 //! ```
 //!
 //! ## Specification
@@ -386,9 +386,11 @@ pub mod prelude;
 
 mod string_utils;
 
-use bc_components::Signer;
+#[cfg(feature = "signature")]
+use bc_components::{Signer, Verifier};
+#[cfg(feature = "encrypt")]
 use bc_components::SymmetricKey;
-#[cfg(any(feature = "signature", feature = "recipient"))]
+#[cfg(feature = "recipient")]
 use bc_components::{PrivateKeyBase, PublicKeyBase};
 
 #[cfg(feature = "known_value")]
@@ -447,7 +449,7 @@ impl Envelope {
             .add_signature(sender)
     }
 
-    pub fn verify(&self, sender: &PublicKeyBase) -> Result<Envelope> {
+    pub fn verify(&self, sender: &impl Verifier) -> Result<Envelope> {
         self
             .verify_signature_from(sender)?
             .unwrap_envelope()
@@ -478,7 +480,7 @@ impl Envelope {
             .encrypt_to_recipient(recipient)
     }
 
-    pub fn unseal(&self, sender: &PublicKeyBase, recipient: &PrivateKeyBase) -> Result<Envelope> {
+    pub fn unseal(&self, sender: &impl Verifier, recipient: &PrivateKeyBase) -> Result<Envelope> {
         self
             .decrypt_to_recipient(recipient)?
             .verify(sender)

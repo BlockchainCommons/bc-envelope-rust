@@ -11,7 +11,7 @@ use crate::common::check_encoding::*;
 
 #[test]
 fn test_ssh_signed_plaintext() {
-    let alice_ssh_private_key = alice_private_key().ssh_private_key_using(SSHAlgorithm::Ed25519, "alice@example.com").unwrap();
+    let alice_ssh_private_key = alice_private_key().ssh_signing_private_key(SSHAlgorithm::Ed25519, "alice@example.com").unwrap();
     let alice_ssh_public_key = alice_ssh_private_key.public_key();
 
     // Alice sends a signed plaintext message to Bob.

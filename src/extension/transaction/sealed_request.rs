@@ -374,10 +374,10 @@ mod tests {
         //
 
         let server_private_key = PrivateKeyBase::new();
-        let server_public_key = server_private_key.public_key();
+        let server_public_key = server_private_key.schnorr_public_key_base();
 
         let client_private_key = PrivateKeyBase::new();
-        let client_public_key = client_private_key.public_key();
+        let client_public_key = client_private_key.schnorr_public_key_base();
 
         let now = Date::try_from("2024-07-04T11:11:11Z")?;
 
