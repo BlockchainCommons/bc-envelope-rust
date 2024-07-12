@@ -91,8 +91,7 @@ impl Envelope {
             for assertion in envelope.assertions_with_predicate(known_values::SSKR_SHARE) {
                 let share = assertion.as_object().unwrap().extract_subject::<SSKRShare>()?;
                 let identifier = share.identifier();
-                result.entry(identifier).or_default();
-                result.get_mut(&identifier).unwrap().push(share);
+                result.entry(identifier).and_modify(|shares| shares.push(share.clone())).or_insert(vec![share]);
             }
         }
         Ok(result)
