@@ -43,7 +43,7 @@ fn test_plaintext() {
 #[test]
 fn test_signed_plaintext() {
     let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
-    let options = SigningOptions::Schnorr { tag: vec![], rng };
+    let options = SigningOptions::Schnorr { rng };
     let envelope = Envelope::new(PLAINTEXT_HELLO)
         .add_signature_opt(&alice_private_key(), Some(options), None);
     assert_eq!(envelope.format(), indoc! {r#"
@@ -52,12 +52,14 @@ fn test_signed_plaintext() {
     ]
     "#}.trim());
     assert_eq!(envelope.format_flat(), r#""Hello." [ 'verifiedBy': Signature ]"#);
-    assert_eq!(envelope.tree_format(false), indoc! {r#"
-    509d8ab2 NODE
+    let s = envelope.tree_format(false);
+    // println!("{}", s);
+    assert_eq!(s, indoc! {r#"
+    949a991e NODE
         8cc96cdb subj "Hello."
-        f761face ASSERTION
+        fcb4e2be ASSERTION
             d0e39e78 pred 'verifiedBy'
-            0d868228 obj Signature
+            b8bb043f obj Signature
     "#}.trim());
     assert_eq!(envelope.tree_format(true), indoc! {r#"
     "Hello."
@@ -148,7 +150,7 @@ fn test_elided_object() {
 #[test]
 fn test_signed_subject() {
     let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
-    let options = SigningOptions::Schnorr { tag: vec![], rng };
+    let options = SigningOptions::Schnorr { rng };
     let envelope = Envelope::new("Alice")
         .add_assertion("knows", "Bob")
         .add_assertion("knows", "Carol")
@@ -161,27 +163,31 @@ fn test_signed_subject() {
     ]
     "#}.trim());
     assert_eq!(envelope.format_flat(), r#""Alice" [ "knows": "Bob", "knows": "Carol", 'verifiedBy': Signature ]"#);
-    assert_eq!(envelope.tree_format(false), indoc! {r#"
-    98457ac2 NODE
+    let s = envelope.tree_format(false);
+    // println!("{}", s);
+    assert_eq!(s, indoc! {r#"
+    d595106e NODE
         13941b48 subj "Alice"
+        399c974c ASSERTION
+            d0e39e78 pred 'verifiedBy'
+            ff10427c obj Signature
         4012caf2 ASSERTION
             db7dd21c pred "knows"
             afb8122e obj "Carol"
-        6c31d926 ASSERTION
-            d0e39e78 pred 'verifiedBy'
-            4ab15d8b obj Signature
         78d666eb ASSERTION
             db7dd21c pred "knows"
             13b74194 obj "Bob"
     "#}.trim());
-    assert_eq!(envelope.tree_format(true), indoc! {r#"
+    let s = envelope.tree_format(true);
+    // println!("{}", s);
+    assert_eq!(s, indoc! {r#"
     "Alice"
-        ASSERTION
-            "knows"
-            "Carol"
         ASSERTION
             'verifiedBy'
             Signature
+        ASSERTION
+            "knows"
+            "Carol"
         ASSERTION
             "knows"
             "Bob"
@@ -199,13 +205,15 @@ fn test_signed_subject() {
     ]
     "#}.trim());
     assert_eq!(elided.format_flat(), r#""Alice" [ ELIDED (3) ]"#);
-    assert_eq!(elided.tree_format(false), indoc! {r#"
-    98457ac2 NODE
+    let s = elided.tree_format(false);
+    // println!("{}", s);
+    assert_eq!(s, indoc! {r#"
+    d595106e NODE
         13941b48 subj "Alice"
+        399c974c ELIDED
         4012caf2 ELIDED
-        6c31d926 ELIDED
         78d666eb ELIDED
-"#}.trim());
+    "#}.trim());
     assert_eq!(elided.tree_format(true), indoc! {r#"
     "Alice"
         ELIDED
@@ -219,7 +227,7 @@ fn test_signed_subject() {
 #[test]
 fn test_wrap_then_signed() {
     let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
-    let options = SigningOptions::Schnorr { tag: vec![], rng };
+    let options = SigningOptions::Schnorr { rng };
     let envelope = Envelope::new("Alice")
         .add_assertion("knows", "Bob")
         .add_assertion("knows", "Carol")
@@ -236,8 +244,10 @@ fn test_wrap_then_signed() {
     ]
     "#}.trim());
     assert_eq!(envelope.format_flat(), r#"{ "Alice" [ "knows": "Bob", "knows": "Carol" ] } [ 'verifiedBy': Signature ]"#);
-    assert_eq!(envelope.tree_format(false), indoc! {r#"
-    410ba52c NODE
+    let s = envelope.tree_format(false);
+    // println!("{}", s);
+    assert_eq!(s, indoc! {r#"
+    66c9d594 NODE
         9e3b0673 subj WRAPPED
             b8d857f6 subj NODE
                 13941b48 subj "Alice"
@@ -247,11 +257,13 @@ fn test_wrap_then_signed() {
                 78d666eb ASSERTION
                     db7dd21c pred "knows"
                     13b74194 obj "Bob"
-        73600f24 ASSERTION
+        f13623da ASSERTION
             d0e39e78 pred 'verifiedBy'
-            d08ddb0d obj Signature
+            e30a727c obj Signature
     "#}.trim());
-    assert_eq!(envelope.tree_format(true), indoc! {r#"
+    let s = envelope.tree_format(true);
+    // println!("{}", s);
+    assert_eq!(s, indoc! {r#"
     WRAPPED
         "Alice"
             ASSERTION
@@ -509,7 +521,7 @@ fn test_complex_metadata() {
 #[cfg(feature = "signature")]
 fn credential() -> Envelope {
     let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
-    let options = SigningOptions::Schnorr { tag: vec![], rng };
+    let options = SigningOptions::Schnorr { rng };
     Envelope::new(ARID::from_data(hex!("4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d")))
         .add_assertion(known_values::IS_A, "Certificate of Completion")
         .add_assertion(known_values::ISSUER, "Example Electrical Engineering Board")
@@ -557,8 +569,10 @@ fn test_credential() {
     ]
     "#}.trim());
     assert_eq!(credential.format_flat(), r#"{ ARID(4676635a) [ 'isA': "Certificate of Completion", "certificateNumber": "123-456-789", "continuingEducationUnits": 1, "expirationDate": 2028-01-01, "firstName": "James", "issueDate": 2020-01-01, "lastName": "Maxwell", "photo": "This is James Maxwell's photo.", "professionalDevelopmentHours": 15, "subject": "RF and Microwave Engineering", "topics": ["Subject 1", "Subject 2"], 'controller': "Example Electrical Engineering Board", 'issuer': "Example Electrical Engineering Board" ] } [ 'note': "Signed by Example Electrical Engineering Board", 'verifiedBy': Signature ]"#);
-    assert_eq!(credential.tree_format(false), indoc! {r#"
-    11d52de3 NODE
+    let s = credential.tree_format(false);
+    // println!("{}", s);
+    assert_eq!(s, indoc! {r#"
+    0b721f78 NODE
         397a2d4c subj WRAPPED
             8122ffa9 subj NODE
                 10d3de01 subj ARID(4676635a)
@@ -601,9 +615,9 @@ fn test_credential() {
                 d3e0cc15 ASSERTION
                     6dd16ba3 pred 'issuer'
                     f8489ac1 obj "Example Electrical Engineering Board"
-        52b10e0b ASSERTION
+        46a02aaf ASSERTION
             d0e39e78 pred 'verifiedBy'
-            039ef97a obj Signature
+            34c14941 obj Signature
         e6d7fca0 ASSERTION
             0fcd6a39 pred 'note'
             f106bad1 obj "Signed by Example Electrical Engineering…"
@@ -682,7 +696,7 @@ fn test_redacted_credential() {
     target.extend(content.assertion_with_predicate("expirationDate").unwrap().shallow_digests());
     let redacted_credential = credential.elide_revealing_set(&target);
     let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
-    let options = SigningOptions::Schnorr { tag: vec![], rng };
+    let options = SigningOptions::Schnorr { rng };
     let warranty = redacted_credential
         .wrap_envelope()
         .add_assertion("employeeHiredDate", dcbor::Date::from_string("2022-01-01").unwrap())
@@ -718,12 +732,14 @@ fn test_redacted_credential() {
     ]
     "#}.trim());
     assert_eq!(warranty.format_flat(), r#"{ { { ARID(4676635a) [ 'isA': "Certificate of Completion", "expirationDate": 2028-01-01, "firstName": "James", "lastName": "Maxwell", "subject": "RF and Microwave Engineering", 'issuer': "Example Electrical Engineering Board", ELIDED (7) ] } [ 'note': "Signed by Example Electrical Engineering Board", 'verifiedBy': Signature ] } [ "employeeHiredDate": 2022-01-01, "employeeStatus": "active" ] } [ 'note': "Signed by Employer Corp.", 'verifiedBy': Signature ]"#);
-    assert_eq!(warranty.tree_format(false), indoc! {r#"
-    a816c8ce NODE
-        d4a527ac subj WRAPPED
-            3e2b6cab subj NODE
-                7506ccc6 subj WRAPPED
-                    11d52de3 subj NODE
+    let s = warranty.tree_format(false);
+    // println!("{}", s);
+    assert_eq!(s, indoc! {r#"
+    7ab3e6b1 NODE
+        3907ee6f subj WRAPPED
+            719d5955 subj NODE
+                10fb2e18 subj WRAPPED
+                    0b721f78 subj NODE
                         397a2d4c subj WRAPPED
                             8122ffa9 subj NODE
                                 10d3de01 subj ARID(4676635a)
@@ -752,9 +768,9 @@ fn test_redacted_credential() {
                                 d3e0cc15 ASSERTION
                                     6dd16ba3 pred 'issuer'
                                     f8489ac1 obj "Example Electrical Engineering Board"
-                        52b10e0b ASSERTION
+                        46a02aaf ASSERTION
                             d0e39e78 pred 'verifiedBy'
-                            039ef97a obj Signature
+                            34c14941 obj Signature
                         e6d7fca0 ASSERTION
                             0fcd6a39 pred 'note'
                             f106bad1 obj "Signed by Example Electrical Engineering…"
@@ -764,14 +780,16 @@ fn test_redacted_credential() {
                 e071508b ASSERTION
                     d03e7352 pred "employeeStatus"
                     1d7a790d obj "active"
-        4054359a ASSERTION
-            d0e39e78 pred 'verifiedBy'
-            0ea27c28 obj Signature
         874aa7e1 ASSERTION
             0fcd6a39 pred 'note'
             f59806d2 obj "Signed by Employer Corp."
+        d21d2033 ASSERTION
+            d0e39e78 pred 'verifiedBy'
+            5ba600c9 obj Signature
     "#}.trim());
-    assert_eq!(warranty.tree_format(true), indoc! {r#"
+    let s = warranty.tree_format(true);
+    // println!("{}", s);
+    assert_eq!(s, indoc! {r#"
     WRAPPED
         WRAPPED
             WRAPPED
@@ -814,11 +832,11 @@ fn test_redacted_credential() {
                 "employeeStatus"
                 "active"
         ASSERTION
-            'verifiedBy'
-            Signature
-        ASSERTION
             'note'
             "Signed by Employer Corp."
+        ASSERTION
+            'verifiedBy'
+            Signature
     "#}.trim());
     assert_eq!(warranty.elements_count(), warranty.tree_format(false).split('\n').count());
 }

@@ -38,34 +38,36 @@ fn test_compress_subject() {
     use bc_envelope::known_values;
 
     let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
-    let options = SigningOptions::Schnorr { tag: vec![], rng };
+    let options = SigningOptions::Schnorr { rng };
     let original = Envelope::new("Alice")
         .add_assertion(known_values::NOTE, SOURCE)
         .wrap_envelope()
         .add_signature_opt(&alice_private_key(), Some(options), None);
     assert_eq!(original.to_cbor_data().len(), 458);
     let s = original.tree_format(false);
+    // println!("{}", s);
     assert_eq!(s, indoc! {r#"
-    9ed291b0 NODE
+    ec608f27 NODE
         d7183f04 subj WRAPPED
             7f35e345 subj NODE
                 13941b48 subj "Alice"
                 9fb69539 ASSERTION
                     0fcd6a39 pred 'note'
                     e343c9b4 obj "Lorem ipsum dolor sit amet consectetur a…"
-        2f87ba42 ASSERTION
+        0db2ee20 ASSERTION
             d0e39e78 pred 'verifiedBy'
-            dd386db5 obj Signature
+            f0d3ce4c obj Signature
     "#}.trim());
     let compressed = original.compress_subject().unwrap().check_encoding().unwrap();
     assert_eq!(compressed.clone().to_cbor_data().len(), 374);
     let s = compressed.tree_format(false);
+    // println!("{}", s);
     assert_eq!(s, indoc! {r#"
-    9ed291b0 NODE
+    ec608f27 NODE
         d7183f04 subj COMPRESSED
-        2f87ba42 ASSERTION
+        0db2ee20 ASSERTION
             d0e39e78 pred 'verifiedBy'
-            dd386db5 obj Signature
+            f0d3ce4c obj Signature
     "#}.trim());
     let uncompressed = compressed.uncompress_subject().unwrap().check_encoding().unwrap();
     assert_eq!(uncompressed.digest(), original.digest());
