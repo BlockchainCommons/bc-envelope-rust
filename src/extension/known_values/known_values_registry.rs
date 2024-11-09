@@ -23,7 +23,7 @@ known_value_constant!(NOTE, 4, "note");
 known_value_constant!(HAS_RECIPIENT, 5, "hasRecipient");
 known_value_constant!(SSKR_SHARE, 6, "sskrShare");
 known_value_constant!(CONTROLLER, 7, "controller");
-known_value_constant!(PUBLIC_KEYS, 8, "publicKeys");
+known_value_constant!(KEY, 8, "key");
 known_value_constant!(DEREFERENCE_VIA, 9, "dereferenceVia");
 known_value_constant!(ENTITY, 10, "entity");
 known_value_constant!(HAS_NAME, 11, "hasName");
@@ -36,6 +36,10 @@ known_value_constant!(UNKNOWN_VALUE, 17, "Unknown");
 known_value_constant!(DIFF_EDITS, 20, "edits");
 known_value_constant!(VALID_FROM, 21, "validFrom");
 known_value_constant!(VALID_UNTIL, 22, "validUntil");
+known_value_constant!(ALLOW, 23, "allow");
+known_value_constant!(DENY, 24, "deny");
+known_value_constant!(ALL, 25, "all");
+known_value_constant!(VERIFY, 26, "all");
 
 known_value_constant!(ATTACHMENT, 50, "attachment");
 known_value_constant!(VENDOR, 51, "vendor");
@@ -90,7 +94,7 @@ impl LazyKnownValues {
                 HAS_RECIPIENT,
                 SSKR_SHARE,
                 CONTROLLER,
-                PUBLIC_KEYS,
+                KEY,
                 DEREFERENCE_VIA,
                 ENTITY,
                 HAS_NAME,
@@ -103,6 +107,9 @@ impl LazyKnownValues {
                 DIFF_EDITS,
                 VALID_FROM,
                 VALID_UNTIL,
+                ALLOW,
+                DENY,
+                ALL,
 
                 ATTACHMENT,
                 VENDOR,

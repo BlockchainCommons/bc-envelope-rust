@@ -35,6 +35,12 @@ pub use crate::{
     SealedResponseBehavior,
 };
 
+#[cfg(feature = "xid")]
+pub use crate::{
+    XIDDocument,
+    XIDFunction,
+};
+
 pub use crate::elide::{
     ObscureAction,
     self,

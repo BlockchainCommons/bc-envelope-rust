@@ -1,4 +1,3 @@
-use bc_components::{Digest, ARID};
 use dcbor::prelude::*;
 use crate::{Envelope, Assertion, string_utils::StringUtils, FormatContext, with_format_context};
 #[cfg(feature = "known_value")]
@@ -296,17 +295,17 @@ impl Ord for EnvelopeFormatItem {
     }
 }
 
-impl EnvelopeFormat for Digest {
-    fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
-        EnvelopeFormatItem::Item(hex::encode(self.data()))
-    }
-}
+// impl EnvelopeFormat for Digest {
+//     fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
+//         EnvelopeFormatItem::Item(hex::encode(self.data()))
+//     }
+// }
 
-impl EnvelopeFormat for ARID {
-    fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
-        EnvelopeFormatItem::Item(hex::encode(self.data()))
-    }
-}
+// impl EnvelopeFormat for ARID {
+//     fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
+//         EnvelopeFormatItem::Item(hex::encode(self.data()))
+//     }
+// }
 
 impl EnvelopeFormat for CBOR {
     fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {

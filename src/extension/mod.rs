@@ -96,3 +96,9 @@ pub mod sskr;
 ///
 #[cfg(feature = "types")]
 pub mod types;
+
+///
+/// XID Extension
+///
+#[cfg(feature = "xid")]
+pub mod xid;

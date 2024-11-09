@@ -425,6 +425,12 @@ pub use extension::{
     SealedResponseBehavior,
 };
 
+#[cfg(feature = "xid")]
+pub use extension::xid::{
+    XIDDocument,
+    XIDFunction,
+};
+
 #[cfg(feature = "encrypt")]
 impl Envelope {
     pub fn encrypt(&self, key: &SymmetricKey) -> Envelope {
@@ -443,15 +449,15 @@ impl Envelope {
 
 #[cfg(feature = "signature")]
 impl Envelope {
-    pub fn sign(&self, sender: &impl Signer) -> Envelope {
+    pub fn sign(&self, signer: &impl Signer) -> Envelope {
         self
             .wrap_envelope()
-            .add_signature(sender)
+            .add_signature(signer)
     }
 
-    pub fn verify(&self, sender: &impl Verifier) -> Result<Envelope> {
+    pub fn verify(&self, verifier: &impl Verifier) -> Result<Envelope> {
         self
-            .verify_signature_from(sender)?
+            .verify_signature_from(verifier)?
             .unwrap_envelope()
     }
 }
