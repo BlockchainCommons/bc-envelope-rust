@@ -425,12 +425,6 @@ pub use extension::{
     SealedResponseBehavior,
 };
 
-#[cfg(feature = "xid")]
-pub use extension::xid::{
-    XIDDocument,
-    XIDFunction,
-};
-
 #[cfg(feature = "encrypt")]
 impl Envelope {
     pub fn encrypt(&self, key: &SymmetricKey) -> Envelope {

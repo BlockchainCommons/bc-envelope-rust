@@ -36,10 +36,14 @@ known_value_constant!(UNKNOWN_VALUE, 17, "Unknown");
 known_value_constant!(DIFF_EDITS, 20, "edits");
 known_value_constant!(VALID_FROM, 21, "validFrom");
 known_value_constant!(VALID_UNTIL, 22, "validUntil");
-known_value_constant!(ALLOW, 23, "allow");
-known_value_constant!(DENY, 24, "deny");
-known_value_constant!(ALL, 25, "all");
-known_value_constant!(VERIFY, 26, "all");
+
+known_value_constant!(ALLOW, 30, "allow");
+known_value_constant!(DENY, 31, "deny");
+known_value_constant!(ALL, 32, "All");
+known_value_constant!(VERIFY, 33, "Verify");
+known_value_constant!(ENDPOINT, 34, "endpoint");
+known_value_constant!(DELEGATE, 35, "delegate");
+known_value_constant!(PROVENANCE, 36, "provenance");
 
 known_value_constant!(ATTACHMENT, 50, "attachment");
 known_value_constant!(VENDOR, 51, "vendor");
@@ -107,9 +111,14 @@ impl LazyKnownValues {
                 DIFF_EDITS,
                 VALID_FROM,
                 VALID_UNTIL,
+
                 ALLOW,
                 DENY,
                 ALL,
+                VERIFY,
+                ENDPOINT,
+                DELEGATE,
+                PROVENANCE,
 
                 ATTACHMENT,
                 VENDOR,

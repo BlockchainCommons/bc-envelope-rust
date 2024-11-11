@@ -1,3 +1,4 @@
+use bc_components::XID;
 use dcbor::prelude::*;
 use crate::{Envelope, Assertion, string_utils::StringUtils, FormatContext, with_format_context};
 #[cfg(feature = "known_value")]
@@ -452,6 +453,12 @@ impl EnvelopeFormat for KnownValue {
             .unwrap_or_else(|| self.name())
             .flanked_by("'", "'")
         )
+    }
+}
+
+impl EnvelopeFormat for XID {
+    fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
+        EnvelopeFormatItem::Item(hex::encode(self.data()))
     }
 }
 

@@ -47,7 +47,6 @@ ssh = ["dep:ssh-key", "signature"]
 sskr = ["encrypt"]
 transaction = ["expression", "signature", "recipient"]
 types = ["known_value"]
-xid = ["types", "signature"]
 
 default = [
     "attachment",
@@ -63,5 +62,4 @@ default = [
     "sskr",
     "transaction",
     "types",
-    "xid",
 ]

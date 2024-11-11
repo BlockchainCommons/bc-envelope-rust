@@ -81,7 +81,6 @@ impl EnvelopeSummary for CBOR {
                     tags::DIGEST_VALUE => {
                         Ok(Digest::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("Digest(", ")"))
                     },
-                    #[cfg(feature = "xid")]
                     tags::XID_VALUE => {
                         Ok(XID::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("XID(", ")"))
                     },
