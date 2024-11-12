@@ -378,7 +378,7 @@ pub use base::Assertion;
 pub use base::Envelope;
 pub use base::EnvelopeEncodable;
 pub use base::EnvelopeError;
-pub use base::{FormatContext, GLOBAL_FORMAT_CONTEXT};
+pub use base::{register_tags, register_tags_in, FormatContext, GLOBAL_FORMAT_CONTEXT};
 pub use base::elide::{self, ObscureAction};
 
 pub mod extension;
@@ -424,10 +424,6 @@ pub use extension::{
     SealedResponse,
     SealedResponseBehavior,
 };
-
-pub fn register_tags() {
-    bc_components::register_tags();
-}
 
 #[cfg(feature = "encrypt")]
 impl Envelope {

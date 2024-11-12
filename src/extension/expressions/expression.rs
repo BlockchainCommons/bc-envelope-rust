@@ -197,23 +197,21 @@ mod tests {
 
     #[test]
     fn test_expression_1() -> Result<()> {
+        crate::register_tags();
+
         let expression = Expression::new(functions::ADD)
             .with_parameter(parameters::LHS, 2)
             .with_parameter(parameters::RHS, 3);
 
         let envelope: Envelope = expression.clone().into();
 
-        // println!("{}", envelope.format());
-        assert_eq!(
-            envelope.format(),
-            indoc! {r#"
+        let expected = indoc! {r#"
         «add» [
             ❰lhs❱: 2
             ❰rhs❱: 3
         ]
-        "#}
-            .trim()
-        );
+        "#}.trim();
+        assert_eq!(envelope.format(), expected);
 
         let parsed_expression = Expression::try_from(envelope)?;
 
@@ -235,22 +233,20 @@ mod tests {
 
     #[test]
     fn test_expression_2() -> Result<()> {
+        crate::register_tags();
+
         let expression = Expression::new("foo")
             .with_parameter("bar", "baz")
             .with_optional_parameter("qux", None::<&str>);
 
         let envelope: Envelope = expression.clone().into();
 
-        // println!("{}", envelope.format());
-        assert_eq!(
-            envelope.format(),
-            indoc! {r#"
+        let expected = indoc! {r#"
         «"foo"» [
             ❰"bar"❱: "baz"
         ]
-        "#}
-            .trim()
-        );
+        "#}.trim();
+        assert_eq!(envelope.format(), expected);
 
         let parsed_expression = Expression::try_from(envelope)?;
 

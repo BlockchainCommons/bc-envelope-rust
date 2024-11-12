@@ -198,21 +198,22 @@ mod tests {
 
     #[test]
     fn test_basic_request() -> Result<()> {
+        crate::register_tags();
+
         let request = Request::new("test", request_id())
             .with_parameter("param1", 42)
             .with_parameter("param2", "hello");
 
         let envelope: Envelope = request.clone().into();
-        // println!("{}", envelope.format());
-        assert_eq!(envelope.format(),
-        indoc!{r#"
+        let expected = indoc!{r#"
         request(ARID(c66be27d)) [
             'body': «"test"» [
                 ❰"param1"❱: 42
                 ❰"param2"❱: "hello"
             ]
         ]
-        "#}.trim());
+        "#}.trim();
+        assert_eq!(envelope.format(), expected);
 
         let parsed_request = Request::try_from(envelope)?;
         assert_eq!(parsed_request.extract_object_for_parameter::<i32>("param1")?, 42);
@@ -227,6 +228,8 @@ mod tests {
 
     #[test]
     fn test_request_with_metadata() -> Result<()> {
+        crate::register_tags();
+
         let request_date = Date::try_from("2024-07-04T11:11:11Z")?;
         let request = Request::new("test", request_id())
             .with_parameter("param1", 42)

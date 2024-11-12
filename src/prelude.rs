@@ -4,6 +4,7 @@ pub use crate::{
     FormatContext,
     with_format_context,
     register_tags,
+    register_tags_in,
 };
 
 #[cfg(feature = "known_value")]

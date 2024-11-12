@@ -368,7 +368,9 @@ mod tests {
     }
 
     #[test]
-    fn test_1() -> Result<()> {
+    fn test_sealed_request() -> Result<()> {
+        crate::register_tags();
+
         //
         // Generate keypairs for the server and client.
         //

@@ -1,10 +1,17 @@
+use bc_components::tags::*;
 use dcbor::prelude::*;
-use std::sync::{Once, Mutex};
+use std::sync::{ Arc, Mutex, Once };
 #[cfg(feature = "known_value")]
-use crate::extension::known_values::{KnownValuesStore, KNOWN_VALUES};
+use crate::extension::known_values::{ KnownValuesStore, KNOWN_VALUES };
 
 #[cfg(feature = "expression")]
-use crate::extension::expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNCTIONS, GLOBAL_PARAMETERS};
+use crate::extension::expressions::{
+    FunctionsStore,
+    ParametersStore,
+    GLOBAL_FUNCTIONS,
+    GLOBAL_PARAMETERS,
+};
+use crate::{ string_utils::StringUtils, Envelope, KnownValue };
 
 /// The envelope formatting functions take a `FormatContext` as an argument. This type
 /// defines information about CBOR tags, known values, functions and parameters that
@@ -25,7 +32,7 @@ use crate::extension::expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNC
 /// "#}.trim()
 /// );
 /// ```
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct FormatContext {
     flat: bool,
     tags: TagsStore,
@@ -41,12 +48,9 @@ impl FormatContext {
     pub fn new(
         flat: bool,
         tags: Option<&TagsStore>,
-        #[cfg(feature = "known_value")]
-        known_values: Option<&KnownValuesStore>,
-        #[cfg(feature = "expression")]
-        functions: Option<&FunctionsStore>,
-        #[cfg(feature = "expression")]
-        parameters: Option<&ParametersStore>,
+        #[cfg(feature = "known_value")] known_values: Option<&KnownValuesStore>,
+        #[cfg(feature = "expression")] functions: Option<&FunctionsStore>,
+        #[cfg(feature = "expression")] parameters: Option<&ParametersStore>
     ) -> Self {
         Self {
             flat,
@@ -73,20 +77,8 @@ impl FormatContext {
         &self.tags
     }
 
-    pub fn assigned_name_for_tag(&self, tag: &Tag) -> Option<String> {
-        self.tags.assigned_name_for_tag(tag)
-    }
-
-    pub fn name_for_tag(&self, tag: &Tag) -> String {
-        self.tags.name_for_tag(tag)
-    }
-
-    pub fn tag_for_value(&self, value: u64) -> Option<Tag> {
-        self.tags.tag_for_value(value)
-    }
-
-    pub fn tag_for_name(&self, name: &str) -> Option<Tag> {
-        self.tags.tag_for_name(name)
+    pub fn tags_mut(&mut self) -> &mut TagsStore {
+        &mut self.tags
     }
 
     #[cfg(feature = "known_value")]
@@ -105,21 +97,40 @@ impl FormatContext {
     }
 }
 
+impl TagsStoreTrait for FormatContext {
+    fn assigned_name_for_tag(&self, tag: &Tag) -> Option<String> {
+        self.tags.assigned_name_for_tag(tag)
+    }
+
+    fn name_for_tag(&self, tag: &Tag) -> String {
+        self.tags.name_for_tag(tag)
+    }
+
+    fn tag_for_name(&self, name: &str) -> Option<Tag> {
+        self.tags.tag_for_name(name)
+    }
+
+    fn tag_for_value(&self, value: u64) -> Option<Tag> {
+        self.tags.tag_for_value(value)
+    }
+
+    fn summarizer(&self, tag: TagValue) -> Option<&CBORSummarizer> {
+        self.tags.summarizer(tag)
+    }
+}
+
 impl Default for FormatContext {
     fn default() -> Self {
         Self::new(
             false,
             None,
-            #[cfg(feature = "known_value")]
-            None,
-            #[cfg(feature = "expression")]
-            None,
-            #[cfg(feature = "expression")]
-            None)
+            #[cfg(feature = "known_value")] None,
+            #[cfg(feature = "expression")] None,
+            #[cfg(feature = "expression")] None
+        )
     }
 }
 
-#[derive(Debug)]
 pub struct LazyFormatContext {
     init: Once,
     data: Mutex<Option<FormatContext>>,
@@ -149,12 +160,9 @@ impl LazyFormatContext {
             let context = FormatContext::new(
                 false,
                 Some(tags),
-                #[cfg(feature = "known_value")]
-                Some(known_values),
-                #[cfg(feature = "expression")]
-                Some(functions),
-                #[cfg(feature = "expression")]
-                Some(parameters)
+                #[cfg(feature = "known_value")] Some(known_values),
+                #[cfg(feature = "expression")] Some(functions),
+                #[cfg(feature = "expression")] Some(parameters)
             );
             *self.data.lock().unwrap() = Some(context);
         });
@@ -171,10 +179,93 @@ pub static GLOBAL_FORMAT_CONTEXT: LazyFormatContext = LazyFormatContext {
 /// A macro to access the global format context.
 #[macro_export]
 macro_rules! with_format_context {
-    ($action:expr) => {{
+    ($action:expr) => {
+        {
         let binding = $crate::GLOBAL_FORMAT_CONTEXT.get();
         let context = &*binding.as_ref().unwrap();
         #[allow(clippy::redundant_closure_call)]
         $action(context)
-    }};
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! with_format_context_mut {
+    ($action:expr) => {
+        {
+        let mut binding = $crate::GLOBAL_FORMAT_CONTEXT.get();
+        let context = binding.as_mut().unwrap();
+        #[allow(clippy::redundant_closure_call)]
+        $action(context)
+        }
+    };
+}
+
+pub fn register_tags_in(context: &mut FormatContext) {
+    bc_components::register_tags_in(context.tags_mut());
+
+    #[cfg(feature = "expression")]
+    {
+        use crate::extension::expressions::{ Function, FunctionsStore, Parameter, ParametersStore };
+
+        let functions = context.functions().clone();
+        context.tags_mut().set_summarizer(
+            TAG_FUNCTION,
+            Arc::new(move |untagged_cbor: CBOR| {
+                let f = Function::from_untagged_cbor(untagged_cbor)?;
+                Ok(FunctionsStore::name_for_function(&f, Some(&functions)).flanked_by("«", "»"))
+            })
+        );
+
+        let parameters = context.parameters().clone();
+        context.tags_mut().set_summarizer(
+            TAG_PARAMETER,
+            Arc::new(move |untagged_cbor: CBOR| {
+                let p = Parameter::from_untagged_cbor(untagged_cbor)?;
+                Ok(ParametersStore::name_for_parameter(&p, Some(&parameters)).flanked_by("❰", "❱"))
+            })
+        );
+
+        let known_values = context.known_values().clone();
+        context.tags_mut().set_summarizer(
+            TAG_KNOWN_VALUE,
+            Arc::new(move |untagged_cbor: CBOR| {
+                Ok(
+                    known_values
+                        .name(KnownValue::from_untagged_cbor(untagged_cbor)?)
+                        .flanked_by("'", "'")
+                )
+            })
+        );
+
+        let cloned_context = context.clone();
+        context.tags_mut().set_summarizer(
+            TAG_REQUEST,
+            Arc::new(move |untagged_cbor: CBOR| {
+                Ok(
+                    Envelope::new(untagged_cbor)
+                        .format_opt(Some(&cloned_context))
+                        .flanked_by("request(", ")")
+                )
+            })
+        );
+
+        let cloned_context = context.clone();
+        context.tags_mut().set_summarizer(
+            TAG_RESPONSE,
+            Arc::new(move |untagged_cbor: CBOR| {
+                Ok(
+                    Envelope::new(untagged_cbor)
+                        .format_opt(Some(&cloned_context))
+                        .flanked_by("response(", ")")
+                )
+            })
+        );
+    }
+}
+
+pub fn register_tags() {
+    with_format_context_mut!(|context: &mut FormatContext| {
+        register_tags_in(context);
+    });
 }

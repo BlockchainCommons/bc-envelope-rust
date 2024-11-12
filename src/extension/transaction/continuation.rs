@@ -171,6 +171,8 @@ mod tests {
 
     #[test]
     fn test_request_continuation() -> Result<()> {
+        crate::register_tags();
+
         let continuation = request_continuation();
         let envelope: Envelope = continuation.clone().into();
 
@@ -196,6 +198,8 @@ mod tests {
 
     #[test]
     fn test_response_continuation() -> Result<()> {
+        crate::register_tags();
+
         let continuation = response_continuation();
         let envelope: Envelope = continuation.clone().into();
 
@@ -220,6 +224,8 @@ mod tests {
 
     #[test]
     fn test_encrypted_continuation() -> Result<()> {
+        crate::register_tags();
+        
         let sender_private_key = PrivateKeyBase::new();
         let sender_public_key = sender_private_key.schnorr_public_key_base();
 

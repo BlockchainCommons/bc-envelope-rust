@@ -266,6 +266,8 @@ mod tests {
 
     #[test]
     fn test_success_ok() -> Result<()> {
+        crate::register_tags();
+
         let response = Response::new_success(request_id());
         let envelope: Envelope = response.clone().into();
 
@@ -288,6 +290,8 @@ mod tests {
 
     #[test]
     fn test_success_result() -> Result<()> {
+        crate::register_tags();
+        
         let response = Response::new_success(request_id())
             .with_result("It works!");
         let envelope: Envelope = response.clone().into();
@@ -311,6 +315,8 @@ mod tests {
 
     #[test]
     fn test_early_failure() -> Result<()> {
+        crate::register_tags();
+
         let response = Response::new_early_failure();
         let envelope: Envelope = response.clone().into();
 
@@ -333,6 +339,8 @@ mod tests {
 
     #[test]
     fn test_failure() -> Result<()> {
+        crate::register_tags();
+
         let response = Response::new_failure(request_id())
             .with_error("It doesn't work!");
         let envelope: Envelope = response.clone().into();

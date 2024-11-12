@@ -25,6 +25,7 @@ pub mod queries;
 /// Types dealing with formatting envelopes.
 pub mod format;
 pub mod format_context;
+pub use format_context::*;
 pub mod tree_format;
 
 /// Types dealing with recursive walking of envelopes.
