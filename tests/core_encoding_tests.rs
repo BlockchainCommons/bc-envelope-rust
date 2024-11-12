@@ -15,10 +15,10 @@ fn test_digest() {
 fn test_1() -> anyhow::Result<()> {
     let e = Envelope::new("Hello.");
 
-    assert_eq!(e.diagnostic(),
+    assert_eq!(e.diagnostic_annotated(),
     indoc! {r#"
     200(   / envelope /
-       201("Hello.")   / leaf /
+        201("Hello.")   / leaf /
     )
     "#}.trim()
     );
@@ -31,12 +31,12 @@ fn test_2() -> anyhow::Result<()> {
     let array: Vec<u64> = vec![1, 2, 3];
     let e = Envelope::new(Into::<CBOR>::into(array));
 
-    assert_eq!(e.diagnostic(),
+    assert_eq!(e.diagnostic_annotated(),
     indoc! {r#"
     200(   / envelope /
-       201(   / leaf /
-          [1, 2, 3]
-       )
+        201(   / leaf /
+            [1, 2, 3]
+        )
     )
     "#}.trim()
     );
@@ -61,21 +61,21 @@ fn test_3() -> anyhow::Result<()> {
         "#}.trim()
     );
 
-    // println!("{}", e4.diagnostic());
+    // println!("{}", e4.diagnostic_annotated());
 
-    assert_eq!(e4.diagnostic(),
+    assert_eq!(e4.diagnostic_annotated(),
     indoc! {r#"
     200(   / envelope /
-       [
-          {
-             201("C"):   / leaf /
-             201("D")   / leaf /
-          },
-          {
-             201("E"):   / leaf /
-             201("F")   / leaf /
-          }
-       ]
+        [
+            {
+                201("C"):   / leaf /
+                201("D")   / leaf /
+            },
+            {
+                201("E"):   / leaf /
+                201("F")   / leaf /
+            }
+        ]
     )
     "#}.trim()
     );
@@ -98,25 +98,25 @@ fn test_3() -> anyhow::Result<()> {
         "#}.trim()
     );
 
-    assert_eq!(e5.diagnostic(),
+    assert_eq!(e5.diagnostic_annotated(),
     indoc! {r#"
     200(   / envelope /
-       [
-          {
-             201("A"):   / leaf /
-             201("B")   / leaf /
-          },
-          [
-             {
-                201("C"):   / leaf /
-                201("D")   / leaf /
-             },
-             {
-                201("E"):   / leaf /
-                201("F")   / leaf /
-             }
-          ]
-       ]
+        [
+            {
+                201("A"):   / leaf /
+                201("B")   / leaf /
+            },
+            [
+                {
+                    201("C"):   / leaf /
+                    201("D")   / leaf /
+                },
+                {
+                    201("E"):   / leaf /
+                    201("F")   / leaf /
+                }
+            ]
+        ]
     )
     "#}.trim()
     );

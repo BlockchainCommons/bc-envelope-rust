@@ -127,7 +127,7 @@ impl From<&Function> for Function {
 
 impl CBORTagged for Function {
     fn cbor_tags() -> Vec<Tag> {
-        vec![tags::FUNCTION]
+        tags_for_values(&[tags::TAG_FUNCTION])
     }
 }
 

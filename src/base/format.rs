@@ -33,12 +33,14 @@ impl Envelope {
         })
     }
 
-    /// Returns the CBOR diagnostic notation for this envelope.
+    /// Returns the CBOR diagnostic notation for this envelope, with annotations.
     ///
     /// See [RFC-8949 §8](https://www.rfc-editor.org/rfc/rfc8949.html#name-diagnostic-notation)
     /// for information on CBOR diagnostic notation.
-    pub fn diagnostic_opt(&self, annotate: bool, context: Option<&FormatContext>) -> String {
-        self.tagged_cbor().diagnostic_opt(annotate, Some(context.unwrap_or(&FormatContext::default()).tags()))
+    pub fn diagnostic_annotated(&self) -> String {
+        with_format_context!(|context: &FormatContext| {
+            self.tagged_cbor().diagnostic_opt(true, false, Some(context.tags()))
+        })
     }
 
     /// Returns the CBOR diagnostic notation for this envelope.
@@ -48,9 +50,7 @@ impl Envelope {
     /// See [RFC-8949 §8](https://www.rfc-editor.org/rfc/rfc8949.html#name-diagnostic-notation)
     /// for information on CBOR diagnostic notation.
     pub fn diagnostic(&self) -> String {
-        with_format_context!(|context| {
-            self.diagnostic_opt(true, Some(context))
-        })
+        self.tagged_cbor().diagnostic()
     }
 
     /// Returns the CBOR hex dump of this envelope.

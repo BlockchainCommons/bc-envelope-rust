@@ -1,4 +1,3 @@
-use bc_components::tags::GLOBAL_TAGS;
 use dcbor::prelude::*;
 use std::sync::{Once, Mutex};
 #[cfg(feature = "known_value")]
@@ -17,15 +16,14 @@ use crate::extension::expressions::{FunctionsStore, ParametersStore, GLOBAL_FUNC
 /// # use bc_envelope::{Envelope, with_format_context};
 /// # use indoc::indoc;
 /// # let e = Envelope::new("Hello.");
-/// with_format_context!(|context| {
-///     assert_eq!(e.diagnostic_opt(true, Some(context)),
-///     indoc! {r#"
-///     200(   / envelope /
-///        201("Hello.")   / leaf /
-///     )
-///     "#}.trim()
-///     );
-/// });
+/// # bc_envelope::register_tags();
+/// assert_eq!(e.diagnostic_annotated(),
+/// indoc! {r#"
+/// 200(   / envelope /
+///     201("Hello.")   / leaf /
+/// )
+/// "#}.trim()
+/// );
 /// ```
 #[derive(Clone, Debug)]
 pub struct FormatContext {
@@ -130,7 +128,8 @@ pub struct LazyFormatContext {
 impl LazyFormatContext {
     pub fn get(&self) -> std::sync::MutexGuard<'_, Option<FormatContext>> {
         self.init.call_once(|| {
-            let tags_binding = GLOBAL_TAGS.get();
+            bc_components::register_tags();
+            let tags_binding = dcbor::GLOBAL_TAGS.get();
             let tags = tags_binding.as_ref().unwrap();
 
             #[cfg(feature = "known_value")]

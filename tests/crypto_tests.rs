@@ -11,6 +11,8 @@ use crate::common::check_encoding::*;
 
 #[test]
 fn plaintext() {
+    bc_components::register_tags();
+
     // Alice sends a plaintext message to Bob.
     let envelope = hello_envelope();
     let ur = envelope.ur();
@@ -71,6 +73,8 @@ fn test_signed_plaintext() {
 #[cfg(feature = "signature")]
 #[test]
 fn multisigned_plaintext() {
+    bc_components::register_tags();
+
     // Alice and Carol jointly send a signed plaintext message to Bob.
     let envelope = hello_envelope()
         .add_signatures(&[&alice_private_key(), &carol_private_key()])
@@ -101,6 +105,8 @@ fn multisigned_plaintext() {
 #[cfg(feature = "encrypt")]
 #[test]
 fn symmetric_encryption() {
+    bc_components::register_tags();
+
     // Alice and Bob have agreed to use this key.
     let key = SymmetricKey::new();
 
@@ -184,6 +190,8 @@ fn encrypt_decrypt() {
 #[cfg(all(feature = "signature", feature = "encrypt"))]
 #[test]
 fn sign_then_encrypt() {
+    bc_components::register_tags();
+
     // Alice and Bob have agreed to use this key.
     let key = SymmetricKey::new();
 

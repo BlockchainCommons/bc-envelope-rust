@@ -155,7 +155,7 @@ impl From<Request> for Expression {
 
 impl From<Request> for Envelope {
     fn from(request: Request) -> Self {
-        Envelope::new(CBOR::to_tagged_value(tags::REQUEST, request.id))
+        Envelope::new(CBOR::to_tagged_value(tags::TAG_REQUEST, request.id))
             .add_assertion(known_values::BODY, request.body.into_envelope())
             .add_assertion_if(!request.note.is_empty(), known_values::NOTE, request.note)
             .add_optional_assertion(known_values::DATE, request.date)
@@ -170,7 +170,7 @@ impl TryFrom<(Envelope, Option<&Function>)> for Request {
         Ok(Self {
             body: Expression::try_from((body_envelope, expected_function))?,
             id: envelope.subject().try_leaf()?
-                .try_into_expected_tagged_value(tags::REQUEST)?
+                .try_into_expected_tagged_value(tags::TAG_REQUEST)?
                 .try_into()?,
             note: envelope.extract_object_for_predicate_with_default(known_values::NOTE, "".to_string())?,
             date: envelope.extract_optional_object_for_predicate(known_values::DATE)?,

@@ -7,6 +7,8 @@ use crate::common::check_encoding::*;
 
 #[test]
 fn test_ed25519_signed_plaintext() {
+    bc_components::register_tags();
+
     let alice_private_key = alice_private_key().ed25519_signing_private_key();
     let alice_public_key = alice_private_key.public_key();
 

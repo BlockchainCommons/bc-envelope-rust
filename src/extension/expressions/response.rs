@@ -196,14 +196,14 @@ impl From<Response> for Envelope {
     fn from(value: Response) -> Self {
         match value.0 {
             Ok((id, result)) => {
-                Envelope::new(CBOR::to_tagged_value(tags::RESPONSE, id)).add_assertion(known_values::RESULT, result)
+                Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, id)).add_assertion(known_values::RESULT, result)
             }
             Err((id, error)) => {
                 let subject: Envelope;
                 if let Some(id) = id {
-                    subject = Envelope::new(CBOR::to_tagged_value(tags::RESPONSE, id.clone()))
+                    subject = Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, id.clone()))
                 } else {
-                    subject = Envelope::new(CBOR::to_tagged_value(tags::RESPONSE, known_values::UNKNOWN_VALUE))
+                    subject = Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, known_values::UNKNOWN_VALUE))
                 }
                 subject.add_assertion(known_values::ERROR, error)
             }
@@ -225,7 +225,7 @@ impl TryFrom<Envelope> for Response {
         if result.is_ok() {
             let id = envelope
                 .subject().try_leaf()?
-                .try_into_expected_tagged_value(tags::RESPONSE)?
+                .try_into_expected_tagged_value(tags::TAG_RESPONSE)?
                 .try_into()?;
             let result = envelope.object_for_predicate(known_values::RESULT)?;
             return Ok(Response(Ok((id, result))));
@@ -234,7 +234,7 @@ impl TryFrom<Envelope> for Response {
         if error.is_ok() {
             let id_value = envelope
                 .subject().try_leaf()?
-                .try_into_expected_tagged_value(tags::RESPONSE)?;
+                .try_into_expected_tagged_value(tags::TAG_RESPONSE)?;
             let known_value = KnownValue::try_from(id_value.clone());
             let id: Option<ARID>;
             if let Ok(known_value) = known_value {

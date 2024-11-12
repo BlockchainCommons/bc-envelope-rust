@@ -27,7 +27,7 @@ use super::envelope::EnvelopeCase;
 
 impl CBORTagged for Envelope {
     fn cbor_tags() -> Vec<Tag> {
-        vec![tags::ENVELOPE]
+        tags_for_values(&[tags::TAG_ENVELOPE])
     }
 }
 
@@ -55,7 +55,7 @@ impl CBORTaggedEncodable for Envelope {
                 }
                 CBORCase::Array(result).into()
             }
-            EnvelopeCase::Leaf { cbor, digest: _ } => CBOR::to_tagged_value(tags::LEAF, cbor.clone()),
+            EnvelopeCase::Leaf { cbor, digest: _ } => CBOR::to_tagged_value(tags::TAG_LEAF, cbor.clone()),
             EnvelopeCase::Wrapped { envelope, digest: _ } => envelope.tagged_cbor(),
             EnvelopeCase::Assertion(assertion) => assertion.clone().into(),
             EnvelopeCase::Elided(digest) => digest.untagged_cbor(),
@@ -74,21 +74,21 @@ impl CBORTaggedDecodable for Envelope {
         match cbor.as_case() {
             CBORCase::Tagged(tag, item) => {
                 match tag.value() {
-                    tags::LEAF_VALUE | tags::ENCODED_CBOR_VALUE => {
+                    tags::TAG_LEAF | tags::TAG_ENCODED_CBOR => {
                         Ok(Self::new_leaf(item.clone()))
                     },
-                    tags::ENVELOPE_VALUE => {
+                    tags::TAG_ENVELOPE => {
                         let envelope = Envelope::try_from(cbor)?;
                         Ok(Self::new_wrapped(envelope))
                     },
                     #[cfg(feature = "encrypt")]
-                    tags::ENCRYPTED_VALUE => {
+                    tags::TAG_ENCRYPTED => {
                         let encrypted = EncryptedMessage::from_untagged_cbor(item.clone())?;
                         let envelope = Self::new_with_encrypted(encrypted)?;
                         Ok(envelope)
                     },
                     #[cfg(feature = "compress")]
-                    tags::COMPRESSED_VALUE => {
+                    tags::TAG_COMPRESSED => {
                         let compressed = Compressed::from_untagged_cbor(item.clone())?;
                         let envelope = Self::new_with_compressed(compressed)?;
                         Ok(envelope)

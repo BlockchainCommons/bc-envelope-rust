@@ -425,6 +425,10 @@ pub use extension::{
     SealedResponseBehavior,
 };
 
+pub fn register_tags() {
+    bc_components::register_tags();
+}
+
 #[cfg(feature = "encrypt")]
 impl Envelope {
     pub fn encrypt(&self, key: &SymmetricKey) -> Envelope {

@@ -23,17 +23,17 @@ fn test_envelope_non_correlation() {
     ]
     "#}.trim());
 
-    assert_eq!(e2.diagnostic(), indoc! {r#"
+    assert_eq!(e2.diagnostic_annotated(), indoc! {r#"
     200(   / envelope /
-       [
-          201("Hello."),   / leaf /
-          {
-             15:
-             201(   / leaf /
-                40018(h'b559bbbf6cce2632')   / salt /
-             )
-          }
-       ]
+        [
+            201("Hello."),   / leaf /
+            {
+                15:
+                201(   / leaf /
+                    40018(h'b559bbbf6cce2632')   / salt /
+                )
+            }
+        ]
     )
     "#}.trim());
 

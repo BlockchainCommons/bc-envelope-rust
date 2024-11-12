@@ -9,6 +9,8 @@ use crate::common::test_seed::*;
 
 #[test]
 fn test_sskr() -> anyhow::Result<()> {
+    bc_components::register_tags();
+
     // Dan has a cryptographic seed he wants to backup using a social recovery scheme.
     // The seed includes metadata he wants to back up also, making it too large to fit
     // into a basic SSKR share.

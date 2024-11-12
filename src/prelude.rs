@@ -3,6 +3,7 @@ pub use crate::{
     EnvelopeEncodable,
     FormatContext,
     with_format_context,
+    register_tags,
 };
 
 #[cfg(feature = "known_value")]

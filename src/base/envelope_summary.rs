@@ -40,9 +40,9 @@ impl EnvelopeSummary for CBOR {
             CBORCase::Tagged(tag, untagged_cbor) => {
                 let untagged_cbor = untagged_cbor.clone();
                 match tag.value() {
-                    tags::ENVELOPE_VALUE => Ok("Envelope".to_string()),
+                    tags::TAG_ENVELOPE => Ok("Envelope".to_string()),
                     #[cfg(feature = "known_value")]
-                    tags::KNOWN_VALUE_VALUE => {
+                    tags::TAG_KNOWN_VALUE => {
                         if let CBORCase::Unsigned(raw_value) = untagged_cbor.as_case() {
                             Ok(KnownValuesStore::known_value_for_raw_value(*raw_value, Some(context.known_values()))
                                 .to_string().flanked_by("'", "'",))
@@ -50,17 +50,17 @@ impl EnvelopeSummary for CBOR {
                             Ok("<not a known value>".to_string())
                         }
                     },
-                    tags::SIGNATURE_VALUE => Ok("Signature".to_string()),
-                    tags::NONCE_VALUE => Ok("Nonce".to_string()),
-                    tags::SALT_VALUE => Ok("Salt".to_string()),
-                    tags::SEALED_MESSAGE_VALUE => Ok("SealedMessage".to_string()),
-                    tags::SSKR_SHARE_VALUE => Ok("SSKRShare".to_string()),
-                    tags::PUBLIC_KEY_BASE_VALUE => Ok("PublicKeyBase".to_string()),
-                    tags::SSH_TEXT_PRIVATE_KEY_VALUE => Ok("SSHPrivateKey".to_string()),
-                    tags::SSH_TEXT_PUBLIC_KEY_VALUE => Ok("SSHPublicKey".to_string()),
-                    tags::SSH_TEXT_SIGNATURE_VALUE => Ok("SSHSignature".to_string()),
-                    tags::SSH_TEXT_CERTIFICATE_VALUE => Ok("SSHCertificate".to_string()),
-                    tags::DATE_VALUE => {
+                    tags::TAG_SIGNATURE => Ok("Signature".to_string()),
+                    tags::TAG_NONCE => Ok("Nonce".to_string()),
+                    tags::TAG_SALT => Ok("Salt".to_string()),
+                    tags::TAG_SEALED_MESSAGE => Ok("SealedMessage".to_string()),
+                    tags::TAG_SSKR_SHARE => Ok("SSKRShare".to_string()),
+                    tags::TAG_PUBLIC_KEY_BASE => Ok("PublicKeyBase".to_string()),
+                    tags::TAG_SSH_TEXT_PRIVATE_KEY => Ok("SSHPrivateKey".to_string()),
+                    tags::TAG_SSH_TEXT_PUBLIC_KEY => Ok("SSHPublicKey".to_string()),
+                    tags::TAG_SSH_TEXT_SIGNATURE => Ok("SSHSignature".to_string()),
+                    tags::TAG_SSH_TEXT_CERTIFICATE => Ok("SSHCertificate".to_string()),
+                    tags::TAG_DATE => {
                         let date = dcbor::Date::from_untagged_cbor(untagged_cbor)?;
                         let s = date.to_string();
                         if s.len() == 20 && s.ends_with("T00:00:00Z") {
@@ -69,37 +69,37 @@ impl EnvelopeSummary for CBOR {
                             Ok(s)
                         }
                     },
-                    tags::ARID_VALUE => {
+                    tags::TAG_ARID => {
                         Ok(ARID::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("ARID(", ")"))
                     },
-                    tags::URI_VALUE => {
+                    tags::TAG_URI => {
                         Ok(URI::from_untagged_cbor(untagged_cbor)?.to_string().flanked_by("URI(", ")"))
                     },
-                    tags::UUID_VALUE => {
+                    tags::TAG_UUID => {
                         Ok(UUID::from_untagged_cbor(untagged_cbor)?.to_string().flanked_by("UUID(", ")"))
                     },
-                    tags::DIGEST_VALUE => {
+                    tags::TAG_DIGEST => {
                         Ok(Digest::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("Digest(", ")"))
                     },
-                    tags::XID_VALUE => {
+                    tags::TAG_XID => {
                         Ok(XID::from_untagged_cbor(untagged_cbor)?.short_description().flanked_by("XID(", ")"))
                     },
                     #[cfg(feature = "expression")]
-                    tags::FUNCTION_VALUE => {
+                    tags::TAG_FUNCTION => {
                         let f = Function::from_untagged_cbor(untagged_cbor)?;
                         Ok(FunctionsStore::name_for_function(&f, Some(context.functions())).flanked_by("«", "»"))
                     },
                     #[cfg(feature = "expression")]
-                    tags::PARAMETER_VALUE => {
+                    tags::TAG_PARAMETER => {
                         let p = Parameter::from_untagged_cbor(untagged_cbor)?;
                         Ok(ParametersStore::name_for_parameter(&p, Some(context.parameters())).flanked_by("❰", "❱"))
                     },
                     #[cfg(feature = "expression")]
-                    tags::REQUEST_VALUE => {
+                    tags::TAG_REQUEST => {
                         Ok(Envelope::new(untagged_cbor).format_opt(Some(context)).flanked_by("request(", ")"))
                     },
                     #[cfg(feature = "expression")]
-                    tags::RESPONSE_VALUE => {
+                    tags::TAG_RESPONSE => {
                         Ok(Envelope::new(untagged_cbor).format_opt(Some(context)).flanked_by("response(", ")"))
                     },
                     _ => {

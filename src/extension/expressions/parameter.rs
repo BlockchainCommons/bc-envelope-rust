@@ -117,7 +117,7 @@ impl From<&Parameter> for Parameter {
 
 impl CBORTagged for Parameter {
     fn cbor_tags() -> Vec<Tag> {
-        vec![tags::PARAMETER]
+        tags_for_values(&[tags::TAG_PARAMETER])
     }
 }
 
