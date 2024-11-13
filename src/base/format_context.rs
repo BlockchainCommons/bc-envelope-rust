@@ -117,6 +117,10 @@ impl TagsStoreTrait for FormatContext {
     fn summarizer(&self, tag: TagValue) -> Option<&CBORSummarizer> {
         self.tags.summarizer(tag)
     }
+
+    fn name_for_value(&self, value: u64) -> String {
+        self.tags.name_for_value(value)
+    }
 }
 
 impl Default for FormatContext {

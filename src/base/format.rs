@@ -39,7 +39,7 @@ impl Envelope {
     /// for information on CBOR diagnostic notation.
     pub fn diagnostic_annotated(&self) -> String {
         with_format_context!(|context: &FormatContext| {
-            self.tagged_cbor().diagnostic_opt(true, false, Some(context.tags()))
+            self.tagged_cbor().diagnostic_opt(true, false, false, Some(context.tags()))
         })
     }
 

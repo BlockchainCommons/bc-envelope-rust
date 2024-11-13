@@ -314,3 +314,13 @@ fn test_digest_leaf() {
     "#}.trim()
     );
 }
+
+#[test]
+fn test_unknown_leaf() {
+    crate::register_tags();
+
+    let unknown_ur = "ur:envelope/tpsotaaodnoyadgdjlssmkcklgoskseodnyteofwwfylkiftaydpdsjz";
+    let e = Envelope::from_ur_string(unknown_ur).unwrap();
+    let expected = "555({1: h'6fc4981e8da778332bf93342f3f77d3a'})";
+    assert_eq!(e.format(), expected);
+}
