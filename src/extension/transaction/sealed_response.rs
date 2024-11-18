@@ -224,7 +224,7 @@ impl From<(SealedResponse, Option<&Date>)> for Envelope {
         }
 
         sealed_response.response.into_envelope()
-            .add_assertion(known_values::SENDER_PUBLIC_KEY, sealed_response.sender.to_envelope())
+            .add_assertion(known_values::SENDER, sealed_response.sender.to_envelope())
             .add_optional_assertion(known_values::SENDER_CONTINUATION, sender_continuation)
             .add_optional_assertion(known_values::RECIPIENT_CONTINUATION, sealed_response.peer_continuation)
     }
@@ -273,7 +273,7 @@ impl TryFrom<(Envelope, Option<&ARID>, Option<&Date>, &PrivateKeyBase)> for Seal
 
     fn try_from((encrypted_envelope, id, now, recipient_private_key): (Envelope, Option<&ARID>, Option<&Date>, &PrivateKeyBase)) -> Result<Self> {
         let signed_envelope = encrypted_envelope.decrypt_to_recipient(recipient_private_key)?;
-        let sender_public_key: PublicKeyBase = signed_envelope.unwrap_envelope()?.extract_object_for_predicate(known_values::SENDER_PUBLIC_KEY)?;
+        let sender_public_key: PublicKeyBase = signed_envelope.unwrap_envelope()?.extract_object_for_predicate(known_values::SENDER)?;
         let response_envelope = signed_envelope.verify(&sender_public_key)?;
         let peer_continuation = response_envelope.optional_object_for_predicate(known_values::SENDER_CONTINUATION)?;
         if let Some(some_peer_continuation) = peer_continuation.clone() {

@@ -68,7 +68,7 @@ known_value_constant!(RESULT, 101, "result");
 known_value_constant!(ERROR, 102, "error");
 known_value_constant!(OK_VALUE, 103, "OK");
 known_value_constant!(PROCESSING_VALUE, 104, "Processing");
-known_value_constant!(SENDER_PUBLIC_KEY, 105, "senderPublicKey");
+known_value_constant!(SENDER, 105, "sender");
 known_value_constant!(SENDER_CONTINUATION, 106, "senderContinuation");
 known_value_constant!(RECIPIENT_CONTINUATION, 107, "recipientContinuation");
 
@@ -157,7 +157,7 @@ impl LazyKnownValues {
                 ERROR,
                 OK_VALUE,
                 PROCESSING_VALUE,
-                SENDER_PUBLIC_KEY,
+                SENDER,
                 SENDER_CONTINUATION,
                 RECIPIENT_CONTINUATION,
 

@@ -219,7 +219,7 @@ impl From<(SealedRequest, Option<&Date>)> for Envelope {
         let sender_continuation: Envelope = (continuation, &sealed_request.sender).into();
 
         sealed_request.request.into_envelope()
-            .add_assertion(known_values::SENDER_PUBLIC_KEY, sealed_request.sender.to_envelope())
+            .add_assertion(known_values::SENDER, sealed_request.sender.to_envelope())
             .add_assertion(known_values::SENDER_CONTINUATION, sender_continuation)
             .add_optional_assertion(known_values::RECIPIENT_CONTINUATION, sealed_request.peer_continuation)
     }
@@ -267,7 +267,7 @@ impl TryFrom<Envelope> for SealedRequest {
     type Error = Error;
 
     fn try_from(signed_envelope: Envelope) -> Result<Self> {
-        let sender_public_key: PublicKeyBase = signed_envelope.unwrap_envelope()?.extract_object_for_predicate(known_values::SENDER_PUBLIC_KEY)?;
+        let sender_public_key: PublicKeyBase = signed_envelope.unwrap_envelope()?.extract_object_for_predicate(known_values::SENDER)?;
         let request_envelope = signed_envelope.verify(&sender_public_key)?;
         let peer_continuation = request_envelope.optional_object_for_predicate(known_values::SENDER_CONTINUATION)?;
         if peer_continuation.is_none() {
@@ -291,7 +291,7 @@ impl TryFrom<(Envelope, Option<&ARID>, Option<&Date>, &PrivateKeyBase)> for Seal
 
     fn try_from((encrypted_envelope, id, now, recipient_private_key): (Envelope, Option<&ARID>, Option<&Date>, &PrivateKeyBase)) -> Result<Self> {
         let signed_envelope = encrypted_envelope.decrypt_to_recipient(recipient_private_key)?;
-        let sender_public_key: PublicKeyBase = signed_envelope.unwrap_envelope()?.extract_object_for_predicate(known_values::SENDER_PUBLIC_KEY)?;
+        let sender_public_key: PublicKeyBase = signed_envelope.unwrap_envelope()?.extract_object_for_predicate(known_values::SENDER)?;
         let request_envelope = signed_envelope.verify(&sender_public_key)?;
         let peer_continuation = request_envelope.optional_object_for_predicate(known_values::SENDER_CONTINUATION)?;
         if let Some(some_peer_continuation) = peer_continuation.clone() {
@@ -441,10 +441,10 @@ mod tests {
                 'recipientContinuation': ENCRYPTED [
                     'hasRecipient': SealedMessage
                 ]
+                'sender': PublicKeyBase
                 'senderContinuation': ENCRYPTED [
                     'hasRecipient': SealedMessage
                 ]
-                'senderPublicKey': PublicKeyBase
             ]
         } [
             'signed': Signature
@@ -519,10 +519,10 @@ mod tests {
                     'hasRecipient': SealedMessage
                 ]
                 'result': "Records retrieved: 100-199"
+                'sender': PublicKeyBase
                 'senderContinuation': ENCRYPTED [
                     'hasRecipient': SealedMessage
                 ]
-                'senderPublicKey': PublicKeyBase
             ]
         } [
             'signed': Signature
