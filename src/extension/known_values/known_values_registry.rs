@@ -18,7 +18,7 @@ macro_rules! known_value_constant {
 
 known_value_constant!(IS_A, 1, "isA");
 known_value_constant!(ID, 2, "id");
-known_value_constant!(VERIFIED_BY, 3, "verifiedBy");
+known_value_constant!(SIGNED, 3, "signed");
 known_value_constant!(NOTE, 4, "note");
 known_value_constant!(HAS_RECIPIENT, 5, "hasRecipient");
 known_value_constant!(SSKR_SHARE, 6, "sskrShare");
@@ -37,17 +37,31 @@ known_value_constant!(DIFF_EDITS, 20, "edits");
 known_value_constant!(VALID_FROM, 21, "validFrom");
 known_value_constant!(VALID_UNTIL, 22, "validUntil");
 
-known_value_constant!(ALLOW, 30, "allow");
-known_value_constant!(DENY, 31, "deny");
-known_value_constant!(ALL, 32, "All");
-known_value_constant!(VERIFY, 33, "Verify");
-known_value_constant!(ENDPOINT, 34, "endpoint");
-known_value_constant!(DELEGATE, 35, "delegate");
-known_value_constant!(PROVENANCE, 36, "provenance");
-
 known_value_constant!(ATTACHMENT, 50, "attachment");
 known_value_constant!(VENDOR, 51, "vendor");
 known_value_constant!(CONFORMS_TO, 52, "conformsTo");
+
+known_value_constant!(ALLOW, 60, "allow");
+known_value_constant!(DENY, 61, "deny");
+known_value_constant!(ENDPOINT, 62, "endpoint");
+known_value_constant!(DELEGATE, 63, "delegate");
+known_value_constant!(PROVENANCE, 64, "provenance");
+
+known_value_constant!(PRIVILEGE_ALL, 70, "All");
+known_value_constant!(PRIVILEGE_AUTH, 71, "Auth");
+known_value_constant!(PRIVILEGE_SIGN, 72, "Sign");
+known_value_constant!(PRIVILEGE_ENCRYPT, 73, "Encrypt");
+known_value_constant!(PRIVILEGE_ELIDE, 74, "Elide");
+known_value_constant!(PRIVILEGE_ISSUE, 75, "Issue");
+known_value_constant!(PRIVILEGE_ACCESS, 76, "Access");
+
+known_value_constant!(PRIVILEGE_DELEGATE, 80, "Delegate");
+known_value_constant!(PRIVILEGE_VERIFY, 81, "Verify");
+known_value_constant!(PRIVILEGE_UPDATE, 82, "Update");
+known_value_constant!(PRIVILEGE_TRANSFER, 83, "Transfer");
+known_value_constant!(PRIVILEGE_ELECT, 84, "Elect");
+known_value_constant!(PRIVILEGE_BURN, 85, "Burn");
+known_value_constant!(PRIVILEGE_REVOKE, 86, "Revoke");
 
 known_value_constant!(BODY, 100, "body");
 known_value_constant!(RESULT, 101, "result");
@@ -93,7 +107,7 @@ impl LazyKnownValues {
             let m = KnownValuesStore::new([
                 IS_A,
                 ID,
-                VERIFIED_BY,
+                SIGNED,
                 NOTE,
                 HAS_RECIPIENT,
                 SSKR_SHARE,
@@ -114,11 +128,25 @@ impl LazyKnownValues {
 
                 ALLOW,
                 DENY,
-                ALL,
-                VERIFY,
                 ENDPOINT,
                 DELEGATE,
                 PROVENANCE,
+
+                PRIVILEGE_ALL,
+                PRIVILEGE_AUTH,
+                PRIVILEGE_SIGN,
+                PRIVILEGE_ENCRYPT,
+                PRIVILEGE_ELIDE,
+                PRIVILEGE_ISSUE,
+                PRIVILEGE_ACCESS,
+
+                PRIVILEGE_DELEGATE,
+                PRIVILEGE_VERIFY,
+                PRIVILEGE_UPDATE,
+                PRIVILEGE_TRANSFER,
+                PRIVILEGE_ELECT,
+                PRIVILEGE_BURN,
+                PRIVILEGE_REVOKE,
 
                 ATTACHMENT,
                 VENDOR,

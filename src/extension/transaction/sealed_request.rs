@@ -447,7 +447,7 @@ mod tests {
                 'senderPublicKey': PublicKeyBase
             ]
         } [
-            'verifiedBy': Signature
+            'signed': Signature
         ]
         "#}.trim());
 
@@ -525,7 +525,7 @@ mod tests {
                 'senderPublicKey': PublicKeyBase
             ]
         } [
-            'verifiedBy': Signature
+            'signed': Signature
         ]
         "#}.trim());
 

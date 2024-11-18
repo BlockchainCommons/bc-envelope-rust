@@ -9,10 +9,10 @@ use crate::common::check_encoding::*;
 #[cfg(feature = "known_value")]
 #[test]
 fn test_known_value() {
-    let envelope = Envelope::new(known_values::VERIFIED_BY).check_encoding().unwrap();
-    assert_eq!(format!("{}", envelope), ".knownValue(verifiedBy)");
+    let envelope = Envelope::new(known_values::SIGNED).check_encoding().unwrap();
+    assert_eq!(format!("{}", envelope), ".knownValue(signed)");
     assert_eq!(format!("{:?}", envelope.digest()), "Digest(d0e39e788c0d8f0343af4588db21d3d51381db454bdf710a9a1891aaa537693c)");
-    assert_eq!(envelope.format(), "'verifiedBy'");
+    assert_eq!(envelope.format(), "'signed'");
     assert_eq!(format!("{}", envelope.ur_string()), "ur:envelope/axgrbdrnem");
 }
 

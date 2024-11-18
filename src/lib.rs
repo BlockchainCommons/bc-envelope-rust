@@ -199,17 +199,17 @@
 //! ### Signing
 //!
 //! * [`Envelope::sign_with`] Creates a signature for the envelope's subject and
-//!   returns a new envelope with a `verifiedBy: Signature` assertion.
+//!   returns a new envelope with a `'signed': Signature` assertion.
 //! * [`Envelope::sign_with_opt`] Creates a signature for the envelope's subject
-//!   and returns a new envelope with a `verifiedBy: Signature` assertion.
+//!   and returns a new envelope with a `'signed': Signature` assertion.
 //! * [`Envelope::sign_with_keys`] Creates several signatures for the envelope's
-//!   subject and returns a new envelope with additional `verifiedBy: Signature`
+//!   subject and returns a new envelope with additional `'signed': Signature`
 //!   assertions.
 //! * [`Envelope::sign_with_keys_opt`] Creates several signatures for the
-//!   envelope's subject and returns a new envelope with additional `verifiedBy:
+//!   envelope's subject and returns a new envelope with additional `'signed':
 //!   Signature` assertions.
 //! * [`Envelope::sign_with_uncovered_assertions`] Creates a signature for the
-//!   envelope's subject and returns a new envelope with a `verifiedBy:
+//!   envelope's subject and returns a new envelope with a `'signed':
 //!   Signature` assertion.
 //!
 //! ### Verifying by returning a boolean
@@ -237,9 +237,9 @@
 //! ### Helpers
 //!
 //! * [`Envelope::signatures`] Returns an array of `Signature`s from all of the
-//!   envelope's `verifiedBy` predicates.
-//! * [`Envelope::make_verified_by_signature`] Convenience constructor for a
-//!   `verifiedBy: Signature` assertion envelope.
+//!   envelope's `signed` predicates.
+//! * [`Envelope::make_signed_assertion`] Convenience constructor for a
+//!   `signed: Signature` assertion envelope.
 //!
 //! # Splitting Envelopes with SSKR
 //!

@@ -55,7 +55,7 @@ fn test_compress_subject() {
                     0fcd6a39 pred 'note'
                     e343c9b4 obj "Lorem ipsum dolor sit amet consectetur a…"
         0db2ee20 ASSERTION
-            d0e39e78 pred 'verifiedBy'
+            d0e39e78 pred 'signed'
             f0d3ce4c obj Signature
     "#}.trim());
     let compressed = original.compress_subject().unwrap().check_encoding().unwrap();
@@ -66,7 +66,7 @@ fn test_compress_subject() {
     ec608f27 NODE
         d7183f04 subj COMPRESSED
         0db2ee20 ASSERTION
-            d0e39e78 pred 'verifiedBy'
+            d0e39e78 pred 'signed'
             f0d3ce4c obj Signature
     "#}.trim());
     let uncompressed = compressed.uncompress_subject().unwrap().check_encoding().unwrap();

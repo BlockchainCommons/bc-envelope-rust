@@ -7,7 +7,7 @@ use crate::extension::known_values;
 
 /// Support for signing envelopes and verifying signatures.
 impl Envelope {
-    /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
+    /// Creates a signature for the envelope's subject and returns a new envelope with a `'signed': Signature` assertion.
     ///
     /// - Parameters:
     ///   - private_key: The signer's `SigningPrivateKey`
@@ -18,7 +18,7 @@ impl Envelope {
     }
 
     #[doc(hidden)]
-    /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
+    /// Creates a signature for the envelope's subject and returns a new envelope with a `'signed': Signature` assertion.
     ///
     /// - Parameters:
     ///   - private_key: A signer's `PrivateKeyBase` or `SigningPrivateKey`.
@@ -40,7 +40,7 @@ impl Envelope {
     }
 
     #[doc(hidden)]
-    /// Creates several signatures for the envelope's subject and returns a new envelope with additional `verifiedBy: Signature` assertions.
+    /// Creates several signatures for the envelope's subject and returns a new envelope with additional `'signed': Signature` assertions.
     ///
     /// - Parameters:
     ///  - private_keys: An array of signers' `SigningPrivateKey`s.
@@ -53,7 +53,7 @@ impl Envelope {
     }
 
     #[doc(hidden)]
-    /// Creates several signatures for the envelope's subject and returns a new envelope with additional `verifiedBy: Signature` assertions.
+    /// Creates several signatures for the envelope's subject and returns a new envelope with additional `'signed': Signature` assertions.
     ///
     /// - Parameters:
     ///   - private_keys: An array of signers' `SigningPrivateKey`s and optional `SigningOptions`.
@@ -66,7 +66,7 @@ impl Envelope {
     }
 
     #[doc(hidden)]
-    /// Creates a signature for the envelope's subject and returns a new envelope with a `verifiedBy: Signature` assertion.
+    /// Creates a signature for the envelope's subject and returns a new envelope with a `'signed': Signature` assertion.
     ///
     /// - Parameters:
     ///   - private_key: The signer's `PrivateKeyBase`
@@ -85,37 +85,35 @@ impl Envelope {
         let signature = Envelope::new(private_key.sign_with_options(&digest as &dyn AsRef<[u8]>, options).unwrap())
             .add_assertion_envelopes(uncovered_assertions)
             .unwrap();
-        self.add_assertion(known_values::VERIFIED_BY, signature)
+        self.add_assertion(known_values::SIGNED, signature)
     }
 
-    /// Convenience constructor for a `verifiedBy: Signature` assertion envelope.
+    /// Convenience constructor for a `'signed': Signature` assertion envelope.
     ///
     /// - Parameters:
     ///   - signature: The `Signature` for the object.
     ///   - note: An optional note to be added to the `Signature`.
     ///
     /// - Returns: The new assertion envelope.
-    pub fn make_verified_by_signature(
+    pub fn make_signed_assertion(
         &self,
         signature: &Signature,
         note: Option<&str>
     ) -> Self {
-        let verified_by = known_values::VERIFIED_BY;
-        let mut envelope = Envelope::new_assertion(verified_by, signature.clone());
+        let mut envelope = Envelope::new_assertion(known_values::SIGNED, signature.clone());
         if let Some(note) = note {
             envelope = envelope.add_assertion(known_values::NOTE, note);
         }
         envelope
     }
 
-    /// Returns an array of `Signature`s from all of the envelope's `verifiedBy` predicates.
+    /// Returns an array of `Signature`s from all of the envelope's `'signed'` predicates.
     ///
-    /// - Throws: Throws an exception if any `verifiedBy` assertion doesn't contain a
+    /// - Throws: Throws an exception if any `'signed'` assertion doesn't contain a
     /// valid `Signature` as its object.
     pub fn signatures(&self) -> Result<Vec<Signature>> {
-        let verified_by = known_values::VERIFIED_BY;
         self
-            .assertions_with_predicate(verified_by).into_iter()
+            .assertions_with_predicate(known_values::SIGNED).into_iter()
             .map(|assertion| assertion.as_object().unwrap().extract_subject::<Signature>())
             .collect()
     }
@@ -162,7 +160,7 @@ impl Envelope {
     ///
     /// - Returns: `true` if the signature is valid for this envelope's subject, `false` otherwise.
     ///
-    /// - Throws: Throws an exception if any `verifiedBy` assertion doesn't contain a
+    /// - Throws: Throws an exception if any `'signed'` assertion doesn't contain a
     /// valid `Signature` as its object.
     pub fn has_signature_from(
         &self,
@@ -208,7 +206,7 @@ impl Envelope {
     ///
     /// - Returns: `true` if the threshold of valid signatures is met, `false` otherwise.
     ///
-    /// - Throws: Throws an exception if any `verifiedBy` assertion doesn't contain a
+    /// - Throws: Throws an exception if any `'signed'` assertion doesn't contain a
     /// valid `Signature` as its object.
     pub fn has_signatures_from_threshold(
         &self,

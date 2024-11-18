@@ -20,7 +20,7 @@ fn test_ed25519_signed_plaintext() {
 
     let expected_format = indoc! {r#"
     "Hello." [
-        'verifiedBy': Signature
+        'signed': Signature
     ]
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);

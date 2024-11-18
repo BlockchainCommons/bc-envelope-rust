@@ -48,23 +48,23 @@ fn test_signed_plaintext() {
         .add_signature_opt(&alice_private_key(), Some(options), None);
     assert_eq!(envelope.format(), indoc! {r#"
     "Hello." [
-        'verifiedBy': Signature
+        'signed': Signature
     ]
     "#}.trim());
-    assert_eq!(envelope.format_flat(), r#""Hello." [ 'verifiedBy': Signature ]"#);
+    assert_eq!(envelope.format_flat(), r#""Hello." [ 'signed': Signature ]"#);
     let s = envelope.tree_format(false);
     // println!("{}", s);
     assert_eq!(s, indoc! {r#"
     949a991e NODE
         8cc96cdb subj "Hello."
         fcb4e2be ASSERTION
-            d0e39e78 pred 'verifiedBy'
+            d0e39e78 pred 'signed'
             b8bb043f obj Signature
     "#}.trim());
     assert_eq!(envelope.tree_format(true), indoc! {r#"
     "Hello."
         ASSERTION
-            'verifiedBy'
+            'signed'
             Signature
     "#}.trim());
     assert_eq!(envelope.elements_count(), envelope.tree_format(false).split('\n').count());
@@ -159,17 +159,17 @@ fn test_signed_subject() {
     "Alice" [
         "knows": "Bob"
         "knows": "Carol"
-        'verifiedBy': Signature
+        'signed': Signature
     ]
     "#}.trim());
-    assert_eq!(envelope.format_flat(), r#""Alice" [ "knows": "Bob", "knows": "Carol", 'verifiedBy': Signature ]"#);
+    assert_eq!(envelope.format_flat(), r#""Alice" [ "knows": "Bob", "knows": "Carol", 'signed': Signature ]"#);
     let s = envelope.tree_format(false);
     // println!("{}", s);
     assert_eq!(s, indoc! {r#"
     d595106e NODE
         13941b48 subj "Alice"
         399c974c ASSERTION
-            d0e39e78 pred 'verifiedBy'
+            d0e39e78 pred 'signed'
             ff10427c obj Signature
         4012caf2 ASSERTION
             db7dd21c pred "knows"
@@ -183,7 +183,7 @@ fn test_signed_subject() {
     assert_eq!(s, indoc! {r#"
     "Alice"
         ASSERTION
-            'verifiedBy'
+            'signed'
             Signature
         ASSERTION
             "knows"
@@ -240,10 +240,10 @@ fn test_wrap_then_signed() {
             "knows": "Carol"
         ]
     } [
-        'verifiedBy': Signature
+        'signed': Signature
     ]
     "#}.trim());
-    assert_eq!(envelope.format_flat(), r#"{ "Alice" [ "knows": "Bob", "knows": "Carol" ] } [ 'verifiedBy': Signature ]"#);
+    assert_eq!(envelope.format_flat(), r#"{ "Alice" [ "knows": "Bob", "knows": "Carol" ] } [ 'signed': Signature ]"#);
     let s = envelope.tree_format(false);
     // println!("{}", s);
     assert_eq!(s, indoc! {r#"
@@ -258,7 +258,7 @@ fn test_wrap_then_signed() {
                     db7dd21c pred "knows"
                     13b74194 obj "Bob"
         f13623da ASSERTION
-            d0e39e78 pred 'verifiedBy'
+            d0e39e78 pred 'signed'
             e30a727c obj Signature
     "#}.trim());
     let s = envelope.tree_format(true);
@@ -273,7 +273,7 @@ fn test_wrap_then_signed() {
                 "knows"
                 "Bob"
         ASSERTION
-            'verifiedBy'
+            'signed'
             Signature
     "#}.trim());
     assert_eq!(envelope.elements_count(), envelope.tree_format(false).split('\n').count());
@@ -565,10 +565,10 @@ fn test_credential() {
         ]
     } [
         'note': "Signed by Example Electrical Engineering Board"
-        'verifiedBy': Signature
+        'signed': Signature
     ]
     "#}.trim());
-    assert_eq!(credential.format_flat(), r#"{ ARID(4676635a) [ 'isA': "Certificate of Completion", "certificateNumber": "123-456-789", "continuingEducationUnits": 1, "expirationDate": 2028-01-01, "firstName": "James", "issueDate": 2020-01-01, "lastName": "Maxwell", "photo": "This is James Maxwell's photo.", "professionalDevelopmentHours": 15, "subject": "RF and Microwave Engineering", "topics": ["Subject 1", "Subject 2"], 'controller': "Example Electrical Engineering Board", 'issuer': "Example Electrical Engineering Board" ] } [ 'note': "Signed by Example Electrical Engineering Board", 'verifiedBy': Signature ]"#);
+    assert_eq!(credential.format_flat(), r#"{ ARID(4676635a) [ 'isA': "Certificate of Completion", "certificateNumber": "123-456-789", "continuingEducationUnits": 1, "expirationDate": 2028-01-01, "firstName": "James", "issueDate": 2020-01-01, "lastName": "Maxwell", "photo": "This is James Maxwell's photo.", "professionalDevelopmentHours": 15, "subject": "RF and Microwave Engineering", "topics": ["Subject 1", "Subject 2"], 'controller': "Example Electrical Engineering Board", 'issuer': "Example Electrical Engineering Board" ] } [ 'note': "Signed by Example Electrical Engineering Board", 'signed': Signature ]"#);
     let s = credential.tree_format(false);
     // println!("{}", s);
     assert_eq!(s, indoc! {r#"
@@ -616,7 +616,7 @@ fn test_credential() {
                     6dd16ba3 pred 'issuer'
                     f8489ac1 obj "Example Electrical Engineering Board"
         46a02aaf ASSERTION
-            d0e39e78 pred 'verifiedBy'
+            d0e39e78 pred 'signed'
             34c14941 obj Signature
         e6d7fca0 ASSERTION
             0fcd6a39 pred 'note'
@@ -665,7 +665,7 @@ fn test_credential() {
                 'issuer'
                 "Example Electrical Engineering Board"
         ASSERTION
-            'verifiedBy'
+            'signed'
             Signature
         ASSERTION
             'note'
@@ -720,7 +720,7 @@ fn test_redacted_credential() {
                 ]
             } [
                 'note': "Signed by Example Electrical Engineering Board"
-                'verifiedBy': Signature
+                'signed': Signature
             ]
         } [
             "employeeHiredDate": 2022-01-01
@@ -728,10 +728,10 @@ fn test_redacted_credential() {
         ]
     } [
         'note': "Signed by Employer Corp."
-        'verifiedBy': Signature
+        'signed': Signature
     ]
     "#}.trim());
-    assert_eq!(warranty.format_flat(), r#"{ { { ARID(4676635a) [ 'isA': "Certificate of Completion", "expirationDate": 2028-01-01, "firstName": "James", "lastName": "Maxwell", "subject": "RF and Microwave Engineering", 'issuer': "Example Electrical Engineering Board", ELIDED (7) ] } [ 'note': "Signed by Example Electrical Engineering Board", 'verifiedBy': Signature ] } [ "employeeHiredDate": 2022-01-01, "employeeStatus": "active" ] } [ 'note': "Signed by Employer Corp.", 'verifiedBy': Signature ]"#);
+    assert_eq!(warranty.format_flat(), r#"{ { { ARID(4676635a) [ 'isA': "Certificate of Completion", "expirationDate": 2028-01-01, "firstName": "James", "lastName": "Maxwell", "subject": "RF and Microwave Engineering", 'issuer': "Example Electrical Engineering Board", ELIDED (7) ] } [ 'note': "Signed by Example Electrical Engineering Board", 'signed': Signature ] } [ "employeeHiredDate": 2022-01-01, "employeeStatus": "active" ] } [ 'note': "Signed by Employer Corp.", 'signed': Signature ]"#);
     let s = warranty.tree_format(false);
     // println!("{}", s);
     assert_eq!(s, indoc! {r#"
@@ -769,7 +769,7 @@ fn test_redacted_credential() {
                                     6dd16ba3 pred 'issuer'
                                     f8489ac1 obj "Example Electrical Engineering Board"
                         46a02aaf ASSERTION
-                            d0e39e78 pred 'verifiedBy'
+                            d0e39e78 pred 'signed'
                             34c14941 obj Signature
                         e6d7fca0 ASSERTION
                             0fcd6a39 pred 'note'
@@ -784,7 +784,7 @@ fn test_redacted_credential() {
             0fcd6a39 pred 'note'
             f59806d2 obj "Signed by Employer Corp."
         d21d2033 ASSERTION
-            d0e39e78 pred 'verifiedBy'
+            d0e39e78 pred 'signed'
             5ba600c9 obj Signature
     "#}.trim());
     let s = warranty.tree_format(true);
@@ -820,7 +820,7 @@ fn test_redacted_credential() {
                         'issuer'
                         "Example Electrical Engineering Board"
                 ASSERTION
-                    'verifiedBy'
+                    'signed'
                     Signature
                 ASSERTION
                     'note'
@@ -835,7 +835,7 @@ fn test_redacted_credential() {
             'note'
             "Signed by Employer Corp."
         ASSERTION
-            'verifiedBy'
+            'signed'
             Signature
     "#}.trim());
     assert_eq!(warranty.elements_count(), warranty.tree_format(false).split('\n').count());
