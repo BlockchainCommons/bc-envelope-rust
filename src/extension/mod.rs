@@ -33,21 +33,6 @@ pub use expressions::{
 };
 
 ///
-/// Transactions Extension
-///
-/// Includes transaction signing and verification.
-///
-#[cfg(feature = "transaction")]
-pub mod transaction;
-#[cfg(feature = "transaction")]
-pub use transaction::{
-    SealedRequest,
-    SealedRequestBehavior,
-    SealedResponse,
-    SealedResponseBehavior,
-};
-
-///
 /// Known Values Extension
 ///
 #[cfg(feature = "known_value")]

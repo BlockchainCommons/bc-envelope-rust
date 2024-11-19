@@ -29,14 +29,6 @@ pub use crate::{
     ResponseBehavior,
 };
 
-#[cfg(feature = "transaction")]
-pub use crate::{
-    SealedRequest,
-    SealedRequestBehavior,
-    SealedResponse,
-    SealedResponseBehavior,
-};
-
 pub use crate::elide::{
     ObscureAction,
     self,

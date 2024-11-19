@@ -45,7 +45,6 @@ salt = ["known_value"]
 signature = ["known_value"]
 ssh = ["dep:ssh-key", "signature"]
 sskr = ["encrypt"]
-transaction = ["expression", "signature", "recipient"]
 types = ["known_value"]
 
 default = [
@@ -60,6 +59,5 @@ default = [
     "ssh",
     "signature",
     "sskr",
-    "transaction",
     "types",
 ]

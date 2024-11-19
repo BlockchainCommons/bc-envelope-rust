@@ -14,5 +14,4 @@ cargo test --no-default-features --features recipient
 cargo test --no-default-features --features salt
 cargo test --no-default-features --features signature
 cargo test --no-default-features --features sskr
-cargo test --no-default-features --features transaction
 cargo test --no-default-features --features types

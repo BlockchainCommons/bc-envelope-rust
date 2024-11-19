@@ -417,14 +417,6 @@ pub use extension::expressions::{
     ResponseBehavior,
 };
 
-#[cfg(feature = "transaction")]
-pub use extension::{
-    SealedRequest,
-    SealedRequestBehavior,
-    SealedResponse,
-    SealedResponseBehavior,
-};
-
 #[cfg(feature = "encrypt")]
 impl Envelope {
     pub fn encrypt(&self, key: &SymmetricKey) -> Envelope {
