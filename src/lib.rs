@@ -383,6 +383,7 @@ pub mod prelude;
 
 mod string_utils;
 
+use bc_components::Encrypter;
 #[cfg(feature = "signature")]
 use bc_components::{Signer, Verifier};
 #[cfg(feature = "encrypt")]
@@ -449,7 +450,7 @@ impl Envelope {
 
 #[cfg(feature = "recipient")]
 impl Envelope {
-    pub fn encrypt_to_recipient(&self, recipient: &PublicKeyBase) -> Envelope {
+    pub fn encrypt_to_recipient(&self, recipient: &dyn Encrypter) -> Envelope {
         self
             .wrap_envelope()
             .encrypt_subject_to_recipient(recipient)

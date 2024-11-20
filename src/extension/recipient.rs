@@ -3,7 +3,7 @@ use crate::{Envelope, EnvelopeError};
 use crate::extension::known_values;
 
 use anyhow::{bail, Result};
-use bc_components::{SealedMessage, PublicKeyBase, SymmetricKey, Nonce, PrivateKeyBase};
+use bc_components::{SealedMessage, SymmetricKey, Nonce, PrivateKeyBase, Encrypter};
 use dcbor::prelude::*;
 
 /// Support for public key encryption.
@@ -17,12 +17,12 @@ impl Envelope {
     ///   - contentKey: The `SymmetricKey` that was used to encrypt the subject.
     ///
     /// - Returns: The new envelope.
-    pub fn add_recipient(&self, recipient: &PublicKeyBase, content_key: &SymmetricKey) -> Self {
+    pub fn add_recipient(&self, recipient: &dyn Encrypter, content_key: &SymmetricKey) -> Self {
         self.add_recipient_opt(recipient, content_key, None, None::<&Nonce>)
     }
 
     #[doc(hidden)]
-    pub fn add_recipient_opt(&self, recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<&[u8]>, test_nonce: Option<&Nonce>) -> Self {
+    pub fn add_recipient_opt(&self, recipient: &dyn Encrypter, content_key: &SymmetricKey, test_key_material: Option<&[u8]>, test_nonce: Option<&Nonce>) -> Self {
         let assertion = Self::make_has_recipient(recipient, content_key, test_key_material, test_nonce);
         self.add_assertion_envelope(assertion).unwrap()
     }
@@ -56,31 +56,27 @@ impl Envelope {
     ///
     /// - Throws: If the envelope is already encrypted.
     #[cfg(feature = "encrypt")]
-    pub fn encrypt_subject_to_recipients<T>(
+    pub fn encrypt_subject_to_recipients(
         &self,
-        recipients: &[T]
+        recipients: &[&dyn Encrypter]
     ) -> Result<Self>
-    where
-        T: AsRef<PublicKeyBase>
     {
         self.encrypt_subject_to_recipients_opt(recipients, None, None::<&Nonce>)
     }
 
     #[cfg(feature = "encrypt")]
     #[doc(hidden)]
-    pub fn encrypt_subject_to_recipients_opt<T>(
+    pub fn encrypt_subject_to_recipients_opt(
         &self,
-        recipients: &[T],
+        recipients: &[&dyn Encrypter],
         test_key_material: Option<&[u8]>,
         test_nonce: Option<&Nonce>
     ) -> Result<Self>
-    where
-        T: AsRef<PublicKeyBase>
     {
         let content_key = SymmetricKey::new();
         let mut e = self.encrypt_subject(&content_key)?;
         for recipient in recipients {
-            e = e.add_recipient_opt(recipient.as_ref(), &content_key, test_key_material, test_nonce);
+            e = e.add_recipient_opt(*recipient, &content_key, test_key_material, test_nonce);
         }
         Ok(e)
     }
@@ -95,13 +91,13 @@ impl Envelope {
     ///
     /// - Returns: The encrypted envelope.
     #[cfg(feature = "encrypt")]
-    pub fn encrypt_subject_to_recipient(&self, recipient: &PublicKeyBase) -> Result<Self> {
+    pub fn encrypt_subject_to_recipient(&self, recipient: &dyn Encrypter) -> Result<Self> {
         self.encrypt_subject_to_recipient_opt(recipient, None, None::<&Nonce>)
     }
 
     #[cfg(feature = "encrypt")]
     #[doc(hidden)]
-    pub fn encrypt_subject_to_recipient_opt(&self, recipient: &PublicKeyBase, test_key_material: Option<&[u8]>, test_nonce: Option<&Nonce>) -> Result<Self> {
+    pub fn encrypt_subject_to_recipient_opt(&self, recipient: &dyn Encrypter, test_key_material: Option<&[u8]>, test_nonce: Option<&Nonce>) -> Result<Self> {
         self.encrypt_subject_to_recipients_opt(&[recipient], test_key_material, test_nonce)
     }
 
@@ -142,7 +138,7 @@ impl Envelope {
     ///   - contentKey: The `SymmetricKey` that was used to encrypt the subject.
     ///
     /// - Returns: The assertion envelope.
-    fn make_has_recipient(recipient: &PublicKeyBase, content_key: &SymmetricKey, test_key_material: Option<&[u8]>, test_nonce: Option<&Nonce>) -> Self
+    fn make_has_recipient(recipient: &dyn Encrypter, content_key: &SymmetricKey, test_key_material: Option<&[u8]>, test_nonce: Option<&Nonce>) -> Self
     {
         let sealed_message = SealedMessage::new_opt(content_key.to_cbor_data(), recipient, None::<Vec<u8>>, test_key_material, test_nonce);
         Self::new_assertion(known_values::HAS_RECIPIENT, sealed_message)
