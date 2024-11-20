@@ -265,6 +265,18 @@ pub fn register_tags_in(context: &mut FormatContext) {
                 )
             })
         );
+
+        let cloned_context = context.clone();
+        context.tags_mut().set_summarizer(
+            TAG_EVENT,
+            Arc::new(move |untagged_cbor: CBOR| {
+                Ok(
+                    Envelope::new(untagged_cbor)
+                        .format_opt(Some(&cloned_context))
+                        .flanked_by("event(", ")")
+                )
+            })
+        );
     }
 }
 

@@ -47,11 +47,11 @@ impl Envelope {
 }
 
 impl Envelope {
-    fn short_id(&self) -> String {
+    pub fn short_id(&self) -> String {
         self.digest().short_description()
     }
 
-    fn summary(&self, max_length: usize, context: &FormatContext) -> String {
+    pub fn summary(&self, max_length: usize, context: &FormatContext) -> String {
         match self.case() {
             EnvelopeCase::Node { .. } => "NODE".to_string(),
             EnvelopeCase::Leaf { cbor, .. } => cbor.envelope_summary(max_length, context).unwrap(),

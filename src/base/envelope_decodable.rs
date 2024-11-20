@@ -22,3 +22,12 @@ impl Envelope {
         Self::try_from_cbor(cbor)
     }
 }
+
+impl TryFrom<Envelope> for String {
+    type Error = Error;
+
+    fn try_from(envelope: Envelope) -> Result<Self> {
+        let cbor = envelope.try_leaf()?;
+        cbor.try_into()
+    }
+}

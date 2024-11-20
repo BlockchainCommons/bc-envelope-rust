@@ -71,6 +71,7 @@ known_value_constant!(PROCESSING_VALUE, 104, "Processing");
 known_value_constant!(SENDER, 105, "sender");
 known_value_constant!(SENDER_CONTINUATION, 106, "senderContinuation");
 known_value_constant!(RECIPIENT_CONTINUATION, 107, "recipientContinuation");
+known_value_constant!(CONTENT, 108, "content");
 
 known_value_constant!(SEED_TYPE, 200, "Seed");
 known_value_constant!(PRIVATE_KEY_TYPE, 201, "PrivateKey");
@@ -160,6 +161,7 @@ impl LazyKnownValues {
                 SENDER,
                 SENDER_CONTINUATION,
                 RECIPIENT_CONTINUATION,
+                CONTENT,
 
                 SEED_TYPE,
                 PRIVATE_KEY_TYPE,

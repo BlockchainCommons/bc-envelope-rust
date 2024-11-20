@@ -38,3 +38,9 @@ pub use response::{
     Response,
     ResponseBehavior,
 };
+
+pub mod event;
+pub use event::{
+    Event,
+    EventBehavior,
+};

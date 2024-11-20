@@ -374,10 +374,7 @@
 pub use anyhow::Result;
 
 pub mod base;
-pub use base::Assertion;
-pub use base::Envelope;
-pub use base::EnvelopeEncodable;
-pub use base::EnvelopeError;
+pub use base::{Assertion, Envelope, EnvelopeEncodable, EnvelopeError};
 pub use base::{register_tags, register_tags_in, FormatContext, GLOBAL_FORMAT_CONTEXT};
 pub use base::elide::{self, ObscureAction};
 
@@ -415,6 +412,8 @@ pub use extension::expressions::{
     RequestBehavior,
     Response,
     ResponseBehavior,
+    Event,
+    EventBehavior,
 };
 
 #[cfg(feature = "encrypt")]

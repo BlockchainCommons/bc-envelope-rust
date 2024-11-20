@@ -27,6 +27,8 @@ pub use crate::{
     RequestBehavior,
     Response,
     ResponseBehavior,
+    Event,
+    EventBehavior,
 };
 
 pub use crate::elide::{
