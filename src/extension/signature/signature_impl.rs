@@ -154,7 +154,10 @@ impl Envelope {
         signature: &Signature,
         public_key: &dyn Verifier
     ) -> Result<Self> {
-        self.verify_signature_from_key(signature, public_key)
+        if !self.is_signature_from_key(signature, public_key) {
+            bail!(EnvelopeError::UnverifiedSignature);
+        }
+        Ok(self.clone())
     }
 
     /// Returns whether the envelope's subject has a valid signature from the given public key.
@@ -182,7 +185,10 @@ impl Envelope {
     /// - Throws: Throws `EnvelopeError.unverifiedSignature` if the signature is not valid.
     /// valid.
     pub fn verify_signature_from(&self, public_key: &dyn Verifier) -> Result<Self> {
-        self.verify_has_some_signature_from_key(public_key)
+        if !self.has_some_signature_from_key(public_key)? {
+            bail!(EnvelopeError::UnverifiedSignature);
+        }
+        Ok(self.clone())
     }
 
     /// Checks whether the envelope's subject has a set of signatures.
@@ -208,12 +214,17 @@ impl Envelope {
         public_keys: &[&dyn Verifier],
         threshold: Option<usize>
     ) -> Result<bool> {
-        self.has_signatures_from_keys_threshold(public_keys, threshold)
-    }
-
-    /// Checks whether the envelope's subject has a set of signatures.
-    pub fn verify_signatures_from(&self, public_keys: &[&dyn Verifier]) -> Result<Self> {
-        self.verify_signatures_from_threshold(public_keys, None)
+            let threshold = threshold.unwrap_or(public_keys.len());
+            let mut count = 0;
+            for key in public_keys {
+                if self.clone().has_some_signature_from_key(*key)? {
+                    count += 1;
+                    if count >= threshold {
+                        return Ok(true);
+                    }
+                }
+            }
+            Ok(false)
     }
 
     /// Checks whether the envelope's subject has some threshold of signatures.
@@ -235,7 +246,15 @@ impl Envelope {
         public_keys: &[&dyn Verifier],
         threshold: Option<usize>
     ) -> Result<Self> {
-        self.verify_signatures_from_keys_threshold(public_keys, threshold)
+        if !self.has_signatures_from_threshold(public_keys, threshold)? {
+            bail!(EnvelopeError::UnverifiedSignature);
+        }
+        Ok(self.clone())
+    }
+
+    /// Checks whether the envelope's subject has a set of signatures.
+    pub fn verify_signatures_from(&self, public_keys: &[&dyn Verifier]) -> Result<Self> {
+        self.verify_signatures_from_threshold(public_keys, None)
     }
 }
 
@@ -245,21 +264,18 @@ impl Envelope {
         key.verify(signature, self.subject().digest().as_ref())
     }
 
-    fn verify_signature_from_key(&self, signature: &Signature, key: &dyn Verifier) -> Result<Self> {
-        if !self.is_signature_from_key(signature, key) {
-            bail!(EnvelopeError::UnverifiedSignature);
-        }
-        Ok(self.clone())
+    fn has_some_signature_from_key(&self, key: &dyn Verifier) -> Result<bool> {
+        self.has_some_signature_from_key_returning_metadata(key).map(|x| x.is_some())
     }
 
-    fn has_some_signature_from_key(&self, key: &dyn Verifier) -> Result<bool> {
+    fn has_some_signature_from_key_returning_metadata(&self, key: &dyn Verifier) -> Result<Option<Envelope>> {
         // Valid signature objects are either:
         //
         // - `Signature` objects, or
         // - `Signature` objects with additional metadata assertions, wrapped
         // and then signed by the same key.
         let signature_objects = self.objects_for_predicate(known_values::SIGNED);
-        let result = signature_objects.iter().any(|signature_object| {
+        let result: Option<Result<Option<Envelope>>> = signature_objects.iter().find_map(|signature_object| {
             let signature_object_subject = signature_object.subject();
             if signature_object_subject.is_wrapped() {
                 if
@@ -267,63 +283,42 @@ impl Envelope {
                         known_values::SIGNED
                     )
                 {
-                    let outer_signature = outer_signature_object
-                        .extract_subject::<Signature>()
-                        .unwrap();
-                    if !signature_object_subject.is_signature_from_key(&outer_signature, key) {
-                        return false;
+                    if let Ok(outer_signature) = outer_signature_object.extract_subject::<Signature>() {
+                        if !signature_object_subject.is_signature_from_key(&outer_signature, key) {
+                            return None;
+                        }
+                    } else {
+                        return Some(Err(anyhow::anyhow!("Unexpected outer signature object type.")));
                     }
                 }
-                let inner_envelope = signature_object_subject.unwrap_envelope().unwrap();
-                if let Ok(signature) = inner_envelope.extract_subject::<Signature>() {
+
+                let signature_metadata_envelope = signature_object_subject.unwrap_envelope().unwrap();
+                if let Ok(signature) = signature_metadata_envelope.extract_subject::<Signature>() {
                     let signing_target = self.subject();
-                    signing_target.is_signature_from_key(&signature, key)
+                    if signing_target.is_signature_from_key(&signature, key) {
+                        Some(Ok(Some(signature_metadata_envelope)))
+                    } else {
+                        None
+                    }
                 } else {
-                    false
+                    Some(Err(anyhow::anyhow!("Unexpected inner signature object type.")))
                 }
             } else if let Ok(signature) = signature_object.extract_subject::<Signature>() {
-                self.is_signature_from_key(&signature, key)
+                if self.is_signature_from_key(&signature, key) {
+                    Some(Ok(Some(signature_object.clone())))
+                } else {
+                    None
+                }
             } else {
-                false
+                Some(Err(anyhow::anyhow!("Unexpected signature object type.")))
             }
         });
-        Ok(result)
-    }
 
-    fn verify_has_some_signature_from_key(&self, key: &dyn Verifier) -> Result<Self> {
-        if !self.has_some_signature_from_key(key)? {
-            bail!(EnvelopeError::UnverifiedSignature);
+        match result {
+            Some(Ok(Some(envelope))) => Ok(Some(envelope)),
+            Some(Err(err)) => Err(err),
+            _ => Ok(None),
         }
-        Ok(self.clone())
-    }
-
-    fn has_signatures_from_keys_threshold(
-        &self,
-        keys: &[&dyn Verifier],
-        threshold: Option<usize>
-    ) -> Result<bool> {
-        let threshold = threshold.unwrap_or(keys.len());
-        let mut count = 0;
-        for key in keys {
-            if self.clone().has_some_signature_from_key(*key)? {
-                count += 1;
-                if count >= threshold {
-                    return Ok(true);
-                }
-            }
-        }
-        Ok(false)
-    }
-
-    fn verify_signatures_from_keys_threshold(
-        &self,
-        keys: &[&dyn Verifier],
-        threshold: Option<usize>
-    ) -> Result<Self> {
-        if !self.has_signatures_from_keys_threshold(keys, threshold)? {
-            bail!(EnvelopeError::UnverifiedSignature);
-        }
-        Ok(self.clone())
     }
 }
 

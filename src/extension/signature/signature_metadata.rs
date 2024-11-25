@@ -12,6 +12,12 @@ impl SignatureMetadata {
         }
     }
 
+    pub fn new_with_assertions(assertions: Vec<Assertion>) -> Self {
+        Self {
+            assertions,
+        }
+    }
+
     pub fn assertions(&self) -> &[Assertion] {
         &self.assertions
     }

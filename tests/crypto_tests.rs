@@ -157,6 +157,8 @@ fn sign_then_encrypt() {
 #[cfg(feature = "signature")]
 #[test]
 fn test_encrypt_then_sign() {
+    bc_components::register_tags();
+
     // Alice and Bob have agreed to use this key.
     let key = SymmetricKey::new();
 
