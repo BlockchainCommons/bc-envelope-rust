@@ -1,9 +1,11 @@
 use anyhow::{bail, Result};
 use bc_components::{DigestProvider, Signature, Signer, SigningOptions, Verifier};
 
-use crate::{Envelope, EnvelopeError};
+use crate::{Envelope, EnvelopeEncodable, EnvelopeError};
 #[cfg(feature = "known_value")]
 use crate::extension::known_values;
+
+use super::SignatureMetadata;
 
 /// Support for signing envelopes and verifying signatures.
 impl Envelope {
@@ -23,20 +25,33 @@ impl Envelope {
     /// - Parameters:
     ///   - private_key: A signer's `PrivateKeyBase` or `SigningPrivateKey`.
     ///   - options: Optional signing options.
-    ///   - note: Optional text note to add to the `Signature`
+    ///   - metadata: Optional metadata for the signature, which itself will be signed.
     ///
     /// - Returns: The signed envelope.
     pub fn add_signature_opt(
         &self,
         private_key: &dyn Signer,
         options: Option<SigningOptions>,
-        note: Option<&str>,
+        metadata: Option<SignatureMetadata>,
     ) -> Self {
-        let mut assertions: Vec<Envelope> = vec![];
-        if let Some(note) = note {
-            assertions.push(Self::new_assertion(known_values::NOTE, note));
+        let digest = *self.subject().digest().data();
+        let mut signature = Envelope::new(private_key.sign_with_options(&digest as &dyn AsRef<[u8]>, options.clone()).unwrap());
+
+        if let Some(metadata) = metadata {
+            if metadata.has_assertions() {
+                let mut signature_with_metadata = signature;
+
+                metadata.assertions().iter().for_each(|assertion| {
+                    signature_with_metadata = signature_with_metadata.add_assertion_envelope(assertion.to_envelope()).unwrap();
+                });
+                signature_with_metadata = signature_with_metadata.wrap_envelope();
+                let outer_signature = Envelope::new(private_key.sign_with_options(&signature_with_metadata.digest().as_ref(), options).unwrap());
+                signature_with_metadata.add_assertion(known_values::SIGNED, outer_signature);
+                signature = signature_with_metadata;
+            }
         }
-        self.add_signatures_with_uncovered_assertions(&assertions, private_key, options)
+        // self.add_signatures_with_uncovered_assertions(&assertions, private_key, options)
+        self.add_assertion(known_values::SIGNED, signature)
     }
 
     #[doc(hidden)]
@@ -63,29 +78,6 @@ impl Envelope {
         private_keys.iter().fold(self.clone(), |envelope, (private_key, options)| {
             envelope.add_signature_opt(*private_key, options.clone(), None)
         })
-    }
-
-    #[doc(hidden)]
-    /// Creates a signature for the envelope's subject and returns a new envelope with a `'signed': Signature` assertion.
-    ///
-    /// - Parameters:
-    ///   - private_key: The signer's `PrivateKeyBase`
-    ///   - uncoveredAssertions: Assertions to add to the `Signature`.
-    ///   - rng: The random number generator to use.
-    ///
-    /// - Returns: The signed envelope.
-    fn add_signatures_with_uncovered_assertions(
-        &self,
-        uncovered_assertions: &[Self],
-        private_key: &dyn Signer,
-        options: Option<SigningOptions>,
-    ) -> Self
-    {
-        let digest = *self.subject().digest().data();
-        let signature = Envelope::new(private_key.sign_with_options(&digest as &dyn AsRef<[u8]>, options).unwrap())
-            .add_assertion_envelopes(uncovered_assertions)
-            .unwrap();
-        self.add_assertion(known_values::SIGNED, signature)
     }
 
     /// Convenience constructor for a `'signed': Signature` assertion envelope.

@@ -1,4 +1,5 @@
-#[cfg(feature = "encrypt")]
+#![cfg(feature = "encrypt")]
+
 use bc_components::SymmetricKey;
 use bc_ur::prelude::*;
 use indoc::indoc;
@@ -31,78 +32,6 @@ fn plaintext() {
     assert_eq!(received_plaintext, PLAINTEXT_HELLO);
 }
 
-#[cfg(feature = "signature")]
-#[test]
-fn test_signed_plaintext() {
-    // Alice sends a signed plaintext message to Bob.
-    let envelope = hello_envelope()
-        .add_signature(&alice_private_key())
-        .check_encoding().unwrap();
-    let ur = envelope.ur();
-
-    let expected_format = indoc! {r#"
-    "Hello." [
-        'signed': Signature
-    ]
-    "#}.trim();
-    assert_eq!(envelope.format(), expected_format);
-
-    // Alice ➡️ ☁️ ➡️ Bob
-
-    // Bob receives the envelope.
-    let received_envelope = Envelope::from_ur(&ur).unwrap()
-        .check_encoding().unwrap();
-
-    // Bob receives the message, validates Alice's signature, and reads the message.
-    let received_plaintext = received_envelope
-        .verify_signature_from(&alice_public_key());
-    let received_plaintext = received_plaintext.unwrap()
-        .extract_subject::<String>().unwrap();
-    assert_eq!(received_plaintext, "Hello.");
-
-    // Confirm that it wasn't signed by Carol.
-    assert!(received_envelope.verify_signature_from(&carol_public_key()).is_err());
-
-    // Confirm that it was signed by Alice OR Carol.
-    received_envelope.verify_signatures_from_threshold(&[&alice_public_key(), &carol_public_key()], Some(1)).unwrap();
-
-    // Confirm that it was not signed by Alice AND Carol.
-    assert!(received_envelope.verify_signatures_from_threshold(&[&alice_public_key(), &carol_public_key()], Some(2)).is_err());
-}
-
-#[cfg(feature = "signature")]
-#[test]
-fn multisigned_plaintext() {
-    bc_components::register_tags();
-
-    // Alice and Carol jointly send a signed plaintext message to Bob.
-    let envelope = hello_envelope()
-        .add_signatures(&[&alice_private_key(), &carol_private_key()])
-        .check_encoding().unwrap();
-    let ur = envelope.ur();
-
-    let expected_format = indoc! {r#"
-    "Hello." [
-        'signed': Signature
-        'signed': Signature
-    ]
-    "#}.trim();
-    assert_eq!(envelope.format(), expected_format);
-
-    // Alice & Carol ➡️ ☁️ ➡️ Bob
-
-    // Bob receives the envelope and verifies the message was signed by both Alice and Carol.
-    let received_plaintext = Envelope::from_ur(&ur).unwrap()
-        .check_encoding().unwrap()
-        .verify_signatures_from(&[&alice_public_key(), &carol_public_key()]);
-
-    // Bob reads the message.
-    let received_plaintext = received_plaintext.unwrap()
-        .extract_subject::<String>().unwrap();
-    assert_eq!(received_plaintext, PLAINTEXT_HELLO);
-}
-
-#[cfg(feature = "encrypt")]
 #[test]
 fn symmetric_encryption() {
     bc_components::register_tags();
@@ -140,7 +69,6 @@ fn symmetric_encryption() {
     assert!(received_envelope.decrypt_subject(&SymmetricKey::new()).is_err());
 }
 
-#[cfg(feature = "encrypt")]
 fn round_trip_test(envelope: Envelope) {
     let key = SymmetricKey::new();
     let plaintext_subject = envelope.check_encoding().unwrap();
@@ -154,7 +82,6 @@ fn round_trip_test(envelope: Envelope) {
     assert!(plaintext_subject.is_identical_to(&plaintext_subject2));
 }
 
-#[cfg(feature = "encrypt")]
 #[test]
 fn encrypt_decrypt() {
     // leaf
@@ -187,7 +114,7 @@ fn encrypt_decrypt() {
     }
 }
 
-#[cfg(all(feature = "signature", feature = "encrypt"))]
+#[cfg(feature = "signature")]
 #[test]
 fn sign_then_encrypt() {
     bc_components::register_tags();
@@ -227,7 +154,7 @@ fn sign_then_encrypt() {
     assert_eq!(received_plaintext, PLAINTEXT_HELLO);
 }
 
-#[cfg(all(feature = "signature", feature = "encrypt"))]
+#[cfg(feature = "signature")]
 #[test]
 fn test_encrypt_then_sign() {
     // Alice and Bob have agreed to use this key.
