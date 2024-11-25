@@ -14,6 +14,9 @@ pub use crate::{
     KnownValuesStore,
 };
 
+#[cfg(feature = "signature")]
+pub use crate::SignatureMetadata;
+
 #[cfg(feature = "expression")]
 pub use crate::{
     Function,

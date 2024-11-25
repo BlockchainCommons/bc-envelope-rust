@@ -57,6 +57,7 @@ pub mod recipient;
 ///
 #[cfg(feature = "signature")]
 pub mod signature;
+pub use signature::SignatureMetadata;
 
 ///
 /// Salt Extension

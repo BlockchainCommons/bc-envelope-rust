@@ -386,6 +386,9 @@ mod string_utils;
 #[cfg(feature = "signature")]
 use bc_components::{Signer, Verifier};
 
+#[cfg(feature = "signature")]
+pub use extension::SignatureMetadata;
+
 #[cfg(feature = "recipient")]
 use bc_components::{PrivateKeyBase, PublicKeyBase};
 

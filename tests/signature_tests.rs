@@ -2,6 +2,7 @@
 
 use indoc::indoc;
 use bc_envelope::prelude::*;
+use known_values::NOTE;
 
 mod common;
 use crate::common::test_data::*;
@@ -53,7 +54,6 @@ fn multisigned_plaintext() {
     let envelope = hello_envelope()
         .add_signatures(&[&alice_private_key(), &carol_private_key()])
         .check_encoding().unwrap();
-    let ur = envelope.ur();
 
     let expected_format = indoc! {r#"
     "Hello." [
@@ -64,6 +64,7 @@ fn multisigned_plaintext() {
     assert_eq!(envelope.format(), expected_format);
 
     // Alice & Carol ➡️ ☁️ ➡️ Bob
+    let ur = envelope.ur();
 
     // Bob receives the envelope and verifies the message was signed by both Alice and Carol.
     let received_plaintext = Envelope::from_ur(&ur).unwrap()
@@ -72,6 +73,51 @@ fn multisigned_plaintext() {
 
     // Bob reads the message.
     let received_plaintext = received_plaintext.unwrap()
+        .extract_subject::<String>().unwrap();
+    assert_eq!(received_plaintext, PLAINTEXT_HELLO);
+}
+
+#[test]
+fn signed_with_metadata() {
+    bc_components::register_tags();
+
+    let envelope = hello_envelope();
+
+    let metadata = SignatureMetadata::new()
+        .with_assertion(NOTE, "This is a note.");
+
+    let envelope = envelope
+        .wrap_envelope()
+        .add_signature_opt(&alice_private_key(), None, Some(metadata))
+        .check_encoding().unwrap();
+
+    let expected_format = indoc! {r#"
+    {
+        "Hello."
+    } [
+        'signed': {
+            Signature [
+                'note': "This is a note."
+            ]
+        } [
+            'signed': Signature
+        ]
+    ]
+    "#}.trim();
+    assert_eq!(envelope.format(), expected_format);
+
+
+    // Alice ➡️ ☁️ ➡️ Bob
+    let ur = envelope.ur();
+
+    // Bob receives the envelope and verifies the message was signed by both Alice and Carol.
+    let received_plaintext = Envelope::from_ur(&ur).unwrap()
+        .check_encoding().unwrap()
+        .verify_signature_from(&alice_public_key()).unwrap()
+        .unwrap_envelope().unwrap();
+
+    // Bob reads the message.
+    let received_plaintext = received_plaintext
         .extract_subject::<String>().unwrap();
     assert_eq!(received_plaintext, PLAINTEXT_HELLO);
 }

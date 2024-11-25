@@ -44,13 +44,14 @@ impl Envelope {
                 metadata.assertions().iter().for_each(|assertion| {
                     signature_with_metadata = signature_with_metadata.add_assertion_envelope(assertion.to_envelope()).unwrap();
                 });
+
                 signature_with_metadata = signature_with_metadata.wrap_envelope();
+
                 let outer_signature = Envelope::new(private_key.sign_with_options(&signature_with_metadata.digest().as_ref(), options).unwrap());
-                signature_with_metadata.add_assertion(known_values::SIGNED, outer_signature);
-                signature = signature_with_metadata;
+                signature = signature_with_metadata.add_assertion(known_values::SIGNED, outer_signature);
             }
         }
-        // self.add_signatures_with_uncovered_assertions(&assertions, private_key, options)
+
         self.add_assertion(known_values::SIGNED, signature)
     }
 
@@ -74,9 +75,9 @@ impl Envelope {
     ///   - private_keys: An array of signers' `SigningPrivateKey`s and optional `SigningOptions`.
     ///
     /// - Returns: The signed envelope.
-    pub fn add_signatures_opt(&self, private_keys: &[(&dyn Signer, Option<SigningOptions>)]) -> Self {
-        private_keys.iter().fold(self.clone(), |envelope, (private_key, options)| {
-            envelope.add_signature_opt(*private_key, options.clone(), None)
+    pub fn add_signatures_opt(&self, private_keys: &[(&dyn Signer, Option<SigningOptions>, Option<SignatureMetadata>)]) -> Self {
+        private_keys.iter().fold(self.clone(), |envelope, (private_key, options, metadata)| {
+            envelope.add_signature_opt(*private_key, options.clone(), metadata.clone())
         })
     }
 
@@ -103,12 +104,12 @@ impl Envelope {
     ///
     /// - Throws: Throws an exception if any `'signed'` assertion doesn't contain a
     /// valid `Signature` as its object.
-    pub fn signatures(&self) -> Result<Vec<Signature>> {
-        self
-            .assertions_with_predicate(known_values::SIGNED).into_iter()
-            .map(|assertion| assertion.as_object().unwrap().extract_subject::<Signature>())
-            .collect()
-    }
+    // pub fn signatures(&self) -> Result<Vec<Signature>> {
+    //     self
+    //         .assertions_with_predicate(known_values::SIGNED).into_iter()
+    //         .map(|assertion| assertion.as_object().unwrap().extract_subject::<Signature>())
+    //         .collect()
+    // }
 
     /// Returns whether the given signature is valid.
     ///
@@ -264,10 +265,33 @@ impl Envelope {
         &self,
         key: &dyn Verifier
     ) -> Result<bool> {
-        let signatures = self.signatures();
-        let signatures = signatures?;
-        let result = signatures.iter().any(|signature| {
-            self.is_signature_from_key(signature, key)
+        // Valid signature objects are either:
+        //
+        // - `Signature` objects, or
+        // - `Signature` objects with additional metadata assertions, wrapped
+        // and then signed by the same key.
+        let signature_objects = self.objects_for_predicate(known_values::SIGNED);
+        let result = signature_objects.iter().any(|signature_object| {
+            let signature_object_subject = signature_object.subject();
+            if signature_object_subject.is_wrapped() {
+                if let Ok(outer_signature_object) = signature_object.object_for_predicate(known_values::SIGNED) {
+                    let outer_signature = outer_signature_object.extract_subject::<Signature>().unwrap();
+                    if !signature_object_subject.is_signature_from_key(&outer_signature, key) {
+                        return false;
+                    }
+                }
+                let inner_envelope = signature_object_subject.unwrap_envelope().unwrap();
+                if let Ok(signature) = inner_envelope.extract_subject::<Signature>() {
+                    let signing_target = self.subject();
+                    signing_target.is_signature_from_key(&signature, key)
+                } else {
+                    false
+                }
+            } else if let Ok(signature) = signature_object.extract_subject::<Signature>() {
+                self.is_signature_from_key(&signature, key)
+            } else {
+                false
+            }
         });
         Ok(result)
     }
