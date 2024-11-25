@@ -383,11 +383,8 @@ pub mod prelude;
 
 mod string_utils;
 
-use bc_components::Encrypter;
 #[cfg(feature = "signature")]
 use bc_components::{Signer, Verifier};
-#[cfg(feature = "encrypt")]
-use bc_components::SymmetricKey;
 #[cfg(feature = "recipient")]
 use bc_components::{PrivateKeyBase, PublicKeyBase};
 
@@ -416,53 +413,6 @@ pub use extension::expressions::{
     Event,
     EventBehavior,
 };
-
-#[cfg(feature = "encrypt")]
-impl Envelope {
-    pub fn encrypt(&self, key: &SymmetricKey) -> Envelope {
-        self
-            .wrap_envelope()
-            .encrypt_subject(key)
-            .unwrap()
-    }
-
-    pub fn decrypt(&self, key: &SymmetricKey) -> Result<Envelope> {
-        self
-            .decrypt_subject(key)?
-            .unwrap_envelope()
-    }
-}
-
-#[cfg(feature = "signature")]
-impl Envelope {
-    pub fn sign(&self, signer: &impl Signer) -> Envelope {
-        self
-            .wrap_envelope()
-            .add_signature(signer)
-    }
-
-    pub fn verify(&self, verifier: &impl Verifier) -> Result<Envelope> {
-        self
-            .verify_signature_from(verifier)?
-            .unwrap_envelope()
-    }
-}
-
-#[cfg(feature = "recipient")]
-impl Envelope {
-    pub fn encrypt_to_recipient(&self, recipient: &dyn Encrypter) -> Envelope {
-        self
-            .wrap_envelope()
-            .encrypt_subject_to_recipient(recipient)
-            .unwrap()
-    }
-
-    pub fn decrypt_to_recipient(&self, recipient: &PrivateKeyBase) -> Result<Envelope> {
-        self
-            .decrypt_subject_to_recipient(recipient)?
-            .unwrap_envelope()
-    }
-}
 
 #[cfg(all(feature = "signature", feature = "recipient"))]
 impl Envelope {

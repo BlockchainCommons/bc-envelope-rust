@@ -319,3 +319,17 @@ impl Envelope {
         Ok(self.clone())
     }
 }
+
+impl Envelope {
+    pub fn sign(&self, signer: &impl Signer) -> Envelope {
+        self
+            .wrap_envelope()
+            .add_signature(signer)
+    }
+
+    pub fn verify(&self, verifier: &impl Verifier) -> Result<Envelope> {
+        self
+            .verify_signature_from(verifier)?
+            .unwrap_envelope()
+    }
+}

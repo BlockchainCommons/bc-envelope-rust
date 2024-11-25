@@ -110,3 +110,18 @@ impl Envelope {
         }
     }
 }
+
+impl Envelope {
+    pub fn encrypt(&self, key: &SymmetricKey) -> Envelope {
+        self
+            .wrap_envelope()
+            .encrypt_subject(key)
+            .unwrap()
+    }
+
+    pub fn decrypt(&self, key: &SymmetricKey) -> Result<Envelope> {
+        self
+            .decrypt_subject(key)?
+            .unwrap_envelope()
+    }
+}

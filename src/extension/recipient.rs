@@ -144,3 +144,18 @@ impl Envelope {
         Self::new_assertion(known_values::HAS_RECIPIENT, sealed_message)
     }
 }
+
+impl Envelope {
+    pub fn encrypt_to_recipient(&self, recipient: &dyn Encrypter) -> Envelope {
+        self
+            .wrap_envelope()
+            .encrypt_subject_to_recipient(recipient)
+            .unwrap()
+    }
+
+    pub fn decrypt_to_recipient(&self, recipient: &PrivateKeyBase) -> Result<Envelope> {
+        self
+            .decrypt_subject_to_recipient(recipient)?
+            .unwrap_envelope()
+    }
+}
