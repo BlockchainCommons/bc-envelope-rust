@@ -84,7 +84,7 @@ fn signed_with_metadata() {
     let envelope = hello_envelope();
 
     let metadata = SignatureMetadata::new()
-        .with_assertion(NOTE, "This is a note.");
+        .with_assertion(NOTE, "Alice signed this.");
 
     let envelope = envelope
         .wrap_envelope()
@@ -97,7 +97,7 @@ fn signed_with_metadata() {
     } [
         'signed': {
             Signature [
-                'note': "This is a note."
+                'note': "Alice signed this."
             ]
         } [
             'signed': Signature
@@ -106,27 +106,23 @@ fn signed_with_metadata() {
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
 
-
     // Alice ➡️ ☁️ ➡️ Bob
     let ur = envelope.ur();
 
-    let received_envelope = Envelope::from_ur(&ur).unwrap()
-        .check_encoding().unwrap();
+    // Bob receives the envelope and verifies the message was signed by Alice.
 
-    let metadata = received_envelope.has_signature_from_returning_metadata(&alice_public_key()).unwrap().unwrap();
+    let (received_plaintext, metadata) = Envelope::from_ur(&ur).unwrap()
+        .check_encoding().unwrap()
+        .verify_returning_metadata(&alice_public_key()).unwrap();
+
     let expected_format = indoc! {r#"
     Signature [
-        'note': "This is a note."
+        'note': "Alice signed this."
     ]
     "#}.trim();
     assert_eq!(metadata.format(), expected_format);
     let note = metadata.object_for_predicate(NOTE).unwrap().extract_subject::<String>().unwrap();
-    assert_eq!(note, "This is a note.");
-
-    // Bob receives the envelope and verifies the message was signed by both Alice and Carol.
-    let received_plaintext = received_envelope
-        .verify_signature_from(&alice_public_key()).unwrap()
-        .unwrap_envelope().unwrap();
+    assert_eq!(note, "Alice signed this.");
 
     // Bob reads the message.
     let received_plaintext = received_plaintext

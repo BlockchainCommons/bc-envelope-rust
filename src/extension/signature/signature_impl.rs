@@ -115,17 +115,6 @@ impl Envelope {
         envelope
     }
 
-    /// Returns an array of `Signature`s from all of the envelope's `'signed'` predicates.
-    ///
-    /// - Throws: Throws an exception if any `'signed'` assertion doesn't contain a
-    /// valid `Signature` as its object.
-    // pub fn signatures(&self) -> Result<Vec<Signature>> {
-    //     self
-    //         .assertions_with_predicate(known_values::SIGNED).into_iter()
-    //         .map(|assertion| assertion.as_object().unwrap().extract_subject::<Signature>())
-    //         .collect()
-    // }
-
     /// Returns whether the given signature is valid.
     ///
     /// - Parameters:
@@ -165,7 +154,7 @@ impl Envelope {
     /// - Parameters:
     ///   - public_key: The potential signer's `Verifier`.
     ///
-    /// - Returns: `true` if the signature is valid for this envelope's subject, `false` otherwise.
+    /// - Returns: `true` if any signature is valid for this envelope's subject, `false` otherwise.
     ///
     /// - Throws: Throws an exception if any `'signed'` assertion doesn't contain a
     /// valid `Signature` as its object.
@@ -173,6 +162,13 @@ impl Envelope {
         self.has_some_signature_from_key(public_key)
     }
 
+    /// Returns whether the envelope's subject has a valid signature from the
+    /// given public key by returning the signature metadata.
+    ///
+    /// - Parameters:
+    ///  - public_key: The potential signer's `Verifier`.
+    ///
+    /// - Returns: The metadata envelope if the signature is valid, `None` otherwise.
     pub fn has_signature_from_returning_metadata(&self, public_key: &dyn Verifier) -> Result<Option<Envelope>> {
         self.has_some_signature_from_key_returning_metadata(public_key)
     }
@@ -193,6 +189,14 @@ impl Envelope {
             bail!(EnvelopeError::UnverifiedSignature);
         }
         Ok(self.clone())
+    }
+
+    pub fn verify_signature_from_returning_metadata(&self, public_key: &dyn Verifier) -> Result<Envelope> {
+        let metadata = self.has_some_signature_from_key_returning_metadata(public_key)?;
+        if metadata.is_none() {
+            bail!(EnvelopeError::UnverifiedSignature);
+        }
+        Ok(metadata.unwrap())
     }
 
     /// Checks whether the envelope's subject has a set of signatures.
@@ -299,20 +303,18 @@ impl Envelope {
                 let signature_metadata_envelope = signature_object_subject.unwrap_envelope().unwrap();
                 if let Ok(signature) = signature_metadata_envelope.extract_subject::<Signature>() {
                     let signing_target = self.subject();
-                    if signing_target.is_signature_from_key(&signature, key) {
-                        Some(Ok(Some(signature_metadata_envelope)))
-                    } else {
-                        None
+                    if !signing_target.is_signature_from_key(&signature, key) {
+                        return Some(Err(anyhow::anyhow!("Inner signature not made with same key as outer signature.")));
                     }
+                    Some(Ok(Some(signature_metadata_envelope)))
                 } else {
                     Some(Err(anyhow::anyhow!("Unexpected inner signature object type.")))
                 }
             } else if let Ok(signature) = signature_object.extract_subject::<Signature>() {
-                if self.is_signature_from_key(&signature, key) {
-                    Some(Ok(Some(signature_object.clone())))
-                } else {
-                    None
+                if !self.is_signature_from_key(&signature, key) {
+                    return None;
                 }
+                Some(Ok(Some(signature_object.clone())))
             } else {
                 Some(Err(anyhow::anyhow!("Unexpected signature object type.")))
             }
@@ -333,5 +335,10 @@ impl Envelope {
 
     pub fn verify(&self, verifier: &impl Verifier) -> Result<Envelope> {
         self.verify_signature_from(verifier)?.unwrap_envelope()
+    }
+
+    pub fn verify_returning_metadata(&self, verifier: &impl Verifier) -> Result<(Envelope, Envelope)> {
+        let metadata = self.verify_signature_from_returning_metadata(verifier)?;
+        Ok((self.unwrap_envelope()?, metadata))
     }
 }
