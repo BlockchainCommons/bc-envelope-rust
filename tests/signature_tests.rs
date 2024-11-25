@@ -110,9 +110,21 @@ fn signed_with_metadata() {
     // Alice ➡️ ☁️ ➡️ Bob
     let ur = envelope.ur();
 
+    let received_envelope = Envelope::from_ur(&ur).unwrap()
+        .check_encoding().unwrap();
+
+    let metadata = received_envelope.has_signature_from_returning_metadata(&alice_public_key()).unwrap().unwrap();
+    let expected_format = indoc! {r#"
+    Signature [
+        'note': "This is a note."
+    ]
+    "#}.trim();
+    assert_eq!(metadata.format(), expected_format);
+    let note = metadata.object_for_predicate(NOTE).unwrap().extract_subject::<String>().unwrap();
+    assert_eq!(note, "This is a note.");
+
     // Bob receives the envelope and verifies the message was signed by both Alice and Carol.
-    let received_plaintext = Envelope::from_ur(&ur).unwrap()
-        .check_encoding().unwrap()
+    let received_plaintext = received_envelope
         .verify_signature_from(&alice_public_key()).unwrap()
         .unwrap_envelope().unwrap();
 

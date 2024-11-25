@@ -173,6 +173,10 @@ impl Envelope {
         self.has_some_signature_from_key(public_key)
     }
 
+    pub fn has_signature_from_returning_metadata(&self, public_key: &dyn Verifier) -> Result<Option<Envelope>> {
+        self.has_some_signature_from_key_returning_metadata(public_key)
+    }
+
     /// Returns whether the envelope's subject has a valid signature from the given public key.
     ///
     /// Used for chaining a series of operations that include validating signatures.
