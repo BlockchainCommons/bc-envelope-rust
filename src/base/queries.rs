@@ -281,6 +281,7 @@ impl Envelope {
             .into_iter()
             .filter(|assertion| {
                 assertion
+                    .subject()
                     .as_predicate()
                     .map(|p| p.digest() == predicate.digest())
                     .unwrap_or(false)
@@ -302,6 +303,20 @@ impl Envelope {
         }
     }
 
+    /// Returns the assertion with the given predicate, or `None` if there is no matching predicate.
+    ///
+    /// Returns an error if there are multiple matching predicates.
+    pub fn optional_assertion_with_predicate(&self, predicate: impl EnvelopeEncodable) -> Result<Option<Self>> {
+        let a = self.assertions_with_predicate(predicate);
+        if a.is_empty() {
+            Ok(None)
+        } else if a.len() == 1 {
+            Ok(Some(a[0].clone()))
+        } else {
+            bail!(EnvelopeError::AmbiguousPredicate);
+        }
+    }
+
     /// Returns the object of the assertion with the given predicate.
     ///
     /// Returns an error if there is no matching predicate or multiple matching predicates.
@@ -317,7 +332,7 @@ impl Envelope {
         if a.is_empty() {
             Ok(None)
         } else if a.len() == 1 {
-            Ok(Some(a[0].as_object().unwrap()))
+            Ok(Some(a[0].subject().as_object().unwrap()))
         } else {
             bail!(EnvelopeError::AmbiguousPredicate);
         }
