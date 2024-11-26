@@ -329,15 +329,15 @@ impl Envelope {
 }
 
 impl Envelope {
-    pub fn sign(&self, signer: &impl Signer) -> Envelope {
+    pub fn sign(&self, signer: &dyn Signer) -> Envelope {
         self.wrap_envelope().add_signature(signer)
     }
 
-    pub fn verify(&self, verifier: &impl Verifier) -> Result<Envelope> {
+    pub fn verify(&self, verifier: &dyn Verifier) -> Result<Envelope> {
         self.verify_signature_from(verifier)?.unwrap_envelope()
     }
 
-    pub fn verify_returning_metadata(&self, verifier: &impl Verifier) -> Result<(Envelope, Envelope)> {
+    pub fn verify_returning_metadata(&self, verifier: &dyn Verifier) -> Result<(Envelope, Envelope)> {
         let metadata = self.verify_signature_from_returning_metadata(verifier)?;
         Ok((self.unwrap_envelope()?, metadata))
     }
