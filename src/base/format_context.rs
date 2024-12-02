@@ -1,6 +1,9 @@
+#[cfg(feature = "expression")]
 use bc_components::tags::*;
 use dcbor::prelude::*;
-use std::sync::{ Arc, Mutex, Once };
+#[cfg(feature = "expression")]
+use std::sync::Arc;
+use std::sync::{ Mutex, Once };
 #[cfg(feature = "known_value")]
 use crate::extension::known_values::{ KnownValuesStore, KNOWN_VALUES };
 
@@ -11,7 +14,12 @@ use crate::extension::expressions::{
     GLOBAL_FUNCTIONS,
     GLOBAL_PARAMETERS,
 };
-use crate::{ string_utils::StringUtils, Envelope, KnownValue };
+// #[cfg(any(feature = "expression", feature = "known_value"))]
+#[cfg(feature = "expression")]
+use crate::KnownValue;
+
+#[cfg(feature = "expression")]
+use crate::{ string_utils::StringUtils, Envelope };
 
 /// The envelope formatting functions take a `FormatContext` as an argument. This type
 /// defines information about CBOR tags, known values, functions and parameters that

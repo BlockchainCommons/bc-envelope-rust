@@ -57,6 +57,7 @@ pub mod recipient;
 ///
 #[cfg(feature = "signature")]
 pub mod signature;
+#[cfg(feature = "signature")]
 pub use signature::SignatureMetadata;
 
 ///

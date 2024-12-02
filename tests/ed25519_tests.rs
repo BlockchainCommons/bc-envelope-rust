@@ -1,3 +1,5 @@
+#![cfg(feature = "signature")]
+
 use bc_envelope::prelude::*;
 use indoc::indoc;
 

@@ -384,13 +384,13 @@ pub mod prelude;
 mod string_utils;
 
 #[cfg(feature = "signature")]
-use bc_components::{Signer, Verifier};
+pub use bc_components::{Signer, Verifier};
 
 #[cfg(feature = "signature")]
 pub use extension::SignatureMetadata;
 
 #[cfg(feature = "recipient")]
-use bc_components::{PrivateKeyBase, PublicKeyBase};
+pub use bc_components::{PrivateKeyBase, PublicKeyBase};
 
 #[cfg(feature = "known_value")]
 pub use extension::known_values::{
