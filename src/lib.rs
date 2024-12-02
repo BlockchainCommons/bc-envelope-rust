@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/bc-envelope/0.18.2")]
+#![doc(html_root_url = "https://docs.rs/bc-envelope/0.19.0")]
 #![warn(rust_2018_idioms)]
 
 //! # Gordian Envelope: A Flexible Container for Structured Data
@@ -20,7 +20,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bc-envelope = "0.18.2"
+//! bc-envelope = "0.19.0"
 //! ```
 //!
 //! ## Specification
