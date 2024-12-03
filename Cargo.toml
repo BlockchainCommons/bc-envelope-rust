@@ -4,12 +4,12 @@ version = "0.19.0"
 edition = "2021"
 description = "Gordian Envelope for Rust."
 authors = ["Blockchain Commons"]
-keywords = ["encoding", "cbor", "binary", "format", "serialization"]
 repository = "https://github.com/BlockchainCommons/bc-envelope-rust"
 readme = "README.md"
 license = "BSD-2-Clause-Patent"
-categories = ["data-structures", "encoding"]
 documentation = "https://docs.rs/bc-envelope"
+keywords = ["encoding", "cbor", "binary", "format", "serialization"] # Up to five
+categories = ["data-structures", "encoding"] # https://crates.io/category_slugs
 
 [dependencies]
 dcbor = { version = "^0.16.0", features = ["multithreaded"] }
