@@ -373,7 +373,7 @@ fn test_complex_metadata() {
     // resolved. In other words, the referent of an ARID is mutable.
     let author = Envelope::new(ARID::from_data(hex!("9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")))
         .add_assertion(known_values::DEREFERENCE_VIA, "LibraryOfCongress")
-        .add_assertion(known_values::HAS_NAME, "Ayn Rand")
+        .add_assertion(known_values::NAME, "Ayn Rand")
         .check_encoding().unwrap();
 
     // Assertions made on a literal value are considered part of the same set of
@@ -389,8 +389,8 @@ fn test_complex_metadata() {
         .add_assertion("isbn", "9780451191144")
         .add_assertion("author", author)
         .add_assertion(known_values::DEREFERENCE_VIA, "LibraryOfCongress")
-        .add_assertion(known_values::HAS_NAME, name_en)
-        .add_assertion(known_values::HAS_NAME, name_es)
+        .add_assertion(known_values::NAME, name_en)
+        .add_assertion(known_values::NAME, name_es)
         .check_encoding().unwrap();
 
     let book_data = "This is the entire book “Atlas Shrugged” in EPUB format.";
@@ -409,21 +409,21 @@ fn test_complex_metadata() {
             'isA': "novel"
             "author": ARID(9c747ace) [
                 'dereferenceVia': "LibraryOfCongress"
-                'hasName': "Ayn Rand"
+                'name': "Ayn Rand"
             ]
             "isbn": "9780451191144"
             'dereferenceVia': "LibraryOfCongress"
-            'hasName': "Atlas Shrugged" [
+            'name': "Atlas Shrugged" [
                 'language': "en"
             ]
-            'hasName': "La rebelión de Atlas" [
+            'name': "La rebelión de Atlas" [
                 'language': "es"
             ]
         ]
         'dereferenceVia': "IPFS"
     ]
     "#}.trim());
-    assert_eq!(book_metadata.format_flat(), r#"Digest(26d05af5) [ "format": "EPUB", "work": ARID(7fb90a9d) [ 'isA': "novel", "author": ARID(9c747ace) [ 'dereferenceVia': "LibraryOfCongress", 'hasName': "Ayn Rand" ], "isbn": "9780451191144", 'dereferenceVia': "LibraryOfCongress", 'hasName': "Atlas Shrugged" [ 'language': "en" ], 'hasName': "La rebelión de Atlas" [ 'language': "es" ] ], 'dereferenceVia': "IPFS" ]"#);
+    assert_eq!(book_metadata.format_flat(), r#"Digest(26d05af5) [ "format": "EPUB", "work": ARID(7fb90a9d) [ 'isA': "novel", "author": ARID(9c747ace) [ 'dereferenceVia': "LibraryOfCongress", 'name': "Ayn Rand" ], "isbn": "9780451191144", 'dereferenceVia': "LibraryOfCongress", 'name': "Atlas Shrugged" [ 'language': "en" ], 'name': "La rebelión de Atlas" [ 'language': "es" ] ], 'dereferenceVia': "IPFS" ]"#);
 
     assert_eq!(book_metadata.tree_format(false), indoc! {r#"
     c93370e7 NODE
@@ -445,7 +445,7 @@ fn test_complex_metadata() {
                     2be2d79b pred 'isA'
                     6d7c7189 obj "novel"
                 63cd143a ASSERTION
-                    14ff9eac pred 'hasName'
+                    14ff9eac pred 'name'
                     29fa40b1 obj NODE
                         5e825721 subj "La rebelión de Atlas"
                         c8db157b ASSERTION
@@ -459,13 +459,13 @@ fn test_complex_metadata() {
                             cdb6a696 pred 'dereferenceVia'
                             34a04547 obj "LibraryOfCongress"
                         bff8435a ASSERTION
-                            14ff9eac pred 'hasName'
+                            14ff9eac pred 'name'
                             98985bd5 obj "Ayn Rand"
                 9c10d60f ASSERTION
                     cdb6a696 pred 'dereferenceVia'
                     34a04547 obj "LibraryOfCongress"
                 b722c07c ASSERTION
-                    14ff9eac pred 'hasName'
+                    14ff9eac pred 'name'
                     0cfacc06 obj NODE
                         e84c3091 subj "Atlas Shrugged"
                         b80d3b05 ASSERTION
@@ -491,7 +491,7 @@ fn test_complex_metadata() {
                     'isA'
                     "novel"
                 ASSERTION
-                    'hasName'
+                    'name'
                     "La rebelión de Atlas"
                         ASSERTION
                             'language'
@@ -503,13 +503,13 @@ fn test_complex_metadata() {
                             'dereferenceVia'
                             "LibraryOfCongress"
                         ASSERTION
-                            'hasName'
+                            'name'
                             "Ayn Rand"
                 ASSERTION
                     'dereferenceVia'
                     "LibraryOfCongress"
                 ASSERTION
-                    'hasName'
+                    'name'
                     "Atlas Shrugged"
                         ASSERTION
                             'language'

@@ -35,7 +35,7 @@ fn test_attachment() -> anyhow::Result<()> {
             'conformsTo': "https://example.com/seed-attachment/v2"
             'vendor': "com.example"
         ]
-        'hasName': "Alice's Seed"
+        'name': "Alice's Seed"
         'note': "This is the note."
     ]
     "#}.trim()

@@ -26,7 +26,7 @@ known_value_constant!(CONTROLLER, 7, "controller");
 known_value_constant!(KEY, 8, "key");
 known_value_constant!(DEREFERENCE_VIA, 9, "dereferenceVia");
 known_value_constant!(ENTITY, 10, "entity");
-known_value_constant!(HAS_NAME, 11, "hasName");
+known_value_constant!(NAME, 11, "name");
 known_value_constant!(LANGUAGE, 12, "language");
 known_value_constant!(ISSUER, 13, "issuer");
 known_value_constant!(HOLDER, 14, "holder");
@@ -117,7 +117,7 @@ impl LazyKnownValues {
                 KEY,
                 DEREFERENCE_VIA,
                 ENTITY,
-                HAS_NAME,
+                NAME,
                 LANGUAGE,
                 ISSUER,
                 HOLDER,
