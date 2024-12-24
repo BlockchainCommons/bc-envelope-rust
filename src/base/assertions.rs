@@ -72,6 +72,17 @@ impl Envelope {
         }
     }
 
+    /// If the string is non-empty, returns the result of adding the assertion
+    /// to the envelope. Otherwise, returns the envelope unchanged.
+    pub fn add_nonempty_string_assertion(&self, predicate: impl EnvelopeEncodable, str: impl AsRef<str>) -> Self {
+        let str = str.as_ref();
+        if str.is_empty() {
+            self.clone()
+        } else {
+            self.add_assertion(predicate, str)
+        }
+    }
+
     /// Returns a new `Envelope` with the given array of assertions added.
     ///
     /// - Parameter assertions: The assertions to add.

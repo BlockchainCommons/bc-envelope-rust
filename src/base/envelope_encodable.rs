@@ -1,4 +1,4 @@
-use bc_components::{Digest, PrivateKeyBase, PublicKeyBase, SSKRShare, Salt, SealedMessage, Signature, ARID, URI, UUID, XID};
+use bc_components::{Digest, PrivateKeyBase, PublicKeyBase, Reference, SSKRShare, Salt, SealedMessage, Signature, ARID, URI, UUID, XID};
 #[cfg(feature = "encrypt")]
 use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
@@ -101,3 +101,4 @@ impl_envelope_encodable!(Salt);
 impl_envelope_encodable!(URI);
 impl_envelope_encodable!(UUID);
 impl_envelope_encodable!(XID);
+impl_envelope_encodable!(Reference);

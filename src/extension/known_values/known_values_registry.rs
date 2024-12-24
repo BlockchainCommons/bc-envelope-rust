@@ -47,6 +47,8 @@ known_value_constant!(ENDPOINT, 62, "endpoint");
 known_value_constant!(DELEGATE, 63, "delegate");
 known_value_constant!(PROVENANCE, 64, "provenance");
 known_value_constant!(PRIVATE_KEY, 65, "privateKey");
+known_value_constant!(SERVICE, 66, "service");
+known_value_constant!(CAPABILITY, 67, "capability");
 
 known_value_constant!(PRIVILEGE_ALL, 70, "All");
 known_value_constant!(PRIVILEGE_AUTH, 71, "Auth");
@@ -134,6 +136,8 @@ impl LazyKnownValues {
                 DELEGATE,
                 PROVENANCE,
                 PRIVATE_KEY,
+                SERVICE,
+                CAPABILITY,
 
                 PRIVILEGE_ALL,
                 PRIVILEGE_AUTH,
