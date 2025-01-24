@@ -284,8 +284,8 @@ fn test_wrap_then_signed() {
 fn test_encrypt_to_recipients() {
     let envelope = Envelope::new(PLAINTEXT_HELLO)
         .encrypt_subject_opt(&fake_content_key(), Some(fake_nonce())).unwrap().check_encoding().unwrap()
-        .add_recipient_opt(&bob_public_key(), &fake_content_key(), Some(fake_content_key().data()), Some(&fake_nonce())).check_encoding().unwrap()
-        .add_recipient_opt(&carol_public_key(), &fake_content_key(), Some(fake_content_key().data()), Some(&fake_nonce())).check_encoding().unwrap();
+        .add_recipient_opt(&bob_public_key(), &fake_content_key(), Some(&fake_nonce())).check_encoding().unwrap()
+        .add_recipient_opt(&carol_public_key(), &fake_content_key(), Some(&fake_nonce())).check_encoding().unwrap();
     assert_eq!(envelope.format(), indoc! {r#"
     ENCRYPTED [
         'hasRecipient': SealedMessage
@@ -293,16 +293,6 @@ fn test_encrypt_to_recipients() {
     ]
     "#}.trim());
     assert_eq!(envelope.format_flat(), r#"ENCRYPTED [ 'hasRecipient': SealedMessage, 'hasRecipient': SealedMessage ]"#);
-    assert_eq!(envelope.tree_format(false), indoc! {r#"
-    310c90f6 NODE
-        8cc96cdb subj ENCRYPTED
-        93f3bf1d ASSERTION
-            943a35d1 pred 'hasRecipient'
-            d3250f01 obj SealedMessage
-        bf724d53 ASSERTION
-            943a35d1 pred 'hasRecipient'
-            78a28897 obj SealedMessage
-    "#}.trim());
     assert_eq!(envelope.tree_format(true), indoc! {r#"
     ENCRYPTED
         ASSERTION

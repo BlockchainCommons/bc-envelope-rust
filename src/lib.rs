@@ -383,6 +383,7 @@ pub mod prelude;
 
 mod string_utils;
 
+use bc_components::{EncapsulationPrivateKey, Encrypter};
 #[cfg(feature = "signature")]
 pub use bc_components::{Signer, Verifier};
 
@@ -420,13 +421,13 @@ pub use extension::expressions::{
 
 #[cfg(all(feature = "signature", feature = "recipient"))]
 impl Envelope {
-    pub fn seal(&self, sender: &impl Signer, recipient: &PublicKeyBase) -> Envelope {
+    pub fn seal(&self, sender: &dyn Signer, recipient: &dyn Encrypter) -> Envelope {
         self
             .sign(sender)
             .encrypt_to_recipient(recipient)
     }
 
-    pub fn unseal(&self, sender: &impl Verifier, recipient: &PrivateKeyBase) -> Result<Envelope> {
+    pub fn unseal(&self, sender: &dyn Verifier, recipient: &EncapsulationPrivateKey) -> Result<Envelope> {
         self
             .decrypt_to_recipient(recipient)?
             .verify(sender)

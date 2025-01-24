@@ -12,7 +12,7 @@ fn test_ed25519_signed_plaintext() {
     bc_components::register_tags();
 
     let alice_private_key = alice_private_key().ed25519_signing_private_key();
-    let alice_public_key = alice_private_key.public_key();
+    let alice_public_key = alice_private_key.public_key().unwrap();
 
     // Alice sends a signed plaintext message to Bob.
     let envelope = hello_envelope()
@@ -41,7 +41,7 @@ fn test_ed25519_signed_plaintext() {
     assert_eq!(received_plaintext, "Hello.");
 
     // Confirm that it wasn't signed by Carol.
-    let carol_public_key = carol_private_key().ed25519_signing_private_key().public_key();
+    let carol_public_key = carol_private_key().ed25519_signing_private_key().public_key().unwrap();
     assert!(received_envelope.verify_signature_from(&carol_public_key).is_err());
 
     // Confirm that it was signed by Alice OR Carol.

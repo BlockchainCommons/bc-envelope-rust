@@ -73,10 +73,3 @@ fn test_encrypted() {
     encrypted_test(single_assertion_envelope()).unwrap();
     encrypted_test(double_assertion_envelope()).unwrap();
 }
-
-// #[test]
-// fn test_sign_wrap_encrypt() {
-//     let e1 = basic_envelope();
-//     let e2 =
-//         e1.sign(alice_private_key())
-// }
