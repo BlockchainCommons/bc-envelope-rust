@@ -7,7 +7,6 @@ use crate::Envelope;
 use super::{walk::EdgeType, envelope::EnvelopeCase};
 
 /// Support for calculating the digests associated with `Envelope`.
-
 impl DigestProvider for Envelope {
     /// The envelope's digest.
     ///

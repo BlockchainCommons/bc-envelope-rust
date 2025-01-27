@@ -29,8 +29,8 @@ impl Envelope {
     ///   - content_key: The `SymmetricKey` used to encrypt the envelope's subject.
     ///
     /// - Returns: An array of arrays. Each element of the outer array represents an
-    /// SSKR group, and the elements of each inner array are the envelope with a unique
-    /// `sskrShare: SSKRShare` assertion added to each.
+    ///     SSKR group, and the elements of each inner array are the envelope with a unique
+    ///     `sskrShare: SSKRShare` assertion added to each.
     pub fn sskr_split(&self, spec: &SSKRSpec, content_key: &SymmetricKey) -> Result<Vec<Vec<Envelope>>> {
         let mut rng = bc_rand::SecureRandomNumberGenerator;
         self.sskr_split_using(spec, content_key, &mut rng)
@@ -49,7 +49,7 @@ impl Envelope {
     ///   - content_key: The `SymmetricKey` used to encrypt the envelope's subject.
     ///
     /// - Returns: An array of shares. Each element of the array represents an
-    /// SSKR share.
+    ///     SSKR share.
     pub fn sskr_split_flattened(&self, spec: &SSKRSpec, content_key: &SymmetricKey) -> Result<Vec<Envelope>> {
         Ok(self.sskr_split(spec, content_key)?.into_iter().flatten().collect())
     }
@@ -68,8 +68,8 @@ impl Envelope {
     ///   - content_key: The `SymmetricKey` used to encrypt the envelope's subject.
     ///
     /// - Returns: An array of arrays. Each element of the outer array represents an
-    /// SSKR group, and the elements of each inner array are the envelope with a unique
-    /// `sskrShare: SSKRShare` assertion added to each.
+    ///     SSKR group, and the elements of each inner array are the envelope with a unique
+    ///     `sskrShare: SSKRShare` assertion added to each.
     pub fn sskr_split_using(&self, spec: &SSKRSpec, content_key: &SymmetricKey, test_rng: &mut impl RandomNumberGenerator) -> Result<Vec<Vec<Envelope>>> {
         let master_secret = SSKRSecret::new(content_key.data())?;
         let shares = sskr_generate_using(spec, &master_secret, test_rng)?;
@@ -107,7 +107,7 @@ impl Envelope {
     /// - Parameter envelopes: The envelopes to be joined.
     ///
     /// - Throws: Throws an exception if no quorum of shares can be found to reconstruct
-    /// the original envelope.
+    ///     the original envelope.
     pub fn sskr_join(envelopes: &[&Envelope]) -> Result<Envelope> {
         if envelopes.is_empty() {
             bail!(EnvelopeError::InvalidShares);

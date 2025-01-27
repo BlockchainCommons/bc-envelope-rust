@@ -298,13 +298,13 @@
 //!     * [`Envelope::elide_target`]
 //!
 //! * Returns a version with the given element(s) elided, encrypted, or
-//! compressed:
+//!     compressed:
 //!     * [`Envelope::elide_removing_set_with_action`]
 //!     * [`Envelope::elide_removing_array_with_action`]
 //!     * [`Envelope::elide_removing_target_with_action`]
 //!
 //! * Returns a version with all elements except the given element(s) elided,
-//! encrypted, or compressed:
+//!     encrypted, or compressed:
 //!     * [`Envelope::elide_revealing_set_with_action`]
 //!     * [`Envelope::elide_revealing_array_with_action`]
 //!     * [`Envelope::elide_revealing_target_with_action`]

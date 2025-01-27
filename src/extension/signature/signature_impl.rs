@@ -137,7 +137,7 @@ impl Envelope {
     /// - Returns: This envelope.
     ///
     /// - Throws: Throws `EnvelopeError.unverifiedSignature` if the signature is not valid.
-    /// valid.
+    ///     valid.
     pub fn verify_signature(
         &self,
         signature: &Signature,
@@ -157,7 +157,7 @@ impl Envelope {
     /// - Returns: `true` if any signature is valid for this envelope's subject, `false` otherwise.
     ///
     /// - Throws: Throws an exception if any `'signed'` assertion doesn't contain a
-    /// valid `Signature` as its object.
+    ///     valid `Signature` as its object.
     pub fn has_signature_from(&self, public_key: &dyn Verifier) -> Result<bool> {
         self.has_some_signature_from_key(public_key)
     }
@@ -183,7 +183,7 @@ impl Envelope {
     /// - Returns: This envelope.
     ///
     /// - Throws: Throws `EnvelopeError.unverifiedSignature` if the signature is not valid.
-    /// valid.
+    ///     valid.
     pub fn verify_signature_from(&self, public_key: &dyn Verifier) -> Result<Self> {
         if !self.has_some_signature_from_key(public_key)? {
             bail!(EnvelopeError::UnverifiedSignature);
@@ -216,7 +216,7 @@ impl Envelope {
     /// - Returns: `true` if the threshold of valid signatures is met, `false` otherwise.
     ///
     /// - Throws: Throws an exception if any `'signed'` assertion doesn't contain a
-    /// valid `Signature` as its object.
+    ///     valid `Signature` as its object.
     pub fn has_signatures_from_threshold(
         &self,
         public_keys: &[&dyn Verifier],

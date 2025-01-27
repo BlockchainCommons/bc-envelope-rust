@@ -12,19 +12,18 @@ use crate::extension::KnownValue;
 use super::envelope::EnvelopeCase;
 
 /// Support for CBOR encoding and decoding of ``Envelope``.
-
+///
 /// All envelopes are tagged with the `envelope` tag. Within that tag, each of
 /// the seven cases has a unique CBOR signature:
 ///
 /// * `.node` contains a CBOR array, the first element of which is the subject,
-/// followed by one or more assertions.
+///     followed by one or more assertions.
 /// * `.leaf` is tagged #6.24, which is the IANA tag for embedded CBOR.
 /// * `.wrapped` is tagged with the `envelope` tag.
 /// * `.assertion` is a single-element map `{predicate: object}`.
 /// * `.knownValue` is an unsigned 64-bit integer.
 /// * `.encrypted` is tagged with the `crypto-msg` tag.
 /// * `.elided` is a byte string of length 32.
-
 impl CBORTagged for Envelope {
     fn cbor_tags() -> Vec<Tag> {
         tags_for_values(&[tags::TAG_ENVELOPE])

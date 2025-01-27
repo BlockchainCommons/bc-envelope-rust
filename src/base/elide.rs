@@ -179,8 +179,8 @@ impl Envelope {
     /// - Parameters:
     ///   - target: The target set of digests.
     ///   - isRevealing: If `true`, the target set contains the digests of the elements to
-    ///   leave revealed. If it is `false`, the target set contains the digests of the
-    ///   elements to elide.
+    ///     leave revealed. If it is `false`, the target set contains the digests of the
+    ///     elements to elide.
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
@@ -226,8 +226,8 @@ impl Envelope {
     /// - Parameters:
     ///   - target: The target set of digests.
     ///   - isRevealing: If `true`, the target set contains the digests of the elements to
-    ///   leave revealed. If it is `false`, the target set contains the digests of the
-    ///   elements to elide.
+    ///     leave revealed. If it is `false`, the target set contains the digests of the
+    ///     elements to elide.
     ///
     /// - Returns: The elided envelope.
     pub fn elide_set(&self, target: &HashSet<Digest>, is_revealing: bool) -> Self {
@@ -239,8 +239,8 @@ impl Envelope {
     /// - Parameters:
     ///   - target: An array of `DigestProvider`s.
     ///   - isRevealing: If `true`, the target set contains the digests of the elements to
-    ///   leave revealed. If it is `false`, the target set contains the digests of the
-    ///   elements to elide.
+    ///     leave revealed. If it is `false`, the target set contains the digests of the
+    ///     elements to elide.
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
@@ -253,8 +253,8 @@ impl Envelope {
     /// - Parameters:
     ///   - target: An array of `DigestProvider`s.
     ///   - isRevealing: If `true`, the target set contains the digests of the elements to
-    ///   leave revealed. If it is `false`, the target set contains the digests of the
-    ///   elements to elide.
+    ///     leave revealed. If it is `false`, the target set contains the digests of the
+    ///     elements to elide.
     ///
     /// - Returns: The elided envelope.
     pub fn elide_array(&self, target: &[&dyn DigestProvider], is_revealing: bool) -> Self {
@@ -266,8 +266,8 @@ impl Envelope {
     /// - Parameters:
     ///   - target: A `DigestProvider`.
     ///   - isRevealing: If `true`, the target is the element to leave revealed, eliding
-    ///   all others. If it is `false`, the target is the element to elide, leaving all
-    ///   others revealed.
+    ///     all others. If it is `false`, the target is the element to elide, leaving all
+    ///     others revealed.
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
@@ -280,8 +280,8 @@ impl Envelope {
     /// - Parameters:
     ///   - target: A `DigestProvider`.
     ///   - isRevealing: If `true`, the target is the element to leave revealed, eliding
-    ///   all others. If it is `false`, the target is the element to elide, leaving all
-    ///   others revealed.
+    ///     all others. If it is `false`, the target is the element to elide, leaving all
+    ///     others revealed.
     ///
     /// - Returns: The elided envelope.
     pub fn elide_target(&self, target: &dyn DigestProvider, is_revealing: bool) -> Self {

@@ -56,7 +56,7 @@ pub trait ExpressionBehavior {
     /// Returns the argument for the given parameter, decoded as the given type.
     ///
     /// - Throws: Throws an exception if there is not exactly one matching `parameter`,
-    /// or if the parameter value is not the correct type.
+    ///     or if the parameter value is not the correct type.
     fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
     where
         T: TryFrom<CBOR, Error = Error> + 'static;
@@ -179,7 +179,7 @@ pub trait IntoExpression {
     fn to_expression(&self) -> Expression;
 }
 
-impl<T: Into<Expression> + Clone + ?Sized> IntoExpression for T {
+impl<T: Into<Expression> + Clone> IntoExpression for T {
     fn into_expression(self) -> Expression {
         self.into()
     }

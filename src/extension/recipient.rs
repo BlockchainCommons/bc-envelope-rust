@@ -53,7 +53,7 @@ impl Envelope {
     /// which is then encrypted to each recipient's public key.
     ///
     /// - Parameter recipients: An array of `PublicKeyBase`, one for each potential
-    /// recipient.
+    ///     recipient.
     ///
     /// - Returns: The encrypted envelope.
     ///
@@ -122,7 +122,7 @@ impl Envelope {
     /// - Returns: The decryptedEnvelope.
     ///
     /// - Throws: If a `SealedMessage` for `recipient` is not found among the
-    /// `hasRecipient` assertions on the envelope.
+    ///     `hasRecipient` assertions on the envelope.
     #[cfg(feature = "encrypt")]
     pub fn decrypt_subject_to_recipient(&self, recipient: &dyn Decrypter) -> Result<Self> {
         let sealed_messages = self.clone().recipients()?;
