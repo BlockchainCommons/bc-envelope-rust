@@ -2,17 +2,42 @@
 
 set -e
 
-cargo test
-cargo test --no-default-features
-cargo test --no-default-features --features attachment
-cargo test --no-default-features --features compress
-cargo test --no-default-features --features encrypt
-cargo test --no-default-features --features expression
-cargo test --no-default-features --features known_value
-cargo test --no-default-features --features proof
-cargo test --no-default-features --features recipient
-cargo test --no-default-features --features salt
-cargo test --no-default-features --features signature
-cargo test --no-default-features --features ssh
-cargo test --no-default-features --features sskr
-cargo test --no-default-features --features types
+TERM_PURPLE='\033[0;35m'
+TERM_BOLD='\033[1m'
+TERM_RESET='\033[0m'
+
+section() {
+    echo -e "${TERM_PURPLE}${TERM_BOLD}=== $1 ===${TERM_RESET}"
+}
+
+# argument: "feature1,feature2,..."
+test_only_features() {
+    local features="$1"
+    section "no default + $features"
+    cargo test --no-default-features --features "$features" > /dev/null
+}
+
+test_additional_features() {
+    local features="$1"
+    section "default + $features"
+    cargo test --features "$features" > /dev/null
+}
+
+section "All Default Features"
+cargo test > /dev/null
+
+section "No Default Features"
+cargo test --no-default-features > /dev/null
+
+test_only_features "attachment"
+test_only_features "compress"
+test_only_features "encrypt"
+test_only_features "expression"
+test_only_features "known_value"
+test_only_features "proof"
+test_only_features "recipient"
+test_only_features "salt"
+test_only_features "signature"
+test_only_features "ssh"
+test_only_features "sskr"
+test_only_features "types"

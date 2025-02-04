@@ -25,7 +25,7 @@ fn test_ssh_signed_plaintext() {
 
     let expected_format = indoc! {r#"
     "Hello." [
-        'signed': Signature
+        'signed': Signature(SshEd25519)
     ]
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);

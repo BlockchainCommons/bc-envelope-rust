@@ -330,7 +330,11 @@ impl Envelope {
 
 impl Envelope {
     pub fn sign(&self, signer: &dyn Signer) -> Envelope {
-        self.wrap_envelope().add_signature(signer)
+        self.sign_opt(signer, None)
+    }
+
+    pub fn sign_opt(&self, signer: &dyn Signer, options: Option<SigningOptions>) -> Envelope {
+        self.wrap_envelope().add_signature_opt(signer, options, None)
     }
 
     pub fn verify(&self, verifier: &dyn Verifier) -> Result<Envelope> {

@@ -13,10 +13,10 @@ use dcbor::prelude::*;
 impl Envelope {
     /// Returns a new envelope with an added `hasRecipient: SealedMessage` assertion.
     ///
-    /// The `SealedMessage` contains the `contentKey` encrypted to the recipient's `PublicKeyBase`.
+    /// The `SealedMessage` contains the `contentKey` encrypted to the recipient's `PublicKeys`.
     ///
     /// - Parameters:
-    ///   - recipient: The `PublicKeyBase` of the recipient.
+    ///   - recipient: The `PublicKeys` of the recipient.
     ///   - contentKey: The `SymmetricKey` that was used to encrypt the subject.
     ///
     /// - Returns: The new envelope.
@@ -52,7 +52,7 @@ impl Envelope {
     /// Generates an ephemeral symmetric key which is used to encrypt the subject and
     /// which is then encrypted to each recipient's public key.
     ///
-    /// - Parameter recipients: An array of `PublicKeyBase`, one for each potential
+    /// - Parameter recipients: An array of `PublicKeys`, one for each potential
     ///     recipient.
     ///
     /// - Returns: The encrypted envelope.
@@ -89,7 +89,7 @@ impl Envelope {
     /// Generates an ephemeral symmetric key which is used to encrypt the subject and
     /// which is then encrypted to the recipient's public key.
     ///
-    /// - Parameter recipient: The recipient's `PublicKeyBase`.
+    /// - Parameter recipient: The recipient's `PublicKeys`.
     ///
     /// - Returns: The encrypted envelope.
     #[cfg(feature = "encrypt")]
@@ -133,10 +133,10 @@ impl Envelope {
 
     /// Convenience constructor for a `hasRecipient: SealedMessage` assertion.
     ///
-    /// The `SealedMessage` contains the `contentKey` encrypted to the recipient's `PublicKeyBase`.
+    /// The `SealedMessage` contains the `contentKey` encrypted to the recipient's `PublicKeys`.
     ///
     /// - Parameters:
-    ///   - recipient: The `PublicKeyBase` of the recipient.
+    ///   - recipient: The `PublicKeys` of the recipient.
     ///   - contentKey: The `SymmetricKey` that was used to encrypt the subject.
     ///
     /// - Returns: The assertion envelope.
@@ -147,6 +147,7 @@ impl Envelope {
     }
 }
 
+#[cfg(feature = "recipient")]
 impl Envelope {
     pub fn encrypt_to_recipient(&self, recipient: &dyn Encrypter) -> Envelope {
         self

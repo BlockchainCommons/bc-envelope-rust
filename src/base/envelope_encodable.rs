@@ -1,4 +1,4 @@
-use bc_components::{Digest, PrivateKeyBase, PublicKeyBase, Reference, SSKRShare, Salt, SealedMessage, Signature, ARID, URI, UUID, XID};
+use bc_components::{Digest, PrivateKeyBase, PrivateKeys, PublicKeys, Reference, SSKRShare, Salt, SealedMessage, Signature, ARID, URI, UUID, XID};
 #[cfg(feature = "encrypt")]
 use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
@@ -90,7 +90,8 @@ impl_envelope_encodable!(f32);
 impl_envelope_encodable!(dcbor::ByteString);
 
 impl_envelope_encodable!(dcbor::Date);
-impl_envelope_encodable!(PublicKeyBase);
+impl_envelope_encodable!(PublicKeys);
+impl_envelope_encodable!(PrivateKeys);
 impl_envelope_encodable!(PrivateKeyBase);
 impl_envelope_encodable!(SealedMessage);
 impl_envelope_encodable!(Signature);

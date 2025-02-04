@@ -1,4 +1,5 @@
 #![cfg(feature = "encrypt")]
+
 use bc_envelope::prelude::*;
 use bc_components::{DigestProvider, SymmetricKey, Nonce, EncryptedMessage};
 use hex_literal::hex;
