@@ -33,6 +33,7 @@ known_value_constant!(HOLDER, 14, "holder");
 known_value_constant!(SALT, 15, "salt");
 known_value_constant!(DATE, 16, "date");
 known_value_constant!(UNKNOWN_VALUE, 17, "Unknown");
+known_value_constant!(VERSION_VALUE, 18, "version");
 known_value_constant!(DIFF_EDITS, 20, "edits");
 known_value_constant!(VALID_FROM, 21, "validFrom");
 known_value_constant!(VALID_UNTIL, 22, "validUntil");
@@ -126,6 +127,7 @@ impl LazyKnownValues {
                 SALT,
                 DATE,
                 UNKNOWN_VALUE,
+                VERSION_VALUE,
                 DIFF_EDITS,
                 VALID_FROM,
                 VALID_UNTIL,

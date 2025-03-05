@@ -1,6 +1,6 @@
 [package]
 name = "bc-envelope"
-version = "0.23.0"
+version = "0.24.0"
 edition = "2021"
 description = "Gordian Envelope for Rust."
 authors = ["Blockchain Commons"]
@@ -8,7 +8,13 @@ repository = "https://github.com/BlockchainCommons/bc-envelope-rust"
 readme = "README.md"
 license = "BSD-2-Clause-Patent"
 documentation = "https://docs.rs/bc-envelope"
-keywords = ["encoding", "cbor", "binary", "format", "serialization"] # Up to five
+keywords = [
+    "encoding",
+    "cbor",
+    "binary",
+    "format",
+    "serialization",
+] # Up to five
 categories = ["data-structures", "encoding"] # https://crates.io/category_slugs
 
 [dependencies]
@@ -24,7 +30,12 @@ itertools = "^0.11.0"
 thiserror = "^1.0.48"
 anyhow = "^1.0.0"
 bytes = "^1.5.0"
-ssh-key = { version = "=0.6.6", optional = true, default-features = false, features = ["ecdsa", "rand_core", "std", "crypto"] }
+ssh-key = { version = "=0.6.6", optional = true, default-features = false, features = [
+    "ecdsa",
+    "rand_core",
+    "std",
+    "crypto",
+] }
 
 [dev-dependencies]
 hex-literal = "^0.4.1"
@@ -64,7 +75,7 @@ default = [
 
 [package.metadata.release]
 pre-release-replacements = [
-  {file="README.md", search="bc-envelope = .*", replace="{{crate_name}} = \"{{version}}\""},
-  {file="src/lib.rs", search="bc-envelope = .*", replace="{{crate_name}} = \"{{version}}\""},
-  {file="src/lib.rs", search="#!\\[doc\\(html_root_url = \"https://docs.rs/bc-envelope/[0-9.]*\"\\)\\]", replace="#![doc(html_root_url = \"https://docs.rs/bc-envelope/{{version}}\")]"},
+    { file = "README.md", search = "bc-envelope = .*", replace = "{{crate_name}} = \"{{version}}\"" },
+    { file = "src/lib.rs", search = "bc-envelope = .*", replace = "{{crate_name}} = \"{{version}}\"" },
+    { file = "src/lib.rs", search = "#!\\[doc\\(html_root_url = \"https://docs.rs/bc-envelope/[0-9.]*\"\\)\\]", replace = "#![doc(html_root_url = \"https://docs.rs/bc-envelope/{{version}}\")]" },
 ]
