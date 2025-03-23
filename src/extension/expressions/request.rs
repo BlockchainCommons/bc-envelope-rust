@@ -43,7 +43,7 @@ pub trait RequestBehavior: ExpressionBehavior {
     fn body(&self) -> &Expression;
 
     /// Returns the ID of the request.
-    fn id(&self) -> &ARID;
+    fn id(&self) -> ARID;
 
     /// Returns the note of the request.
     fn note(&self) -> &str;
@@ -53,16 +53,16 @@ pub trait RequestBehavior: ExpressionBehavior {
 }
 
 impl Request {
-    pub fn new_with_body(body: Expression, id: impl AsRef<ARID>) -> Self {
+    pub fn new_with_body(body: Expression, id: ARID) -> Self {
         Self {
             body,
-            id: id.as_ref().clone(),
+            id,
             note: String::new(),
             date: None,
         }
     }
 
-    pub fn new(function: impl Into<Function>, id: impl AsRef<ARID>) -> Self {
+    pub fn new(function: impl Into<Function>, id: ARID) -> Self {
         Self::new_with_body(Expression::new(function), id)
     }
 }
@@ -132,8 +132,8 @@ impl RequestBehavior for Request {
     }
 
     /// Returns the ID of the request.
-    fn id(&self) -> &ARID {
-        &self.id
+    fn id(&self) -> ARID {
+        self.id
     }
 
     /// Returns the note of the request.

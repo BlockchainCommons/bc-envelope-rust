@@ -45,16 +45,16 @@ impl Response {
     // Success Composition
     //
 
-    pub fn new_success(id: impl AsRef<ARID>) -> Self {
-        Self(Ok((id.as_ref().clone(), Envelope::ok())))
+    pub fn new_success(id: ARID) -> Self {
+        Self(Ok((id, Envelope::ok())))
     }
 
     //
     // Failure Composition
     //
 
-    pub fn new_failure(id: impl AsRef<ARID>) -> Self {
-        Self(Err((Some(id.as_ref().clone()), Envelope::unknown())))
+    pub fn new_failure(id: ARID) -> Self {
+        Self(Err((Some(id), Envelope::unknown())))
     }
 
     /// An early failure takes place before the message has been decrypted,
@@ -96,9 +96,9 @@ pub trait ResponseBehavior {
 
     fn err(&self) -> Option<&(Option<ARID>, Envelope)>;
 
-    fn id(&self) -> Option<&ARID>;
+    fn id(&self) -> Option<ARID>;
 
-    fn expect_id(&self) -> &ARID {
+    fn expect_id(&self) -> ARID {
         self.id().expect("Expected an ID")
     }
 
@@ -183,10 +183,10 @@ impl ResponseBehavior for Response {
         self.0.as_ref().err()
     }
 
-    fn id(&self) -> Option<&ARID> {
-        match &self.0 {
+    fn id(&self) -> Option<ARID> {
+        match self.0 {
             Ok((id, _)) => Some(id),
-            Err((id, _)) => id.as_ref(),
+            Err((id, _)) => id,
         }
     }
 
@@ -201,7 +201,7 @@ impl From<Response> for Envelope {
             Err((id, error)) => {
                 let subject: Envelope;
                 if let Some(id) = id {
-                    subject = Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, id.clone()))
+                    subject = Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, id))
                 } else {
                     subject = Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, known_values::UNKNOWN_VALUE))
                 }
@@ -281,7 +281,7 @@ mod tests {
 
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_ok());
-        assert_eq!(parsed_response.expect_id(), &request_id());
+        assert_eq!(parsed_response.expect_id(), request_id());
         assert_eq!(parsed_response.extract_result::<KnownValue>()?, known_values::OK_VALUE);
         assert_eq!(response, parsed_response);
 
@@ -291,7 +291,7 @@ mod tests {
     #[test]
     fn test_success_result() -> Result<()> {
         crate::register_tags();
-        
+
         let response = Response::new_success(request_id())
             .with_result("It works!");
         let envelope: Envelope = response.clone().into();
@@ -306,7 +306,7 @@ mod tests {
 
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_ok());
-        assert_eq!(parsed_response.expect_id(), &request_id());
+        assert_eq!(parsed_response.expect_id(), request_id());
         assert_eq!(parsed_response.extract_result::<String>()?, "It works!");
         assert_eq!(response, parsed_response);
 
@@ -355,7 +355,7 @@ mod tests {
 
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_err());
-        assert_eq!(parsed_response.id(), Some(&request_id()));
+        assert_eq!(parsed_response.id(), Some(request_id()));
         assert_eq!(parsed_response.extract_error::<String>()?, "It doesn't work!");
         assert_eq!(response, parsed_response);
 

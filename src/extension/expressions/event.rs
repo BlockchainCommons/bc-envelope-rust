@@ -37,10 +37,10 @@ impl<T> Event<T>
 where
     T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq,
 {
-    pub fn new(content: impl Into<T>, id: impl AsRef<ARID>) -> Self {
+    pub fn new(content: impl Into<T>, id: ARID) -> Self {
         Self {
             content: content.into(),
-            id: id.as_ref().clone(),
+            id,
             note: String::new(),
             date: None,
         }
@@ -69,7 +69,7 @@ where
     fn content(&self) -> &T;
 
     /// Returns the ID of the event.
-    fn id(&self) -> &ARID;
+    fn id(&self) -> ARID;
 
     /// Returns the note of the event.
     fn note(&self) -> &str;
@@ -100,8 +100,8 @@ where
     }
 
     /// Returns the ID of the event.
-    fn id(&self) -> &ARID {
-        &self.id
+    fn id(&self) -> ARID {
+        self.id
     }
 
     /// Returns the note of the event.
