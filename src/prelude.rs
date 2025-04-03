@@ -7,6 +7,7 @@ pub use crate::{
     register_tags_in,
 };
 
+
 #[cfg(feature = "known_value")]
 pub use crate::{
     known_values,
@@ -38,6 +39,8 @@ pub use crate::elide::{
     ObscureAction,
     self,
 };
+
+pub use crate::walk::EdgeType;
 
 pub use bc_components::{
     Digest,

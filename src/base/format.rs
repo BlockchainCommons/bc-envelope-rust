@@ -1,3 +1,40 @@
+//! Formats an envelope as a CBOR data structure and provides human-readable text representations.
+//!
+//! This module provides functionality for formatting envelopes in various ways:
+//! 
+//! 1. **Envelope Notation**: A human-readable text representation showing the semantic structure
+//!    of an envelope (the `format` methods)
+//!
+//! 2. **CBOR Diagnostics**: Text representation of the underlying CBOR structure, following 
+//!    [RFC-8949 §8](https://www.rfc-editor.org/rfc/rfc8949.html#name-diagnostic-notation)
+//!    (the `diagnostic` methods)
+//!
+//! 3. **CBOR Hex**: Hexadecimal representation of the raw CBOR bytes (the `hex` methods)
+//!
+//! All of these formats can be used for debugging, visualization, and understanding the
+//! structure of envelopes.
+//!
+//! # Examples
+//!
+//! ```
+//! use bc_envelope::prelude::*;
+//!
+//! // Create a simple envelope with assertions
+//! let envelope = Envelope::new("Alice")
+//!     .add_assertion("knows", "Bob")
+//!     .add_assertion("knows", "Carol");
+//!
+//! // Format the envelope as human-readable envelope notation
+//! let formatted = envelope.format();
+//! // Will output: "Alice" [ "knows": "Bob", "knows": "Carol" ]
+//!
+//! // Get the CBOR diagnostic notation (with annotations)
+//! let diagnostic = envelope.diagnostic_annotated();
+//!
+//! // Get the CBOR hex representation
+//! let hex = envelope.hex();
+//! ```
+
 use bc_components::XID;
 use dcbor::prelude::*;
 use crate::{Envelope, Assertion, string_utils::StringUtils, FormatContext, with_format_context};
@@ -226,12 +263,14 @@ impl EnvelopeFormatItem {
     }
 }
 
+/// Implements conversion from string slice to EnvelopeFormatItem.
 impl From<&str> for EnvelopeFormatItem {
     fn from(s: &str) -> Self {
         Self::Item(s.to_string())
     }
 }
 
+/// Implements string display for EnvelopeFormatItem.
 impl std::fmt::Display for EnvelopeFormatItem {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -244,6 +283,7 @@ impl std::fmt::Display for EnvelopeFormatItem {
     }
 }
 
+/// Implements partial equality for EnvelopeFormatItem.
 impl PartialEq for EnvelopeFormatItem {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
@@ -269,6 +309,7 @@ impl EnvelopeFormatItem {
     }
 }
 
+/// Implements partial ordering for EnvelopeFormatItem.
 impl PartialOrd for EnvelopeFormatItem {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
@@ -276,6 +317,7 @@ impl PartialOrd for EnvelopeFormatItem {
 }
 
 
+/// Implements total ordering for EnvelopeFormatItem.
 impl Ord for EnvelopeFormatItem {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         let l_index = self.index();
@@ -308,6 +350,7 @@ impl Ord for EnvelopeFormatItem {
 //     }
 // }
 
+/// Implements formatting for CBOR values in envelope notation.
 impl EnvelopeFormat for CBOR {
     fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
         match self.as_case() {
@@ -324,6 +367,7 @@ impl EnvelopeFormat for CBOR {
     }
 }
 
+/// Implements formatting for Envelope in envelope notation.
 impl EnvelopeFormat for Envelope {
     fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
         match self.case() {
@@ -433,6 +477,7 @@ impl EnvelopeFormat for Envelope {
     }
 }
 
+/// Implements formatting for Assertion in envelope notation.
 impl EnvelopeFormat for Assertion {
     fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
         EnvelopeFormatItem::List(vec![
@@ -444,6 +489,7 @@ impl EnvelopeFormat for Assertion {
 }
 
 #[cfg(feature = "known_value")]
+/// Implements formatting for KnownValue in envelope notation.
 impl EnvelopeFormat for KnownValue {
     fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
         EnvelopeFormatItem::Item(context
@@ -456,6 +502,7 @@ impl EnvelopeFormat for KnownValue {
     }
 }
 
+/// Implements formatting for XID in envelope notation.
 impl EnvelopeFormat for XID {
     fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
         EnvelopeFormatItem::Item(hex::encode(self.data()))
@@ -488,6 +535,7 @@ impl EnvelopeFormat for XID {
     }
 }
 
+/// Implements string display for Envelope.
 impl std::fmt::Display for Envelope {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.description(None))

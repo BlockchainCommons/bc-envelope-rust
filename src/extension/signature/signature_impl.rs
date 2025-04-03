@@ -8,6 +8,9 @@ use crate::extension::known_values;
 use super::SignatureMetadata;
 
 /// Support for signing envelopes and verifying signatures.
+///
+/// This implementation provides methods for digitally signing envelopes and verifying signatures.
+/// It supports both basic signatures and signatures with metadata, as well as multi-signature scenarios.
 impl Envelope {
     /// Creates a signature for the envelope's subject and returns a new envelope with a `'signed': Signature` assertion.
     ///
@@ -266,6 +269,7 @@ impl Envelope {
     }
 }
 
+/// Internal implementation details for signature operations.
 #[doc(hidden)]
 impl Envelope {
     fn is_signature_from_key(&self, signature: &Signature, key: &dyn Verifier) -> bool {
@@ -328,19 +332,83 @@ impl Envelope {
     }
 }
 
+/// Convenience methods for signing and verifying envelopes.
+///
+/// These methods provide a simpler API for common signature operations,
+/// particularly for signing entire envelopes by automatically wrapping them.
 impl Envelope {
+    /// Signs the entire envelope (subject and assertions) by wrapping it first.
+    ///
+    /// This is a convenience method that wraps the envelope before signing, ensuring
+    /// that all assertions are included in the signature, not just the subject.
+    ///
+    /// # Parameters
+    ///
+    /// * `signer` - The signer that will produce the signature.
+    ///
+    /// # Returns
+    ///
+    /// A new envelope with the wrapped envelope as subject and a signature assertion.
     pub fn sign(&self, signer: &dyn Signer) -> Envelope {
         self.sign_opt(signer, None)
     }
 
+    /// Signs the entire envelope with options but no metadata.
+    ///
+    /// This is a convenience method that wraps the envelope before signing with
+    /// the specified options.
+    ///
+    /// # Parameters
+    ///
+    /// * `signer` - The signer that will produce the signature.
+    /// * `options` - Optional signing options to customize the signature generation.
+    ///
+    /// # Returns
+    ///
+    /// A new envelope with the wrapped envelope as subject and a signature assertion.
     pub fn sign_opt(&self, signer: &dyn Signer, options: Option<SigningOptions>) -> Envelope {
         self.wrap_envelope().add_signature_opt(signer, options, None)
     }
 
+    /// Verifies that the envelope has a valid signature from the specified verifier.
+    ///
+    /// This method assumes the envelope is wrapped (i.e., was signed using `sign()`
+    /// rather than `add_signature()`), and unwraps it after verification.
+    ///
+    /// # Parameters
+    ///
+    /// * `verifier` - The verifier to check the signature against.
+    ///
+    /// # Returns
+    ///
+    /// The unwrapped envelope if verification succeeds, otherwise an error.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the signature verification fails or if the envelope
+    /// cannot be unwrapped.
     pub fn verify(&self, verifier: &dyn Verifier) -> Result<Envelope> {
         self.verify_signature_from(verifier)?.unwrap_envelope()
     }
 
+    /// Verifies the envelope's signature and returns both the unwrapped envelope and signature metadata.
+    ///
+    /// This method verifies that the envelope has a valid signature from the specified verifier,
+    /// then unwraps it and returns both the envelope and any metadata associated with the signature.
+    ///
+    /// # Parameters
+    ///
+    /// * `verifier` - The verifier to check the signature against.
+    ///
+    /// # Returns
+    ///
+    /// A tuple containing the unwrapped envelope and the signature metadata envelope if
+    /// verification succeeds, otherwise an error.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the signature verification fails or if the envelope
+    /// cannot be unwrapped.
     pub fn verify_returning_metadata(&self, verifier: &dyn Verifier) -> Result<(Envelope, Envelope)> {
         let metadata = self.verify_signature_from_returning_metadata(verifier)?;
         Ok((self.unwrap_envelope()?, metadata))

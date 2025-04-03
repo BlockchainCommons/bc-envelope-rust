@@ -4,6 +4,43 @@ use dcbor::{Date, CBOR};
 
 use crate::{known_values, Envelope, EnvelopeEncodable};
 
+/// An `Event` represents a notification or message that doesn't expect a response.
+///
+/// Unlike `Request` and `Response` which form a pair, an `Event` is a standalone
+/// message that can be used for broadcasting information, logging, or publishing
+/// notifications. Events are used when the sender does not expect or require 
+/// a response from the recipients.
+///
+/// Each event contains:
+/// - Content of a generic type `T` that holds the event payload
+/// - A unique identifier (ARID) for tracking and correlation
+/// - Optional metadata like a note and timestamp
+///
+/// When serialized to an envelope, events are tagged with `#6.40012` (TAG_EVENT).
+///
+/// # Type Parameters
+///
+/// * `T` - The type of content this event carries. Must implement `EnvelopeEncodable` 
+///   and be convertible from an `Envelope`.
+///
+/// # Examples
+///
+/// ```
+/// use bc_envelope::prelude::*;
+/// use bc_components::ARID;
+/// use dcbor::Date;
+///
+/// // Create a status update event
+/// let event_id = ARID::new();
+/// let timestamp = Date::try_from("2024-08-15T13:45:30Z").unwrap();
+/// 
+/// let status_event = Event::<String>::new("System online", event_id)
+///     .with_note("Regular status update")
+///     .with_date(&timestamp);
+///
+/// // Convert to an envelope for transmission
+/// let envelope = status_event.into_envelope();
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct Event<T>
 where
@@ -19,6 +56,7 @@ impl<T> std::fmt::Display for Event<T>
 where
     T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq,
 {
+    /// Formats the event for display, showing its ID and content.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Event({})", self.summary())
     }
@@ -28,6 +66,7 @@ impl<T> Event<T>
 where
     T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq,
 {
+    /// Returns a human-readable summary of the event.
     pub fn summary(&self) -> String {
         format!("id: {}, content: {}", self.id.short_description(), self.content.to_envelope().format_flat())
     }
@@ -37,6 +76,22 @@ impl<T> Event<T>
 where
     T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq,
 {
+    /// Creates a new event with the specified content and ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `content` - The payload for this event
+    /// * `id` - Unique identifier for the event
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bc_envelope::prelude::*;
+    /// use bc_components::ARID;
+    ///
+    /// let event_id = ARID::new();
+    /// let event = Event::<String>::new("Temperature alert: 90°F", event_id);
+    /// ```
     pub fn new(content: impl Into<T>, id: ARID) -> Self {
         Self {
             content: content.into(),
@@ -47,6 +102,10 @@ where
     }
 }
 
+/// Trait that defines the behavior of an event.
+///
+/// This trait provides methods for composing events with metadata
+/// and for extracting information from events.
 pub trait EventBehavior<T>
 where
     T: EnvelopeEncodable + TryFrom<Envelope>,
@@ -56,9 +115,13 @@ where
     //
 
     /// Adds a note to the event.
+    ///
+    /// This provides human-readable context about the event's purpose.
     fn with_note(self, note: impl Into<String>) -> Self;
 
     /// Adds a date to the event.
+    ///
+    /// This timestamp typically represents when the event occurred.
     fn with_date(self, date: impl AsRef<Date>) -> Self;
 
     //
@@ -68,13 +131,13 @@ where
     /// Returns the content of the event.
     fn content(&self) -> &T;
 
-    /// Returns the ID of the event.
+    /// Returns the unique identifier (ARID) of the event.
     fn id(&self) -> ARID;
 
-    /// Returns the note of the event.
+    /// Returns the note attached to the event, or an empty string if none exists.
     fn note(&self) -> &str;
 
-    /// Returns the date of the event.
+    /// Returns the date attached to the event, if any.
     fn date(&self) -> Option<&Date>;
 }
 
@@ -115,6 +178,10 @@ where
     }
 }
 
+/// Converts an `Event<T>` to an `Envelope`.
+///
+/// The envelope's subject is the event's ID tagged with TAG_EVENT,
+/// and assertions include the event's content, note (if not empty), and date (if present).
 impl<T> From<Event<T>> for Envelope
 where
     T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq,
@@ -127,6 +194,10 @@ where
     }
 }
 
+/// Converts an `Envelope` to an `Event<T>`.
+///
+/// This constructor extracts the event ID, content, note, and date from an envelope.
+/// The content is converted to the generic type `T`.
 impl<T> TryFrom<Envelope> for Event<T>
 where
     T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq,

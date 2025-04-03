@@ -208,7 +208,7 @@
 //! * [`Envelope::add_signatures_opt`] Creates several signatures for the
 //!   envelope's subject and returns a new envelope with additional `'signed':
 //!   Signature` assertions.
-//! * [`Envelope::add_signature`] Creates a signature for the
+//! * [`Envelope::add_signature_uncovered`] Creates a signature for the
 //!   envelope's subject and returns a new envelope with a `'signed':
 //!   Signature` assertion.
 //!
@@ -236,7 +236,7 @@
 //!
 //! ### Helpers
 //!
-//! * [`Envelope::verify_signature`] Returns an array of `Signature`s from all of the
+//! * [`Envelope::signature_envelopes`] Returns an array of `Signature`s from all of the
 //!   envelope's `signed` predicates.
 //! * [`Envelope::make_signed_assertion`] Convenience constructor for a
 //!   `signed: Signature` assertion envelope.
@@ -336,9 +336,9 @@
 //!
 //! * [`Expression::new`] Creates an envelope with a `«function»`
 //!   subject.
-//! * [`Parameter::new_named`] Creates a new envelope containing a
+//! * [`parameter_envelope`] Creates a new envelope containing a
 //!   `❰parameter❱: value` assertion.
-//! * [`Parameter::new_known`] Optionally adds a `❰parameter❱:
+//! * [`optional_parameter_envelope`] Optionally adds a `❰parameter❱:
 //!   value` assertion to the envelope.
 //! * [`ExpressionBehavior::with_parameter`] Adds a `❰parameter❱: value` assertion to the
 //!   envelope.
@@ -362,14 +362,14 @@
 //! * [`ExpressionBehavior::extract_objects_for_parameter`] Returns an array of arguments
 //!   for the given parameter, decoded as the given type.
 //! * [`ResponseBehavior::result`] Returns the object of the `result` predicate.
-//! * [`ResponseBehavior::result`] Returns the objects of every `result` predicate.
+//! * [`ResponseBehavior::results`] Returns the objects of every `result` predicate.
 //! * [`ResponseBehavior::extract_result`] Returns the object of the `result` predicate,
 //!   decoded as the given type.
-//! * [`ResponseBehavior::extract_result`] Returns the objects of every `result`
+//! * [`ResponseBehavior::extract_results`] Returns the objects of every `result`
 //!   predicate, decoded as the given type.
-//! * [`ResponseBehavior::extract_result`] Returns whether the `result` predicate has the
+//! * [`ResponseBehavior::is_result_ok`] Returns whether the `result` predicate has the
 //!   `KnownValue` `.ok`.
-//! * [`ResponseBehavior::extract_error`] Returns the error value, decoded as the given type.
+//! * [`Envelope::error`] Returns the error value, decoded as the given type.
 
 pub use anyhow::Result;
 

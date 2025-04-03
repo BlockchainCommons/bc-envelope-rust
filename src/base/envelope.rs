@@ -15,58 +15,207 @@ use std::sync::Arc as RefCounted;
 #[cfg(not(feature = "multithreaded"))]
 use std::rc::Rc as RefCounted;
 
-/// A flexible container for structured data.
+/// A flexible container for structured data with built-in integrity verification.
 ///
-/// Envelopes are immutable. You create "mutations" by creating new envelopes from old envelopes.
+/// Gordian Envelope is the primary data structure of this crate. It provides a way to 
+/// encapsulate and organize data with cryptographic integrity, privacy features, and 
+/// selective disclosure capabilities.
+///
+/// Key characteristics of envelopes:
+///
+/// - **Immutability**: Envelopes are immutable. Operations that appear to "modify" an 
+///   envelope actually create a new envelope. This immutability is fundamental to 
+///   maintaining the integrity of the envelope's digest tree.
+///
+/// - **Semantic Structure**: Envelopes can represent various semantic relationships 
+///   through subjects, predicates, and objects (similar to RDF triples).
+///
+/// - **Digest Tree**: Each envelope maintains a Merkle-like digest tree that ensures 
+///   the integrity of its contents and enables verification of individual parts.
+///
+/// - **Privacy Features**: Envelopes support selective disclosure through elision,
+///   encryption, and compression of specific parts, while maintaining the overall
+///   integrity of the structure.
+///
+/// - **Deterministic Representation**: Envelopes use deterministic CBOR encoding
+///   to ensure consistent serialization across platforms.
+///
+/// The Gordian Envelope specification is defined in an IETF Internet Draft, and this
+/// implementation closely follows that specification.
+///
+/// # Example
+///
+/// ```
+/// use bc_envelope::prelude::*;
+///
+/// // Create an envelope representing a person
+/// let person = Envelope::new("person")
+///     .add_assertion("name", "Alice")
+///     .add_assertion("age", 30)
+///     .add_assertion("email", "alice@example.com");
+///
+/// // Create a partially redacted version by eliding the email
+/// let redacted = person.elide_removing_target(&person.assertion_with_predicate("email").unwrap());
+///
+/// // The digest of both envelopes remains the same
+/// assert_eq!(person.digest(), redacted.digest());
+/// ```
 #[derive(Debug, Clone)]
 pub struct Envelope(RefCounted<EnvelopeCase>);
 
 impl Envelope {
+    /// Returns a reference to the underlying envelope case.
+    ///
+    /// The `EnvelopeCase` enum represents the specific structural variant of this envelope.
+    /// This method provides access to that underlying variant for operations that need
+    /// to differentiate between the different envelope types.
+    ///
+    /// # Returns
+    ///
+    /// A reference to the `EnvelopeCase` that defines this envelope's structure.
     pub fn case(&self) -> &EnvelopeCase {
         &self.0
     }
 }
 
+/// Conversion from `EnvelopeCase` to `Envelope`.
+///
+/// This allows creating an envelope directly from an envelope case variant.
 impl From<EnvelopeCase> for Envelope {
     fn from(case: EnvelopeCase) -> Self {
         Self(RefCounted::new(case))
     }
 }
 
+/// Conversion from `&Envelope` to `Envelope`.
+///
+/// This creates a clone of the envelope. Since envelopes use reference counting,
+/// this is a relatively inexpensive operation.
 impl From<&Envelope> for Envelope {
     fn from(envelope: &Envelope) -> Self {
         envelope.clone()
     }
 }
 
+/// The core structural variants of a Gordian Envelope.
+///
+/// Each variant of this enum represents a different structural form that an envelope
+/// can take, as defined in the Gordian Envelope IETF Internet Draft. The different
+/// cases provide different capabilities and serve different purposes in the envelope
+/// ecosystem.
+///
+/// The `EnvelopeCase` is the internal representation of an envelope's structure.
+/// While each case has unique properties, they all maintain a digest that ensures
+/// the integrity of the envelope.
 #[derive(Debug)]
 pub enum EnvelopeCase {
-    /// Represents an envelope with one or more assertions.
-    Node { subject: Envelope, assertions: Vec<Envelope>, digest: Digest },
+    /// Represents an envelope with a subject and one or more assertions.
+    ///
+    /// A node is the fundamental structural component for building complex data
+    /// structures with Gordian Envelope. It consists of a subject and a set of
+    /// assertions about that subject.
+    ///
+    /// The digest of a node is derived from the digests of its subject and all
+    /// assertions, ensuring that any change to the node or its components would
+    /// result in a different digest.
+    Node { 
+        /// The subject of the node
+        subject: Envelope, 
+        /// The assertions attached to the subject
+        assertions: Vec<Envelope>, 
+        /// The digest of the node
+        digest: Digest 
+    },
 
-    /// Represents an envelope with encoded CBOR data.
-    Leaf { cbor: CBOR, digest: Digest },
+    /// Represents an envelope containing a primitive CBOR value.
+    ///
+    /// A leaf is the simplest form of envelope, containing a single CBOR value
+    /// such as a string, number, or boolean. Leaves are the terminal nodes in
+    /// the envelope structure.
+    ///
+    /// The digest of a leaf is derived directly from its CBOR representation.
+    Leaf { 
+        /// The CBOR value contained in the leaf
+        cbor: CBOR, 
+        /// The digest of the leaf
+        digest: Digest 
+    },
 
     /// Represents an envelope that wraps another envelope.
-    Wrapped { envelope: Envelope, digest: Digest },
-
-    /// Represents an assertion.
     ///
-    /// An assertion is a predicate-object pair, each of which is itself an ``Envelope``.
+    /// Wrapping provides a way to encapsulate an entire envelope as the subject
+    /// of another envelope, enabling hierarchical structures and metadata attachment.
+    ///
+    /// The digest of a wrapped envelope is derived from the digest of the envelope
+    /// it wraps.
+    Wrapped { 
+        /// The envelope being wrapped
+        envelope: Envelope, 
+        /// The digest of the wrapped envelope
+        digest: Digest 
+    },
+
+    /// Represents a predicate-object assertion.
+    ///
+    /// An assertion is a statement about a subject, consisting of a predicate
+    /// (what is being asserted) and an object (the value of the assertion).
+    /// Assertions are attached to envelope subjects to form semantic statements.
+    ///
+    /// For example, in the statement "Alice hasEmail alice@example.com":
+    /// - The subject is "Alice"
+    /// - The predicate is "hasEmail"
+    /// - The object is "alice@example.com"
     Assertion(Assertion),
 
-    /// Represents an elided envelope.
+    /// Represents an envelope that has been elided, leaving only its digest.
+    ///
+    /// Elision is a key privacy feature of Gordian Envelope, allowing parts of
+    /// an envelope to be removed while maintaining the integrity of the digest tree.
+    /// This enables selective disclosure of information.
     Elided(Digest),
 
-    /// Represents a value from a namespace of unsigned integers.
+    /// Represents a value from a namespace of unsigned integers used for ontological concepts.
+    ///
+    /// Known Values are 64-bit unsigned integers used to represent stand-alone ontological 
+    /// concepts like relationships (`isA`, `containedIn`), classes (`Seed`, `PrivateKey`), 
+    /// or enumerated values (`MainNet`, `OK`). They provide a compact, deterministic 
+    /// alternative to URIs for representing common predicates and values.
+    ///
+    /// Using Known Values instead of strings for common predicates offers several advantages:
+    /// - More compact representation (integers vs. long strings/URIs)
+    /// - Standardized semantics across implementations
+    /// - Deterministic encoding for cryptographic operations
+    /// - Resistance to manipulation attacks that target string representations
+    ///
+    /// Known Values are displayed with single quotes, e.g., `'isA'` or by their numeric 
+    /// value like `'1'` (when no name is assigned).
+    ///
+    /// This variant is only available when the `known_value` feature is enabled.
     #[cfg(feature = "known_value")]
-    KnownValue { value: KnownValue, digest: Digest },
+    KnownValue { 
+        /// The Known Value instance containing the integer value and optional name
+        value: KnownValue, 
+        /// The digest of the known value
+        digest: Digest 
+    },
 
-    /// Represents an encrypted envelope.
+    /// Represents an envelope that has been encrypted.
+    ///
+    /// Encryption is a privacy feature that allows parts of an envelope to be
+    /// encrypted while maintaining the integrity of the digest tree. The encrypted
+    /// content can only be accessed by those with the appropriate key.
+    ///
+    /// This variant is only available when the `encrypt` feature is enabled.
     #[cfg(feature = "encrypt")]
     Encrypted(EncryptedMessage),
 
-    /// Represents a compressed envelope.
+    /// Represents an envelope that has been compressed.
+    ///
+    /// Compression reduces the size of an envelope while maintaining its full
+    /// content and digest integrity. Unlike elision or encryption, compression
+    /// doesn't restrict access to the content, but simply makes it more compact.
+    ///
+    /// This variant is only available when the `compress` feature is enabled.
     #[cfg(feature = "compress")]
     Compressed(Compressed),
 }

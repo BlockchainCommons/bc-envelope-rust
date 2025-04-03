@@ -4,6 +4,37 @@ use dcbor::{Date, prelude::*};
 
 use crate::{known_values, Envelope, EnvelopeEncodable, Expression, ExpressionBehavior, Function, Parameter};
 
+/// A `Request` represents a message requesting execution of a function with parameters.
+///
+/// Requests are part of the expression system that enables distributed function calls
+/// and communication between systems. Each request:
+/// - Contains a body (an `Expression`) that represents the function to be executed
+/// - Has a unique identifier (ARID) for tracking and correlation
+/// - May include optional metadata like a note and timestamp
+///
+/// Requests are designed to be paired with `Response` objects that contain the results
+/// of executing the requested function.
+///
+/// When serialized to an envelope, requests are tagged with `#6.40010` (TAG_REQUEST).
+///
+/// # Examples
+///
+/// ```
+/// use bc_envelope::prelude::*;
+/// use bc_components::ARID;
+///
+/// // Create a random request ID
+/// let request_id = ARID::new();
+///
+/// // Create a request to execute a function with parameters
+/// let request = Request::new("getBalance", request_id)
+///     .with_parameter("account", "alice")
+///     .with_parameter("currency", "USD")
+///     .with_note("Monthly balance check");
+///
+/// // Convert to an envelope
+/// let envelope = request.into_envelope();
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct Request {
     body: Expression,
@@ -13,46 +44,63 @@ pub struct Request {
 }
 
 impl std::fmt::Display for Request {
+    /// Formats the request for display, showing its ID and body.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Request({})", self.summary())
     }
 }
 
 impl Request {
+    /// Returns a human-readable summary of the request.
     pub fn summary(&self) -> String {
         format!("id: {}, body: {}", self.id.short_description(), self.body.expression_envelope().format_flat())
     }
 }
 
+/// Trait that defines the behavior of a request.
+///
+/// This trait extends `ExpressionBehavior` to add methods specific to requests,
+/// including metadata management and access to request properties. Types implementing
+/// this trait can be used in contexts that expect request functionality.
 pub trait RequestBehavior: ExpressionBehavior {
     //
     // Composition
     //
 
     /// Adds a note to the request.
+    ///
+    /// This provides human-readable context about the request's purpose.
     fn with_note(self, note: impl Into<String>) -> Self;
 
     /// Adds a date to the request.
+    ///
+    /// This timestamp typically represents when the request was created.
     fn with_date(self, date: impl AsRef<Date>) -> Self;
 
     //
     // Parsing
     //
 
-    /// Returns the body of the request.
+    /// Returns the body of the request, which is the expression to be evaluated.
     fn body(&self) -> &Expression;
 
-    /// Returns the ID of the request.
+    /// Returns the unique identifier (ARID) of the request.
     fn id(&self) -> ARID;
 
-    /// Returns the note of the request.
+    /// Returns the note attached to the request, or an empty string if none exists.
     fn note(&self) -> &str;
 
-    /// Returns the date of the request.
+    /// Returns the date attached to the request, if any.
     fn date(&self) -> Option<&Date>;
 }
 
 impl Request {
+    /// Creates a new request with the specified expression body and ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `body` - The expression to be executed
+    /// * `id` - Unique identifier for the request
     pub fn new_with_body(body: Expression, id: ARID) -> Self {
         Self {
             body,
@@ -62,38 +110,70 @@ impl Request {
         }
     }
 
+    /// Creates a new request with a function and ID.
+    ///
+    /// This is a convenience method that creates an expression from the function
+    /// and then creates a request with that expression.
+    ///
+    /// # Arguments
+    ///
+    /// * `function` - The function to be executed
+    /// * `id` - Unique identifier for the request
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bc_envelope::prelude::*;
+    /// use bc_components::ARID;
+    ///
+    /// let request_id = ARID::new();
+    /// let request = Request::new("transferFunds", request_id)
+    ///     .with_parameter("from", "alice")
+    ///     .with_parameter("to", "bob")
+    ///     .with_parameter("amount", 100);
+    /// ```
     pub fn new(function: impl Into<Function>, id: ARID) -> Self {
         Self::new_with_body(Expression::new(function), id)
     }
 }
 
+/// Implementation of `ExpressionBehavior` for `Request`.
+///
+/// This delegates most operations to the request's body expression.
 impl ExpressionBehavior for Request {
+    /// Adds a parameter to the request.
     fn with_parameter(mut self, parameter: impl Into<Parameter>, value: impl EnvelopeEncodable) -> Self {
         self.body = self.body.with_parameter(parameter, value);
         self
     }
 
+    /// Adds an optional parameter to the request.
     fn with_optional_parameter(mut self, parameter: impl Into<Parameter>, value: Option<impl EnvelopeEncodable>) -> Self {
         self.body = self.body.with_optional_parameter(parameter, value);
         self
     }
 
+    /// Returns the function of the request.
     fn function(&self) -> &Function {
         self.body.function()
     }
 
+    /// Returns the expression envelope of the request.
     fn expression_envelope(&self) -> &Envelope {
         self.body.expression_envelope()
     }
 
+    /// Returns the object for a parameter in the request.
     fn object_for_parameter(&self, param: impl Into<Parameter>) -> Result<Envelope> {
         self.body.object_for_parameter(param)
     }
 
+    /// Returns all objects for a parameter in the request.
     fn objects_for_parameter(&self, param: impl Into<Parameter>) -> Vec<Envelope> {
         self.body.objects_for_parameter(param)
     }
 
+    /// Extracts a typed object for a parameter in the request.
     fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
     where
         T: TryFrom<CBOR, Error = Error> + 'static,
@@ -101,10 +181,12 @@ impl ExpressionBehavior for Request {
         self.body.extract_object_for_parameter(param)
     }
 
+    /// Extracts an optional typed object for a parameter in the request.
     fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = Error> + 'static>(&self, param: impl Into<Parameter>) -> Result<Option<T>> {
         self.body.extract_optional_object_for_parameter(param)
     }
 
+    /// Extracts multiple typed objects for a parameter in the request.
     fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
     where
         T: TryFrom<CBOR, Error = Error> + 'static,
@@ -113,6 +195,7 @@ impl ExpressionBehavior for Request {
     }
 }
 
+/// Implementation of `RequestBehavior` for `Request`.
 impl RequestBehavior for Request {
     /// Adds a note to the request.
     fn with_note(mut self, note: impl Into<String>) -> Self {
@@ -147,12 +230,19 @@ impl RequestBehavior for Request {
     }
 }
 
+/// Converts a `Request` to an `Expression`.
+///
+/// This extracts the request's body expression.
 impl From<Request> for Expression {
     fn from(request: Request) -> Self {
         request.body
     }
 }
 
+/// Converts a `Request` to an `Envelope`.
+///
+/// The envelope's subject is the request's ID tagged with TAG_REQUEST,
+/// and assertions include the request's body, note (if not empty), and date (if present).
 impl From<Request> for Envelope {
     fn from(request: Request) -> Self {
         Envelope::new(CBOR::to_tagged_value(tags::TAG_REQUEST, request.id))
@@ -162,6 +252,10 @@ impl From<Request> for Envelope {
     }
 }
 
+/// Converts an envelope and optional expected function to a `Request`.
+///
+/// This constructor is used when parsing an envelope that is expected to contain a request.
+/// The optional function parameter enables validation of the request's function.
 impl TryFrom<(Envelope, Option<&Function>)> for Request {
     type Error = Error;
 
@@ -178,6 +272,9 @@ impl TryFrom<(Envelope, Option<&Function>)> for Request {
     }
 }
 
+/// Converts an envelope to a `Request`.
+///
+/// This simplified constructor doesn't validate the request's function.
 impl TryFrom<Envelope> for Request {
     type Error = Error;
 

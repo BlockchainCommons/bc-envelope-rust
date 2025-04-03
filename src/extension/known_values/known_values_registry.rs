@@ -4,6 +4,32 @@ use paste::paste;
 use super::known_values_store::KnownValuesStore;
 
 /// A macro that declares a known value at compile time.
+///
+/// This macro creates two constants:
+/// - A raw u64 value constant with the suffix `_RAW`
+/// - A KnownValue constant with the given name and value
+///
+/// This is used internally to define all the standard Known Values in the registry.
+///
+/// # Examples
+///
+/// ```
+/// use bc_envelope::known_value_constant;
+/// use bc_envelope::prelude::*;
+/// use paste::paste;
+///
+/// // Define a custom known value
+/// known_value_constant!(MY_CUSTOM_VALUE, 1000, "myCustomValue");
+///
+/// // Now MY_CUSTOM_VALUE is a constant KnownValue
+/// assert_eq!(MY_CUSTOM_VALUE.value(), 1000);
+/// assert_eq!(MY_CUSTOM_VALUE.name(), "myCustomValue");
+///
+/// paste! {
+///     // MY_CUSTOM_VALUE_RAW is the raw u64 value
+///     assert_eq!([<MY_CUSTOM_VALUE _RAW>], 1000);
+/// }
+/// ```
 #[macro_export]
 macro_rules! known_value_constant {
     ($const_name:ident, $value:expr, $name:expr) => {
@@ -99,6 +125,20 @@ known_value_constant!(PARENT_FINGERPRINT, 505, "parentFingerprint");
 known_value_constant!(PSBT_TYPE, 506, "PSBT");
 known_value_constant!(OUTPUT_DESCRIPTOR_TYPE, 507, "OutputDescriptor");
 
+/// A lazily initialized singleton that holds the global registry of known values.
+///
+/// This type provides thread-safe, lazy initialization of the global KnownValuesStore
+/// that contains all the predefined Known Values in the registry. The store is created
+/// only when first accessed, and subsequent accesses reuse the same instance.
+///
+/// This is used internally by the crate and should not typically be needed by users
+/// of the API, who should access Known Values through the constants exposed in the
+/// `known_values` module.
+///
+/// # Thread Safety
+///
+/// The implementation uses a mutex to protect the store, and initialization is
+/// performed only once across all threads using `std::sync::Once`.
 #[doc(hidden)]
 #[derive(Debug)]
 pub struct LazyKnownValues {
@@ -107,6 +147,10 @@ pub struct LazyKnownValues {
 }
 
 impl LazyKnownValues {
+    /// Gets the global KnownValuesStore, initializing it if necessary.
+    ///
+    /// This method guarantees that initialization occurs exactly once,
+    /// even when called from multiple threads simultaneously.
     pub fn get(&self) -> std::sync::MutexGuard<'_, Option<KnownValuesStore>> {
         self.init.call_once(|| {
             let m = KnownValuesStore::new([
@@ -199,6 +243,28 @@ impl LazyKnownValues {
     }
 }
 
+/// The global registry of Known Values.
+///
+/// This static instance provides access to all standard Known Values defined in the
+/// registry specification. It is lazily initialized on first access.
+///
+/// Most users should not need to interact with this directly, as the predefined
+/// Known Values are exposed as constants in the `known_values` module.
+///
+/// # Examples
+///
+/// ```
+/// use bc_envelope::prelude::*;
+/// use bc_envelope::extension::known_values::KNOWN_VALUES;
+///
+/// // Access the global store
+/// let binding = KNOWN_VALUES.get();
+/// let known_values = binding.as_ref().unwrap();
+///
+/// // Look up a Known Value by name
+/// let is_a = known_values.known_value_named("isA").unwrap();
+/// assert_eq!(is_a.value(), 1);
+/// ```
 pub static KNOWN_VALUES: LazyKnownValues = LazyKnownValues {
     init: Once::new(),
     data: Mutex::new(None),

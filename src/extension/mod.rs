@@ -67,12 +67,6 @@ pub use signature::SignatureMetadata;
 pub mod salt;
 
 ///
-/// SSH Keys Extension
-///
-#[cfg(feature = "ssh")]
-pub mod ssh;
-
-///
 /// SSKR Extension
 ///
 #[cfg(feature = "sskr")]
