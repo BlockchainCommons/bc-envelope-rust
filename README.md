@@ -20,7 +20,7 @@ Envelopes are designed to facilitate "smart documents" with a number of unique f
 
 ```toml
 [dependencies]
-bc-envelope = "0.25.0"
+bc-envelope = "0.25.1"
 ```
 
 Basic usage examples:
@@ -50,24 +50,24 @@ let verified = signed.verify_signature_from(&public_key)?;
 
 Gordian Envelope includes several powerful features, all configurable through Cargo features:
 
-| Feature | Description |
-|---------|-------------|
-| `base` | Core envelope functionality and digest tree |
-| `encrypt` | Symmetric encryption of envelope parts |
-| `signature` | Digital signatures for authenticity and integrity |
-| `compress` | Compression for efficient storage/transmission |
-| `known_value` | Registry of well-known semantic values |
-| `expression` | Support for representing function calls and requests |
-| `recipient` | Public key encryption to multiple recipients |
-| `salt` | Decorrelation of structurally similar envelopes |
-| `sskr` | Sharded Secret Key Reconstruction for social recovery |
-| `attachment` | Vendor-specific extensions mechanism |
+| Feature       | Description                                           |
+| ------------- | ----------------------------------------------------- |
+| `base`        | Core envelope functionality and digest tree           |
+| `encrypt`     | Symmetric encryption of envelope parts                |
+| `signature`   | Digital signatures for authenticity and integrity     |
+| `compress`    | Compression for efficient storage/transmission        |
+| `known_value` | Registry of well-known semantic values                |
+| `expression`  | Support for representing function calls and requests  |
+| `recipient`   | Public key encryption to multiple recipients          |
+| `salt`        | Decorrelation of structurally similar envelopes       |
+| `sskr`        | Sharded Secret Key Reconstruction for social recovery |
+| `attachment`  | Vendor-specific extensions mechanism                  |
 
 By default, all features are enabled. You can select a subset for your specific needs.
 
 ## Specification
 
-Gordian Envelope is formally specified in the [IETF Internet Draft](https://datatracker.ietf.org/doc/draft-mcnally-envelope/), which is currently in the community review stage. 
+Gordian Envelope is formally specified in the [IETF Internet Draft](https://datatracker.ietf.org/doc/draft-mcnally-envelope/), which is currently in the community review stage.
 
 Extensions to the base specification are documented in the [Blockchain Commons Research repository](https://github.com/BlockchainCommons/bc-research):
 
@@ -93,6 +93,7 @@ Gordian Envelope implements the [Gordian Principles](https://github.com/Blockcha
 ## Status - Community Review
 
 Gordian Envelope is currently in community review. We appreciate your testing and feedback on:
+
 - API usability
 - Integration with your use cases
 - Performance
@@ -114,6 +115,7 @@ See [Blockchain Commons' Development Phases](https://github.com/BlockchainCommon
 ## Other Implementations
 
 Gordian Envelope is also available in:
+
 - [Swift](https://github.com/BlockchainCommons/BCSwiftEnvelope)
 - [Command-line tool](https://crates.io/crates/bc-envelope-cli)
 
@@ -138,10 +140,10 @@ The best place to talk about Blockchain Commons and its projects is in our GitHu
 
 The following people directly contributed to this repository:
 
-| Name | Role | Github | Email | GPG Fingerprint |
-| ---- | ---- | ------ | ----- | --------------- |
+| Name              | Role                | Github                                           | Email                               | GPG Fingerprint                                   |
+| ----------------- | ------------------- | ------------------------------------------------ | ----------------------------------- | ------------------------------------------------- |
 | Christopher Allen | Principal Architect | [@ChristopherA](https://github.com/ChristopherA) | <ChristopherA@LifeWithAlacrity.com> | FDFE 14A5 4ECB 30FC 5D22 74EF F8D3 6C91 3574 05ED |
-| Wolf McNally | Contributor | [@WolfMcNally](https://github.com/wolfmcnally) | <Wolf@WolfMcNally.com> | 9436 52EE 3844 1760 C3DC 3536 4B6C 2FCF 8947 80AE |
+| Wolf McNally      | Contributor         | [@WolfMcNally](https://github.com/wolfmcnally)   | <Wolf@WolfMcNally.com>              | 9436 52EE 3844 1760 C3DC 3536 4B6C 2FCF 8947 80AE |
 
 ## Responsible Disclosure
 
