@@ -1,31 +1,63 @@
+use bc_components::{Digest, PrivateKeyBase, PrivateKeys, PublicKeys, Reference, SSKRShare, Salt, SealedMessage, Signature, ARID, URI, UUID, XID};
 use dcbor::prelude::*;
 use anyhow::{Error, Result};
 
 use crate::Envelope;
 
-/// Implementation for extracting a ByteString from an envelope.
-///
-/// This allows converting an envelope to a binary data type when the envelope
-/// contains appropriate data.
-impl TryFrom<Envelope> for ByteString {
-    type Error = Error;
+#[macro_export]
+macro_rules! impl_envelope_decodable {
+    ($type:ty) => {
+        impl TryFrom<Envelope> for $type {
+            type Error = Error;
 
-    /// Attempts to extract a ByteString from an envelope.
-    ///
-    /// This will succeed if the envelope is a leaf node containing a ByteString.
-    ///
-    /// # Returns
-    ///
-    /// The ByteString contained in the envelope.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the envelope is not a leaf or does not contain a ByteString.
-    fn try_from(envelope: Envelope) -> Result<Self> {
-        let cbor = envelope.try_leaf()?;
-        cbor.try_into()
-    }
+            fn try_from(envelope: Envelope) -> Result<Self> {
+                let cbor = envelope.try_leaf()?;
+                cbor.try_into()
+            }
+        }
+    };
 }
+
+impl_envelope_decodable!(String);
+
+// Numeric types
+impl_envelope_decodable!(u8);
+impl_envelope_decodable!(u16);
+impl_envelope_decodable!(u32);
+impl_envelope_decodable!(u64);
+impl_envelope_decodable!(usize);
+impl_envelope_decodable!(i8);
+impl_envelope_decodable!(i16);
+impl_envelope_decodable!(i32);
+impl_envelope_decodable!(i64);
+
+// Boolean type
+impl_envelope_decodable!(bool);
+
+// CBOR types
+impl_envelope_decodable!(dcbor::ByteString);
+impl_envelope_decodable!(dcbor::Date);
+
+// Floating point types
+impl_envelope_decodable!(f64);
+impl_envelope_decodable!(f32);
+
+// Cryptographic types
+impl_envelope_decodable!(PublicKeys);
+impl_envelope_decodable!(PrivateKeys);
+impl_envelope_decodable!(PrivateKeyBase);
+impl_envelope_decodable!(SealedMessage);
+impl_envelope_decodable!(Signature);
+impl_envelope_decodable!(SSKRShare);
+impl_envelope_decodable!(Digest);
+impl_envelope_decodable!(Salt);
+
+// Identifier types
+impl_envelope_decodable!(ARID);
+impl_envelope_decodable!(URI);
+impl_envelope_decodable!(UUID);
+impl_envelope_decodable!(XID);
+impl_envelope_decodable!(Reference);
 
 /// Static methods for creating envelopes from CBOR data.
 impl Envelope {
@@ -63,29 +95,5 @@ impl Envelope {
     pub fn try_from_cbor_data(data: Vec<u8>) -> Result<Self> {
         let cbor = CBOR::try_from_data(data)?;
         Self::try_from_cbor(cbor)
-    }
-}
-
-/// Implementation for extracting a String from an envelope.
-///
-/// This allows converting an envelope to a string when the envelope
-/// contains text data.
-impl TryFrom<Envelope> for String {
-    type Error = Error;
-
-    /// Attempts to extract a String from an envelope.
-    ///
-    /// This will succeed if the envelope is a leaf node containing a string.
-    ///
-    /// # Returns
-    ///
-    /// The String contained in the envelope.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the envelope is not a leaf or does not contain a string.
-    fn try_from(envelope: Envelope) -> Result<Self> {
-        let cbor = envelope.try_leaf()?;
-        cbor.try_into()
     }
 }

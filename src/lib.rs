@@ -374,10 +374,10 @@
 pub use anyhow::Result;
 
 pub mod base;
-pub use base::{Assertion, Envelope, EnvelopeEncodable, EnvelopeError};
-pub use base::{register_tags, register_tags_in, FormatContext, GLOBAL_FORMAT_CONTEXT};
 pub use base::elide::{self, ObscureAction};
 pub use base::walk::{self, EdgeType};
+pub use base::{register_tags, register_tags_in, FormatContext, GLOBAL_FORMAT_CONTEXT};
+pub use base::{Assertion, Envelope, EnvelopeEncodable, EnvelopeError};
 
 pub mod extension;
 pub mod prelude;
@@ -398,29 +398,13 @@ pub use bc_components::{EncapsulationPrivateKey, Encrypter, SigningOptions};
 pub use bc_components::{PrivateKeyBase, PublicKeys};
 
 #[cfg(feature = "known_value")]
-pub use extension::known_values::{
-    self,
-    known_value,
-    KnownValue,
-    KNOWN_VALUES,
-    KnownValuesStore,
-};
+pub use extension::known_values::{self, known_value, KnownValue, KnownValuesStore, KNOWN_VALUES};
 
 #[cfg(feature = "expression")]
 pub use extension::expressions::{
-    functions,
-    parameters,
-    Function,
-    Parameter,
-    Expression,
-    ExpressionBehavior,
-    IntoExpression,
-    Request,
-    RequestBehavior,
-    Response,
-    ResponseBehavior,
-    Event,
-    EventBehavior,
+    functions, parameters, Event, EventBehavior, Expression, ExpressionBehavior, Function,
+    IntoExpression, Parameter, Request, RequestBehavior, Response, ResponseBehavior,
 };
 
-// Sealing and unsealing functions are now in the seal module
+#[cfg(feature = "attachment")]
+pub use extension::attachment::{Attachments, Attachable};

@@ -73,14 +73,14 @@ impl Assertion {
     /// # Examples
     ///
     /// Example:
-    /// 
+    ///
     /// Create an attachment assertion that contains vendor-specific data,
     /// then use it to access the payload, vendor ID, and conformsTo value.
-    /// 
+    ///
     /// The assertion will have a predicate of "attachment" and an object that's
     /// a wrapped envelope containing the payload with vendor and conformsTo
     /// assertions added to it.
-    /// 
+    ///
     pub fn new_attachment(payload: impl EnvelopeEncodable, vendor: &str, conforms_to: Option<&str>) -> Self {
         let conforms_to: Option<String> = conforms_to.map(|c| c.to_string());
         Self::new(
@@ -444,7 +444,7 @@ impl Envelope {
     /// // Create an envelope with an attachment
     /// let envelope = Envelope::new("Data")
     ///     .add_attachment(
-    ///         "Metadata", 
+    ///         "Metadata",
     ///         "com.example",
     ///         Some("https://example.com/format/v1")
     ///     );
@@ -452,7 +452,7 @@ impl Envelope {
     /// // Find a specific attachment by vendor and format
     /// let attachment = envelope
     ///     .attachment_with_vendor_and_conforms_to(
-    ///         Some("com.example"), 
+    ///         Some("com.example"),
     ///         Some("https://example.com/format/v1")
     ///     )
     ///     .unwrap();

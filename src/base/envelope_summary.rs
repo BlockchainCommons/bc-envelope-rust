@@ -21,17 +21,8 @@ impl EnvelopeSummary for CBOR {
                 };
                 Ok(string.replace('\n', "\\n").flanked_by("\"", "\""))
             }
-            CBORCase::Array(elements) => {
-                Ok(
-                    elements
-                        .iter()
-                        .map(|element| element.envelope_summary(max_length, context))
-                        .collect::<Result<Vec<String>>>()?
-                        .join(", ")
-                        .flanked_by("[", "]")
-                )
-            }
-            CBORCase::Map(_) => Ok("Map".to_string()),
+            CBORCase::Array(_) => Ok(self.summary_opt(context)),
+            CBORCase::Map(_) => Ok(self.summary_opt(context)),
             CBORCase::Simple(v) => Ok(v.to_string()),
             CBORCase::Tagged(_, _) => Ok(self.summary_opt(context)),
         }

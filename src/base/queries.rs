@@ -1,14 +1,18 @@
 //! Provides methods for querying envelope structure and extracting data.
 //!
 //! The `queries` module contains methods for:
-//! 
-//! 1. **Structural queries**: Methods for examining the envelope's structure (`subject()`, `assertions()`)
-//! 2. **Type queries**: Methods for determining the envelope's type (`is_leaf()`, `is_node()`, etc.)
-//! 3. **Content extraction**: Methods for extracting typed content from envelopes (`extract_subject()`, `extract_object_for_predicate()`)
-//! 4. **Assertion queries**: Methods for finding assertions with specific predicates (`assertion_with_predicate()`)
 //!
-//! These methods enable traversal and inspection of envelope hierarchies, allowing for flexible
-//! manipulation and access to envelope data structures.
+//! 1. **Structural queries**: Methods for examining the envelope's structure
+//!    (`subject()`, `assertions()`)
+//! 2. **Type queries**: Methods for determining the envelope's type
+//!    (`is_leaf()`, `is_node()`, etc.)
+//! 3. **Content extraction**: Methods for extracting typed content from
+//!    envelopes (`extract_subject()`, `extract_object_for_predicate()`)
+//! 4. **Assertion queries**: Methods for finding assertions with specific
+//!    predicates (`assertion_with_predicate()`)
+//!
+//! These methods enable traversal and inspection of envelope hierarchies,
+//! allowing for flexible manipulation and access to envelope data structures.
 //!
 //! # Examples
 //!
@@ -134,7 +138,14 @@ impl Envelope {
         self.as_leaf().ok_or(EnvelopeError::NotLeaf.into())
     }
 
-    /// The envelope's `KnownValue`, or `None` if the envelope is not case `::KnownValue`.
+    /// The envelope's leaf CBOR object as a CBOR byte string, or an error if
+    /// the envelope is not a leaf, or the leaf is not a byte string.
+    pub fn try_byte_string(&self) -> Result<Vec<u8>> {
+        self.try_leaf()?.try_into_byte_string()
+    }
+
+    /// The envelope's `KnownValue`, or `None` if the envelope is not case
+    /// `::KnownValue`.
     #[cfg(feature = "known_value")]
     pub fn as_known_value(&self) -> Option<&KnownValue> {
         match self.case() {
@@ -143,7 +154,8 @@ impl Envelope {
         }
     }
 
-    /// The envelope's `KnownValue`, or an error if the envelope is not case `::KnownValue`.
+    /// The envelope's `KnownValue`, or an error if the envelope is not case
+    /// `::KnownValue`.
     #[cfg(feature = "known_value")]
     pub fn try_known_value(&self) -> Result<&KnownValue> {
         self.as_known_value().ok_or(EnvelopeError::NotKnownValue.into())
@@ -192,7 +204,8 @@ impl Envelope {
         matches!(self.case(), EnvelopeCase::Elided(_))
     }
 
-    /// `true` if the subject of the envelope is an assertion, `false` otherwise.
+    /// `true` if the subject of the envelope is an assertion, `false`
+    /// otherwise.
     pub fn is_subject_assertion(&self) -> bool {
         match self.case() {
             EnvelopeCase::Assertion(_) => true,
@@ -201,7 +214,8 @@ impl Envelope {
         }
     }
 
-    /// `true` if the subject of the envelope has been encrypted, `false` otherwise.
+    /// `true` if the subject of the envelope has been encrypted, `false`
+    /// otherwise.
     #[cfg(feature = "encrypt")]
     pub fn is_subject_encrypted(&self) -> bool {
         match self.case() {
@@ -211,7 +225,8 @@ impl Envelope {
         }
     }
 
-    /// `true` if the subject of the envelope has been compressed, `false` otherwise.
+    /// `true` if the subject of the envelope has been compressed, `false`
+    /// otherwise.
     #[cfg(feature = "compress")]
     pub fn is_subject_compressed(&self) -> bool {
         match self.case() {
@@ -221,7 +236,8 @@ impl Envelope {
         }
     }
 
-    /// `true` if the subject of the envelope has been elided, `false` otherwise.
+    /// `true` if the subject of the envelope has been elided, `false`
+    /// otherwise.
     pub fn is_subject_elided(&self) -> bool {
         match self.case() {
             EnvelopeCase::Elided(_) => true,
@@ -230,9 +246,11 @@ impl Envelope {
         }
     }
 
-    /// `true` if the subject of the envelope has been encrypted, elided, or compressed, `false` otherwise.
+    /// `true` if the subject of the envelope has been encrypted, elided, or
+    /// compressed, `false` otherwise.
     ///
-    /// Obscured assertion envelopes may exist in the list of an envelope's assertions.
+    /// Obscured assertion envelopes may exist in the list of an envelope's
+    /// assertions.
     pub fn is_subject_obscured(&self) -> bool {
         if self.is_subject_elided() {
             return true;
@@ -248,7 +266,8 @@ impl Envelope {
         false
     }
 
-    /// `true` if the envelope is *internal*, that is, it has child elements, or `false` if it is a leaf node.
+    /// `true` if the envelope is *internal*, that is, it has child elements, or
+    /// `false` if it is a leaf node.
     ///
     /// Internal elements include `.node`, `.wrapped`, and `.assertion`.
     pub fn is_internal(&self) -> bool {
@@ -258,7 +277,8 @@ impl Envelope {
         )
     }
 
-    /// `true` if the envelope is encrypted, elided, or compressed; `false` otherwise.
+    /// `true` if the envelope is encrypted, elided, or compressed; `false`
+    /// otherwise.
     pub fn is_obscured(&self) -> bool {
         if self.is_elided() {
             return true;
@@ -274,23 +294,26 @@ impl Envelope {
         false
     }
 
-    /// Returns the envelope's subject, decoded as the given type.
+    /// Returns the envelope's subject, decoded as the given CBOR type.
     ///
-    /// This method attempts to convert the envelope's subject into the requested type `T`.
-    /// The conversion will succeed if the underlying CBOR data can be properly decoded
-    /// as the specified type.
-    /// 
+    /// This method attempts to convert the envelope's subject into the
+    /// requested type `T`. The conversion will succeed if the underlying CBOR
+    /// data can be properly decoded as the specified type.
+    ///
     /// # Type Parameters
     ///
-    /// * `T` - The target type to convert the subject into. Must implement `TryFrom<CBOR>`.
+    /// * `T` - The target type to convert the subject into. Must implement
+    ///   `TryFrom<CBOR>`.
     ///
     /// # Returns
     ///
-    /// * `Result<T>` - The decoded subject value or an error if conversion fails
+    /// * `Result<T>` - The decoded subject value or an error if conversion
+    ///   fails
     ///
     /// # Errors
-    /// 
-    /// * Returns `Error::InvalidFormat` if the encoded type doesn't match the requested type.
+    ///
+    /// * Returns `Error::InvalidFormat` if the encoded type doesn't match the
+    ///   requested type.
     ///
     /// # Examples
     ///
@@ -367,12 +390,14 @@ impl Envelope {
 
     /// Returns the assertion with the given predicate.
     ///
-    /// Searches the envelope's assertions for one with a predicate matching the provided value.
-    /// The match is determined by comparing the digests of the predicates.
+    /// Searches the envelope's assertions for one with a predicate matching the
+    /// provided value. The match is determined by comparing the digests of the
+    /// predicates.
     ///
     /// # Arguments
     ///
-    /// * `predicate` - The predicate to search for, can be any type that implements `EnvelopeEncodable`
+    /// * `predicate` - The predicate to search for, can be any type that
+    ///   implements `EnvelopeEncodable`
     ///
     /// # Returns
     ///
@@ -380,8 +405,10 @@ impl Envelope {
     ///
     /// # Errors
     ///
-    /// * Returns `EnvelopeError::NonexistentPredicate` if no assertion has the specified predicate
-    /// * Returns `EnvelopeError::AmbiguousPredicate` if multiple assertions have the specified predicate
+    /// * Returns `EnvelopeError::NonexistentPredicate` if no assertion has the
+    ///   specified predicate
+    /// * Returns `EnvelopeError::AmbiguousPredicate` if multiple assertions
+    ///   have the specified predicate
     ///
     /// # Examples
     ///
@@ -396,7 +423,7 @@ impl Envelope {
     /// let name_assertion = envelope.assertion_with_predicate("name").unwrap();
     /// let name = name_assertion.as_object().unwrap().extract_subject::<String>().unwrap();
     /// assert_eq!(name, "Alice");
-    /// 
+    ///
     /// // Trying to find a non-existent predicate produces an error
     /// assert!(envelope.assertion_with_predicate("address").is_err());
     /// ```
@@ -411,7 +438,8 @@ impl Envelope {
         }
     }
 
-    /// Returns the assertion with the given predicate, or `None` if there is no matching predicate.
+    /// Returns the assertion with the given predicate, or `None` if there is no
+    /// matching predicate.
     ///
     /// Returns an error if there are multiple matching predicates.
     pub fn optional_assertion_with_predicate(&self, predicate: impl EnvelopeEncodable) -> Result<Option<Self>> {
@@ -427,13 +455,14 @@ impl Envelope {
 
     /// Returns the object of the assertion with the given predicate.
     ///
-    /// This is a convenience method that finds an assertion with the specified predicate
-    /// and returns its object. It's a common operation when working with envelopes that
-    /// have assertions containing data or metadata.
+    /// This is a convenience method that finds an assertion with the specified
+    /// predicate and returns its object. It's a common operation when working
+    /// with envelopes that have assertions containing data or metadata.
     ///
     /// # Arguments
     ///
-    /// * `predicate` - The predicate to search for, can be any type that implements `EnvelopeEncodable`
+    /// * `predicate` - The predicate to search for, can be any type that
+    ///   implements `EnvelopeEncodable`
     ///
     /// # Returns
     ///
@@ -441,8 +470,10 @@ impl Envelope {
     ///
     /// # Errors
     ///
-    /// * Returns `EnvelopeError::NonexistentPredicate` if no assertion has the specified predicate
-    /// * Returns `EnvelopeError::AmbiguousPredicate` if multiple assertions have the specified predicate
+    /// * Returns `EnvelopeError::NonexistentPredicate` if no assertion has the
+    ///   specified predicate
+    /// * Returns `EnvelopeError::AmbiguousPredicate` if multiple assertions
+    ///   have the specified predicate
     ///
     /// # Examples
     ///
@@ -450,7 +481,7 @@ impl Envelope {
     /// use bc_envelope::prelude::*;
     ///
     /// let envelope = Envelope::new("Person")
-    ///     .add_assertion("name", "Alice") 
+    ///     .add_assertion("name", "Alice")
     ///     .add_assertion("age", 30);
     ///
     /// // Get the object directly
@@ -464,7 +495,33 @@ impl Envelope {
         Ok(self.assertion_with_predicate(predicate)?.as_object().unwrap())
     }
 
-    /// Returns the object of the assertion with the given predicate, or `None` if there is no matching predicate.
+    /// Returns the envelope decoded as the given type.
+    ///
+    /// This method attempts to convert the envelope into the requested type
+    /// `T`. The conversion will succeed if the envelope can be properly decoded
+    /// as the specified type.
+    pub fn try_as<T>(&self) -> Result<T>
+    where
+        T: TryFrom<Envelope, Error = Error>,
+    {
+        self.clone().try_into()
+    }
+
+    /// Returns the object of the assertion with the given predicate, decoded as
+    /// the given type.
+    ///
+    /// This is a convenience method that finds an assertion with the specified
+    /// predicate and returns its object, decoded as the specified type.
+    pub fn try_object_for_predicate<T>(&self, predicate: impl EnvelopeEncodable) -> Result<T>
+    where
+        T: TryFrom<Envelope, Error = Error>,
+    {
+        self.object_for_predicate(predicate)?
+            .try_into()
+    }
+
+    /// Returns the object of the assertion with the given predicate, or `None`
+    /// if there is no matching predicate.
     ///
     /// Returns an error if there are multiple matching predicates.
     pub fn optional_object_for_predicate(&self, predicate: impl EnvelopeEncodable) -> Result<Option<Self>> {
@@ -478,14 +535,26 @@ impl Envelope {
         }
     }
 
-    /// Returns the object of the assertion, decoded as the given type.
+    /// Returns the object of the assertion with the given predicate, or `None`
+    /// if there is no matching predicate.
+    pub fn try_optional_object_for_predicate<T>(&self, predicate: impl EnvelopeEncodable) -> Result<Option<T>>
+    where
+        T: TryFrom<Envelope, Error = Error>,
+    {
+        self.optional_object_for_predicate(predicate)?
+            .map(TryInto::try_into).transpose()
+    }
+
+    /// Returns the object of the assertion, decoded as the given CBOR type.
     ///
-    /// This method works with assertion envelopes (created with `Envelope::new_assertion()`)
-    /// and extracts the object part of the assertion as the specified type.
+    /// This method works with assertion envelopes (created with
+    /// `Envelope::new_assertion()`) and extracts the object part of the
+    /// assertion as the specified type.
     ///
     /// # Type Parameters
     ///
-    /// * `T` - The target type to convert the object into. Must implement `TryFrom<CBOR>`.
+    /// * `T` - The target type to convert the object into. Must implement
+    ///   `TryFrom<CBOR>`.
     ///
     /// # Returns
     ///
@@ -493,8 +562,10 @@ impl Envelope {
     ///
     /// # Errors
     ///
-    /// * Returns `EnvelopeError::NotAssertion` if the envelope is not an assertion
-    /// * Returns `Error::InvalidFormat` if the encoded type doesn't match the requested type
+    /// * Returns `EnvelopeError::NotAssertion` if the envelope is not an
+    ///   assertion
+    /// * Returns `Error::InvalidFormat` if the encoded type doesn't match the
+    ///   requested type
     ///
     /// # Examples
     ///
@@ -503,7 +574,7 @@ impl Envelope {
     ///
     /// // Create an assertion envelope
     /// let assertion = Envelope::new_assertion("age", 30);
-    /// 
+    ///
     /// // Extract the object value
     /// let age: i32 = assertion.extract_object().unwrap();
     /// assert_eq!(age, 30);
@@ -517,24 +588,27 @@ impl Envelope {
             .extract_subject()
     }
 
-    /// Returns the predicate of the assertion, decoded as the given type.
+    /// Returns the predicate of the assertion, decoded as the given CBOR type.
     ///
-    /// Returns an error if the envelope is not an assertion.
-    /// Returns an error if the encoded type doesn't match the given type.
+    /// Returns an error if the envelope is not an assertion. Returns an error
+    /// if the encoded type doesn't match the given type.
     pub fn extract_predicate<T: TryFrom<CBOR, Error = Error> + 'static>(&self) -> Result<T> {
         self.try_predicate()?
             .extract_subject()
     }
 
-    /// Returns the object of the assertion with the given predicate, decoded as the given type.
+    /// Returns the object of the assertion with the given predicate, decoded as
+    /// the given CBOR type.
     ///
-    /// This is a high-level convenience method that combines finding an assertion by predicate
-    /// and extracting its object as a specific type. This is particularly useful when working with
-    /// envelopes containing typed data (strings, numbers, etc.) as assertion objects.
+    /// This is a high-level convenience method that combines finding an
+    /// assertion by predicate and extracting its object as a specific type.
+    /// This is particularly useful when working with envelopes containing typed
+    /// data (strings, numbers, etc.) as assertion objects.
     ///
     /// # Type Parameters
     ///
-    /// * `T` - The target type to convert the object into. Must implement `TryFrom<CBOR>`.
+    /// * `T` - The target type to convert the object into. Must implement
+    ///   `TryFrom<CBOR>`.
     ///
     /// # Arguments
     ///
@@ -546,9 +620,12 @@ impl Envelope {
     ///
     /// # Errors
     ///
-    /// * Returns `EnvelopeError::NonexistentPredicate` if no assertion has the specified predicate
-    /// * Returns `EnvelopeError::AmbiguousPredicate` if multiple assertions have the specified predicate
-    /// * Returns `Error::InvalidFormat` if the encoded type doesn't match the requested type
+    /// * Returns `EnvelopeError::NonexistentPredicate` if no assertion has the
+    ///   specified predicate
+    /// * Returns `EnvelopeError::AmbiguousPredicate` if multiple assertions
+    ///   have the specified predicate
+    /// * Returns `Error::InvalidFormat` if the encoded type doesn't match the
+    ///   requested type
     ///
     /// # Examples
     ///
@@ -575,7 +652,8 @@ impl Envelope {
             .extract_object()
     }
 
-    /// Returns the object of the assertion with the given predicate, or `None` if there is no matching predicate.
+    /// Returns the object of the assertion with the given predicate decoded as
+    /// the given CBOR type, or `None` if there is no matching predicate.
     ///
     /// Returns an error if there are multiple matching predicates.
     pub fn extract_optional_object_for_predicate<T: TryFrom<CBOR, Error = Error> + 'static>(&self, predicate: impl EnvelopeEncodable) -> Result<Option<T>> {
@@ -583,7 +661,9 @@ impl Envelope {
             .map_or(Ok(None), |o| Ok(Some(o.extract_subject()?)))
     }
 
-    /// Returns the object of the assertion with the given predicate, or a default value if there is no matching predicate.
+    /// Returns the object of the assertion with the given predicate decoded as
+    /// the given CBOR type, or a default value if there is no matching
+    /// predicate.
     pub fn extract_object_for_predicate_with_default<T: TryFrom<CBOR, Error = Error> + 'static>(&self, predicate: impl EnvelopeEncodable, default: T) -> Result<T> {
         self.extract_optional_object_for_predicate(predicate)?
             .map_or(Ok(default), Ok)
@@ -598,7 +678,7 @@ impl Envelope {
     }
 
     /// Returns the objects of all assertions with the matching predicate,
-    /// decoded as the given type.
+    /// decoded as the given CBOR type.
     ///
     /// Returns an error if the encoded type doesn't match the given type.
     pub fn extract_objects_for_predicate<T: TryFrom<CBOR, Error = Error> + 'static>(&self, predicate: impl EnvelopeEncodable) -> Result<Vec<T>> {
@@ -608,7 +688,19 @@ impl Envelope {
             .collect::<Result<Vec<T>>>()
     }
 
-    /// Returns the number of structural elements in the envelope, including itself.
+    /// Returns the objects of all assertions with the matching predicate,
+    /// decoded as the given type.
+    ///
+    /// Returns an error if the encoded type doesn't match the given type.
+    pub fn try_objects_for_predicate<T: TryFrom<Envelope, Error = Error> + 'static>(&self, predicate: impl EnvelopeEncodable) -> Result<Vec<T>> {
+        self.objects_for_predicate(predicate)
+            .into_iter()
+            .map(|a| a.try_as::<T>())
+            .collect::<Result<Vec<T>>>()
+    }
+
+    /// Returns the number of structural elements in the envelope, including
+    /// itself.
     pub fn elements_count(&self) -> usize {
         let mut result = 0;
 
