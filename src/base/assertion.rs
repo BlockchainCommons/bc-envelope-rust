@@ -1,16 +1,16 @@
 use std::borrow::Cow;
-use anyhow::{bail, Error, Result};
-use bc_components::{Digest, DigestProvider};
+use anyhow::{ bail, Error, Result };
+use bc_components::{ Digest, DigestProvider };
 use dcbor::prelude::*;
 
-use crate::{Envelope, EnvelopeEncodable};
+use crate::{ Envelope, EnvelopeEncodable, EnvelopeError };
 
 /// A predicate-object relationship representing an assertion about a subject.
 ///
-/// In Gordian Envelope, assertions are the basic building blocks for attaching 
-/// information to a subject. An assertion consists of a predicate (which states 
+/// In Gordian Envelope, assertions are the basic building blocks for attaching
+/// information to a subject. An assertion consists of a predicate (which states
 /// what is being asserted) and an object (which provides the assertion's value).
-/// 
+///
 /// Assertions can be attached to envelope subjects to form semantic statements like:
 /// "subject hasAttribute value" or "document signedBy signature".
 ///
@@ -55,7 +55,7 @@ impl Assertion {
     /// # use bc_envelope::prelude::*;
     /// // Direct method - create an assertion envelope
     /// let assertion_envelope = Envelope::new_assertion("name", "Alice");
-    /// 
+    ///
     /// // Or create and add an assertion to a subject
     /// let person = Envelope::new("person")
     ///     .add_assertion("name", "Alice");
@@ -63,10 +63,9 @@ impl Assertion {
     pub fn new(predicate: impl EnvelopeEncodable, object: impl EnvelopeEncodable) -> Self {
         let predicate = predicate.into_envelope();
         let object = object.into_envelope();
-        let digest = Digest::from_digests(&[
-            predicate.digest().into_owned(),
-            object.digest().into_owned(),
-        ]);
+        let digest = Digest::from_digests(
+            &[predicate.digest().into_owned(), object.digest().into_owned()]
+        );
         Self {
             predicate,
             object,
@@ -161,7 +160,7 @@ impl TryFrom<CBOR> for Assertion {
         if let CBORCase::Map(map) = value.as_case() {
             return map.clone().try_into();
         }
-        bail!("assertion must be a map")
+        bail!(EnvelopeError::InvalidAssertion)
     }
 }
 
@@ -175,7 +174,7 @@ impl TryFrom<Map> for Assertion {
 
     fn try_from(map: Map) -> Result<Self> {
         if map.len() != 1 {
-            bail!("assertion map must have exactly one element")
+            bail!(EnvelopeError::InvalidAssertion)
         }
         let elem = map.iter().next().unwrap();
         let predicate = Envelope::from_untagged_cbor(elem.0.clone())?;

@@ -78,6 +78,9 @@ pub enum EnvelopeError {
     #[error("the envelope's subject is not an assertion")]
     NotAssertion,
 
+    /// Returned
+    #[error("assertion must be a map with exactly one element")]
+    InvalidAssertion,
 
     //
     // Attachments Extension
@@ -107,7 +110,6 @@ pub enum EnvelopeError {
     #[error("abiguous attachment")]
     AmbiguousAttachment,
 
-
     //
     // Compression Extension
     //
@@ -127,7 +129,6 @@ pub enum EnvelopeError {
     #[cfg(feature = "compress")]
     #[error("cannot uncompress an envelope that was not compressed")]
     NotCompressed,
-
 
     //
     // Symmetric Encryption Extension
@@ -149,7 +150,6 @@ pub enum EnvelopeError {
     #[error("cannot decrypt an envelope that was not encrypted")]
     NotEncrypted,
 
-
     //
     // Known Values Extension
     //
@@ -161,7 +161,6 @@ pub enum EnvelopeError {
     #[cfg(feature = "known_value")]
     #[error("the envelope's subject is not a known value")]
     NotKnownValue,
-
 
     //
     // Public Key Encryption Extension
@@ -175,7 +174,6 @@ pub enum EnvelopeError {
     #[error("unknown recipient")]
     UnknownRecipient,
 
-
     //
     // Public Key Signing Extension
     //
@@ -183,11 +181,30 @@ pub enum EnvelopeError {
     /// Returned when a signature verification fails.
     ///
     /// This error occurs when a signature does not validate against its purported
-    /// public key, as described in BCR-2023-013.
+    /// public key.
     #[cfg(feature = "signature")]
     #[error("could not verify a signature")]
     UnverifiedSignature,
 
+    /// Returned when the outer signature object type is not `Signature`.
+    #[cfg(feature = "signature")]
+    #[error("unexpected outer signature object type")]
+    InvalidOuterSignatureType,
+
+    /// Returned when the inner signature object type is not `Signature`.
+    #[cfg(feature = "signature")]
+    #[error("unexpected inner signature object type")]
+    InvalidInnerSignatureType,
+
+    /// Returned when the inner signature is not made with the same key as the outer signature.
+    #[cfg(feature = "signature")]
+    #[error("inner signature not made with same key as outer signature")]
+    UnverifiedInnerSignature,
+
+    /// Returned when the signature object is not a `Signature`.
+    #[cfg(feature = "signature")]
+    #[error("unexpected signature object type")]
+    InvalidSignatureType,
 
     //
     // SSKR Extension
@@ -200,7 +217,6 @@ pub enum EnvelopeError {
     #[cfg(feature = "sskr")]
     #[error("invalid SSKR shares")]
     InvalidShares,
-
 
     //
     // Types Extension
@@ -222,7 +238,6 @@ pub enum EnvelopeError {
     #[error("ambiguous type")]
     AmbiguousType,
 
-
     //
     // Expressions Extension
     //
@@ -234,6 +249,11 @@ pub enum EnvelopeError {
     #[cfg(feature = "expression")]
     #[error("unexpected response ID")]
     UnexpectedResponseID,
+
+    /// Returned when a response envelope is invalid.
+    #[cfg(feature = "expression")]
+    #[error("invalid response")]
+    InvalidResponse,
 
     /// dcbor error
     #[error("dcbor error: {0}")]

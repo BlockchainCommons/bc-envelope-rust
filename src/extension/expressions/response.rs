@@ -1,10 +1,10 @@
 use core::panic;
 
-use anyhow::{bail, Error, Result};
-use bc_components::{tags, ARID};
+use anyhow::{ bail, Error, Result };
+use bc_components::{ tags, ARID };
 use dcbor::CBOR;
 
-use crate::{known_values, Envelope, EnvelopeEncodable, KnownValue};
+use crate::{ known_values, Envelope, EnvelopeEncodable, EnvelopeError, KnownValue };
 
 /// A `Response` represents a reply to a `Request` containing either a successful result or an error.
 ///
@@ -40,7 +40,7 @@ use crate::{known_values, Envelope, EnvelopeEncodable, KnownValue};
 /// let error_envelope = error_response.into_envelope();
 /// ```
 #[derive(Debug, Clone, PartialEq)]
-pub struct Response (Result<(ARID, Envelope), (Option<ARID>, Envelope)>);
+pub struct Response(Result<(ARID, Envelope), (Option<ARID>, Envelope)>);
 
 impl std::fmt::Display for Response {
     /// Formats the response for display, showing its ID and result or error.
@@ -53,7 +53,8 @@ impl Response {
     /// Returns a human-readable summary of the response.
     pub fn summary(&self) -> String {
         match &self.0 {
-            Ok((id, result)) => format!("id: {}, result: {}", id.short_description(), result.format_flat()),
+            Ok((id, result)) =>
+                format!("id: {}, result: {}", id.short_description(), result.format_flat()),
             Err((id, error)) => {
                 if let Some(id) = id {
                     format!("id: {} error: {}", id.short_description(), error.format_flat())
@@ -231,7 +232,9 @@ pub trait ResponseBehavior {
     ///
     /// Returns an error if this is a failure response.
     fn result(&self) -> Result<&Envelope> {
-        self.ok().map(|(_, result)| result).ok_or_else(|| Error::msg("Cannot get result from failed response"))
+        self.ok()
+            .map(|(_, result)| result)
+            .ok_or_else(|| Error::msg("Cannot get result from failed response"))
     }
 
     /// Extracts a typed result value from a successful response.
@@ -241,8 +244,7 @@ pub trait ResponseBehavior {
     /// Returns an error if this is a failure response or if the result
     /// cannot be converted to the requested type.
     fn extract_result<T>(&self) -> dcbor::Result<T>
-    where
-        T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
+        where T: TryFrom<CBOR, Error = dcbor::Error> + 'static
     {
         self.result()?.extract_subject()
     }
@@ -253,7 +255,9 @@ pub trait ResponseBehavior {
     ///
     /// Returns an error if this is a successful response.
     fn error(&self) -> Result<&Envelope> {
-        self.err().map(|(_, error)| error).ok_or_else(|| Error::msg("Cannot get error from successful response"))
+        self.err()
+            .map(|(_, error)| error)
+            .ok_or_else(|| Error::msg("Cannot get error from successful response"))
     }
 
     /// Extracts a typed error value from a failure response.
@@ -263,8 +267,7 @@ pub trait ResponseBehavior {
     /// Returns an error if this is a successful response or if the error
     /// cannot be converted to the requested type.
     fn extract_error<T>(&self) -> dcbor::Result<T>
-    where
-        T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
+        where T: TryFrom<CBOR, Error = dcbor::Error> + 'static
     {
         self.error()?.extract_subject()
     }
@@ -342,14 +345,19 @@ impl From<Response> for Envelope {
     fn from(value: Response) -> Self {
         match value.0 {
             Ok((id, result)) => {
-                Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, id)).add_assertion(known_values::RESULT, result)
+                Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, id)).add_assertion(
+                    known_values::RESULT,
+                    result
+                )
             }
             Err((id, error)) => {
                 let subject: Envelope;
                 if let Some(id) = id {
-                    subject = Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, id))
+                    subject = Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, id));
                 } else {
-                    subject = Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, known_values::UNKNOWN_VALUE))
+                    subject = Envelope::new(
+                        CBOR::to_tagged_value(tags::TAG_RESPONSE, known_values::UNKNOWN_VALUE)
+                    );
                 }
                 subject.add_assertion(known_values::ERROR, error)
             }
@@ -369,12 +377,13 @@ impl TryFrom<Envelope> for Response {
         let error = envelope.assertion_with_predicate(known_values::ERROR);
 
         if result.is_ok() == error.is_ok() {
-            bail!("Invalid response - must have either a result or an error, but not both")
+            bail!(EnvelopeError::InvalidResponse);
         }
 
         if result.is_ok() {
             let id = envelope
-                .subject().try_leaf()?
+                .subject()
+                .try_leaf()?
                 .try_into_expected_tagged_value(tags::TAG_RESPONSE)?
                 .try_into()?;
             let result = envelope.object_for_predicate(known_values::RESULT)?;
@@ -383,7 +392,8 @@ impl TryFrom<Envelope> for Response {
 
         if error.is_ok() {
             let id_value = envelope
-                .subject().try_leaf()?
+                .subject()
+                .try_leaf()?
                 .try_into_expected_tagged_value(tags::TAG_RESPONSE)?;
             let known_value = KnownValue::try_from(id_value.clone());
             let id: Option<ARID>;
@@ -391,7 +401,7 @@ impl TryFrom<Envelope> for Response {
                 if known_value == known_values::UNKNOWN_VALUE {
                     id = None;
                 } else {
-                    bail!("Invalid response - unknown known value in subject")
+                    bail!(EnvelopeError::InvalidResponse);
                 }
             } else {
                 id = Some(id_value.try_into()?);
@@ -400,7 +410,7 @@ impl TryFrom<Envelope> for Response {
             return Ok(Response(Err((id, error))));
         }
 
-        bail!("Invalid response")
+        bail!(EnvelopeError::InvalidResponse)
     }
 }
 
@@ -422,12 +432,18 @@ mod tests {
         let envelope: Envelope = response.clone().into();
 
         //println!("{}", envelope.format());
-        assert_eq!(envelope.format(),
-        indoc!{r#"
+        assert_eq!(
+            envelope.format(),
+            (
+                indoc! {
+                    r#"
         response(ARID(c66be27d)) [
             'result': 'OK'
         ]
-        "#}.trim());
+        "#
+                }
+            ).trim()
+        );
 
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_ok());
@@ -442,17 +458,22 @@ mod tests {
     fn test_success_result() -> Result<()> {
         crate::register_tags();
 
-        let response = Response::new_success(request_id())
-            .with_result("It works!");
+        let response = Response::new_success(request_id()).with_result("It works!");
         let envelope: Envelope = response.clone().into();
 
         //println!("{}", envelope.format());
-        assert_eq!(envelope.format(),
-        indoc!{r#"
+        assert_eq!(
+            envelope.format(),
+            (
+                indoc! {
+                    r#"
         response(ARID(c66be27d)) [
             'result': "It works!"
         ]
-        "#}.trim());
+        "#
+                }
+            ).trim()
+        );
 
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_ok());
@@ -471,12 +492,18 @@ mod tests {
         let envelope: Envelope = response.clone().into();
 
         // println!("{}", envelope.format());
-        assert_eq!(envelope.format(),
-        indoc!{r#"
+        assert_eq!(
+            envelope.format(),
+            (
+                indoc! {
+                    r#"
         response('Unknown') [
             'error': 'Unknown'
         ]
-        "#}.trim());
+        "#
+                }
+            ).trim()
+        );
 
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_err());
@@ -491,17 +518,22 @@ mod tests {
     fn test_failure() -> Result<()> {
         crate::register_tags();
 
-        let response = Response::new_failure(request_id())
-            .with_error("It doesn't work!");
+        let response = Response::new_failure(request_id()).with_error("It doesn't work!");
         let envelope: Envelope = response.clone().into();
 
         // println!("{}", envelope.format());
-        assert_eq!(envelope.format(),
-        indoc!{r#"
+        assert_eq!(
+            envelope.format(),
+            (
+                indoc! {
+                    r#"
         response(ARID(c66be27d)) [
             'error': "It doesn't work!"
         ]
-        "#}.trim());
+        "#
+                }
+            ).trim()
+        );
 
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_err());
