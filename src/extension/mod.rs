@@ -35,8 +35,8 @@ pub use expressions::{
 ///
 /// Known Values Extension
 ///
-#[cfg(feature = "known_value")]
-pub mod known_values;
+// #[cfg(feature = "known_value")]
+// pub mod known_values;
 #[cfg(feature = "known_value")]
 pub use known_values::*;
 

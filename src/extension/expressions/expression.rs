@@ -1,5 +1,3 @@
-use anyhow::{bail, Error, Result};
-
 use dcbor::prelude::*;
 
 use crate::{Envelope, EnvelopeEncodable, Function, Parameter};
@@ -186,7 +184,7 @@ pub trait ExpressionBehavior {
     ///
     /// Returns an error if no matching parameter is found or if multiple
     /// parameters match.
-    fn object_for_parameter(&self, param: impl Into<Parameter>) -> Result<Envelope>;
+    fn object_for_parameter(&self, param: impl Into<Parameter>) -> anyhow::Result<Envelope>;
 
     /// Returns all arguments (objects) for the given parameter.
     ///
@@ -217,9 +215,9 @@ pub trait ExpressionBehavior {
     /// - No matching parameter is found
     /// - Multiple parameters match
     /// - The argument cannot be decoded as type T
-    fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
+    fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> dcbor::Result<T>
     where
-        T: TryFrom<CBOR, Error = Error> + 'static;
+        T: TryFrom<CBOR, Error = dcbor::Error> + 'static;
 
     /// Returns the argument for the given parameter, decoded as the given type,
     /// or `None` if there is no matching parameter.
@@ -240,7 +238,7 @@ pub trait ExpressionBehavior {
     fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = Error> + 'static>(
         &self,
         param: impl Into<Parameter>,
-    ) -> Result<Option<T>>;
+    ) -> dcbor::Result<Option<T>>;
 
     /// Returns an array of arguments for the given parameter, decoded as the given type.
     ///
@@ -257,9 +255,9 @@ pub trait ExpressionBehavior {
     /// # Errors
     ///
     /// Returns an error if any of the arguments cannot be decoded as type T
-    fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
+    fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> dcbor::Result<Vec<T>>
     where
-        T: TryFrom<CBOR, Error = Error> + 'static;
+        T: TryFrom<CBOR, Error = dcbor::Error> + 'static;
 }
 
 /// Implementation of ExpressionBehavior for Expression.
@@ -298,7 +296,7 @@ impl ExpressionBehavior for Expression {
     }
 
     /// Returns the argument for the given parameter.
-    fn object_for_parameter(&self, param: impl Into<Parameter>) -> Result<Envelope> {
+    fn object_for_parameter(&self, param: impl Into<Parameter>) -> anyhow::Result<Envelope> {
         self.envelope.object_for_predicate(param.into())
     }
 
@@ -308,27 +306,27 @@ impl ExpressionBehavior for Expression {
     }
 
     /// Returns the argument for the given parameter, decoded as the given type.
-    fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
+    fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> dcbor::Result<T>
     where
-        T: TryFrom<CBOR, Error = Error> + 'static,
+        T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
     {
         self.envelope.extract_object_for_predicate(param.into())
     }
 
     /// Returns the argument for the given parameter, decoded as the given type,
     /// or None if there is no matching parameter.
-    fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = Error> + 'static>(
+    fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = dcbor::Error> + 'static>(
         &self,
         param: impl Into<Parameter>,
-    ) -> Result<Option<T>> {
+    ) -> dcbor::Result<Option<T>> {
         self.envelope
             .extract_optional_object_for_predicate(param.into())
     }
 
     /// Returns an array of arguments for the given parameter, decoded as the given type.
-    fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
+    fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> dcbor::Result<Vec<T>>
     where
-        T: TryFrom<CBOR, Error = Error> + 'static,
+        T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
     {
         self.envelope.extract_objects_for_predicate(param.into())
     }
@@ -352,11 +350,12 @@ impl From<Expression> for Envelope {
 ///
 /// Returns an error if the envelope's subject cannot be extracted as a Function.
 impl TryFrom<Envelope> for Expression {
-    type Error = Error;
+    type Error = dcbor::Error;
 
-    fn try_from(envelope: Envelope) -> Result<Self> {
+    fn try_from(envelope: Envelope) -> dcbor::Result<Self> {
+        let function = envelope.extract_subject()?;
         Ok(Self {
-            function: envelope.extract_subject()?,
+            function,
             envelope,
         })
     }
@@ -373,17 +372,17 @@ impl TryFrom<Envelope> for Expression {
 /// - The envelope's subject cannot be extracted as a Function
 /// - The expected function is provided and doesn't match the extracted function
 impl TryFrom<(Envelope, Option<&Function>)> for Expression {
-    type Error = Error;
+    type Error = dcbor::Error;
 
-    fn try_from((envelope, expected_function): (Envelope, Option<&Function>)) -> Result<Self> {
+    fn try_from((envelope, expected_function): (Envelope, Option<&Function>)) -> dcbor::Result<Self> {
         let expression = Expression::try_from(envelope)?;
         if let Some(expected_function) = expected_function {
             if expression.function() != expected_function {
-                bail!(
+                return Err(format!(
                     "Expected function {:?}, but found {:?}",
                     expected_function,
                     expression.function()
-                );
+                ).into());
             }
         }
         Ok(expression)
@@ -425,7 +424,7 @@ mod tests {
     use indoc::indoc;
 
     #[test]
-    fn test_expression_1() -> Result<()> {
+    fn test_expression_1() -> anyhow::Result<()> {
         crate::register_tags();
 
         let expression = Expression::new(functions::ADD)
@@ -461,7 +460,7 @@ mod tests {
     }
 
     #[test]
-    fn test_expression_2() -> Result<()> {
+    fn test_expression_2() -> anyhow::Result<()> {
         crate::register_tags();
 
         let expression = Expression::new("foo")

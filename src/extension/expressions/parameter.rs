@@ -1,4 +1,3 @@
-use anyhow::{bail, Error, Result};
 use bc_components::tags;
 use dcbor::prelude::*;
 use crate::{string_utils::StringUtils, Envelope, EnvelopeEncodable};
@@ -318,9 +317,9 @@ impl CBORTaggedEncodable for Parameter {
 
 /// Allows creating a Parameter from a CBOR value.
 impl TryFrom<CBOR> for Parameter {
-    type Error = Error;
+    type Error = dcbor::Error;
 
-    fn try_from(cbor: CBOR) -> Result<Self> {
+    fn try_from(cbor: CBOR) -> dcbor::Result<Self> {
         Self::from_tagged_cbor(cbor)
     }
 }
@@ -330,11 +329,11 @@ impl TryFrom<CBOR> for Parameter {
 /// Unsigned integers are decoded as known parameters.
 /// Text strings are decoded as named parameters.
 impl CBORTaggedDecodable for Parameter {
-    fn from_untagged_cbor(untagged_cbor: CBOR) -> Result<Self> {
+    fn from_untagged_cbor(untagged_cbor: CBOR) -> dcbor::Result<Self> {
         match untagged_cbor.as_case() {
             CBORCase::Unsigned(value) => Ok(Self::new_known(*value, None)),
             CBORCase::Text(name) => Ok(Self::new_named(name)),
-            _ => bail!("invalid parameter"),
+            _ => return Err("invalid parameter".into()),
         }
     }
 }

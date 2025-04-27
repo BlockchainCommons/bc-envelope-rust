@@ -3,7 +3,7 @@ use bc_components::{ DigestProvider, Signature, Signer, SigningOptions, Verifier
 
 use crate::{ Envelope, EnvelopeEncodable, EnvelopeError };
 #[cfg(feature = "known_value")]
-use crate::extension::known_values;
+use known_values;
 
 use super::SignatureMetadata;
 

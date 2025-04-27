@@ -4,7 +4,7 @@ use bc_components::{Digest, DigestProvider};
 use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
-use dcbor::prelude::*;
+use dcbor::CBOR;
 use crate::{base::Assertion, EnvelopeEncodable, EnvelopeError};
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
@@ -17,20 +17,20 @@ use std::rc::Rc as RefCounted;
 
 /// A flexible container for structured data with built-in integrity verification.
 ///
-/// Gordian Envelope is the primary data structure of this crate. It provides a way to 
-/// encapsulate and organize data with cryptographic integrity, privacy features, and 
+/// Gordian Envelope is the primary data structure of this crate. It provides a way to
+/// encapsulate and organize data with cryptographic integrity, privacy features, and
 /// selective disclosure capabilities.
 ///
 /// Key characteristics of envelopes:
 ///
-/// - **Immutability**: Envelopes are immutable. Operations that appear to "modify" an 
-///   envelope actually create a new envelope. This immutability is fundamental to 
+/// - **Immutability**: Envelopes are immutable. Operations that appear to "modify" an
+///   envelope actually create a new envelope. This immutability is fundamental to
 ///   maintaining the integrity of the envelope's digest tree.
 ///
-/// - **Semantic Structure**: Envelopes can represent various semantic relationships 
+/// - **Semantic Structure**: Envelopes can represent various semantic relationships
 ///   through subjects, predicates, and objects (similar to RDF triples).
 ///
-/// - **Digest Tree**: Each envelope maintains a Merkle-like digest tree that ensures 
+/// - **Digest Tree**: Each envelope maintains a Merkle-like digest tree that ensures
 ///   the integrity of its contents and enables verification of individual parts.
 ///
 /// - **Privacy Features**: Envelopes support selective disclosure through elision,
@@ -118,13 +118,13 @@ pub enum EnvelopeCase {
     /// The digest of a node is derived from the digests of its subject and all
     /// assertions, ensuring that any change to the node or its components would
     /// result in a different digest.
-    Node { 
+    Node {
         /// The subject of the node
-        subject: Envelope, 
+        subject: Envelope,
         /// The assertions attached to the subject
-        assertions: Vec<Envelope>, 
+        assertions: Vec<Envelope>,
         /// The digest of the node
-        digest: Digest 
+        digest: Digest
     },
 
     /// Represents an envelope containing a primitive CBOR value.
@@ -134,11 +134,11 @@ pub enum EnvelopeCase {
     /// the envelope structure.
     ///
     /// The digest of a leaf is derived directly from its CBOR representation.
-    Leaf { 
+    Leaf {
         /// The CBOR value contained in the leaf
-        cbor: CBOR, 
+        cbor: CBOR,
         /// The digest of the leaf
-        digest: Digest 
+        digest: Digest
     },
 
     /// Represents an envelope that wraps another envelope.
@@ -148,11 +148,11 @@ pub enum EnvelopeCase {
     ///
     /// The digest of a wrapped envelope is derived from the digest of the envelope
     /// it wraps.
-    Wrapped { 
+    Wrapped {
         /// The envelope being wrapped
-        envelope: Envelope, 
+        envelope: Envelope,
         /// The digest of the wrapped envelope
-        digest: Digest 
+        digest: Digest
     },
 
     /// Represents a predicate-object assertion.
@@ -176,9 +176,9 @@ pub enum EnvelopeCase {
 
     /// Represents a value from a namespace of unsigned integers used for ontological concepts.
     ///
-    /// Known Values are 64-bit unsigned integers used to represent stand-alone ontological 
-    /// concepts like relationships (`isA`, `containedIn`), classes (`Seed`, `PrivateKey`), 
-    /// or enumerated values (`MainNet`, `OK`). They provide a compact, deterministic 
+    /// Known Values are 64-bit unsigned integers used to represent stand-alone ontological
+    /// concepts like relationships (`isA`, `containedIn`), classes (`Seed`, `PrivateKey`),
+    /// or enumerated values (`MainNet`, `OK`). They provide a compact, deterministic
     /// alternative to URIs for representing common predicates and values.
     ///
     /// Using Known Values instead of strings for common predicates offers several advantages:
@@ -187,16 +187,16 @@ pub enum EnvelopeCase {
     /// - Deterministic encoding for cryptographic operations
     /// - Resistance to manipulation attacks that target string representations
     ///
-    /// Known Values are displayed with single quotes, e.g., `'isA'` or by their numeric 
+    /// Known Values are displayed with single quotes, e.g., `'isA'` or by their numeric
     /// value like `'1'` (when no name is assigned).
     ///
     /// This variant is only available when the `known_value` feature is enabled.
     #[cfg(feature = "known_value")]
-    KnownValue { 
+    KnownValue {
         /// The Known Value instance containing the integer value and optional name
-        value: KnownValue, 
+        value: KnownValue,
         /// The digest of the known value
-        digest: Digest 
+        digest: Digest
     },
 
     /// Represents an envelope that has been encrypted.

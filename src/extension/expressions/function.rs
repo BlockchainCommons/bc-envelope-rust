@@ -1,4 +1,3 @@
-use anyhow::{bail, Error, Result};
 use bc_components::tags;
 use dcbor::prelude::*;
 
@@ -347,9 +346,9 @@ impl CBORTaggedEncodable for Function {
 
 /// Allows creating a Function from a CBOR value.
 impl TryFrom<CBOR> for Function {
-    type Error = Error;
+    type Error = dcbor::Error;
 
-    fn try_from(cbor: CBOR) -> Result<Self> {
+    fn try_from(cbor: CBOR) -> dcbor::Result<Self> {
         Self::from_tagged_cbor(cbor)
     }
 }
@@ -359,11 +358,11 @@ impl TryFrom<CBOR> for Function {
 /// Unsigned integers are decoded as known functions.
 /// Text strings are decoded as named functions.
 impl CBORTaggedDecodable for Function {
-    fn from_untagged_cbor(untagged_cbor: CBOR) -> Result<Self> {
+    fn from_untagged_cbor(untagged_cbor: CBOR) -> dcbor::Result<Self> {
         match untagged_cbor.as_case() {
             CBORCase::Unsigned(value) => Ok(Self::new_known(*value, None)),
             CBORCase::Text(name) => Ok(Self::new_named(name)),
-            _ => bail!("invalid function"),
+            _ => return Err("invalid function".into()),
         }
     }
 }
@@ -408,9 +407,9 @@ impl EnvelopeEncodable for Function {
 ///
 /// This attempts to extract a Function from an Envelope leaf.
 impl TryFrom<Envelope> for Function {
-    type Error = Error;
+    type Error = dcbor::Error;
 
-    fn try_from(envelope: Envelope) -> Result<Self> {
+    fn try_from(envelope: Envelope) -> dcbor::Result<Self> {
         Function::try_from(envelope.try_leaf()?)
     }
 }

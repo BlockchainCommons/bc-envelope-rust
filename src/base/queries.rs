@@ -43,16 +43,16 @@
 //! assert_eq!(age, 30);
 //! ```
 
-use anyhow::{bail, Error, Result};
-use bc_components::{Digest, DigestProvider};
+use anyhow::bail;
+use bc_components::{ Digest, DigestProvider };
 #[cfg(feature = "encrypt")]
 use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
-use dcbor::prelude::*;
-use std::any::{Any, TypeId};
+use dcbor::CBOR;
+use std::any::{ Any, TypeId };
 
-use crate::{Assertion, Envelope, EnvelopeEncodable, EnvelopeError};
+use crate::{ Assertion, Envelope, EnvelopeEncodable, EnvelopeError };
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
 
@@ -95,7 +95,7 @@ impl Envelope {
     }
 
     /// If the envelope's subject is an assertion return it, else return an error.
-    pub fn try_assertion(&self) -> Result<Self> {
+    pub fn try_assertion(&self) -> anyhow::Result<Self> {
         self.as_assertion().ok_or(EnvelopeError::NotAssertion.into())
     }
 
@@ -108,7 +108,7 @@ impl Envelope {
     }
 
     /// The envelope's predicate, or an error if the envelope is not an assertion.
-    pub fn try_predicate(&self) -> Result<Self> {
+    pub fn try_predicate(&self) -> anyhow::Result<Self> {
         self.as_predicate().ok_or(EnvelopeError::NotAssertion.into())
     }
 
@@ -121,7 +121,7 @@ impl Envelope {
     }
 
     /// The envelope's object, or an error if the envelope is not an assertion.
-    pub fn try_object(&self) -> Result<Self> {
+    pub fn try_object(&self) -> anyhow::Result<Self> {
         self.as_object().ok_or(EnvelopeError::NotAssertion.into())
     }
 
@@ -134,14 +134,14 @@ impl Envelope {
     }
 
     /// The envelope's leaf CBOR object, or an error if the envelope is not a leaf.
-    pub fn try_leaf(&self) -> Result<CBOR> {
+    pub fn try_leaf(&self) -> anyhow::Result<CBOR> {
         self.as_leaf().ok_or(EnvelopeError::NotLeaf.into())
     }
 
     /// The envelope's leaf CBOR object as a CBOR byte string, or an error if
     /// the envelope is not a leaf, or the leaf is not a byte string.
-    pub fn try_byte_string(&self) -> Result<Vec<u8>> {
-        self.try_leaf()?.try_into_byte_string()
+    pub fn try_byte_string(&self) -> anyhow::Result<Vec<u8>> {
+        Ok(self.try_leaf()?.try_into_byte_string()?)
     }
 
     /// The envelope's `KnownValue`, or `None` if the envelope is not case
@@ -157,7 +157,7 @@ impl Envelope {
     /// The envelope's `KnownValue`, or an error if the envelope is not case
     /// `::KnownValue`.
     #[cfg(feature = "known_value")]
-    pub fn try_known_value(&self) -> Result<&KnownValue> {
+    pub fn try_known_value(&self) -> anyhow::Result<&KnownValue> {
         self.as_known_value().ok_or(EnvelopeError::NotKnownValue.into())
     }
 
@@ -335,23 +335,14 @@ impl Envelope {
     /// let result = envelope.extract_subject::<i32>();
     /// assert!(result.is_err());
     /// ```
-    pub fn extract_subject<T>(&self) -> Result<T>
-    where
-        T: Any + TryFrom<CBOR, Error = Error>,
-    {
-        fn extract_type<T, U>(value: &U) -> Result<T>
-        where
-            T: Any,
-            U: Any + Clone,
-        {
+    pub fn extract_subject<T>(&self) -> dcbor::Result<T> where T: Any + TryFrom<CBOR, Error = dcbor::Error> {
+        fn extract_type<T, U>(value: &U) -> dcbor::Result<T> where T: Any, U: Any + Clone {
             if TypeId::of::<T>() == TypeId::of::<U>() {
                 let cloned: Box<dyn Any> = Box::new(value.clone());
-                let downcast = cloned
-                    .downcast::<T>()
-                    .unwrap();
+                let downcast = cloned.downcast::<T>().unwrap();
                 Ok(*downcast)
             } else {
-                bail!(EnvelopeError::InvalidFormat)
+                return Err(EnvelopeError::InvalidFormat.into());
             }
         }
 
@@ -361,13 +352,14 @@ impl Envelope {
             EnvelopeCase::Leaf { cbor, .. } => {
                 let from_cbor = T::try_from(cbor.clone())?;
                 Ok(from_cbor)
-            },
+            }
             EnvelopeCase::Assertion(assertion) => extract_type::<T, Assertion>(assertion),
             EnvelopeCase::Elided(digest) => extract_type::<T, Digest>(digest),
             #[cfg(feature = "known_value")]
             EnvelopeCase::KnownValue { value, .. } => extract_type::<T, KnownValue>(value),
             #[cfg(feature = "encrypt")]
-            EnvelopeCase::Encrypted(encrypted_message) => extract_type::<T, EncryptedMessage>(encrypted_message),
+            EnvelopeCase::Encrypted(encrypted_message) =>
+                extract_type::<T, EncryptedMessage>(encrypted_message),
             #[cfg(feature = "compress")]
             EnvelopeCase::Compressed(compressed) => extract_type::<T, Compressed>(compressed),
         }
@@ -427,7 +419,7 @@ impl Envelope {
     /// // Trying to find a non-existent predicate produces an error
     /// assert!(envelope.assertion_with_predicate("address").is_err());
     /// ```
-    pub fn assertion_with_predicate(&self, predicate: impl EnvelopeEncodable) -> Result<Self> {
+    pub fn assertion_with_predicate(&self, predicate: impl EnvelopeEncodable) -> anyhow::Result<Self> {
         let a = self.assertions_with_predicate(predicate);
         if a.is_empty() {
             bail!(EnvelopeError::NonexistentPredicate);
@@ -442,7 +434,10 @@ impl Envelope {
     /// matching predicate.
     ///
     /// Returns an error if there are multiple matching predicates.
-    pub fn optional_assertion_with_predicate(&self, predicate: impl EnvelopeEncodable) -> Result<Option<Self>> {
+    pub fn optional_assertion_with_predicate(
+        &self,
+        predicate: impl EnvelopeEncodable
+    ) -> anyhow::Result<Option<Self>> {
         let a = self.assertions_with_predicate(predicate);
         if a.is_empty() {
             Ok(None)
@@ -491,7 +486,7 @@ impl Envelope {
     /// let age = envelope.object_for_predicate("age").unwrap();
     /// assert_eq!(age.extract_subject::<i32>().unwrap(), 30);
     /// ```
-    pub fn object_for_predicate(&self, predicate: impl EnvelopeEncodable) -> Result<Self> {
+    pub fn object_for_predicate(&self, predicate: impl EnvelopeEncodable) -> anyhow::Result<Self> {
         Ok(self.assertion_with_predicate(predicate)?.as_object().unwrap())
     }
 
@@ -500,10 +495,7 @@ impl Envelope {
     /// This method attempts to convert the envelope into the requested type
     /// `T`. The conversion will succeed if the envelope can be properly decoded
     /// as the specified type.
-    pub fn try_as<T>(&self) -> Result<T>
-    where
-        T: TryFrom<Envelope, Error = Error>,
-    {
+    pub fn try_as<T>(&self) -> anyhow::Result<T> where T: TryFrom<Envelope, Error = anyhow::Error> {
         self.clone().try_into()
     }
 
@@ -512,19 +504,20 @@ impl Envelope {
     ///
     /// This is a convenience method that finds an assertion with the specified
     /// predicate and returns its object, decoded as the specified type.
-    pub fn try_object_for_predicate<T>(&self, predicate: impl EnvelopeEncodable) -> Result<T>
-    where
-        T: TryFrom<Envelope, Error = Error>,
+    pub fn try_object_for_predicate<T>(&self, predicate: impl EnvelopeEncodable) -> anyhow::Result<T>
+        where T: TryFrom<Envelope, Error = anyhow::Error>
     {
-        self.object_for_predicate(predicate)?
-            .try_into()
+        self.object_for_predicate(predicate)?.try_into()
     }
 
     /// Returns the object of the assertion with the given predicate, or `None`
     /// if there is no matching predicate.
     ///
     /// Returns an error if there are multiple matching predicates.
-    pub fn optional_object_for_predicate(&self, predicate: impl EnvelopeEncodable) -> Result<Option<Self>> {
+    pub fn optional_object_for_predicate(
+        &self,
+        predicate: impl EnvelopeEncodable
+    ) -> anyhow::Result<Option<Self>> {
         let a = self.assertions_with_predicate(predicate);
         if a.is_empty() {
             Ok(None)
@@ -537,12 +530,13 @@ impl Envelope {
 
     /// Returns the object of the assertion with the given predicate, or `None`
     /// if there is no matching predicate.
-    pub fn try_optional_object_for_predicate<T>(&self, predicate: impl EnvelopeEncodable) -> Result<Option<T>>
-    where
-        T: TryFrom<Envelope, Error = Error>,
+    pub fn try_optional_object_for_predicate<T>(
+        &self,
+        predicate: impl EnvelopeEncodable
+    ) -> anyhow::Result<Option<T>>
+        where T: TryFrom<Envelope, Error = anyhow::Error>
     {
-        self.optional_object_for_predicate(predicate)?
-            .map(TryInto::try_into).transpose()
+        self.optional_object_for_predicate(predicate)?.map(TryInto::try_into).transpose()
     }
 
     /// Returns the object of the assertion, decoded as the given CBOR type.
@@ -583,18 +577,16 @@ impl Envelope {
     /// let envelope = Envelope::new("Alice");
     /// assert!(envelope.extract_object::<String>().is_err());
     /// ```
-    pub fn extract_object<T: TryFrom<CBOR, Error = Error> + 'static>(&self) -> Result<T> {
-        self.try_object()?
-            .extract_subject()
+    pub fn extract_object<T: TryFrom<CBOR, Error = dcbor::Error> + 'static>(&self) -> dcbor::Result<T> {
+        self.try_object()?.extract_subject()
     }
 
     /// Returns the predicate of the assertion, decoded as the given CBOR type.
     ///
     /// Returns an error if the envelope is not an assertion. Returns an error
     /// if the encoded type doesn't match the given type.
-    pub fn extract_predicate<T: TryFrom<CBOR, Error = Error> + 'static>(&self) -> Result<T> {
-        self.try_predicate()?
-            .extract_subject()
+    pub fn extract_predicate<T: TryFrom<CBOR, Error = dcbor::Error> + 'static>(&self) -> dcbor::Result<T> {
+        self.try_predicate()?.extract_subject()
     }
 
     /// Returns the object of the assertion with the given predicate, decoded as
@@ -647,26 +639,33 @@ impl Envelope {
     /// let result = envelope.extract_object_for_predicate::<i32>("name");
     /// assert!(result.is_err());
     /// ```
-    pub fn extract_object_for_predicate<T: TryFrom<CBOR, Error = Error> + 'static>(&self, predicate: impl EnvelopeEncodable) -> Result<T> {
-        self.assertion_with_predicate(predicate)?
-            .extract_object()
+    pub fn extract_object_for_predicate<T: TryFrom<CBOR, Error = dcbor::Error> + 'static>(
+        &self,
+        predicate: impl EnvelopeEncodable
+    ) -> dcbor::Result<T> {
+        self.assertion_with_predicate(predicate)?.extract_object()
     }
 
     /// Returns the object of the assertion with the given predicate decoded as
     /// the given CBOR type, or `None` if there is no matching predicate.
     ///
     /// Returns an error if there are multiple matching predicates.
-    pub fn extract_optional_object_for_predicate<T: TryFrom<CBOR, Error = Error> + 'static>(&self, predicate: impl EnvelopeEncodable) -> Result<Option<T>> {
-        self.optional_object_for_predicate(predicate)?
-            .map_or(Ok(None), |o| Ok(Some(o.extract_subject()?)))
+    pub fn extract_optional_object_for_predicate<T: TryFrom<CBOR, Error = dcbor::Error> + 'static>(
+        &self,
+        predicate: impl EnvelopeEncodable
+    ) -> dcbor::Result<Option<T>> {
+        self.optional_object_for_predicate(predicate)?.map_or(Ok(None), |o|
+            Ok(Some(o.extract_subject()?))
+        )
     }
 
     /// Returns the object of the assertion with the given predicate decoded as
     /// the given CBOR type, or a default value if there is no matching
     /// predicate.
-    pub fn extract_object_for_predicate_with_default<T: TryFrom<CBOR, Error = Error> + 'static>(&self, predicate: impl EnvelopeEncodable, default: T) -> Result<T> {
-        self.extract_optional_object_for_predicate(predicate)?
-            .map_or(Ok(default), Ok)
+    pub fn extract_object_for_predicate_with_default<
+        T: TryFrom<CBOR, Error = dcbor::Error> + 'static
+    >(&self, predicate: impl EnvelopeEncodable, default: T) -> dcbor::Result<T> {
+        self.extract_optional_object_for_predicate(predicate)?.map_or(Ok(default), Ok)
     }
 
     /// Returns the objects of all assertions with the matching predicate.
@@ -681,22 +680,28 @@ impl Envelope {
     /// decoded as the given CBOR type.
     ///
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn extract_objects_for_predicate<T: TryFrom<CBOR, Error = Error> + 'static>(&self, predicate: impl EnvelopeEncodable) -> Result<Vec<T>> {
+    pub fn extract_objects_for_predicate<T: TryFrom<CBOR, Error = dcbor::Error> + 'static>(
+        &self,
+        predicate: impl EnvelopeEncodable
+    ) -> dcbor::Result<Vec<T>> {
         self.objects_for_predicate(predicate)
             .into_iter()
             .map(|a| a.extract_subject::<T>())
-            .collect::<Result<Vec<T>>>()
+            .collect::<dcbor::Result<Vec<T>>>()
     }
 
     /// Returns the objects of all assertions with the matching predicate,
     /// decoded as the given type.
     ///
     /// Returns an error if the encoded type doesn't match the given type.
-    pub fn try_objects_for_predicate<T: TryFrom<Envelope, Error = Error> + 'static>(&self, predicate: impl EnvelopeEncodable) -> Result<Vec<T>> {
+    pub fn try_objects_for_predicate<T: TryFrom<Envelope, Error = anyhow::Error> + 'static>(
+        &self,
+        predicate: impl EnvelopeEncodable
+    ) -> anyhow::Result<Vec<T>> {
         self.objects_for_predicate(predicate)
             .into_iter()
             .map(|a| a.try_as::<T>())
-            .collect::<Result<Vec<T>>>()
+            .collect::<anyhow::Result<Vec<T>>>()
     }
 
     /// Returns the number of structural elements in the envelope, including
@@ -707,11 +712,7 @@ impl Envelope {
         fn _count(envelope: &Envelope, result: &mut usize) {
             *result += 1;
             match envelope.case() {
-                EnvelopeCase::Node {
-                    subject,
-                    assertions,
-                    ..
-                } => {
+                EnvelopeCase::Node { subject, assertions, .. } => {
                     *result += subject.elements_count();
                     for assertion in assertions {
                         *result += assertion.elements_count();

@@ -1,11 +1,11 @@
 //! Formats an envelope as a CBOR data structure and provides human-readable text representations.
 //!
 //! This module provides functionality for formatting envelopes in various ways:
-//! 
+//!
 //! 1. **Envelope Notation**: A human-readable text representation showing the semantic structure
 //!    of an envelope (the `format` methods)
 //!
-//! 2. **CBOR Diagnostics**: Text representation of the underlying CBOR structure, following 
+//! 2. **CBOR Diagnostics**: Text representation of the underlying CBOR structure, following
 //!    [RFC-8949 §8](https://www.rfc-editor.org/rfc/rfc8949.html#name-diagnostic-notation)
 //!    (the `diagnostic` methods)
 //!
@@ -39,7 +39,7 @@ use bc_components::XID;
 use dcbor::prelude::*;
 use crate::{Envelope, Assertion, string_utils::StringUtils, FormatContext, with_format_context};
 #[cfg(feature = "known_value")]
-use crate::extension::{KnownValue, known_values};
+use crate::{KnownValue, known_values};
 
 use super::{EnvelopeSummary, envelope::EnvelopeCase};
 

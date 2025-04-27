@@ -2,7 +2,7 @@ use anyhow::{bail, Result};
 use bc_components::DigestProvider;
 
 use crate::{Envelope, EnvelopeEncodable, EnvelopeError};
-use crate::extension::{known_values, KnownValue};
+use crate::{known_values, KnownValue};
 
 /// # Type System for Gordian Envelopes
 ///
@@ -31,7 +31,7 @@ use crate::extension::{known_values, KnownValue};
 /// 1. **Type Tagging**: Adding type information to envelopes to indicate their semantic meaning
 ///    ```
 ///    use bc_envelope::prelude::*;
-///    
+///
 ///    // Create an envelope representing a person
 ///    let person = Envelope::new("Alice")
 ///        .add_type("Person")
@@ -42,15 +42,15 @@ use crate::extension::{known_values, KnownValue};
 ///    ```no_run
 ///    use bc_envelope::prelude::*;
 ///    use anyhow::Result;
-///    
+///
 ///    fn process_person(envelope: &Envelope) -> Result<()> {
 ///        // Verify this is a person before processing
 ///        envelope.check_type_envelope("Person")?;
-///        
+///
 ///        // Now we can safely extract person-specific information
 ///        let name: String = envelope.subject().try_into()?;
 ///        let age = envelope.extract_object_for_predicate::<u8>("age")?;
-///        
+///
 ///        println!("{} is {} years old", name, age);
 ///        Ok(())
 ///    }
@@ -71,7 +71,7 @@ impl Envelope {
     ///
     /// This method provides a convenient way to declare the type of an envelope
     /// using the standard `'isA'` predicate (known value 1). The type can be any
-    /// value that can be converted to an envelope, typically a string or a 
+    /// value that can be converted to an envelope, typically a string or a
     /// Known Value from the registry.
     ///
     /// # Parameters
@@ -142,7 +142,7 @@ impl Envelope {
     /// let person_type = Envelope::new("Person");
     /// let employee_type = Envelope::new("Employee");
     /// let manager_type = Envelope::new("Manager");
-    /// 
+    ///
     /// let has_person = types.iter().any(|e| e.digest() == person_type.digest());
     /// let has_employee = types.iter().any(|e| e.digest() == employee_type.digest());
     /// let has_manager = types.iter().any(|e| e.digest() == manager_type.digest());
@@ -290,7 +290,7 @@ impl Envelope {
     /// fn process_seed(envelope: &Envelope) -> Result<String> {
     ///     // Verify this is a seed
     ///     envelope.check_type(&known_values::SEED_TYPE)?;
-    ///     
+    ///
     ///     // Extract the seed data
     ///     let seed_data: String = envelope.subject().try_into()?;
     ///     Ok(seed_data)
@@ -344,7 +344,7 @@ impl Envelope {
     /// fn process_person(envelope: &Envelope) -> Result<String> {
     ///     // Verify this is a person
     ///     envelope.check_type_envelope("Person")?;
-    ///     
+    ///
     ///     // Extract the name
     ///     let name: String = envelope.subject().try_into()?;
     ///     Ok(name)

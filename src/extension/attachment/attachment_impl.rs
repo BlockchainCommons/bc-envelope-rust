@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 
-use crate::{base::envelope::EnvelopeCase, extension::known_values, Assertion, Envelope, EnvelopeEncodable, EnvelopeError};
+use crate::{base::envelope::EnvelopeCase, known_values, Assertion, Envelope, EnvelopeEncodable, EnvelopeError};
 
 /// Support for adding vendor-specific attachments to Gordian Envelopes.
 ///
@@ -117,7 +117,7 @@ impl Assertion {
     /// # Errors
     ///
     /// Returns an error if the assertion is not a valid attachment assertion
-    pub fn attachment_vendor(&self) -> Result<String> {
+    pub fn attachment_vendor(&self) -> dcbor::Result<String> {
         self.object().extract_object_for_predicate(known_values::VENDOR)
     }
 
@@ -130,7 +130,7 @@ impl Assertion {
     /// # Errors
     ///
     /// Returns an error if the assertion is not a valid attachment assertion
-    pub fn attachment_conforms_to(&self) -> Result<Option<String>> {
+    pub fn attachment_conforms_to(&self) -> dcbor::Result<Option<String>> {
         self.object().extract_optional_object_for_predicate(known_values::CONFORMS_TO)
     }
 

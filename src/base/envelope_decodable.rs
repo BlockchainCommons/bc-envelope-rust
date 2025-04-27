@@ -1,6 +1,5 @@
 use bc_components::{Digest, PrivateKeyBase, PrivateKeys, PublicKeys, Reference, SSKRShare, Salt, SealedMessage, Signature, ARID, URI, UUID, XID};
-use dcbor::prelude::*;
-use anyhow::{Error, Result};
+use dcbor::CBOR;
 
 use crate::Envelope;
 
@@ -8,9 +7,9 @@ use crate::Envelope;
 macro_rules! impl_envelope_decodable {
     ($type:ty) => {
         impl TryFrom<Envelope> for $type {
-            type Error = Error;
+            type Error = dcbor::Error;
 
-            fn try_from(envelope: Envelope) -> Result<Self> {
+            fn try_from(envelope: Envelope) -> dcbor::Result<Self> {
                 let cbor = envelope.try_leaf()?;
                 cbor.try_into()
             }
@@ -74,7 +73,7 @@ impl Envelope {
     /// # Errors
     ///
     /// Returns an error if the CBOR does not represent a valid envelope structure.
-    pub fn try_from_cbor(cbor: CBOR) -> Result<Self> {
+    pub fn try_from_cbor(cbor: CBOR) -> dcbor::Result<Self> {
         cbor.try_into()
     }
 
@@ -92,7 +91,7 @@ impl Envelope {
     ///
     /// Returns an error if the data is not valid CBOR or does not represent
     /// a valid envelope structure.
-    pub fn try_from_cbor_data(data: Vec<u8>) -> Result<Self> {
+    pub fn try_from_cbor_data(data: Vec<u8>) -> dcbor::Result<Self> {
         let cbor = CBOR::try_from_data(data)?;
         Self::try_from_cbor(cbor)
     }

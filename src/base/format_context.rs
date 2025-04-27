@@ -5,7 +5,7 @@ use dcbor::prelude::*;
 use std::sync::Arc;
 use std::sync::{ Mutex, Once };
 #[cfg(feature = "known_value")]
-use crate::extension::known_values::{ KnownValuesStore, KNOWN_VALUES };
+use known_values::{ KnownValuesStore, KNOWN_VALUES };
 
 #[cfg(feature = "expression")]
 use crate::extension::expressions::{
@@ -25,11 +25,11 @@ use crate::{ string_utils::StringUtils, Envelope };
 ///
 /// The `FormatContext` provides information about CBOR tags, known values, functions,
 /// and parameters that are used to annotate the output of envelope formatting functions.
-/// This context enables human-readable output when converting envelopes to string 
+/// This context enables human-readable output when converting envelopes to string
 /// representations like diagnostic notation.
 ///
 /// This type is central to the diagnostic capabilities of Gordian Envelope,
-/// translating numeric CBOR tags into meaningful names and providing context-specific 
+/// translating numeric CBOR tags into meaningful names and providing context-specific
 /// formatting for special values.
 ///
 /// # Format Context Content
@@ -43,7 +43,7 @@ use crate::{ string_utils::StringUtils, Envelope };
 ///
 /// # Global Context
 ///
-/// A global format context is available through the `with_format_context!` and 
+/// A global format context is available through the `with_format_context!` and
 /// `with_format_context_mut!` macros. This global context is initialized with
 /// standard tags and registries.
 ///

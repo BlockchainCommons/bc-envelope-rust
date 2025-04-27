@@ -398,7 +398,15 @@ pub use bc_components::{EncapsulationPrivateKey, Encrypter, SigningOptions};
 pub use bc_components::{PrivateKeyBase, PublicKeys};
 
 #[cfg(feature = "known_value")]
-pub use extension::known_values::{self, known_value, KnownValue, KnownValuesStore, KNOWN_VALUES};
+pub use known_values::{self, KnownValue, KnownValuesStore, KNOWN_VALUES};
+
+#[cfg(feature = "known_value")]
+/// Converts a KnownValue to an Envelope.
+impl EnvelopeEncodable for KnownValue {
+    fn into_envelope(self) -> Envelope {
+        Envelope::new_with_known_value(self)
+    }
+}
 
 #[cfg(feature = "expression")]
 pub use extension::expressions::{

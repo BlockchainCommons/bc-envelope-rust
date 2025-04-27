@@ -7,7 +7,7 @@ use bc_rand::RandomNumberGenerator;
 
 use crate::{Envelope, EnvelopeError};
 #[cfg(feature = "known_value")]
-use crate::extension::known_values;
+use known_values;
 
 /// Support for splitting and combining envelopes using SSKR (Shamir's Secret Sharing).
 ///

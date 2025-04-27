@@ -31,7 +31,7 @@ use std::ops::RangeInclusive;
 
 use crate::Envelope;
 #[cfg(feature = "known_value")]
-use crate::extension::known_values;
+use known_values;
 
 use anyhow::Result;
 use bc_components::Salt;

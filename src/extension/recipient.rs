@@ -8,7 +8,7 @@
 //! The recipient extension builds on the basic envelope encryption capabilities by adding:
 //!
 //! - **Multiple Recipients** - A single envelope can be encrypted to multiple recipients
-//! - **Content Key Distribution** - Uses public key cryptography to securely distribute the 
+//! - **Content Key Distribution** - Uses public key cryptography to securely distribute the
 //!   symmetric key that encrypts the actual content
 //! - **Privacy** - Recipients can decrypt the envelope independently without revealing
 //!   their identity or access to other recipients
@@ -83,7 +83,7 @@
 //!     .decrypt_subject_to_recipient(&bob_keys)
 //!     .unwrap();
 //!
-//! // Carol can decrypt it  
+//! // Carol can decrypt it
 //! let carol_decrypted = encrypted.clone()
 //!     .decrypt_subject_to_recipient(&carol_keys)
 //!     .unwrap();
@@ -162,7 +162,7 @@
 
 use crate::{Envelope, EnvelopeError};
 #[cfg(feature = "known_value")]
-use crate::extension::known_values;
+use known_values;
 
 #[cfg(feature = "encrypt")]
 use bc_components::Decrypter;
@@ -176,7 +176,7 @@ impl Envelope {
     /// Returns a new envelope with an added `hasRecipient: SealedMessage` assertion.
     ///
     /// This method adds a recipient to an already-encrypted envelope. It creates a `hasRecipient`
-    /// assertion containing a `SealedMessage` that holds the content key encrypted to the 
+    /// assertion containing a `SealedMessage` that holds the content key encrypted to the
     /// recipient's public key.
     ///
     /// # Parameters
@@ -213,7 +213,7 @@ impl Envelope {
 
     /// Version of `add_recipient` that accepts an optional test nonce for deterministic testing.
     ///
-    /// This is an internal method primarily used for testing. In production code, use 
+    /// This is an internal method primarily used for testing. In production code, use
     /// `add_recipient` instead, which will generate a cryptographically secure random nonce.
     #[doc(hidden)]
     pub fn add_recipient_opt(&self, recipient: &dyn Encrypter, content_key: &SymmetricKey, test_nonce: Option<&Nonce>) -> Self {
@@ -258,7 +258,7 @@ impl Envelope {
     /// assert_eq!(sealed_messages.len(), 2);
     /// # }
     /// ```
-    pub fn recipients(&self) -> Result<Vec<SealedMessage>> {
+    pub fn recipients(&self) -> dcbor::Result<Vec<SealedMessage>> {
         self
             .assertions_with_predicate(known_values::HAS_RECIPIENT)
             .into_iter()
@@ -492,7 +492,7 @@ impl Envelope {
     /// 1. Wraps the envelope (preserving its assertions in the wrap)
     /// 2. Encrypts the resulting envelope to the recipient
     ///
-    /// This method is simpler than calling `wrap_envelope()` and then 
+    /// This method is simpler than calling `wrap_envelope()` and then
     /// `encrypt_subject_to_recipient()` separately, and it handles error unwrapping.
     ///
     /// # Parameters
@@ -536,7 +536,7 @@ impl Envelope {
     /// 1. Decrypts the envelope using the recipient's private key
     /// 2. Unwraps the resulting envelope to reveal the original content
     ///
-    /// This method is simpler than calling `decrypt_subject_to_recipient()` and then 
+    /// This method is simpler than calling `decrypt_subject_to_recipient()` and then
     /// `unwrap_envelope()` separately.
     ///
     /// # Parameters

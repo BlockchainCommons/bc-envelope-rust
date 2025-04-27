@@ -1,10 +1,9 @@
-use anyhow::{bail, Error, Result};
-use dcbor::prelude::*;
 use bc_components::{tags, Digest};
 #[cfg(feature = "encrypt")]
 use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
+use dcbor::{tags_for_values, CBORCase, CBORTagged, CBORTaggedDecodable, CBORTaggedEncodable, Tag, CBOR};
 use crate::{Assertion, Envelope};
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
@@ -37,9 +36,9 @@ impl From<Envelope> for CBOR {
 }
 
 impl TryFrom<CBOR> for Envelope {
-    type Error = Error;
+    type Error = dcbor::Error;
 
-    fn try_from(value: CBOR) -> Result<Self> {
+    fn try_from(value: CBOR) -> dcbor::Result<Self> {
         Self::from_tagged_cbor(value)
     }
 }
@@ -69,7 +68,7 @@ impl CBORTaggedEncodable for Envelope {
 }
 
 impl CBORTaggedDecodable for Envelope {
-    fn from_untagged_cbor(cbor: CBOR) -> Result<Self> {
+    fn from_untagged_cbor(cbor: CBOR) -> dcbor::Result<Self> {
         match cbor.as_case() {
             CBORCase::Tagged(tag, item) => {
                 match tag.value() {
@@ -92,7 +91,7 @@ impl CBORTaggedDecodable for Envelope {
                         let envelope = Self::new_with_compressed(compressed)?;
                         Ok(envelope)
                     },
-                    _ => bail!("unknown envelope tag: {}", tag.value()),
+                    _ => return Err(format!("unknown envelope tag: {}", tag.value()).into()),
                 }
             }
             CBORCase::ByteString(bytes) => {
@@ -100,14 +99,14 @@ impl CBORTaggedDecodable for Envelope {
             }
             CBORCase::Array(elements) => {
                 if elements.len() < 2 {
-                    bail!("node must have at least two elements")
+                    return Err("node must have at least two elements".into());
                 }
                 let subject = Self::from_untagged_cbor(elements[0].clone())?;
                 let assertions: Vec<Envelope> = elements[1..]
                     .iter()
                     .cloned()
                     .map(Self::from_untagged_cbor)
-                    .collect::<Result<Vec<Self>, Error>>()?;
+                    .collect::<dcbor::Result<Vec<Self>>>()?;
                 Ok(Self::new_with_assertions(subject, assertions)?)
             }
             CBORCase::Map(_) => {
@@ -119,7 +118,7 @@ impl CBORTaggedDecodable for Envelope {
                 let known_value = KnownValue::new(*value);
                 Ok(Self::new_with_known_value(known_value))
             }
-            _ => bail!("invalid envelope"),
+            _ => return Err("invalid envelope".into()),
         }
     }
 }

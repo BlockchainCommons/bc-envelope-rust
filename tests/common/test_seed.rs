@@ -1,6 +1,5 @@
 #![cfg(feature = "types")]
 
-use anyhow::{bail, Error, Result};
 use bc_components::tags;
 use bc_ur::prelude::*;
 use bc_envelope::prelude::*;
@@ -94,19 +93,19 @@ impl CBORTaggedEncodable for Seed {
 }
 
 impl TryFrom<CBOR> for Seed {
-    type Error = Error;
+    type Error = dcbor::Error;
 
-    fn try_from(cbor: CBOR) -> Result<Self> {
+    fn try_from(cbor: CBOR) -> dcbor::Result<Self> {
         Self::from_tagged_cbor(cbor)
     }
 }
 
 impl CBORTaggedDecodable for Seed {
-    fn from_untagged_cbor(cbor: CBOR) -> Result<Self> {
+    fn from_untagged_cbor(cbor: CBOR) -> dcbor::Result<Self> {
         let map = cbor.try_into_map()?;
         let data = map.extract::<i32, CBOR>(1)?.try_into_byte_string()?.to_vec();
         if data.is_empty() {
-            bail!("invalid seed data");
+            return Err("invalid seed data".into());
         }
         let creation_date = map.get::<i32, dcbor::Date>(2);
         let name = map.get::<i32, String>(3).unwrap_or_default();
@@ -134,9 +133,9 @@ impl From<Seed> for Envelope {
 }
 
 impl TryFrom<Envelope> for Seed {
-    type Error = Error;
+    type Error = dcbor::Error;
 
-    fn try_from(envelope: Envelope) -> Result<Self> {
+    fn try_from(envelope: Envelope) -> dcbor::Result<Self> {
         envelope.check_type(&known_values::SEED_TYPE)?;
         let data = envelope.subject().try_leaf()?.try_into_byte_string()?.to_vec();
         let name = envelope.extract_optional_object_for_predicate::<String>(known_values::NAME)?.unwrap_or_default().to_string();
