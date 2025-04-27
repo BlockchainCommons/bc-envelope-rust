@@ -67,6 +67,12 @@ pub use signature::SignatureMetadata;
 pub mod salt;
 
 ///
+/// Secret
+///
+#[cfg(feature = "secret")]
+pub mod secret;
+
+///
 /// SSKR Extension
 ///
 #[cfg(feature = "sskr")]

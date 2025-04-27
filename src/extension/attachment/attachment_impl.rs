@@ -117,7 +117,7 @@ impl Assertion {
     /// # Errors
     ///
     /// Returns an error if the assertion is not a valid attachment assertion
-    pub fn attachment_vendor(&self) -> dcbor::Result<String> {
+    pub fn attachment_vendor(&self) -> Result<String> {
         self.object().extract_object_for_predicate(known_values::VENDOR)
     }
 
@@ -130,7 +130,7 @@ impl Assertion {
     /// # Errors
     ///
     /// Returns an error if the assertion is not a valid attachment assertion
-    pub fn attachment_conforms_to(&self) -> dcbor::Result<Option<String>> {
+    pub fn attachment_conforms_to(&self) -> Result<Option<String>> {
         self.object().extract_optional_object_for_predicate(known_values::CONFORMS_TO)
     }
 

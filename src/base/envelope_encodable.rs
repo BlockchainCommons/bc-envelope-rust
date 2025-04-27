@@ -7,8 +7,7 @@ use bc_components::Compressed;
 #[cfg(feature = "encrypt")]
 use bc_components::EncryptedMessage;
 use bc_components::{
-    Digest, PrivateKeyBase, PrivateKeys, PublicKeys, Reference, SSKRShare, Salt, SealedMessage,
-    Signature, ARID, URI, UUID, XID,
+    Digest, EncryptedKey, PrivateKeyBase, PrivateKeys, PublicKeys, Reference, SSKRShare, Salt, SealedMessage, Signature, ARID, URI, UUID, XID
 };
 use dcbor::{CBOREncodable, Map, Set, CBOR};
 
@@ -240,6 +239,7 @@ impl_envelope_encodable!(PublicKeys);
 impl_envelope_encodable!(PrivateKeys);
 impl_envelope_encodable!(PrivateKeyBase);
 impl_envelope_encodable!(SealedMessage);
+impl_envelope_encodable!(EncryptedKey);
 impl_envelope_encodable!(Signature);
 impl_envelope_encodable!(SSKRShare);
 impl_envelope_encodable!(Digest);

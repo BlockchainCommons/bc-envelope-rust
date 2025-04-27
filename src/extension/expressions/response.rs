@@ -243,7 +243,7 @@ pub trait ResponseBehavior {
     ///
     /// Returns an error if this is a failure response or if the result
     /// cannot be converted to the requested type.
-    fn extract_result<T>(&self) -> dcbor::Result<T>
+    fn extract_result<T>(&self) -> Result<T>
         where T: TryFrom<CBOR, Error = dcbor::Error> + 'static
     {
         self.result()?.extract_subject()
@@ -266,7 +266,7 @@ pub trait ResponseBehavior {
     ///
     /// Returns an error if this is a successful response or if the error
     /// cannot be converted to the requested type.
-    fn extract_error<T>(&self) -> dcbor::Result<T>
+    fn extract_error<T>(&self) -> Result<T>
         where T: TryFrom<CBOR, Error = dcbor::Error> + 'static
     {
         self.error()?.extract_subject()

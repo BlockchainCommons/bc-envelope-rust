@@ -175,6 +175,19 @@ pub enum EnvelopeError {
     UnknownRecipient,
 
     //
+    // Encrypted Key Extension
+    //
+
+    /// Returned when attempting to decrypt an envelope with a secret that
+    /// doesn't match.
+    ///
+    /// This error occurs when trying to use a secret that does not correspond
+    /// to the expected recipient, preventing successful decryption.
+    #[cfg(feature = "secret")]
+    #[error("secret not found")]
+    UnknownSecret,
+
+    //
     // Public Key Signing Extension
     //
 
@@ -258,10 +271,4 @@ pub enum EnvelopeError {
     /// dcbor error
     #[error("dcbor error: {0}")]
     DCBOR(#[from] dcbor::Error),
-}
-
-impl From<EnvelopeError> for dcbor::Error {
-    fn from(value: EnvelopeError) -> Self {
-        dcbor::Error::Custom(value.to_string())
-    }
 }

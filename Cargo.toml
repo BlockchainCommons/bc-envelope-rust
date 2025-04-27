@@ -54,6 +54,7 @@ multithreaded = ["dcbor/multithreaded"]
 proof = []
 recipient = ["encrypt"]
 salt = ["known_value"]
+secret = ["encrypt"]
 signature = ["known_value"]
 ssh = ["dep:ssh-key", "signature"]
 sskr = ["encrypt"]
@@ -68,6 +69,7 @@ default = [
     "proof",
     "recipient",
     "salt",
+    "secret",
     "signature",
     "ssh",
     "sskr",

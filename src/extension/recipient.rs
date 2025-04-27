@@ -258,7 +258,7 @@ impl Envelope {
     /// assert_eq!(sealed_messages.len(), 2);
     /// # }
     /// ```
-    pub fn recipients(&self) -> dcbor::Result<Vec<SealedMessage>> {
+    pub fn recipients(&self) -> Result<Vec<SealedMessage>> {
         self
             .assertions_with_predicate(known_values::HAS_RECIPIENT)
             .into_iter()

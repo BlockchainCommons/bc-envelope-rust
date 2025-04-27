@@ -174,7 +174,7 @@ impl ExpressionBehavior for Request {
     }
 
     /// Extracts a typed object for a parameter in the request.
-    fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> dcbor::Result<T>
+    fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
     where
         T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
     {
@@ -182,12 +182,12 @@ impl ExpressionBehavior for Request {
     }
 
     /// Extracts an optional typed object for a parameter in the request.
-    fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = dcbor::Error> + 'static>(&self, param: impl Into<Parameter>) -> dcbor::Result<Option<T>> {
+    fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = dcbor::Error> + 'static>(&self, param: impl Into<Parameter>) -> Result<Option<T>> {
         self.body.extract_optional_object_for_parameter(param)
     }
 
     /// Extracts multiple typed objects for a parameter in the request.
-    fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> dcbor::Result<Vec<T>>
+    fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
     where
         T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
     {

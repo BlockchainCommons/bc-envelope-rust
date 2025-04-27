@@ -1,3 +1,4 @@
+use anyhow::Result;
 use dcbor::prelude::*;
 
 use crate::{Envelope, EnvelopeEncodable, Function, Parameter};
@@ -215,7 +216,7 @@ pub trait ExpressionBehavior {
     /// - No matching parameter is found
     /// - Multiple parameters match
     /// - The argument cannot be decoded as type T
-    fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> dcbor::Result<T>
+    fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
     where
         T: TryFrom<CBOR, Error = dcbor::Error> + 'static;
 
@@ -238,7 +239,7 @@ pub trait ExpressionBehavior {
     fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = Error> + 'static>(
         &self,
         param: impl Into<Parameter>,
-    ) -> dcbor::Result<Option<T>>;
+    ) -> Result<Option<T>>;
 
     /// Returns an array of arguments for the given parameter, decoded as the given type.
     ///
@@ -255,7 +256,7 @@ pub trait ExpressionBehavior {
     /// # Errors
     ///
     /// Returns an error if any of the arguments cannot be decoded as type T
-    fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> dcbor::Result<Vec<T>>
+    fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
     where
         T: TryFrom<CBOR, Error = dcbor::Error> + 'static;
 }
@@ -306,7 +307,7 @@ impl ExpressionBehavior for Expression {
     }
 
     /// Returns the argument for the given parameter, decoded as the given type.
-    fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> dcbor::Result<T>
+    fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
     where
         T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
     {
@@ -318,13 +319,13 @@ impl ExpressionBehavior for Expression {
     fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = dcbor::Error> + 'static>(
         &self,
         param: impl Into<Parameter>,
-    ) -> dcbor::Result<Option<T>> {
+    ) -> Result<Option<T>> {
         self.envelope
             .extract_optional_object_for_predicate(param.into())
     }
 
     /// Returns an array of arguments for the given parameter, decoded as the given type.
-    fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> dcbor::Result<Vec<T>>
+    fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
     where
         T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
     {
