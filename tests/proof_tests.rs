@@ -27,24 +27,25 @@ fn test_friends_list() {
         .add_assertion_salted("knows", "Bob", true)
         .add_assertion_salted("knows", "Carol", true)
         .add_assertion_salted("knows", "Dan", true);
+    #[rustfmt::skip]
     assert_eq!(alice_friends.format(), indoc! {r#"
-    "Alice" [
-        {
-            "knows": "Bob"
-        } [
-            'salt': Salt
+        "Alice" [
+            {
+                "knows": "Bob"
+            } [
+                'salt': Salt
+            ]
+            {
+                "knows": "Carol"
+            } [
+                'salt': Salt
+            ]
+            {
+                "knows": "Dan"
+            } [
+                'salt': Salt
+            ]
         ]
-        {
-            "knows": "Carol"
-        } [
-            'salt': Salt
-        ]
-        {
-            "knows": "Dan"
-        } [
-            'salt': Salt
-        ]
-    ]
     "#}.trim());
 
     // Alice provides just the root digest of her document to a third party. This is
@@ -63,13 +64,14 @@ fn test_friends_list() {
     // guess who else she knows.
     let knows_bob_assertion = Envelope::new_assertion("knows", "Bob");
     let alice_knows_bob_proof = alice_friends.proof_contains_target(&knows_bob_assertion).unwrap().check_encoding().unwrap();
+    #[rustfmt::skip]
     assert_eq!(alice_knows_bob_proof.format(), indoc! {r#"
-    ELIDED [
         ELIDED [
-            ELIDED
+            ELIDED [
+                ELIDED
+            ]
+            ELIDED (2)
         ]
-        ELIDED (2)
-    ]
     "#}.trim());
 
     // The third party then uses the previously known and trusted root to confirm that
@@ -94,24 +96,25 @@ fn test_multi_position() {
     // reveals the digest of the salt for each assertion, which might make Alice's other
     // associates easier to guess.
     let knows_proof = alice_friends.proof_contains_target(&Envelope::new("knows")).unwrap().check_encoding().unwrap();
+    #[rustfmt::skip]
     assert_eq!(knows_proof.format(), indoc! {r#"
-    ELIDED [
-        {
-            ELIDED: ELIDED
-        } [
-            ELIDED
+        ELIDED [
+            {
+                ELIDED: ELIDED
+            } [
+                ELIDED
+            ]
+            {
+                ELIDED: ELIDED
+            } [
+                ELIDED
+            ]
+            {
+                ELIDED: ELIDED
+            } [
+                ELIDED
+            ]
         ]
-        {
-            ELIDED: ELIDED
-        } [
-            ELIDED
-        ]
-        {
-            ELIDED: ELIDED
-        } [
-            ELIDED
-        ]
-    ]
     "#}.trim());
 }
 
@@ -142,17 +145,18 @@ fn test_verifiable_credential() {
     let address_assertion = Envelope::new_assertion("address", "123 Main St.");
     let address_proof = credential.proof_contains_target(&address_assertion).unwrap().check_encoding().unwrap();
     // The proof includes digests from all the elided assertions.
+    #[rustfmt::skip]
     assert_eq!(address_proof.format(), indoc! {r#"
-    {
-        ELIDED [
+        {
             ELIDED [
-                ELIDED
+                ELIDED [
+                    ELIDED
+                ]
+                ELIDED (9)
             ]
-            ELIDED (9)
+        } [
+            ELIDED (2)
         ]
-    } [
-        ELIDED (2)
-    ]
     "#}.trim());
 
     // The proof confirms the address, as intended.

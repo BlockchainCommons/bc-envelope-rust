@@ -23,10 +23,11 @@ fn test_ssh_signed_plaintext() {
         .check_encoding().unwrap();
     let ur = envelope.ur();
 
+    #[rustfmt::skip]
     let expected_format = indoc! {r#"
-    "Hello." [
-        'signed': Signature(SshEd25519)
-    ]
+        "Hello." [
+            'signed': Signature(SshEd25519)
+        ]
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
 

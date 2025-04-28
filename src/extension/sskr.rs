@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use anyhow::{bail, Result};
-pub use bc_components::{SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret, SSKRError};
-use bc_components::{sskr_generate_using, sskr_combine, SymmetricKey};
+use anyhow::{ bail, Result };
+pub use bc_components::{ SSKRShare, SSKRSpec, SSKRGroupSpec, SSKRSecret, SSKRError };
+use bc_components::{ sskr_generate_using, sskr_combine, SymmetricKey };
 use bc_rand::RandomNumberGenerator;
 
-use crate::{Envelope, EnvelopeError};
+use crate::{ Envelope, Error };
 #[cfg(feature = "known_value")]
 use known_values;
 
@@ -95,7 +95,11 @@ impl Envelope {
     ///     assert!(share.assertions_with_predicate(known_values::SSKR_SHARE).len() > 0);
     /// }
     /// ```
-    pub fn sskr_split(&self, spec: &SSKRSpec, content_key: &SymmetricKey) -> Result<Vec<Vec<Envelope>>> {
+    pub fn sskr_split(
+        &self,
+        spec: &SSKRSpec,
+        content_key: &SymmetricKey
+    ) -> Result<Vec<Vec<Envelope>>> {
         let mut rng = bc_rand::SecureRandomNumberGenerator;
         self.sskr_split_using(spec, content_key, &mut rng)
     }
@@ -146,7 +150,11 @@ impl Envelope {
     ///     assert!(share.assertions_with_predicate(known_values::SSKR_SHARE).len() > 0);
     /// }
     /// ```
-    pub fn sskr_split_flattened(&self, spec: &SSKRSpec, content_key: &SymmetricKey) -> Result<Vec<Envelope>> {
+    pub fn sskr_split_flattened(
+        &self,
+        spec: &SSKRSpec,
+        content_key: &SymmetricKey
+    ) -> Result<Vec<Envelope>> {
         Ok(self.sskr_split(spec, content_key)?.into_iter().flatten().collect())
     }
 
@@ -154,7 +162,12 @@ impl Envelope {
     /// Internal function that splits the envelope using a provided random number generator.
     ///
     /// This method is primarily used for testing to ensure deterministic SSKR shares.
-    pub fn sskr_split_using(&self, spec: &SSKRSpec, content_key: &SymmetricKey, test_rng: &mut impl RandomNumberGenerator) -> Result<Vec<Vec<Envelope>>> {
+    pub fn sskr_split_using(
+        &self,
+        spec: &SSKRSpec,
+        content_key: &SymmetricKey,
+        test_rng: &mut impl RandomNumberGenerator
+    ) -> Result<Vec<Vec<Envelope>>> {
         let master_secret = SSKRSecret::new(content_key.data())?;
         let shares = sskr_generate_using(spec, &master_secret, test_rng)?;
         let mut result: Vec<Vec<Envelope>> = Vec::new();
@@ -179,7 +192,10 @@ impl Envelope {
             for assertion in envelope.assertions_with_predicate(known_values::SSKR_SHARE) {
                 let share = assertion.as_object().unwrap().extract_subject::<SSKRShare>()?;
                 let identifier = share.identifier();
-                result.entry(identifier).and_modify(|shares| shares.push(share.clone())).or_insert(vec![share]);
+                result
+                    .entry(identifier)
+                    .and_modify(|shares| shares.push(share.clone()))
+                    .or_insert(vec![share]);
             }
         }
         Ok(result)
@@ -253,7 +269,7 @@ impl Envelope {
     /// ```
     pub fn sskr_join(envelopes: &[&Envelope]) -> Result<Envelope> {
         if envelopes.is_empty() {
-            bail!(EnvelopeError::InvalidShares);
+            bail!(Error::InvalidShares);
         }
 
         let grouped_shares: Vec<_> = Self::sskr_shares_in(envelopes)?.values().cloned().collect();
@@ -266,32 +282,29 @@ impl Envelope {
                 }
             }
         }
-        bail!(EnvelopeError::InvalidShares)
+        bail!(Error::InvalidShares)
     }
 }
 
 #[cfg(all(test, feature = "sskr", feature = "types", feature = "known_value"))]
 mod tests {
     use crate::prelude::*;
-    use bc_components::{SymmetricKey, SSKRGroupSpec, SSKRSpec};
+    use bc_components::{ SymmetricKey, SSKRGroupSpec, SSKRSpec };
 
     #[test]
     fn test_sskr_split_and_join() {
         // Create the original envelope with an assertion
-        let original = Envelope::new("Secret message")
-            .add_assertion("metadata", "This is a test");
+        let original = Envelope::new("Secret message").add_assertion("metadata", "This is a test");
 
         // Create a content key
         let content_key = SymmetricKey::new();
 
         // Wrap the envelope (so the whole envelope including its assertions
         // become the subject)
-        let wrapped_original = original
-            .wrap_envelope();
+        let wrapped_original = original.wrap_envelope();
 
         // Encrypt the wrapped envelope
-        let encrypted = wrapped_original
-            .encrypt_subject(&content_key).unwrap();
+        let encrypted = wrapped_original.encrypt_subject(&content_key).unwrap();
 
         // Create a 2-of-3 SSKR split specification
         let group = SSKRGroupSpec::new(2, 3).unwrap();

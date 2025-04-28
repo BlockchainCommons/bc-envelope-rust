@@ -49,10 +49,10 @@ use bc_components::{ Digest, DigestProvider };
 use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
-use dcbor::CBOR;
+use dcbor::prelude::*;
 use std::any::{ Any, TypeId };
 
-use crate::{ Assertion, Envelope, EnvelopeEncodable, EnvelopeError };
+use crate::{ Assertion, Envelope, EnvelopeEncodable, Error };
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
 
@@ -96,7 +96,7 @@ impl Envelope {
 
     /// If the envelope's subject is an assertion return it, else return an error.
     pub fn try_assertion(&self) -> anyhow::Result<Self> {
-        self.as_assertion().ok_or(EnvelopeError::NotAssertion.into())
+        self.as_assertion().ok_or(Error::NotAssertion.into())
     }
 
     /// The envelope's predicate, or `None` if the envelope is not an assertion.
@@ -109,7 +109,7 @@ impl Envelope {
 
     /// The envelope's predicate, or an error if the envelope is not an assertion.
     pub fn try_predicate(&self) -> anyhow::Result<Self> {
-        self.as_predicate().ok_or(EnvelopeError::NotAssertion.into())
+        self.as_predicate().ok_or(Error::NotAssertion.into())
     }
 
     /// The envelope's object, or `None` if the envelope is not an assertion.
@@ -122,7 +122,7 @@ impl Envelope {
 
     /// The envelope's object, or an error if the envelope is not an assertion.
     pub fn try_object(&self) -> anyhow::Result<Self> {
-        self.as_object().ok_or(EnvelopeError::NotAssertion.into())
+        self.as_object().ok_or(Error::NotAssertion.into())
     }
 
     /// The envelope's leaf CBOR object, or `None` if the envelope is not a leaf.
@@ -135,7 +135,7 @@ impl Envelope {
 
     /// The envelope's leaf CBOR object, or an error if the envelope is not a leaf.
     pub fn try_leaf(&self) -> anyhow::Result<CBOR> {
-        self.as_leaf().ok_or(EnvelopeError::NotLeaf.into())
+        self.as_leaf().ok_or(Error::NotLeaf.into())
     }
 
     /// The envelope's leaf CBOR object as a CBOR byte string, or an error if
@@ -158,7 +158,7 @@ impl Envelope {
     /// `::KnownValue`.
     #[cfg(feature = "known_value")]
     pub fn try_known_value(&self) -> anyhow::Result<&KnownValue> {
-        self.as_known_value().ok_or(EnvelopeError::NotKnownValue.into())
+        self.as_known_value().ok_or(Error::NotKnownValue.into())
     }
 
     /// `true` if the envelope is case `::Leaf`, `false` otherwise.
@@ -342,7 +342,7 @@ impl Envelope {
                 let downcast = cloned.downcast::<T>().unwrap();
                 Ok(*downcast)
             } else {
-                return Err(EnvelopeError::InvalidFormat.into());
+                return Err(Error::InvalidFormat.into());
             }
         }
 
@@ -425,11 +425,11 @@ impl Envelope {
     ) -> anyhow::Result<Self> {
         let a = self.assertions_with_predicate(predicate);
         if a.is_empty() {
-            bail!(EnvelopeError::NonexistentPredicate);
+            bail!(Error::NonexistentPredicate);
         } else if a.len() == 1 {
             Ok(a[0].clone())
         } else {
-            bail!(EnvelopeError::AmbiguousPredicate);
+            bail!(Error::AmbiguousPredicate);
         }
     }
 
@@ -447,7 +447,7 @@ impl Envelope {
         } else if a.len() == 1 {
             Ok(Some(a[0].clone()))
         } else {
-            bail!(EnvelopeError::AmbiguousPredicate);
+            bail!(Error::AmbiguousPredicate);
         }
     }
 
@@ -530,7 +530,7 @@ impl Envelope {
         } else if a.len() == 1 {
             Ok(Some(a[0].subject().as_object().unwrap()))
         } else {
-            bail!(EnvelopeError::AmbiguousPredicate);
+            bail!(Error::AmbiguousPredicate);
         }
     }
 

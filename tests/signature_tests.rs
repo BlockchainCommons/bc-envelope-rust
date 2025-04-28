@@ -16,10 +16,11 @@ fn test_signed_plaintext() {
         .check_encoding().unwrap();
     let ur = envelope.ur();
 
+    #[rustfmt::skip]
     let expected_format = indoc! {r#"
-    "Hello." [
-        'signed': Signature
-    ]
+        "Hello." [
+            'signed': Signature
+        ]
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
 
@@ -55,11 +56,12 @@ fn multisigned_plaintext() {
         .add_signatures(&[&alice_private_key(), &carol_private_key()])
         .check_encoding().unwrap();
 
+    #[rustfmt::skip]
     let expected_format = indoc! {r#"
-    "Hello." [
-        'signed': Signature
-        'signed': Signature
-    ]
+        "Hello." [
+            'signed': Signature
+            'signed': Signature
+        ]
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
 
@@ -91,18 +93,19 @@ fn signed_with_metadata() {
         .add_signature_opt(&alice_private_key(), None, Some(metadata))
         .check_encoding().unwrap();
 
+    #[rustfmt::skip]
     let expected_format = indoc! {r#"
-    {
-        "Hello."
-    } [
-        'signed': {
-            Signature [
-                'note': "Alice signed this."
-            ]
+        {
+            "Hello."
         } [
-            'signed': Signature
+            'signed': {
+                Signature [
+                    'note': "Alice signed this."
+                ]
+            } [
+                'signed': Signature
+            ]
         ]
-    ]
     "#}.trim();
     assert_eq!(envelope.format(), expected_format);
 
@@ -115,10 +118,11 @@ fn signed_with_metadata() {
         .check_encoding().unwrap()
         .verify_returning_metadata(&alice_public_key()).unwrap();
 
+    #[rustfmt::skip]
     let expected_format = indoc! {r#"
-    Signature [
-        'note': "Alice signed this."
-    ]
+        Signature [
+            'note': "Alice signed this."
+        ]
     "#}.trim();
     assert_eq!(metadata.format(), expected_format);
     let note = metadata.object_for_predicate(NOTE).unwrap().extract_subject::<String>().unwrap();

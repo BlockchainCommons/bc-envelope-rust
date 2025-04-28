@@ -1,6 +1,5 @@
 #[cfg(feature = "expression")]
 use bc_components::tags::*;
-use dcbor::prelude::*;
 #[cfg(feature = "expression")]
 use std::sync::Arc;
 use std::sync::{ Mutex, Once };

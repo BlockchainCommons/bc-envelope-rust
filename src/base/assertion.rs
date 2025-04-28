@@ -3,7 +3,7 @@ use anyhow::{ bail, Error, Result };
 use bc_components::{ Digest, DigestProvider };
 use dcbor::prelude::*;
 
-use crate::{ Envelope, EnvelopeEncodable, EnvelopeError };
+use crate::{ Envelope, EnvelopeEncodable };
 
 /// A predicate-object relationship representing an assertion about a subject.
 ///
@@ -160,7 +160,7 @@ impl TryFrom<CBOR> for Assertion {
         if let CBORCase::Map(map) = value.as_case() {
             return map.clone().try_into();
         }
-        bail!(EnvelopeError::InvalidAssertion)
+        bail!(crate::Error::InvalidAssertion)
     }
 }
 
@@ -174,7 +174,7 @@ impl TryFrom<Map> for Assertion {
 
     fn try_from(map: Map) -> Result<Self> {
         if map.len() != 1 {
-            bail!(EnvelopeError::InvalidAssertion)
+            bail!(crate::Error::InvalidAssertion);
         }
         let elem = map.iter().next().unwrap();
         let predicate = Envelope::from_untagged_cbor(elem.0.clone())?;

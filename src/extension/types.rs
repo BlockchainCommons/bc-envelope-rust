@@ -1,8 +1,8 @@
-use anyhow::{bail, Result};
+use anyhow::{ bail, Result };
 use bc_components::DigestProvider;
 
-use crate::{Envelope, EnvelopeEncodable, EnvelopeError};
-use crate::{known_values, KnownValue};
+use crate::{ Envelope, EnvelopeEncodable, Error };
+use crate::{ known_values, KnownValue };
 
 /// # Type System for Gordian Envelopes
 ///
@@ -200,7 +200,7 @@ impl Envelope {
         if t.len() == 1 {
             Ok(t[0].clone())
         } else {
-            bail!(EnvelopeError::AmbiguousType)
+            bail!(Error::AmbiguousType)
         }
     }
 
@@ -235,7 +235,9 @@ impl Envelope {
     /// ```
     pub fn has_type_envelope(&self, t: impl EnvelopeEncodable) -> bool {
         let e = t.into_envelope();
-        self.types().iter().any(|x| x.digest() == e.digest())
+        self.types()
+            .iter()
+            .any(|x| x.digest() == e.digest())
     }
 
     /// Checks if the envelope has a specific type, using a Known Value as the type identifier.
@@ -265,7 +267,9 @@ impl Envelope {
     /// ```
     pub fn has_type(&self, t: &KnownValue) -> bool {
         let type_envelope: Envelope = t.clone().to_envelope();
-        self.types().iter().any(|x| x.digest() == type_envelope.digest())
+        self.types()
+            .iter()
+            .any(|x| x.digest() == type_envelope.digest())
     }
 
     /// Verifies that the envelope has a specific Known Value type.
@@ -315,11 +319,7 @@ impl Envelope {
     /// assert!(result.is_err());
     /// ```
     pub fn check_type(&self, t: &KnownValue) -> Result<()> {
-        if self.has_type(t) {
-            Ok(())
-        } else {
-            bail!(EnvelopeError::InvalidType)
-        }
+        if self.has_type(t) { Ok(()) } else { bail!(Error::InvalidType) }
     }
 
     /// Verifies that the envelope has a specific type, using an envelope as the type identifier.
@@ -368,10 +368,6 @@ impl Envelope {
     /// assert!(result.is_err());
     /// ```
     pub fn check_type_envelope(&self, t: impl EnvelopeEncodable) -> Result<()> {
-        if self.has_type_envelope(t) {
-            Ok(())
-        } else {
-            bail!(EnvelopeError::InvalidType)
-        }
+        if self.has_type_envelope(t) { Ok(()) } else { bail!(Error::InvalidType) }
     }
 }

@@ -1,7 +1,7 @@
-use anyhow::{bail, Result};
+use anyhow::{ bail, Result };
 use bc_components::DigestProvider;
 
-use crate::{Envelope, EnvelopeEncodable, EnvelopeError};
+use crate::{ Envelope, EnvelopeEncodable, Error };
 
 use super::envelope::EnvelopeCase;
 
@@ -15,7 +15,7 @@ impl Envelope {
     /// This is the most common way to add an assertion to an envelope. It automatically
     /// creates an assertion envelope from the predicate and object, then adds it to the
     /// existing envelope. The resulting envelope has the same subject with the new assertion added.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -23,10 +23,14 @@ impl Envelope {
     /// let envelope = Envelope::new("Alice")
     ///     .add_assertion("name", "Alice Smith")
     ///     .add_assertion("age", 30);
-    ///     
+    ///
     /// // The envelope now contains two assertions about Alice
     /// ```
-    pub fn add_assertion(&self, predicate: impl EnvelopeEncodable, object: impl EnvelopeEncodable) -> Self {
+    pub fn add_assertion(
+        &self,
+        predicate: impl EnvelopeEncodable,
+        object: impl EnvelopeEncodable
+    ) -> Self {
         let assertion = Self::new_assertion(predicate, object);
         self.add_optional_assertion_envelope(Some(assertion)).unwrap()
     }
@@ -57,13 +61,16 @@ impl Envelope {
     /// # use bc_envelope::prelude::*;
     /// // Create a separate assertion envelope
     /// let assertion = Envelope::new_assertion("knows", "Bob");
-    /// 
+    ///
     /// // Add it to an envelope
     /// let envelope = Envelope::new("Alice")
     ///     .add_assertion_envelope(assertion)
     ///     .unwrap();
     /// ```
-    pub fn add_assertion_envelope(&self, assertion_envelope: impl EnvelopeEncodable) -> Result<Self> {
+    pub fn add_assertion_envelope(
+        &self,
+        assertion_envelope: impl EnvelopeEncodable
+    ) -> Result<Self> {
         self.add_optional_assertion_envelope(Some(assertion_envelope.into_envelope()))
     }
 
@@ -95,7 +102,7 @@ impl Envelope {
     /// let assertion1 = Envelope::new_assertion("name", "Alice Smith");
     /// let assertion2 = Envelope::new_assertion("age", 30);
     /// let assertion3 = Envelope::new_assertion("city", "Boston");
-    /// 
+    ///
     /// // Add them all at once to an envelope
     /// let envelope = Envelope::new("person")
     ///     .add_assertion_envelopes(&[assertion1, assertion2, assertion3])
@@ -154,7 +161,7 @@ impl Envelope {
         match assertion {
             Some(assertion) => {
                 if !assertion.is_subject_assertion() && !assertion.is_subject_obscured() {
-                    bail!(EnvelopeError::InvalidFormat)
+                    bail!(Error::InvalidFormat);
                 }
 
                 match self.case() {
@@ -166,10 +173,10 @@ impl Envelope {
                         } else {
                             Ok(self.clone())
                         }
-                    },
+                    }
                     _ => Ok(Self::new_with_unchecked_assertions(self.subject(), vec![assertion])),
                 }
-            },
+            }
             None => Ok(self.clone()),
         }
     }
@@ -211,7 +218,11 @@ impl Envelope {
     /// let person_without_name = Envelope::new("person")
     ///     .add_optional_assertion("name", get_optional_value(false));
     /// ```
-    pub fn add_optional_assertion(&self, predicate: impl EnvelopeEncodable, object: Option<impl EnvelopeEncodable>) -> Self {
+    pub fn add_optional_assertion(
+        &self,
+        predicate: impl EnvelopeEncodable,
+        object: Option<impl EnvelopeEncodable>
+    ) -> Self {
         if let Some(object) = object {
             self.add_assertion_envelope(Self::new_assertion(predicate, object)).unwrap()
         } else {
@@ -247,7 +258,11 @@ impl Envelope {
     /// // Only the name assertion is added
     /// assert_eq!(person.assertions().len(), 1);
     /// ```
-    pub fn add_nonempty_string_assertion(&self, predicate: impl EnvelopeEncodable, str: impl AsRef<str>) -> Self {
+    pub fn add_nonempty_string_assertion(
+        &self,
+        predicate: impl EnvelopeEncodable,
+        str: impl AsRef<str>
+    ) -> Self {
         let str = str.as_ref();
         if str.is_empty() {
             self.clone()
@@ -277,7 +292,7 @@ impl Envelope {
     /// // Create multiple assertion envelopes
     /// let assertion1 = Envelope::new_assertion("name", "Alice Smith");
     /// let assertion2 = Envelope::new_assertion("age", 30);
-    /// 
+    ///
     /// // Add them all at once to an envelope
     /// let envelope = Envelope::new("person")
     ///     .add_assertions(&[assertion1, assertion2]);
@@ -318,20 +333,21 @@ impl Envelope {
     /// # use bc_envelope::prelude::*;
     /// let is_verified = true;
     /// let is_expired = false;
-    /// 
+    ///
     /// let document = Envelope::new("document")
     ///     .add_assertion_if(is_verified, "verified", true)   // This will be added
     ///     .add_assertion_if(is_expired, "expired", true);    // This won't be added
-    /// 
+    ///
     /// // Only the verification assertion is present
     /// assert_eq!(document.assertions().len(), 1);
     /// ```
-    pub fn add_assertion_if(&self, condition: bool, predicate: impl EnvelopeEncodable, object: impl EnvelopeEncodable) -> Self {
-        if condition {
-            self.add_assertion(predicate, object)
-        } else {
-            self.clone()
-        }
+    pub fn add_assertion_if(
+        &self,
+        condition: bool,
+        predicate: impl EnvelopeEncodable,
+        object: impl EnvelopeEncodable
+    ) -> Self {
+        if condition { self.add_assertion(predicate, object) } else { self.clone() }
     }
 
     /// Adds an assertion envelope only if the provided condition is true.
@@ -361,17 +377,17 @@ impl Envelope {
     /// # use bc_envelope::prelude::*;
     /// let assertion = Envelope::new_assertion("verified", true);
     /// let should_include = true;
-    /// 
+    ///
     /// let document = Envelope::new("document")
     ///     .add_assertion_envelope_if(should_include, assertion)
     ///     .unwrap();
     /// ```
-    pub fn add_assertion_envelope_if(&self, condition: bool, assertion_envelope: Self) -> Result<Self> {
-        if condition {
-            self.add_assertion_envelope(assertion_envelope)
-        } else {
-            Ok(self.clone())
-        }
+    pub fn add_assertion_envelope_if(
+        &self,
+        condition: bool,
+        assertion_envelope: Self
+    ) -> Result<Self> {
+        if condition { self.add_assertion_envelope(assertion_envelope) } else { Ok(self.clone()) }
     }
 }
 
@@ -385,9 +401,7 @@ impl Envelope {
 impl Envelope {
     /// Returns the result of adding the given assertion to the envelope, optionally salting it.
     pub fn add_assertion_salted<P, O>(&self, predicate: P, object: O, salted: bool) -> Self
-    where
-        P: EnvelopeEncodable,
-        O: EnvelopeEncodable,
+        where P: EnvelopeEncodable, O: EnvelopeEncodable
     {
         let assertion = Self::new_assertion(predicate, object);
         self.add_optional_assertion_envelope_salted(Some(assertion), salted).unwrap()
@@ -397,7 +411,11 @@ impl Envelope {
     ///
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_assertion_envelope_salted(&self, assertion_envelope: Self, salted: bool) -> Result<Self> {
+    pub fn add_assertion_envelope_salted(
+        &self,
+        assertion_envelope: Self,
+        salted: bool
+    ) -> Result<Self> {
         self.add_optional_assertion_envelope_salted(Some(assertion_envelope), salted)
     }
 
@@ -406,17 +424,17 @@ impl Envelope {
     ///
     /// The assertion envelope must be a valid assertion envelope, or an
     /// obscured variant (elided, encrypted, compressed) of one.
-    pub fn add_optional_assertion_envelope_salted(&self, assertion: Option<Self>, salted: bool) -> Result<Self> {
+    pub fn add_optional_assertion_envelope_salted(
+        &self,
+        assertion: Option<Self>,
+        salted: bool
+    ) -> Result<Self> {
         match assertion {
             Some(assertion) => {
                 if !assertion.is_subject_assertion() && !assertion.is_subject_obscured() {
-                    bail!(EnvelopeError::InvalidFormat)
+                    bail!(Error::InvalidFormat);
                 }
-                let envelope2 = if salted {
-                    assertion.add_salt()
-                } else {
-                    assertion
-                };
+                let envelope2 = if salted { assertion.add_salt() } else { assertion };
 
                 match self.case() {
                     EnvelopeCase::Node { subject, assertions, .. } => {
@@ -427,10 +445,10 @@ impl Envelope {
                         } else {
                             Ok(self.clone())
                         }
-                    },
+                    }
                     _ => Ok(Self::new_with_unchecked_assertions(self.subject(), vec![envelope2])),
                 }
-            },
+            }
             None => Ok(self.clone()),
         }
     }
@@ -473,13 +491,13 @@ impl Envelope {
     /// let person = Envelope::new("Alice")
     ///     .add_assertion("name", "Alice Smith")
     ///     .add_assertion("age", 30);
-    ///     
+    ///
     /// // Create the assertion to remove
     /// let name_assertion = Envelope::new_assertion("name", "Alice Smith");
-    /// 
+    ///
     /// // Remove the name assertion
     /// let modified = person.remove_assertion(name_assertion);
-    /// 
+    ///
     /// // The envelope now only has the age assertion
     /// assert_eq!(modified.assertions().len(), 1);
     /// ```
@@ -528,11 +546,11 @@ impl Envelope {
     /// let person = Envelope::new("Alice")
     ///     .add_assertion("name", "Alice Smith")
     ///     .add_assertion("age", 30);
-    ///     
+    ///
     /// // Create the assertion to replace and the new assertion
     /// let old_name = Envelope::new_assertion("name", "Alice Smith");
     /// let new_name = Envelope::new_assertion("name", "Alice Johnson");
-    /// 
+    ///
     /// // Replace the name assertion
     /// let modified = person.replace_assertion(old_name, new_name).unwrap();
     /// ```
@@ -562,15 +580,17 @@ impl Envelope {
     /// let alice = Envelope::new("Alice")
     ///     .add_assertion("age", 30)
     ///     .add_assertion("city", "Boston");
-    ///     
+    ///
     /// // Replace the subject to create an envelope for Bob with the same assertions
     /// let bob = alice.replace_subject(Envelope::new("Bob"));
-    /// 
+    ///
     /// // Bob now has the same assertions
     /// assert_eq!(bob.extract_subject::<String>().unwrap(), "Bob");
     /// assert_eq!(bob.assertions().len(), 2);
     /// ```
     pub fn replace_subject(&self, subject: Self) -> Self {
-        self.assertions().into_iter().fold(subject, |e, a| e.add_assertion_envelope(a).unwrap())
+        self.assertions()
+            .into_iter()
+            .fold(subject, |e, a| e.add_assertion_envelope(a).unwrap())
     }
 }

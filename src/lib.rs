@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/bc-envelope/0.26.0")]
+#![doc(html_root_url = "https://docs.rs/bc-envelope/0.27.0")]
 #![warn(rust_2018_idioms)]
 
 //! # Gordian Envelope: A Flexible Container for Structured Data
@@ -20,7 +20,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bc-envelope = "0.26.0"
+//! bc-envelope = "0.27.0"
 //! ```
 //!
 //! ## Specification
@@ -371,13 +371,11 @@
 //!   `KnownValue` `.ok`.
 //! * [`ResponseBehavior::extract_error`] Returns the error value, decoded as the given type.
 
-pub use anyhow::Result;
-
 pub mod base;
-pub use base::elide::{self, ObscureAction};
-pub use base::walk::{self, EdgeType};
-pub use base::{register_tags, register_tags_in, FormatContext, GLOBAL_FORMAT_CONTEXT};
-pub use base::{Assertion, Envelope, EnvelopeEncodable, EnvelopeError};
+pub use base::elide::{ self, ObscureAction };
+pub use base::walk::{ self, EdgeType };
+pub use base::{ register_tags, register_tags_in, FormatContext, GLOBAL_FORMAT_CONTEXT };
+pub use base::{ Assertion, Envelope, EnvelopeEncodable, Error, Result };
 
 pub mod extension;
 pub mod prelude;
@@ -386,19 +384,19 @@ pub mod seal;
 mod string_utils;
 
 #[cfg(feature = "signature")]
-pub use bc_components::{Signer, Verifier};
+pub use bc_components::{ Signer, Verifier };
 
 #[cfg(feature = "signature")]
 pub use extension::SignatureMetadata;
 
 #[cfg(feature = "recipient")]
-pub use bc_components::{EncapsulationPrivateKey, Encrypter, SigningOptions};
+pub use bc_components::{ EncapsulationPrivateKey, Encrypter, SigningOptions };
 
 #[cfg(feature = "recipient")]
-pub use bc_components::{PrivateKeyBase, PublicKeys};
+pub use bc_components::{ PrivateKeyBase, PublicKeys };
 
 #[cfg(feature = "known_value")]
-pub use known_values::{self, KnownValue, KnownValuesStore, KNOWN_VALUES};
+pub use known_values::{ self, KnownValue, KnownValuesStore, KNOWN_VALUES };
 
 #[cfg(feature = "known_value")]
 /// Converts a KnownValue to an Envelope.
@@ -410,9 +408,20 @@ impl EnvelopeEncodable for KnownValue {
 
 #[cfg(feature = "expression")]
 pub use extension::expressions::{
-    functions, parameters, Event, EventBehavior, Expression, ExpressionBehavior, Function,
-    IntoExpression, Parameter, Request, RequestBehavior, Response, ResponseBehavior,
+    functions,
+    parameters,
+    Event,
+    EventBehavior,
+    Expression,
+    ExpressionBehavior,
+    Function,
+    IntoExpression,
+    Parameter,
+    Request,
+    RequestBehavior,
+    Response,
+    ResponseBehavior,
 };
 
 #[cfg(feature = "attachment")]
-pub use extension::attachment::{Attachments, Attachable};
+pub use extension::attachment::{ Attachments, Attachable };

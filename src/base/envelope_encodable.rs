@@ -9,7 +9,7 @@ use bc_components::EncryptedMessage;
 use bc_components::{
     Digest, EncryptedKey, PrivateKeyBase, PrivateKeys, PublicKeys, Reference, SSKRShare, Salt, SealedMessage, Signature, ARID, URI, UUID, XID
 };
-use dcbor::{CBOREncodable, Map, Set, CBOR};
+use dcbor::prelude::*;
 
 use crate::{Assertion, Envelope};
 

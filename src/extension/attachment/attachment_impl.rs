@@ -1,6 +1,13 @@
-use anyhow::{bail, Result};
+use anyhow::{ bail, Result };
 
-use crate::{base::envelope::EnvelopeCase, known_values, Assertion, Envelope, EnvelopeEncodable, EnvelopeError};
+use crate::{
+    base::envelope::EnvelopeCase,
+    known_values,
+    Assertion,
+    Envelope,
+    EnvelopeEncodable,
+    Error,
+};
 
 /// Support for adding vendor-specific attachments to Gordian Envelopes.
 ///
@@ -81,7 +88,11 @@ impl Assertion {
     /// a wrapped envelope containing the payload with vendor and conformsTo
     /// assertions added to it.
     ///
-    pub fn new_attachment(payload: impl EnvelopeEncodable, vendor: &str, conforms_to: Option<&str>) -> Self {
+    pub fn new_attachment(
+        payload: impl EnvelopeEncodable,
+        vendor: &str,
+        conforms_to: Option<&str>
+    ) -> Self {
         let conforms_to: Option<String> = conforms_to.map(|c| c.to_string());
         Self::new(
             known_values::ATTACHMENT,
@@ -156,7 +167,7 @@ impl Assertion {
         let assertion = Assertion::new_attachment(payload, vendor.as_str(), conforms_to.as_deref());
         let e: Envelope = assertion.to_envelope();
         if !e.is_equivalent_to(&self.clone().to_envelope()) {
-            bail!(EnvelopeError::InvalidAttachment);
+            bail!(Error::InvalidAttachment);
         }
         Ok(())
     }
@@ -195,8 +206,11 @@ impl Envelope {
     /// // The envelope is an assertion
     /// assert!(matches!(envelope.case(), EnvelopeCase::Assertion(_)));
     /// ```
-    pub fn new_attachment(payload: impl EnvelopeEncodable, vendor: &str, conforms_to: Option<&str>) -> Self
-    {
+    pub fn new_attachment(
+        payload: impl EnvelopeEncodable,
+        vendor: &str,
+        conforms_to: Option<&str>
+    ) -> Self {
         Assertion::new_attachment(payload, vendor, conforms_to).to_envelope()
     }
 
@@ -237,7 +251,12 @@ impl Envelope {
     /// assert_eq!(with_attachment.assertions().len(), 2);
     /// assert!(with_attachment.assertions_with_predicate(known_values::ATTACHMENT).len() > 0);
     /// ```
-    pub fn add_attachment(&self, payload: impl EnvelopeEncodable, vendor: &str, conforms_to: Option<&str>) -> Self {
+    pub fn add_attachment(
+        &self,
+        payload: impl EnvelopeEncodable,
+        vendor: &str,
+        conforms_to: Option<&str>
+    ) -> Self {
         self.add_assertion_envelope(
             Assertion::new_attachment(payload, vendor, conforms_to)
         ).unwrap()
@@ -259,7 +278,7 @@ impl Envelope {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.attachment_payload()?)
         } else {
-            bail!(EnvelopeError::InvalidAttachment)
+            bail!(Error::InvalidAttachment)
         }
     }
 
@@ -276,7 +295,7 @@ impl Envelope {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.attachment_vendor()?)
         } else {
-            bail!(EnvelopeError::InvalidAttachment);
+            bail!(Error::InvalidAttachment);
         }
     }
 
@@ -293,7 +312,7 @@ impl Envelope {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.attachment_conforms_to()?)
         } else {
-            bail!(EnvelopeError::InvalidAttachment);
+            bail!(Error::InvalidAttachment);
         }
     }
 
@@ -345,9 +364,11 @@ impl Envelope {
     ///     .unwrap();
     /// assert_eq!(v1_attachments.len(), 1);
     /// ```
-    pub fn attachments_with_vendor_and_conforms_to(&self, vendor: Option<&str>, conforms_to: Option<&str>)
-    -> Result<Vec<Self>>
-    {
+    pub fn attachments_with_vendor_and_conforms_to(
+        &self,
+        vendor: Option<&str>,
+        conforms_to: Option<&str>
+    ) -> Result<Vec<Self>> {
         let assertions = self.assertions_with_predicate(known_values::ATTACHMENT);
         for assertion in &assertions {
             Self::validate_attachment(assertion)?;
@@ -411,7 +432,7 @@ impl Envelope {
             assertion.validate_attachment()?;
             Ok(())
         } else {
-            bail!(EnvelopeError::InvalidAttachment);
+            bail!(Error::InvalidAttachment);
         }
     }
 
@@ -461,15 +482,17 @@ impl Envelope {
     /// let payload = attachment.attachment_payload().unwrap();
     /// assert_eq!(payload.extract_subject::<String>().unwrap(), "Metadata");
     /// ```
-    pub fn attachment_with_vendor_and_conforms_to(&self, vendor: Option<&str>, conforms_to: Option<&str>)
-    -> Result<Self>
-    {
+    pub fn attachment_with_vendor_and_conforms_to(
+        &self,
+        vendor: Option<&str>,
+        conforms_to: Option<&str>
+    ) -> Result<Self> {
         let attachments = self.attachments_with_vendor_and_conforms_to(vendor, conforms_to)?;
         if attachments.is_empty() {
-            bail!(EnvelopeError::NonexistentAttachment);
+            bail!(Error::NonexistentAttachment);
         }
         if attachments.len() > 1 {
-            bail!(EnvelopeError::AmbiguousAttachment);
+            bail!(Error::AmbiguousAttachment);
         }
         Ok(attachments.first().unwrap().clone())
     }

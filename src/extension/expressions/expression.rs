@@ -1,7 +1,7 @@
 use anyhow::Result;
 use dcbor::prelude::*;
 
-use crate::{Envelope, EnvelopeEncodable, Function, Parameter};
+use crate::{ Envelope, EnvelopeEncodable, Function, Parameter };
 
 /// An expression in a Gordian Envelope.
 ///
@@ -151,7 +151,11 @@ pub trait ExpressionBehavior {
     ///     .with_optional_parameter(parameters::RHS, Some(3))
     ///     .with_optional_parameter("note", None::<&str>);
     /// ```
-    fn with_optional_parameter(self, parameter: impl Into<Parameter>, value: Option<impl EnvelopeEncodable>) -> Self;
+    fn with_optional_parameter(
+        self,
+        parameter: impl Into<Parameter>,
+        value: Option<impl EnvelopeEncodable>
+    ) -> Self;
 
     //
     // Parsing
@@ -217,8 +221,7 @@ pub trait ExpressionBehavior {
     /// - Multiple parameters match
     /// - The argument cannot be decoded as type T
     fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
-    where
-        T: TryFrom<CBOR, Error = dcbor::Error> + 'static;
+        where T: TryFrom<CBOR, Error = dcbor::Error> + 'static;
 
     /// Returns the argument for the given parameter, decoded as the given type,
     /// or `None` if there is no matching parameter.
@@ -236,9 +239,9 @@ pub trait ExpressionBehavior {
     /// Returns an error if:
     /// - Multiple parameters match
     /// - The argument cannot be decoded as type T
-    fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = Error> + 'static>(
+    fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = dcbor::Error> + 'static>(
         &self,
-        param: impl Into<Parameter>,
+        param: impl Into<Parameter>
     ) -> Result<Option<T>>;
 
     /// Returns an array of arguments for the given parameter, decoded as the given type.
@@ -257,8 +260,7 @@ pub trait ExpressionBehavior {
     ///
     /// Returns an error if any of the arguments cannot be decoded as type T
     fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
-    where
-        T: TryFrom<CBOR, Error = dcbor::Error> + 'static;
+        where T: TryFrom<CBOR, Error = dcbor::Error> + 'static;
 }
 
 /// Implementation of ExpressionBehavior for Expression.
@@ -267,7 +269,7 @@ impl ExpressionBehavior for Expression {
     fn with_parameter(
         mut self,
         parameter: impl Into<Parameter>,
-        value: impl EnvelopeEncodable,
+        value: impl EnvelopeEncodable
     ) -> Self {
         let assertion = Envelope::new_assertion(parameter.into(), value.into_envelope());
         self.envelope = self.envelope.add_assertion_envelope(assertion).unwrap();
@@ -278,7 +280,7 @@ impl ExpressionBehavior for Expression {
     fn with_optional_parameter(
         self,
         parameter: impl Into<Parameter>,
-        value: Option<impl EnvelopeEncodable>,
+        value: Option<impl EnvelopeEncodable>
     ) -> Self {
         if let Some(value) = value {
             return self.with_parameter(parameter, value);
@@ -308,8 +310,7 @@ impl ExpressionBehavior for Expression {
 
     /// Returns the argument for the given parameter, decoded as the given type.
     fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
-    where
-        T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
+        where T: TryFrom<CBOR, Error = dcbor::Error> + 'static
     {
         self.envelope.extract_object_for_predicate(param.into())
     }
@@ -318,16 +319,14 @@ impl ExpressionBehavior for Expression {
     /// or None if there is no matching parameter.
     fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = dcbor::Error> + 'static>(
         &self,
-        param: impl Into<Parameter>,
+        param: impl Into<Parameter>
     ) -> Result<Option<T>> {
-        self.envelope
-            .extract_optional_object_for_predicate(param.into())
+        self.envelope.extract_optional_object_for_predicate(param.into())
     }
 
     /// Returns an array of arguments for the given parameter, decoded as the given type.
     fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
-    where
-        T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
+        where T: TryFrom<CBOR, Error = dcbor::Error> + 'static
     {
         self.envelope.extract_objects_for_predicate(param.into())
     }
@@ -375,15 +374,20 @@ impl TryFrom<Envelope> for Expression {
 impl TryFrom<(Envelope, Option<&Function>)> for Expression {
     type Error = dcbor::Error;
 
-    fn try_from((envelope, expected_function): (Envelope, Option<&Function>)) -> dcbor::Result<Self> {
+    fn try_from((envelope, expected_function): (
+        Envelope,
+        Option<&Function>,
+    )) -> dcbor::Result<Self> {
         let expression = Expression::try_from(envelope)?;
         if let Some(expected_function) = expected_function {
             if expression.function() != expected_function {
-                return Err(format!(
-                    "Expected function {:?}, but found {:?}",
-                    expected_function,
-                    expression.function()
-                ).into());
+                return Err(
+                    format!(
+                        "Expected function {:?}, but found {:?}",
+                        expected_function,
+                        expression.function()
+                    ).into()
+                );
             }
         }
         Ok(expression)
@@ -421,7 +425,7 @@ impl<T: Into<Expression> + Clone> IntoExpression for T {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{functions, parameters};
+    use crate::{ functions, parameters };
     use indoc::indoc;
 
     #[test]
@@ -434,24 +438,19 @@ mod tests {
 
         let envelope: Envelope = expression.clone().into();
 
+        #[rustfmt::skip]
         let expected = indoc! {r#"
-        «add» [
-            ❰lhs❱: 2
-            ❰rhs❱: 3
-        ]
+            «add» [
+                ❰lhs❱: 2
+                ❰rhs❱: 3
+            ]
         "#}.trim();
         assert_eq!(envelope.format(), expected);
 
         let parsed_expression = Expression::try_from(envelope)?;
 
-        assert_eq!(
-            parsed_expression.extract_object_for_parameter::<i32>(parameters::LHS)?,
-            2
-        );
-        assert_eq!(
-            parsed_expression.extract_object_for_parameter::<i32>(parameters::RHS)?,
-            3
-        );
+        assert_eq!(parsed_expression.extract_object_for_parameter::<i32>(parameters::LHS)?, 2);
+        assert_eq!(parsed_expression.extract_object_for_parameter::<i32>(parameters::RHS)?, 3);
 
         assert_eq!(parsed_expression.function(), expression.function());
         assert_eq!(parsed_expression.expression_envelope(), expression.expression_envelope());
@@ -470,23 +469,18 @@ mod tests {
 
         let envelope: Envelope = expression.clone().into();
 
+        #[rustfmt::skip]
         let expected = indoc! {r#"
-        «"foo"» [
-            ❰"bar"❱: "baz"
-        ]
+            «"foo"» [
+                ❰"bar"❱: "baz"
+            ]
         "#}.trim();
         assert_eq!(envelope.format(), expected);
 
         let parsed_expression = Expression::try_from(envelope)?;
 
-        assert_eq!(
-            parsed_expression.extract_object_for_parameter::<String>("bar")?,
-            "baz"
-        );
-        assert_eq!(
-            parsed_expression.extract_optional_object_for_parameter::<i32>("qux")?,
-            None
-        );
+        assert_eq!(parsed_expression.extract_object_for_parameter::<String>("bar")?, "baz");
+        assert_eq!(parsed_expression.extract_optional_object_for_parameter::<i32>("qux")?, None);
 
         assert_eq!(parsed_expression.function(), expression.function());
         assert_eq!(parsed_expression.expression_envelope(), expression.expression_envelope());

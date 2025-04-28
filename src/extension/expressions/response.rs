@@ -2,9 +2,9 @@ use core::panic;
 
 use anyhow::{ bail, Error, Result };
 use bc_components::{ tags, ARID };
-use dcbor::CBOR;
+use dcbor::prelude::*;
 
-use crate::{ known_values, Envelope, EnvelopeEncodable, EnvelopeError, KnownValue };
+use crate::{ known_values, Envelope, EnvelopeEncodable, KnownValue };
 
 /// A `Response` represents a reply to a `Request` containing either a successful result or an error.
 ///
@@ -243,9 +243,7 @@ pub trait ResponseBehavior {
     ///
     /// Returns an error if this is a failure response or if the result
     /// cannot be converted to the requested type.
-    fn extract_result<T>(&self) -> Result<T>
-        where T: TryFrom<CBOR, Error = dcbor::Error> + 'static
-    {
+    fn extract_result<T>(&self) -> Result<T> where T: TryFrom<CBOR, Error = dcbor::Error> + 'static {
         self.result()?.extract_subject()
     }
 
@@ -266,9 +264,7 @@ pub trait ResponseBehavior {
     ///
     /// Returns an error if this is a successful response or if the error
     /// cannot be converted to the requested type.
-    fn extract_error<T>(&self) -> Result<T>
-        where T: TryFrom<CBOR, Error = dcbor::Error> + 'static
-    {
+    fn extract_error<T>(&self) -> Result<T> where T: TryFrom<CBOR, Error = dcbor::Error> + 'static {
         self.error()?.extract_subject()
     }
 }
@@ -377,7 +373,7 @@ impl TryFrom<Envelope> for Response {
         let error = envelope.assertion_with_predicate(known_values::ERROR);
 
         if result.is_ok() == error.is_ok() {
-            bail!(EnvelopeError::InvalidResponse);
+            bail!(crate::Error::InvalidResponse);
         }
 
         if result.is_ok() {
@@ -401,7 +397,7 @@ impl TryFrom<Envelope> for Response {
                 if known_value == known_values::UNKNOWN_VALUE {
                     id = None;
                 } else {
-                    bail!(EnvelopeError::InvalidResponse);
+                    bail!(crate::Error::InvalidResponse);
                 }
             } else {
                 id = Some(id_value.try_into()?);
@@ -410,7 +406,7 @@ impl TryFrom<Envelope> for Response {
             return Ok(Response(Err((id, error))));
         }
 
-        bail!(EnvelopeError::InvalidResponse)
+        bail!(crate::Error::InvalidResponse)
     }
 }
 
@@ -432,18 +428,12 @@ mod tests {
         let envelope: Envelope = response.clone().into();
 
         //println!("{}", envelope.format());
-        assert_eq!(
-            envelope.format(),
-            (
-                indoc! {
-                    r#"
-        response(ARID(c66be27d)) [
-            'result': 'OK'
-        ]
-        "#
-                }
-            ).trim()
-        );
+        #[rustfmt::skip]
+        assert_eq!(envelope.format(), (indoc! {r#"
+            response(ARID(c66be27d)) [
+                'result': 'OK'
+            ]
+        "#}).trim());
 
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_ok());
@@ -462,18 +452,12 @@ mod tests {
         let envelope: Envelope = response.clone().into();
 
         //println!("{}", envelope.format());
-        assert_eq!(
-            envelope.format(),
-            (
-                indoc! {
-                    r#"
-        response(ARID(c66be27d)) [
-            'result': "It works!"
-        ]
-        "#
-                }
-            ).trim()
-        );
+        #[rustfmt::skip]
+        assert_eq!(envelope.format(), (indoc! {r#"
+            response(ARID(c66be27d)) [
+                'result': "It works!"
+            ]
+        "#}).trim());
 
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_ok());
@@ -492,18 +476,12 @@ mod tests {
         let envelope: Envelope = response.clone().into();
 
         // println!("{}", envelope.format());
-        assert_eq!(
-            envelope.format(),
-            (
-                indoc! {
-                    r#"
-        response('Unknown') [
-            'error': 'Unknown'
-        ]
-        "#
-                }
-            ).trim()
-        );
+        #[rustfmt::skip]
+        assert_eq!(envelope.format(), (indoc! {r#"
+            response('Unknown') [
+                'error': 'Unknown'
+            ]
+        "#}).trim());
 
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_err());
@@ -522,18 +500,12 @@ mod tests {
         let envelope: Envelope = response.clone().into();
 
         // println!("{}", envelope.format());
-        assert_eq!(
-            envelope.format(),
-            (
-                indoc! {
-                    r#"
-        response(ARID(c66be27d)) [
-            'error': "It doesn't work!"
-        ]
-        "#
-                }
-            ).trim()
-        );
+        #[rustfmt::skip]
+        assert_eq!(envelope.format(), (indoc! {r#"
+            response(ARID(c66be27d)) [
+                'error': "It doesn't work!"
+            ]
+        "#}).trim());
 
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_err());

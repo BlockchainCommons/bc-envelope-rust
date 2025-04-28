@@ -32,11 +32,11 @@
 //! assert_eq!(uncompressed.extract_subject::<String>().unwrap(), lorem);
 //! ```
 
-use anyhow::{bail, Result};
-use bc_components::{Compressed, DigestProvider};
+use anyhow::{ bail, Result };
+use bc_components::{ Compressed, DigestProvider };
 use dcbor::prelude::*;
 
-use crate::{Envelope, EnvelopeError, base::envelope::EnvelopeCase};
+use crate::{ Envelope, Error, base::envelope::EnvelopeCase };
 
 /// Support for compressing and uncompressing envelopes.
 impl Envelope {
@@ -85,12 +85,15 @@ impl Envelope {
         match self.case() {
             EnvelopeCase::Compressed(_) => Ok(self.clone()),
             #[cfg(feature = "encrypt")]
-            EnvelopeCase::Encrypted(_) => bail!(EnvelopeError::AlreadyEncrypted),
-            EnvelopeCase::Elided(_) => bail!(EnvelopeError::AlreadyElided),
+            EnvelopeCase::Encrypted(_) => bail!(Error::AlreadyEncrypted),
+            EnvelopeCase::Elided(_) => bail!(Error::AlreadyElided),
             _ => {
-                let compressed = Compressed::from_uncompressed_data(self.tagged_cbor().to_cbor_data(), Some(self.digest().into_owned()));
+                let compressed = Compressed::from_uncompressed_data(
+                    self.tagged_cbor().to_cbor_data(),
+                    Some(self.digest().into_owned())
+                );
                 Ok(compressed.try_into()?)
-            },
+            }
         }
     }
 
@@ -134,19 +137,19 @@ impl Envelope {
         if let EnvelopeCase::Compressed(compressed) = self.case() {
             if let Some(digest) = compressed.digest_ref_opt() {
                 if digest != self.digest().as_ref() {
-                    bail!(EnvelopeError::InvalidDigest);
+                    bail!(Error::InvalidDigest);
                 }
                 let uncompressed_data = compressed.uncompress()?;
                 let envelope = Envelope::from_tagged_cbor_data(uncompressed_data)?;
                 if envelope.digest().as_ref() != digest {
-                    bail!(EnvelopeError::InvalidDigest);
+                    bail!(Error::InvalidDigest);
                 }
                 Ok(envelope)
             } else {
-                bail!(EnvelopeError::MissingDigest)
+                bail!(Error::MissingDigest)
             }
         } else {
-            bail!(EnvelopeError::NotCompressed)
+            bail!(Error::NotCompressed)
         }
     }
 

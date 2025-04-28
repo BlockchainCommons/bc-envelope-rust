@@ -1,14 +1,15 @@
-use anyhow::{Error, Result};
-use bc_components::{tags, ARID};
-use dcbor::{Date, CBOR};
+use anyhow::{ Error, Result };
+use bc_components::{ tags, ARID };
+use dcbor::prelude::*;
+use dcbor::Date;
 
-use crate::{known_values, Envelope, EnvelopeEncodable};
+use crate::{ known_values, Envelope, EnvelopeEncodable };
 
 /// An `Event` represents a notification or message that doesn't expect a response.
 ///
 /// Unlike `Request` and `Response` which form a pair, an `Event` is a standalone
 /// message that can be used for broadcasting information, logging, or publishing
-/// notifications. Events are used when the sender does not expect or require 
+/// notifications. Events are used when the sender does not expect or require
 /// a response from the recipients.
 ///
 /// Each event contains:
@@ -20,7 +21,7 @@ use crate::{known_values, Envelope, EnvelopeEncodable};
 ///
 /// # Type Parameters
 ///
-/// * `T` - The type of content this event carries. Must implement `EnvelopeEncodable` 
+/// * `T` - The type of content this event carries. Must implement `EnvelopeEncodable`
 ///   and be convertible from an `Envelope`.
 ///
 /// # Examples
@@ -33,7 +34,7 @@ use crate::{known_values, Envelope, EnvelopeEncodable};
 /// // Create a status update event
 /// let event_id = ARID::new();
 /// let timestamp = Date::try_from("2024-08-15T13:45:30Z").unwrap();
-/// 
+///
 /// let status_event = Event::<String>::new("System online", event_id)
 ///     .with_note("Regular status update")
 ///     .with_date(&timestamp);
@@ -43,18 +44,16 @@ use crate::{known_values, Envelope, EnvelopeEncodable};
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct Event<T>
-where
-    T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq,
-{
+    where T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq {
     content: T,
     id: ARID,
     note: String,
     date: Option<Date>,
 }
 
-impl<T> std::fmt::Display for Event<T>
-where
-    T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq,
+impl<T> std::fmt::Display
+    for Event<T>
+    where T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq
 {
     /// Formats the event for display, showing its ID and content.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -63,18 +62,20 @@ where
 }
 
 impl<T> Event<T>
-where
-    T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq,
+    where T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq
 {
     /// Returns a human-readable summary of the event.
     pub fn summary(&self) -> String {
-        format!("id: {}, content: {}", self.id.short_description(), self.content.to_envelope().format_flat())
+        format!(
+            "id: {}, content: {}",
+            self.id.short_description(),
+            self.content.to_envelope().format_flat()
+        )
     }
 }
 
 impl<T> Event<T>
-where
-    T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq,
+    where T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq
 {
     /// Creates a new event with the specified content and ID.
     ///
@@ -106,10 +107,7 @@ where
 ///
 /// This trait provides methods for composing events with metadata
 /// and for extracting information from events.
-pub trait EventBehavior<T>
-where
-    T: EnvelopeEncodable + TryFrom<Envelope>,
-{
+pub trait EventBehavior<T> where T: EnvelopeEncodable + TryFrom<Envelope> {
     //
     // Composition
     //
@@ -141,9 +139,9 @@ where
     fn date(&self) -> Option<&Date>;
 }
 
-impl<T> EventBehavior<T> for Event<T>
-where
-    T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq,
+impl<T> EventBehavior<T>
+    for Event<T>
+    where T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq
 {
     /// Adds a note to the event.
     fn with_note(mut self, note: impl Into<String>) -> Self {
@@ -182,9 +180,9 @@ where
 ///
 /// The envelope's subject is the event's ID tagged with TAG_EVENT,
 /// and assertions include the event's content, note (if not empty), and date (if present).
-impl<T> From<Event<T>> for Envelope
-where
-    T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq,
+impl<T> From<Event<T>>
+    for Envelope
+    where T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq
 {
     fn from(event: Event<T>) -> Self {
         Envelope::new(CBOR::to_tagged_value(tags::TAG_EVENT, event.id))
@@ -198,21 +196,27 @@ where
 ///
 /// This constructor extracts the event ID, content, note, and date from an envelope.
 /// The content is converted to the generic type `T`.
-impl<T> TryFrom<Envelope> for Event<T>
-where
-    T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq,
+impl<T> TryFrom<Envelope>
+    for Event<T>
+    where T: EnvelopeEncodable + TryFrom<Envelope> + std::fmt::Debug + Clone + PartialEq
 {
     type Error = Error;
 
     fn try_from(envelope: Envelope) -> Result<Self> {
         let content_envelope = envelope.object_for_predicate(known_values::CONTENT)?;
-        let content = T::try_from(content_envelope).map_err(|_| Error::msg("Failed to parse content"))?;
+        let content = T::try_from(content_envelope).map_err(|_|
+            Error::msg("Failed to parse content")
+        )?;
         Ok(Self {
             content,
-            id: envelope.subject().try_leaf()?
-            .try_into_expected_tagged_value(tags::TAG_EVENT)?
-            .try_into()?,
-            note: envelope.extract_optional_object_for_predicate(known_values::NOTE)?.unwrap_or_default(),
+            id: envelope
+                .subject()
+                .try_leaf()?
+                .try_into_expected_tagged_value(tags::TAG_EVENT)?
+                .try_into()?,
+            note: envelope
+                .extract_optional_object_for_predicate(known_values::NOTE)?
+                .unwrap_or_default(),
             date: envelope.extract_optional_object_for_predicate(known_values::DATE)?,
         })
     }
@@ -233,11 +237,13 @@ mod tests {
         crate::register_tags();
 
         let event_date = Date::try_from("2024-07-04T11:11:11Z").unwrap();
-        let event = Event::<String>::new("test", request_id())
+        let event = Event::<String>
+            ::new("test", request_id())
             .with_note("This is a test")
             .with_date(&event_date);
 
         let envelope: Envelope = event.clone().into();
+        #[rustfmt::skip]
         let expected = indoc!{r#"
             event(ARID(c66be27d)) [
                 'content': "test"

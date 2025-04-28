@@ -39,10 +39,11 @@ fn test_sskr() -> anyhow::Result<()> {
     let sent_envelopes: Vec<_> = envelopes.into_iter().flatten().collect();
     let sent_urs: Vec<_> = sent_envelopes.iter().map(|e| e.ur()).collect();
 
+    #[rustfmt::skip]
     let expected_format = indoc! {r#"
-    ENCRYPTED [
-        'sskrShare': SSKRShare
-    ]
+        ENCRYPTED [
+            'sskrShare': SSKRShare
+        ]
     "#}.trim();
     assert_eq!(sent_envelopes[0].format(), expected_format);
 

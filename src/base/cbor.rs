@@ -3,7 +3,7 @@ use bc_components::{tags, Digest};
 use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
-use dcbor::{tags_for_values, CBORCase, CBORTagged, CBORTaggedDecodable, CBORTaggedEncodable, Tag, CBOR};
+use dcbor::prelude::*;
 use crate::{Assertion, Envelope};
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;

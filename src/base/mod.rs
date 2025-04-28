@@ -1,8 +1,12 @@
 pub mod assertion;
+pub use assertion::Assertion;
+
 pub mod assertions;
 pub mod cbor;
 pub mod digest;
+
 pub mod envelope;
+pub use envelope::Envelope;
 
 /// Types dealing with elision.
 ///
@@ -10,6 +14,7 @@ pub mod envelope;
 pub mod elide;
 
 pub mod error;
+pub use error::{ Error, Result };
 
 pub mod envelope_encodable;
 pub use envelope_encodable::EnvelopeEncodable;
@@ -22,6 +27,8 @@ pub mod queries;
 pub mod format;
 pub mod format_context;
 pub use format_context::*;
+pub use format_context::{ FormatContext, GLOBAL_FORMAT_CONTEXT };
+
 pub mod tree_format;
 
 /// Types dealing with recursive walking of envelopes.
@@ -30,10 +37,6 @@ pub mod tree_format;
 pub mod walk;
 
 pub mod wrap;
-pub mod envelope_summary;
 
-pub use assertion::Assertion;
-pub use envelope::Envelope;
-pub use error::EnvelopeError;
-pub use format_context::{FormatContext, GLOBAL_FORMAT_CONTEXT};
+pub mod envelope_summary;
 pub use envelope_summary::EnvelopeSummary;

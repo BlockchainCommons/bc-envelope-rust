@@ -160,15 +160,15 @@
 //! # }
 //! ```
 
-use crate::{Envelope, EnvelopeError};
+use crate::{ Envelope, Error };
 #[cfg(feature = "known_value")]
 use known_values;
 
 #[cfg(feature = "encrypt")]
 use bc_components::Decrypter;
 
-use anyhow::{bail, Result};
-use bc_components::{SealedMessage, SymmetricKey, Nonce, Encrypter};
+use anyhow::{ bail, Result };
+use bc_components::{ SealedMessage, SymmetricKey, Nonce, Encrypter };
 use dcbor::prelude::*;
 
 /// Support for public key encryption.
@@ -216,7 +216,12 @@ impl Envelope {
     /// This is an internal method primarily used for testing. In production code, use
     /// `add_recipient` instead, which will generate a cryptographically secure random nonce.
     #[doc(hidden)]
-    pub fn add_recipient_opt(&self, recipient: &dyn Encrypter, content_key: &SymmetricKey, test_nonce: Option<&Nonce>) -> Self {
+    pub fn add_recipient_opt(
+        &self,
+        recipient: &dyn Encrypter,
+        content_key: &SymmetricKey,
+        test_nonce: Option<&Nonce>
+    ) -> Self {
         let assertion = Self::make_has_recipient(recipient, content_key, test_nonce);
         self.add_assertion_envelope(assertion).unwrap()
     }
@@ -259,15 +264,10 @@ impl Envelope {
     /// # }
     /// ```
     pub fn recipients(&self) -> Result<Vec<SealedMessage>> {
-        self
-            .assertions_with_predicate(known_values::HAS_RECIPIENT)
+        self.assertions_with_predicate(known_values::HAS_RECIPIENT)
             .into_iter()
-            .filter(|assertion| {
-                !assertion.as_object().unwrap().is_obscured()
-            })
-            .map(|assertion| {
-                assertion.as_object().unwrap().extract_subject::<SealedMessage>()
-            })
+            .filter(|assertion| { !assertion.as_object().unwrap().is_obscured() })
+            .map(|assertion| { assertion.as_object().unwrap().extract_subject::<SealedMessage>() })
             .collect()
     }
 
@@ -311,11 +311,7 @@ impl Envelope {
     /// # }
     /// ```
     #[cfg(feature = "encrypt")]
-    pub fn encrypt_subject_to_recipients(
-        &self,
-        recipients: &[&dyn Encrypter]
-    ) -> Result<Self>
-    {
+    pub fn encrypt_subject_to_recipients(&self, recipients: &[&dyn Encrypter]) -> Result<Self> {
         self.encrypt_subject_to_recipients_opt(recipients, None::<&Nonce>)
     }
 
@@ -330,8 +326,7 @@ impl Envelope {
         &self,
         recipients: &[&dyn Encrypter],
         test_nonce: Option<&Nonce>
-    ) -> Result<Self>
-    {
+    ) -> Result<Self> {
         let content_key = SymmetricKey::new();
         let mut e = self.encrypt_subject(&content_key)?;
         for recipient in recipients {
@@ -388,7 +383,11 @@ impl Envelope {
     /// secure random nonce for the content key encryption.
     #[cfg(feature = "encrypt")]
     #[doc(hidden)]
-    pub fn encrypt_subject_to_recipient_opt(&self, recipient: &dyn Encrypter, test_nonce: Option<&Nonce>) -> Result<Self> {
+    pub fn encrypt_subject_to_recipient_opt(
+        &self,
+        recipient: &dyn Encrypter,
+        test_nonce: Option<&Nonce>
+    ) -> Result<Self> {
         self.encrypt_subject_to_recipients_opt(&[recipient], test_nonce)
     }
 
@@ -399,14 +398,17 @@ impl Envelope {
     /// recipient decryption process to find the content key that was encrypted for
     /// this particular recipient.
     #[cfg(feature = "encrypt")]
-    fn first_plaintext_in_sealed_messages(sealed_messages: &[SealedMessage], private_key: &dyn Decrypter) -> Result<Vec<u8>> {
+    fn first_plaintext_in_sealed_messages(
+        sealed_messages: &[SealedMessage],
+        private_key: &dyn Decrypter
+    ) -> Result<Vec<u8>> {
         for sealed_message in sealed_messages {
             let a = sealed_message.decrypt(private_key).ok();
             if let Some(plaintext) = a {
                 return Ok(plaintext);
             }
         }
-        bail!(EnvelopeError::UnknownRecipient)
+        bail!(Error::UnknownRecipient)
     }
 
     /// Decrypts an envelope's subject using the recipient's private key.
@@ -455,7 +457,10 @@ impl Envelope {
     #[cfg(feature = "encrypt")]
     pub fn decrypt_subject_to_recipient(&self, recipient: &dyn Decrypter) -> Result<Self> {
         let sealed_messages = self.clone().recipients()?;
-        let content_key_data = Self::first_plaintext_in_sealed_messages(&sealed_messages, recipient)?;
+        let content_key_data = Self::first_plaintext_in_sealed_messages(
+            &sealed_messages,
+            recipient
+        )?;
         let content_key = SymmetricKey::from_tagged_cbor_data(content_key_data)?;
         self.decrypt_subject(&content_key)
     }
@@ -473,9 +478,17 @@ impl Envelope {
     ///
     /// # Returns
     /// An assertion envelope containing the sealed message
-    fn make_has_recipient(recipient: &dyn Encrypter, content_key: &SymmetricKey, test_nonce: Option<&Nonce>) -> Self
-    {
-        let sealed_message = SealedMessage::new_opt(content_key.to_cbor_data(), recipient, None::<Vec<u8>>, test_nonce);
+    fn make_has_recipient(
+        recipient: &dyn Encrypter,
+        content_key: &SymmetricKey,
+        test_nonce: Option<&Nonce>
+    ) -> Self {
+        let sealed_message = SealedMessage::new_opt(
+            content_key.to_cbor_data(),
+            recipient,
+            None::<Vec<u8>>,
+            test_nonce
+        );
         Self::new_assertion(known_values::HAS_RECIPIENT, sealed_message)
     }
 }
@@ -524,10 +537,7 @@ impl Envelope {
     /// # }
     /// ```
     pub fn encrypt_to_recipient(&self, recipient: &dyn Encrypter) -> Envelope {
-        self
-            .wrap_envelope()
-            .encrypt_subject_to_recipient(recipient)
-            .unwrap()
+        self.wrap_envelope().encrypt_subject_to_recipient(recipient).unwrap()
     }
 
     /// Decrypts an envelope that was encrypted to a recipient and unwraps it.
@@ -577,8 +587,6 @@ impl Envelope {
     /// # }
     /// ```
     pub fn decrypt_to_recipient(&self, recipient: &dyn Decrypter) -> Result<Envelope> {
-        self
-            .decrypt_subject_to_recipient(recipient)?
-            .unwrap_envelope()
+        self.decrypt_subject_to_recipient(recipient)?.unwrap_envelope()
     }
 }

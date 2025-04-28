@@ -1,8 +1,17 @@
-use anyhow::{Error, Result};
-use bc_components::{tags, ARID};
-use dcbor::{Date, prelude::*};
+use anyhow::{ Error, Result };
+use bc_components::{ tags, ARID };
+use dcbor::prelude::*;
+use dcbor::Date;
 
-use crate::{known_values, Envelope, EnvelopeEncodable, Expression, ExpressionBehavior, Function, Parameter};
+use crate::{
+    known_values,
+    Envelope,
+    EnvelopeEncodable,
+    Expression,
+    ExpressionBehavior,
+    Function,
+    Parameter,
+};
 
 /// A `Request` represents a message requesting execution of a function with parameters.
 ///
@@ -53,7 +62,11 @@ impl std::fmt::Display for Request {
 impl Request {
     /// Returns a human-readable summary of the request.
     pub fn summary(&self) -> String {
-        format!("id: {}, body: {}", self.id.short_description(), self.body.expression_envelope().format_flat())
+        format!(
+            "id: {}, body: {}",
+            self.id.short_description(),
+            self.body.expression_envelope().format_flat()
+        )
     }
 }
 
@@ -142,13 +155,21 @@ impl Request {
 /// This delegates most operations to the request's body expression.
 impl ExpressionBehavior for Request {
     /// Adds a parameter to the request.
-    fn with_parameter(mut self, parameter: impl Into<Parameter>, value: impl EnvelopeEncodable) -> Self {
+    fn with_parameter(
+        mut self,
+        parameter: impl Into<Parameter>,
+        value: impl EnvelopeEncodable
+    ) -> Self {
         self.body = self.body.with_parameter(parameter, value);
         self
     }
 
     /// Adds an optional parameter to the request.
-    fn with_optional_parameter(mut self, parameter: impl Into<Parameter>, value: Option<impl EnvelopeEncodable>) -> Self {
+    fn with_optional_parameter(
+        mut self,
+        parameter: impl Into<Parameter>,
+        value: Option<impl EnvelopeEncodable>
+    ) -> Self {
         self.body = self.body.with_optional_parameter(parameter, value);
         self
     }
@@ -175,21 +196,22 @@ impl ExpressionBehavior for Request {
 
     /// Extracts a typed object for a parameter in the request.
     fn extract_object_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<T>
-    where
-        T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
+        where T: TryFrom<CBOR, Error = dcbor::Error> + 'static
     {
         self.body.extract_object_for_parameter(param)
     }
 
     /// Extracts an optional typed object for a parameter in the request.
-    fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = dcbor::Error> + 'static>(&self, param: impl Into<Parameter>) -> Result<Option<T>> {
+    fn extract_optional_object_for_parameter<T: TryFrom<CBOR, Error = dcbor::Error> + 'static>(
+        &self,
+        param: impl Into<Parameter>
+    ) -> Result<Option<T>> {
         self.body.extract_optional_object_for_parameter(param)
     }
 
     /// Extracts multiple typed objects for a parameter in the request.
     fn extract_objects_for_parameter<T>(&self, param: impl Into<Parameter>) -> Result<Vec<T>>
-    where
-        T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
+        where T: TryFrom<CBOR, Error = dcbor::Error> + 'static
     {
         self.body.extract_objects_for_parameter(param)
     }
@@ -263,10 +285,15 @@ impl TryFrom<(Envelope, Option<&Function>)> for Request {
         let body_envelope = envelope.object_for_predicate(known_values::BODY)?;
         Ok(Self {
             body: Expression::try_from((body_envelope, expected_function))?,
-            id: envelope.subject().try_leaf()?
+            id: envelope
+                .subject()
+                .try_leaf()?
                 .try_into_expected_tagged_value(tags::TAG_REQUEST)?
                 .try_into()?,
-            note: envelope.extract_object_for_predicate_with_default(known_values::NOTE, "".to_string())?,
+            note: envelope.extract_object_for_predicate_with_default(
+                known_values::NOTE,
+                "".to_string()
+            )?,
             date: envelope.extract_optional_object_for_predicate(known_values::DATE)?,
         })
     }
@@ -302,13 +329,14 @@ mod tests {
             .with_parameter("param2", "hello");
 
         let envelope: Envelope = request.clone().into();
+        #[rustfmt::skip]
         let expected = indoc!{r#"
-        request(ARID(c66be27d)) [
-            'body': «"test"» [
-                ❰"param1"❱: 42
-                ❰"param2"❱: "hello"
+            request(ARID(c66be27d)) [
+                'body': «"test"» [
+                    ❰"param1"❱: 42
+                    ❰"param2"❱: "hello"
+                ]
             ]
-        ]
         "#}.trim();
         assert_eq!(envelope.format(), expected);
 
@@ -336,16 +364,16 @@ mod tests {
 
         let envelope: Envelope = request.clone().into();
         // println!("{}", envelope.format());
-        assert_eq!(envelope.format(),
-        indoc!{r#"
-        request(ARID(c66be27d)) [
-            'body': «"test"» [
-                ❰"param1"❱: 42
-                ❰"param2"❱: "hello"
+        #[rustfmt::skip]
+        assert_eq!(envelope.format(), indoc!{r#"
+            request(ARID(c66be27d)) [
+                'body': «"test"» [
+                    ❰"param1"❱: 42
+                    ❰"param2"❱: "hello"
+                ]
+                'date': 2024-07-04T11:11:11Z
+                'note': "This is a test"
             ]
-            'date': 2024-07-04T11:11:11Z
-            'note': "This is a test"
-        ]
         "#}.trim());
 
         let parsed_request = Request::try_from(envelope)?;

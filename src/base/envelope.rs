@@ -1,11 +1,11 @@
-use anyhow::{bail, Result};
-use bc_components::{Digest, DigestProvider};
+use anyhow::{ bail, Result };
+use bc_components::{ Digest, DigestProvider };
 #[cfg(feature = "encrypt")]
 use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
-use dcbor::CBOR;
-use crate::{base::Assertion, EnvelopeEncodable, EnvelopeError};
+use dcbor::prelude::*;
+use crate::{ base::Assertion, EnvelopeEncodable, Error };
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
 
@@ -124,7 +124,7 @@ pub enum EnvelopeCase {
         /// The assertions attached to the subject
         assertions: Vec<Envelope>,
         /// The digest of the node
-        digest: Digest
+        digest: Digest,
     },
 
     /// Represents an envelope containing a primitive CBOR value.
@@ -138,7 +138,7 @@ pub enum EnvelopeCase {
         /// The CBOR value contained in the leaf
         cbor: CBOR,
         /// The digest of the leaf
-        digest: Digest
+        digest: Digest,
     },
 
     /// Represents an envelope that wraps another envelope.
@@ -152,7 +152,7 @@ pub enum EnvelopeCase {
         /// The envelope being wrapped
         envelope: Envelope,
         /// The digest of the wrapped envelope
-        digest: Digest
+        digest: Digest,
     },
 
     /// Represents a predicate-object assertion.
@@ -196,7 +196,7 @@ pub enum EnvelopeCase {
         /// The Known Value instance containing the integer value and optional name
         value: KnownValue,
         /// The digest of the known value
-        digest: Digest
+        digest: Digest,
     },
 
     /// Represents an envelope that has been encrypted.
@@ -272,14 +272,20 @@ impl Envelope {
 
     /// Creates an assertion envelope with a `predicate` and `object`,
     /// each of which can be any instance that implements ``EnvelopeEncodable``.
-    pub fn new_assertion(predicate: impl EnvelopeEncodable, object: impl EnvelopeEncodable) -> Self {
+    pub fn new_assertion(
+        predicate: impl EnvelopeEncodable,
+        object: impl EnvelopeEncodable
+    ) -> Self {
         Self::new_with_assertion(Assertion::new(predicate, object))
     }
 }
 
 /// Internal constructors
 impl Envelope {
-    pub(crate) fn new_with_unchecked_assertions(subject: Self, unchecked_assertions: Vec<Self>) -> Self {
+    pub(crate) fn new_with_unchecked_assertions(
+        subject: Self,
+        unchecked_assertions: Vec<Self>
+    ) -> Self {
         assert!(!unchecked_assertions.is_empty());
         let mut sorted_assertions = unchecked_assertions;
         sorted_assertions.sort_by(|a, b| a.digest().cmp(&b.digest()));
@@ -290,8 +296,8 @@ impl Envelope {
     }
 
     pub(crate) fn new_with_assertions(subject: Self, assertions: Vec<Self>) -> Result<Self> {
-        if !assertions.iter().all(|a| a.is_subject_assertion() || a.is_subject_obscured()) {
-            bail!(EnvelopeError::InvalidFormat);
+        if !assertions.iter().all(|a| (a.is_subject_assertion() || a.is_subject_obscured())) {
+            bail!(Error::InvalidFormat);
         }
         Ok(Self::new_with_unchecked_assertions(subject, assertions))
     }
@@ -309,7 +315,7 @@ impl Envelope {
     #[cfg(feature = "encrypt")]
     pub(crate) fn new_with_encrypted(encrypted_message: EncryptedMessage) -> Result<Self> {
         if !encrypted_message.has_digest() {
-            bail!(EnvelopeError::MissingDigest);
+            bail!(Error::MissingDigest);
         }
         Ok(EnvelopeCase::Encrypted(encrypted_message).into())
     }
@@ -317,7 +323,7 @@ impl Envelope {
     #[cfg(feature = "compress")]
     pub(crate) fn new_with_compressed(compressed: Compressed) -> Result<Self> {
         if !compressed.has_digest() {
-            bail!(EnvelopeError::MissingDigest);
+            bail!(Error::MissingDigest);
         }
         Ok(EnvelopeCase::Compressed(compressed).into())
     }
@@ -343,7 +349,7 @@ mod tests {
     use bc_components::DigestProvider;
     #[cfg(feature = "compress")]
     use bc_components::Compressed;
-    use crate::{Envelope, Assertion};
+    use crate::{ Envelope, Assertion };
     #[cfg(feature = "known_value")]
     use crate::extension::KnownValue;
 

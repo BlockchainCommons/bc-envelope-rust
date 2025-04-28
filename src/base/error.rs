@@ -9,7 +9,7 @@ use thiserror::Error;
 /// and various extensions defined in the Gordian Envelope Internet Draft and Blockchain
 /// Commons Research (BCR) documents.
 #[derive(Debug, Error)]
-pub enum EnvelopeError {
+pub enum Error {
     //
     // Base Specification
     //
@@ -272,3 +272,5 @@ pub enum EnvelopeError {
     #[error("dcbor error: {0}")]
     DCBOR(#[from] dcbor::Error),
 }
+
+pub type Result<T> = std::result::Result<T, Error>;

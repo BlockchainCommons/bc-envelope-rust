@@ -1,6 +1,6 @@
-use anyhow::{bail, Result};
+use anyhow::{ bail, Result };
 
-use crate::{Envelope, EnvelopeError};
+use crate::{ Envelope, Error };
 
 use super::envelope::EnvelopeCase;
 
@@ -19,11 +19,11 @@ impl Envelope {
     /// // Create an envelope with an assertion
     /// let envelope = Envelope::new("Hello.")
     ///     .add_assertion("language", "English");
-    ///     
+    ///
     /// // Wrap it to add an assertion about the envelope as a whole
     /// let wrapped = envelope.wrap_envelope()
     ///     .add_assertion("authenticated", true);
-    ///     
+    ///
     /// assert_eq!(wrapped.format(), indoc! {r#"
     /// {
     ///     "Hello." [
@@ -53,7 +53,7 @@ impl Envelope {
     /// // Create an envelope and wrap it
     /// let envelope = Envelope::new("Hello.");
     /// let wrapped = envelope.wrap_envelope();
-    /// 
+    ///
     /// // Unwrap to get the original envelope
     /// let unwrapped = wrapped.unwrap_envelope().unwrap();
     /// assert_eq!(unwrapped.format_flat(), r#""Hello.""#);
@@ -61,7 +61,7 @@ impl Envelope {
     pub fn unwrap_envelope(&self) -> Result<Self> {
         match self.subject().case() {
             EnvelopeCase::Wrapped { envelope, .. } => Ok(envelope.clone()),
-            _ => bail!(EnvelopeError::NotWrapped),
+            _ => bail!(Error::NotWrapped),
         }
     }
 }

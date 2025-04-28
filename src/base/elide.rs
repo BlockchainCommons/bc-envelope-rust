@@ -1,13 +1,13 @@
 use std::collections::HashSet;
 
-use anyhow::{bail, Result};
-use bc_components::{DigestProvider, Digest};
+use anyhow::{ bail, Result };
+use bc_components::{ DigestProvider, Digest };
 #[cfg(feature = "encrypt")]
-use bc_components::{SymmetricKey, Nonce};
+use bc_components::{ SymmetricKey, Nonce };
 #[cfg(feature = "encrypt")]
 use dcbor::prelude::*;
 
-use crate::{Assertion, Envelope, EnvelopeError};
+use crate::{ Assertion, Envelope, Error };
 
 use super::envelope::EnvelopeCase;
 
@@ -60,10 +60,10 @@ pub enum ObscureAction {
 impl Envelope {
     /// Returns the elided variant of this envelope.
     ///
-    /// Elision replaces an envelope with just its digest, hiding its content while 
-    /// maintaining the integrity of the envelope's digest tree. This is a fundamental 
+    /// Elision replaces an envelope with just its digest, hiding its content while
+    /// maintaining the integrity of the envelope's digest tree. This is a fundamental
     /// privacy feature of Gordian Envelope that enables selective disclosure.
-    /// 
+    ///
     /// Returns the same envelope if it is already elided.
     ///
     /// # Examples
@@ -73,17 +73,17 @@ impl Envelope {
     /// # use indoc::indoc;
     /// let envelope = Envelope::new("Hello.");
     /// let elided = envelope.elide();
-    /// 
+    ///
     /// // The elided envelope shows only "ELIDED" in formatting
     /// assert_eq!(elided.format_flat(), "ELIDED");
-    /// 
+    ///
     /// // But it maintains the same digest as the original
     /// assert!(envelope.is_equivalent_to(&elided));
     /// ```
     pub fn elide(&self) -> Self {
         match self.case() {
             EnvelopeCase::Elided(_) => self.clone(),
-            _ => Self::new_elided(self.digest().into_owned())
+            _ => Self::new_elided(self.digest().into_owned()),
         }
     }
 
@@ -114,16 +114,20 @@ impl Envelope {
     ///
     /// // Elide that specific assertion
     /// let elided = envelope.elide_removing_set_with_action(&target, &ObscureAction::Elide);
-    /// 
+    ///
     /// // The result will have the "livesAt" assertion elided but "knows" still visible
     /// ```
-    pub fn elide_removing_set_with_action(&self, target: &HashSet<Digest>, action: &ObscureAction) -> Self {
+    pub fn elide_removing_set_with_action(
+        &self,
+        target: &HashSet<Digest>,
+        action: &ObscureAction
+    ) -> Self {
         self.elide_set_with_action(target, false, action)
     }
-    
+
     /// Returns a version of this envelope with elements in the `target` set elided.
     ///
-    /// This is a convenience function that calls `elide_set` with `is_revealing` set to `false`, 
+    /// This is a convenience function that calls `elide_set` with `is_revealing` set to `false`,
     /// using the standard elision action. Use this when you want to simply elide elements rather
     /// than encrypt or compress them.
     ///
@@ -159,7 +163,11 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_removing_array_with_action(&self, target: &[&dyn DigestProvider], action: &ObscureAction) -> Self {
+    pub fn elide_removing_array_with_action(
+        &self,
+        target: &[&dyn DigestProvider],
+        action: &ObscureAction
+    ) -> Self {
         self.elide_array_with_action(target, false, action)
     }
 
@@ -181,7 +189,11 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_removing_target_with_action(&self, target: &dyn DigestProvider, action: &ObscureAction) -> Self {
+    pub fn elide_removing_target_with_action(
+        &self,
+        target: &dyn DigestProvider,
+        action: &ObscureAction
+    ) -> Self {
         self.elide_target_with_action(target, false, action)
     }
 
@@ -222,7 +234,7 @@ impl Envelope {
     ///
     /// // Create a set of digests for elements we want to reveal
     /// let mut reveal_set = HashSet::new();
-    /// 
+    ///
     /// // Add the subject and the name assertion to the set to reveal
     /// reveal_set.insert(envelope.subject().digest().into_owned());
     /// reveal_set.insert(envelope.assertion_with_predicate("name").unwrap().digest().into_owned());
@@ -230,7 +242,11 @@ impl Envelope {
     /// // Create an envelope that only reveals name and hides age and SSN
     /// let selective = envelope.elide_revealing_set_with_action(&reveal_set, &ObscureAction::Elide);
     /// ```
-    pub fn elide_revealing_set_with_action(&self, target: &HashSet<Digest>, action: &ObscureAction) -> Self {
+    pub fn elide_revealing_set_with_action(
+        &self,
+        target: &HashSet<Digest>,
+        action: &ObscureAction
+    ) -> Self {
         self.elide_set_with_action(target, true, action)
     }
 
@@ -251,7 +267,11 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_revealing_array_with_action(&self, target: &[&dyn DigestProvider], action: &ObscureAction) -> Self {
+    pub fn elide_revealing_array_with_action(
+        &self,
+        target: &[&dyn DigestProvider],
+        action: &ObscureAction
+    ) -> Self {
         self.elide_array_with_action(target, true, action)
     }
 
@@ -272,7 +292,11 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_revealing_target_with_action(&self, target: &dyn DigestProvider, action: &ObscureAction) -> Self {
+    pub fn elide_revealing_target_with_action(
+        &self,
+        target: &dyn DigestProvider,
+        action: &ObscureAction
+    ) -> Self {
         self.elide_target_with_action(target, true, action)
     }
 
@@ -303,33 +327,51 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_set_with_action(&self, target: &HashSet<Digest>, is_revealing: bool, action: &ObscureAction) -> Self {
+    pub fn elide_set_with_action(
+        &self,
+        target: &HashSet<Digest>,
+        is_revealing: bool,
+        action: &ObscureAction
+    ) -> Self {
         let self_digest = self.digest().into_owned();
         if target.contains(&self_digest) != is_revealing {
             match action {
                 ObscureAction::Elide => self.elide(),
                 #[cfg(feature = "encrypt")]
                 ObscureAction::Encrypt(key) => {
-                    let message = key.encrypt_with_digest(self.tagged_cbor().to_cbor_data(), self_digest, None::<Nonce>);
+                    let message = key.encrypt_with_digest(
+                        self.tagged_cbor().to_cbor_data(),
+                        self_digest,
+                        None::<Nonce>
+                    );
                     Self::new_with_encrypted(message).unwrap()
-                },
+                }
                 #[cfg(feature = "compress")]
                 ObscureAction::Compress => self.compress().unwrap(),
             }
         } else if let EnvelopeCase::Assertion(assertion) = self.case() {
-            let predicate = assertion.predicate().elide_set_with_action(target, is_revealing, action);
+            let predicate = assertion
+                .predicate()
+                .elide_set_with_action(target, is_revealing, action);
             let object = assertion.object().elide_set_with_action(target, is_revealing, action);
             let elided_assertion = Assertion::new(predicate, object);
             assert!(&elided_assertion == assertion);
             Self::new_with_assertion(elided_assertion)
-        } else if let EnvelopeCase::Node { subject, assertions, ..} = self.case() {
+        } else if let EnvelopeCase::Node { subject, assertions, .. } = self.case() {
             let elided_subject = subject.elide_set_with_action(target, is_revealing, action);
             assert!(elided_subject.digest() == subject.digest());
-            let elided_assertions = assertions.iter().map(|assertion| {
-                let elided_assertion = assertion.elide_set_with_action(target, is_revealing, action);
-                assert!(elided_assertion.digest() == assertion.digest());
-                elided_assertion
-            }).collect();
+            let elided_assertions = assertions
+                .iter()
+                .map(|assertion| {
+                    let elided_assertion = assertion.elide_set_with_action(
+                        target,
+                        is_revealing,
+                        action
+                    );
+                    assert!(elided_assertion.digest() == assertion.digest());
+                    elided_assertion
+                })
+                .collect();
             Self::new_with_unchecked_assertions(elided_subject, elided_assertions)
         } else if let EnvelopeCase::Wrapped { envelope, .. } = self.case() {
             let elided_envelope = envelope.elide_set_with_action(target, is_revealing, action);
@@ -363,8 +405,20 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_array_with_action(&self, target: &[&dyn DigestProvider], is_revealing: bool, action: &ObscureAction) -> Self {
-        self.elide_set_with_action(&target.iter().map(|provider| provider.digest().into_owned()).collect(), is_revealing, action)
+    pub fn elide_array_with_action(
+        &self,
+        target: &[&dyn DigestProvider],
+        is_revealing: bool,
+        action: &ObscureAction
+    ) -> Self {
+        self.elide_set_with_action(
+            &target
+                .iter()
+                .map(|provider| provider.digest().into_owned())
+                .collect(),
+            is_revealing,
+            action
+        )
     }
 
     /// Returns an elided version of this envelope.
@@ -390,7 +444,12 @@ impl Envelope {
     ///   - action: Perform the specified action (elision, encryption or compression).
     ///
     /// - Returns: The elided envelope.
-    pub fn elide_target_with_action(&self, target: &dyn DigestProvider, is_revealing: bool, action: &ObscureAction) -> Self {
+    pub fn elide_target_with_action(
+        &self,
+        target: &dyn DigestProvider,
+        is_revealing: bool,
+        action: &ObscureAction
+    ) -> Self {
         self.elide_array_with_action(&[target], is_revealing, action)
     }
 
@@ -426,11 +485,11 @@ impl Envelope {
     /// # use bc_envelope::prelude::*;
     /// let original = Envelope::new("Hello.");
     /// let elided = original.elide();
-    /// 
+    ///
     /// // Later, we can unelide the envelope if we have the original
     /// let revealed = elided.unelide(&original).unwrap();
     /// assert_eq!(revealed.format(), "\"Hello.\"");
-    /// 
+    ///
     /// // Attempting to unelide with a different envelope will fail
     /// let different = Envelope::new("Different");
     /// assert!(elided.unelide(&different).is_err());
@@ -440,7 +499,7 @@ impl Envelope {
         if self.digest() == envelope.digest() {
             Ok(envelope)
         } else {
-            bail!(EnvelopeError::InvalidDigest)
+            bail!(Error::InvalidDigest)
         }
     }
 }

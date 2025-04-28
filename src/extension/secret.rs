@@ -1,6 +1,6 @@
 use anyhow::{ bail, Result };
 use bc_components::{ KeyDerivationMethod, SymmetricKey, EncryptedKey };
-use crate::{ Envelope, EnvelopeError };
+use crate::{ Envelope, Error };
 use known_values;
 
 impl Envelope {
@@ -33,7 +33,7 @@ impl Envelope {
             }
         }
         // No matching secret unlock succeeded
-        bail!(EnvelopeError::UnknownSecret)
+        bail!(Error::UnknownSecret)
     }
 
     pub fn add_secret(

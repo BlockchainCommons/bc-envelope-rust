@@ -1,10 +1,10 @@
 use std::borrow::Cow;
 
-use anyhow::{bail, Result};
-use bc_components::{SymmetricKey, Nonce, Digest, DigestProvider, tags};
+use anyhow::{ bail, Result };
+use bc_components::{ SymmetricKey, Nonce, Digest, DigestProvider, tags };
 use dcbor::prelude::*;
 
-use crate::{Envelope, EnvelopeError, base::envelope::EnvelopeCase};
+use crate::{ Envelope, Error, base::envelope::EnvelopeCase };
 
 /// Support for encrypting and decrypting envelopes using symmetric encryption.
 ///
@@ -13,8 +13,8 @@ use crate::{Envelope, EnvelopeError, base::envelope::EnvelopeCase};
 /// by allowing envelope elements to be encrypted without changing the envelope's digest,
 /// similar to elision.
 ///
-/// The encryption process preserves the envelope's digest tree structure, which means 
-/// signatures, proofs, and other cryptographic artifacts remain valid even when parts of 
+/// The encryption process preserves the envelope's digest tree structure, which means
+/// signatures, proofs, and other cryptographic artifacts remain valid even when parts of
 /// the envelope are encrypted.
 ///
 /// # Examples
@@ -72,7 +72,7 @@ impl Envelope {
     /// Returns a new envelope with its subject encrypted.
     ///
     /// Encrypts only the subject of the envelope, leaving assertions unencrypted.
-    /// To encrypt an entire envelope including its assertions, it must first be wrapped 
+    /// To encrypt an entire envelope including its assertions, it must first be wrapped
     /// using the `wrap_envelope()` method, or you can use the `encrypt()` convenience method.
     ///
     /// The encryption uses ChaCha20-Poly1305 and preserves the envelope's digest, allowing
@@ -96,14 +96,18 @@ impl Envelope {
 
     #[doc(hidden)]
     /// Internal function for encrypting with an optional test nonce
-    pub fn encrypt_subject_opt(&self, key: &SymmetricKey, test_nonce: Option<Nonce>) -> Result<Self> {
+    pub fn encrypt_subject_opt(
+        &self,
+        key: &SymmetricKey,
+        test_nonce: Option<Nonce>
+    ) -> Result<Self> {
         let result: Self;
         let original_digest: Cow<'_, Digest>;
 
         match self.case() {
             EnvelopeCase::Node { subject, assertions, digest: envelope_digest } => {
                 if subject.is_encrypted() {
-                    bail!(EnvelopeError::AlreadyEncrypted);
+                    bail!(Error::AlreadyEncrypted);
                 }
                 let encoded_cbor = subject.tagged_cbor().to_cbor_data();
                 let digest = subject.digest();
@@ -113,7 +117,10 @@ impl Envelope {
                 original_digest = Cow::Borrowed(envelope_digest);
             }
             EnvelopeCase::Leaf { cbor, digest } => {
-                let encoded_cbor = CBOR::to_tagged_value(tags::TAG_ENVELOPE, CBOR::to_tagged_value(tags::TAG_LEAF, cbor.clone())).to_cbor_data();
+                let encoded_cbor = CBOR::to_tagged_value(
+                    tags::TAG_ENVELOPE,
+                    CBOR::to_tagged_value(tags::TAG_LEAF, cbor.clone())
+                ).to_cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message).unwrap();
                 original_digest = Cow::Borrowed(digest);
@@ -125,31 +132,40 @@ impl Envelope {
                 original_digest = Cow::Borrowed(digest);
             }
             EnvelopeCase::KnownValue { value, digest } => {
-                let encoded_cbor = CBOR::to_tagged_value(tags::TAG_ENVELOPE, value.untagged_cbor()).to_cbor_data();
+                let encoded_cbor = CBOR::to_tagged_value(
+                    tags::TAG_ENVELOPE,
+                    value.untagged_cbor()
+                ).to_cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message).unwrap();
                 original_digest = Cow::Borrowed(digest);
             }
             EnvelopeCase::Assertion(assertion) => {
                 let digest = assertion.digest();
-                let encoded_cbor = CBOR::to_tagged_value(tags::TAG_ENVELOPE, assertion.clone()).to_cbor_data();
+                let encoded_cbor = CBOR::to_tagged_value(
+                    tags::TAG_ENVELOPE,
+                    assertion.clone()
+                ).to_cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message).unwrap();
                 original_digest = digest;
             }
             EnvelopeCase::Encrypted { .. } => {
-                bail!(EnvelopeError::AlreadyEncrypted);
+                bail!(Error::AlreadyEncrypted);
             }
             #[cfg(feature = "compress")]
             EnvelopeCase::Compressed(compressed) => {
                 let digest = compressed.digest();
-                let encoded_cbor = CBOR::to_tagged_value(tags::TAG_ENVELOPE, compressed.tagged_cbor()).to_cbor_data();
+                let encoded_cbor = CBOR::to_tagged_value(
+                    tags::TAG_ENVELOPE,
+                    compressed.tagged_cbor()
+                ).to_cbor_data();
                 let encrypted_message = key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message).unwrap();
                 original_digest = digest;
             }
             EnvelopeCase::Elided { .. } => {
-                bail!(EnvelopeError::AlreadyElided);
+                bail!(Error::AlreadyElided);
             }
         }
         assert_eq!(result.digest(), original_digest);
@@ -178,24 +194,27 @@ impl Envelope {
         match self.subject().case() {
             EnvelopeCase::Encrypted(message) => {
                 let encoded_cbor = key.decrypt(message)?;
-                let subject_digest = message.opt_digest().ok_or(EnvelopeError::MissingDigest)?;
+                let subject_digest = message.opt_digest().ok_or(Error::MissingDigest)?;
                 let cbor = CBOR::try_from_data(encoded_cbor)?;
                 let result_subject = Self::from_tagged_cbor(cbor)?;
                 if *result_subject.digest() != subject_digest {
-                    bail!(EnvelopeError::InvalidDigest);
+                    bail!(Error::InvalidDigest);
                 }
                 match self.case() {
                     EnvelopeCase::Node { assertions, digest, .. } => {
-                        let result = Self::new_with_unchecked_assertions(result_subject, assertions.clone());
+                        let result = Self::new_with_unchecked_assertions(
+                            result_subject,
+                            assertions.clone()
+                        );
                         if *result.digest() != *digest {
-                            bail!(EnvelopeError::InvalidDigest);
+                            bail!(Error::InvalidDigest);
                         }
                         Ok(result)
                     }
-                    _ => Ok(result_subject)
+                    _ => Ok(result_subject),
                 }
-            },
-            _ => bail!(EnvelopeError::NotEncrypted)
+            }
+            _ => bail!(Error::NotEncrypted),
         }
     }
 }
@@ -231,10 +250,7 @@ impl Envelope {
     /// let encrypted = envelope.encrypt(&key);
     /// ```
     pub fn encrypt(&self, key: &SymmetricKey) -> Envelope {
-        self
-            .wrap_envelope()
-            .encrypt_subject(key)
-            .unwrap()
+        self.wrap_envelope().encrypt_subject(key).unwrap()
     }
 
     /// Convenience method to decrypt an entire envelope that was encrypted using the `encrypt()` method.
@@ -278,8 +294,6 @@ impl Envelope {
     /// assert!(envelope.is_equivalent_to(&decrypted));
     /// ```
     pub fn decrypt(&self, key: &SymmetricKey) -> Result<Envelope> {
-        self
-            .decrypt_subject(key)?
-            .unwrap_envelope()
+        self.decrypt_subject(key)?.unwrap_envelope()
     }
 }

@@ -1,5 +1,5 @@
 use bc_components::{Digest, PrivateKeyBase, PrivateKeys, PublicKeys, Reference, SSKRShare, Salt, SealedMessage, Signature, ARID, URI, UUID, XID};
-use dcbor::CBOR;
+use dcbor::prelude::*;
 
 use crate::Envelope;
 

@@ -17,32 +17,35 @@ fn test_envelope_non_correlation() {
     let mut rng = make_fake_random_number_generator();
     let e2 = e1.add_salt_using(&mut rng).check_encoding().unwrap();
 
+    #[rustfmt::skip]
     assert_eq!(e2.format(), indoc! {r#"
-    "Hello." [
-        'salt': Salt
-    ]
-    "#}.trim());
-
-    assert_eq!(e2.diagnostic_annotated(), indoc! {r#"
-    200(   / envelope /
-        [
-            201("Hello."),   / leaf /
-            {
-                15:
-                201(   / leaf /
-                    40018(h'b559bbbf6cce2632')   / salt /
-                )
-            }
+        "Hello." [
+            'salt': Salt
         ]
-    )
     "#}.trim());
 
+    #[rustfmt::skip]
+    assert_eq!(e2.diagnostic_annotated(), indoc! {r#"
+        200(   / envelope /
+            [
+                201("Hello."),   / leaf /
+                {
+                    15:
+                    201(   / leaf /
+                        40018(h'b559bbbf6cce2632')   / salt /
+                    )
+                }
+            ]
+        )
+    "#}.trim());
+
+    #[rustfmt::skip]
     assert_eq!(e2.tree_format(false), indoc! {r#"
-    4f0f2d55 NODE
-        8cc96cdb subj "Hello."
-        dd412f1d ASSERTION
-            618975ce pred 'salt'
-            7915f200 obj Salt
+        4f0f2d55 NODE
+            8cc96cdb subj "Hello."
+            dd412f1d ASSERTION
+                618975ce pred 'salt'
+                7915f200 obj Salt
     "#}.trim());
 
     // So even though its content is the same, it doesn't correlate.
@@ -61,10 +64,11 @@ fn test_predicate_correlation() {
         .add_assertion("note", "Quux")
         .check_encoding().unwrap();
 
+    #[rustfmt::skip]
     let e1_expected_format = indoc! {r#"
-    "Foo" [
-        "note": "Bar"
-    ]
+        "Foo" [
+            "note": "Bar"
+        ]
     "#}.trim();
     assert_eq!(e1.format(), e1_expected_format);
 
@@ -76,10 +80,11 @@ fn test_predicate_correlation() {
     // redacting the envelope itself.
     let e1_elided = e1.elide_revealing_target(&e1).check_encoding().unwrap();
 
+    #[rustfmt::skip]
     let redacted_expected_format = indoc! {r#"
-    ELIDED [
-        ELIDED
-    ]
+        ELIDED [
+            ELIDED
+        ]
     "#}.trim();
     assert_eq!(e1_elided.format(), redacted_expected_format);
 }
@@ -94,28 +99,30 @@ fn test_add_salt() {
             Envelope::new(known_values::NOTE).add_salt().check_encoding().unwrap(),
             Envelope::new(source).add_salt().check_encoding().unwrap()
         ).check_encoding().unwrap();
+    #[rustfmt::skip]
     let e1_expected_format = indoc! {r#"
-    {
-        "Alpha" [
-            'salt': Salt
+        {
+            "Alpha" [
+                'salt': Salt
+            ]
+        } [
+            'note' [
+                'salt': Salt
+            ]
+            : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." [
+                'salt': Salt
+            ]
         ]
-    } [
-        'note' [
-            'salt': Salt
-        ]
-        : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." [
-            'salt': Salt
-        ]
-    ]
     "#}.trim();
     assert_eq!(e1.format(), e1_expected_format);
 
     let e1_elided = e1.elide_revealing_target(&e1).check_encoding().unwrap();
 
+    #[rustfmt::skip]
     let redacted_expected_format = indoc! {r#"
-    ELIDED [
-        ELIDED
-    ]
+        ELIDED [
+            ELIDED
+        ]
     "#}.trim();
     assert_eq!(e1_elided.format(), redacted_expected_format);
 }
