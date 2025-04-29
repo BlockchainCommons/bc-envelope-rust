@@ -7,11 +7,11 @@ use crate::Envelope;
 macro_rules! impl_envelope_decodable {
     ($type:ty) => {
         impl TryFrom<Envelope> for $type {
-            type Error = dcbor::Error;
+            type Error = anyhow::Error;
 
-            fn try_from(envelope: Envelope) -> dcbor::Result<Self> {
+            fn try_from(envelope: Envelope) -> anyhow::Result<Self> {
                 let cbor = envelope.try_leaf()?;
-                cbor.try_into()
+                Ok(cbor.try_into()?)
             }
         }
     };
