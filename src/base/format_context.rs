@@ -1,10 +1,11 @@
-#[cfg(feature = "expression")]
 use bc_components::tags::*;
-#[cfg(feature = "expression")]
+#[cfg(any(feature = "expression", feature = "known_value"))]
 use std::sync::Arc;
 use std::sync::{ Mutex, Once };
 #[cfg(feature = "known_value")]
-use known_values::{ KnownValuesStore, KNOWN_VALUES };
+use known_values::{ KnownValuesStore, KnownValue, KNOWN_VALUES };
+#[cfg(feature = "known_value")]
+use bc_components::tags::TAG_KNOWN_VALUE;
 
 #[cfg(feature = "expression")]
 use crate::extension::expressions::{
@@ -13,12 +14,12 @@ use crate::extension::expressions::{
     GLOBAL_FUNCTIONS,
     GLOBAL_PARAMETERS,
 };
-// #[cfg(any(feature = "expression", feature = "known_value"))]
-#[cfg(feature = "expression")]
-use crate::KnownValue;
 
 #[cfg(feature = "expression")]
-use crate::{ string_utils::StringUtils, Envelope };
+use crate::Envelope;
+
+#[cfg(any(feature = "expression", feature = "known_value"))]
+use crate::string_utils::StringUtils;
 
 /// Context object for formatting Gordian Envelopes with annotations.
 ///
@@ -369,6 +370,22 @@ pub fn register_tags_in(context: &mut FormatContext) {
     // Register standard component tags
     bc_components::register_tags_in(context.tags_mut());
 
+    #[cfg(feature = "known_value")]
+    {
+        // Known value summarizer - formats known values with single quotes
+        let known_values = context.known_values().clone();
+        context.tags_mut().set_summarizer(
+            TAG_KNOWN_VALUE,
+            Arc::new(move |untagged_cbor: CBOR| {
+                Ok(
+                    known_values
+                        .name(KnownValue::from_untagged_cbor(untagged_cbor)?)
+                        .flanked_by("'", "'")
+                )
+            })
+        );
+    }
+
     // Register expression-related summarizers when the expression feature is enabled
     #[cfg(feature = "expression")]
     {
@@ -391,19 +408,6 @@ pub fn register_tags_in(context: &mut FormatContext) {
             Arc::new(move |untagged_cbor: CBOR| {
                 let p = Parameter::from_untagged_cbor(untagged_cbor)?;
                 Ok(ParametersStore::name_for_parameter(&p, Some(&parameters)).flanked_by("❰", "❱"))
-            })
-        );
-
-        // Known value summarizer - formats known values with single quotes
-        let known_values = context.known_values().clone();
-        context.tags_mut().set_summarizer(
-            TAG_KNOWN_VALUE,
-            Arc::new(move |untagged_cbor: CBOR| {
-                Ok(
-                    known_values
-                        .name(KnownValue::from_untagged_cbor(untagged_cbor)?)
-                        .flanked_by("'", "'")
-                )
             })
         );
 

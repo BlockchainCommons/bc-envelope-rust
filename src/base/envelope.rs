@@ -229,10 +229,6 @@ impl Envelope {
         Self::new_leaf(true)
     }
 
-    pub fn null() -> Self {
-        Self::new_leaf(dcbor::Simple::Null)
-    }
-
     pub fn is_false(&self) -> bool {
         self.extract_subject().ok() == Some(false)
     }
@@ -241,8 +237,26 @@ impl Envelope {
         self.extract_subject().ok() == Some(true)
     }
 
+    pub fn is_bool(&self) -> bool {
+        matches!(self.extract_subject(), Ok(dcbor::Simple::True | dcbor::Simple::False))
+    }
+
     pub fn is_null(&self) -> bool {
         self.extract_subject().ok() == Some(dcbor::Simple::Null)
+    }
+
+    pub fn null() -> Self {
+        Self::new_leaf(dcbor::Simple::Null)
+    }
+
+    #[cfg(feature = "known_value")]
+    pub fn unit() -> Self {
+        Self::new_leaf(known_values::UNIT)
+    }
+
+    #[cfg(feature = "known_value")]
+    pub fn is_unit(&self) -> bool {
+        self.extract_subject().ok() == Some(known_values::UNIT)
     }
 }
 

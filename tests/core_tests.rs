@@ -340,3 +340,43 @@ fn test_unknown_leaf() {
     let expected = "555({1: h'6fc4981e8da778332bf93342f3f77d3a'})";
     assert_eq!(e.format(), expected);
 }
+
+#[test]
+fn test_true() {
+    crate::register_tags();
+    let e = Envelope::new(true).check_encoding().unwrap();
+    assert!(e.is_bool());
+    assert!(e.is_true());
+    assert!(!e.is_false());
+    assert_eq!(e, Envelope::r#true());
+    #[rustfmt::skip]
+    assert_eq!(e.format(), indoc! {r#"
+        true
+    "#}.trim());
+}
+
+#[test]
+fn test_false() {
+    crate::register_tags();
+    let e = Envelope::new(false).check_encoding().unwrap();
+    assert!(e.is_bool());
+    assert!(!e.is_true());
+    assert!(e.is_false());
+    assert_eq!(e, Envelope::r#false());
+    #[rustfmt::skip]
+    assert_eq!(e.format(), indoc! {r#"
+        false
+    "#}.trim());
+}
+
+#[cfg(feature = "known_value")]
+#[test]
+fn test_unit() {
+    crate::register_tags();
+    let e = Envelope::unit().check_encoding().unwrap();
+    assert!(e.is_unit());
+    #[rustfmt::skip]
+    assert_eq!(e.format(), indoc! {r#"
+        ''
+    "#}.trim());
+}

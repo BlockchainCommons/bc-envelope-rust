@@ -23,7 +23,7 @@ bc-rand = "^0.4.0"
 bc-crypto = "^0.8.0"
 bc-components = "^0.20.0"
 bc-ur = "^0.8.0"
-known-values = { version = "^0.1.0", optional = true }
+known-values = { version = "^0.3.0", optional = true }
 
 paste = "^1.0.12"
 hex = "^0.4.3"
@@ -54,7 +54,7 @@ multithreaded = ["dcbor/multithreaded"]
 proof = []
 recipient = ["encrypt"]
 salt = ["known_value"]
-secret = ["encrypt"]
+secret = ["encrypt", "known_value"]
 signature = ["known_value"]
 ssh = ["dep:ssh-key", "signature"]
 sskr = ["encrypt"]
