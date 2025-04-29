@@ -248,15 +248,97 @@ impl Envelope {
     pub fn null() -> Self {
         Self::new_leaf(dcbor::Simple::Null)
     }
+}
 
-    #[cfg(feature = "known_value")]
+#[cfg(feature = "known_value")]
+impl Envelope {
     pub fn unit() -> Self {
         Self::new_leaf(known_values::UNIT)
     }
 
-    #[cfg(feature = "known_value")]
-    pub fn is_unit(&self) -> bool {
+    pub fn is_subject_unit(&self) -> bool {
         self.extract_subject().ok() == Some(known_values::UNIT)
+    }
+}
+
+#[cfg(feature = "known_value")]
+impl Envelope {
+    /// Sets the position (index) of the envelope by adding or replacing a
+    /// `known_values::POSITION` assertion.
+    ///
+    /// If there is more than one existing `POSITION` assertion, returns an
+    /// `InvalidFormat` error. If a single `POSITION` assertion exists, it is
+    /// removed before adding the new one. Returns the modified `Envelope` with
+    /// the updated position.
+    ///
+    /// # Arguments
+    ///
+    /// * `position` - The new position value to set.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there is not exactly one `POSITION` assertion in the
+    /// envelope.
+    pub fn set_position(&mut self, position: usize) -> Result<Self> {
+        // If there is more than one known_values::POSITION assertion, return an error.
+        let position_assertions = self.assertions_with_predicate(known_values::POSITION);
+        if position_assertions.len() > 1 {
+            bail!(Error::InvalidFormat);
+        }
+        // If there is a single known_values::POSITION assertion, remove it.
+        let mut e = if let Some(position_assertion) = position_assertions.first() {
+            self.remove_assertion(position_assertion.clone())
+        } else {
+            self.clone()
+        };
+        // Add a new known_values::POSITION assertion with the given position.
+        e = e.add_assertion(known_values::POSITION, position);
+        // Return the modified envelope.
+        Ok(e)
+    }
+
+    /// Retrieves the position value from the envelope's
+    /// `known_values::POSITION` assertion.
+    ///
+    /// Searches for the `POSITION` assertion and extracts its value as a
+    /// `usize`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the assertion is missing or if the value cannot be
+    /// extracted as a `usize`.
+    pub fn position(&self) -> Result<usize> {
+        // Find the known_values::POSITION assertion in the envelope.
+        let position_envelope = self.object_for_predicate(known_values::POSITION)?;
+        // Try to extract the position value from the assertion.
+        let position = position_envelope.extract_subject::<usize>()?;
+        // Return the position value.
+        Ok(position)
+    }
+
+    /// Removes the `known_values::POSITION` assertion from the envelope.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there is more than one `POSITION` assertion in the
+    /// envelope.
+    ///
+    /// If there is a single `POSITION` assertion, it is removed and the
+    /// modified envelope is returned. If there are no `POSITION` assertions,
+    /// the original envelope is returned.
+    pub fn remove_position(&self) -> Result<Self> {
+        // Find the known_values::POSITION assertion in the envelope.
+        let position_assertions = self.assertions_with_predicate(known_values::POSITION);
+        // If there is more than one known_values::POSITION assertion, return an error.
+        if position_assertions.len() > 1 {
+            bail!(Error::InvalidFormat);
+        }
+        // If there is a single known_values::POSITION assertion, remove it.
+        if let Some(position_assertion) = position_assertions.first() {
+            Ok(self.remove_assertion(position_assertion.clone()))
+        } else {
+            Ok(self.clone())
+        }
     }
 }
 

@@ -373,10 +373,56 @@ fn test_false() {
 #[test]
 fn test_unit() {
     crate::register_tags();
-    let e = Envelope::unit().check_encoding().unwrap();
-    assert!(e.is_unit());
+    let mut e = Envelope::unit().check_encoding().unwrap();
+    assert!(e.is_subject_unit());
     #[rustfmt::skip]
     assert_eq!(e.format(), indoc! {r#"
         ''
+    "#}.trim());
+
+    e = e.add_assertion("foo", "bar");
+    assert!(e.is_subject_unit());
+    #[rustfmt::skip]
+    assert_eq!(e.format(), indoc! {r#"
+        '' [
+            "foo": "bar"
+        ]
+    "#}.trim());
+
+    let subject = e.extract_subject::<KnownValue>().unwrap();
+    assert_eq!(subject, known_values::UNIT);
+}
+
+#[cfg(feature = "known_value")]
+#[test]
+fn test_position() {
+    crate::register_tags();
+
+    let mut e = Envelope::new("Hello");
+    assert!(e.position().is_err());
+
+    e = e.set_position(42).unwrap();
+    assert_eq!(e.position().unwrap(), 42);
+    #[rustfmt::skip]
+    assert_eq!(e.format(), indoc! {r#"
+        "Hello" [
+            'position': 42
+        ]
+    "#}.trim());
+
+    e = e.set_position(0).unwrap();
+    assert_eq!(e.position().unwrap(), 0);
+    #[rustfmt::skip]
+    assert_eq!(e.format(), indoc! {r#"
+        "Hello" [
+            'position': 0
+        ]
+    "#}.trim());
+
+    e = e.remove_position().unwrap();
+    assert!(e.position().is_err());
+    #[rustfmt::skip]
+    assert_eq!(e.format(), indoc! {r#"
+        "Hello"
     "#}.trim());
 }
