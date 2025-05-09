@@ -101,7 +101,9 @@ impl Envelope {
 
     /// The envelope's predicate, or `None` if the envelope is not an assertion.
     pub fn as_predicate(&self) -> Option<Self> {
-        match self.case() {
+        // Refer to subject in case the assertion is a node and therefore has
+        // its own assertions
+        match self.subject().case() {
             EnvelopeCase::Assertion(assertion) => Some(assertion.predicate()),
             _ => None,
         }
@@ -114,7 +116,9 @@ impl Envelope {
 
     /// The envelope's object, or `None` if the envelope is not an assertion.
     pub fn as_object(&self) -> Option<Self> {
-        match self.case() {
+        // Refer to subject in case the assertion is a node and therefore has
+        // its own assertions
+        match self.subject().case() {
             EnvelopeCase::Assertion(assertion) => Some(assertion.object()),
             _ => None,
         }

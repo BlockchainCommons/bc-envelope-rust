@@ -20,7 +20,7 @@ Envelopes are designed to facilitate "smart documents" with a number of unique f
 
 ```toml
 [dependencies]
-bc-envelope = "0.27.1"
+bc-envelope = "0.27.2"
 ```
 
 Basic usage examples:
