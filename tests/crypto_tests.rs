@@ -421,10 +421,8 @@ fn test_secret_1() {
     bc_envelope::register_tags();
     let bob_password = "correct horse battery staple";
     // Alice encrypts a message so that it can only be decrypted by Bob's password.
-    let envelope = hello_envelope()
-        .lock(KeyDerivationMethod::HKDF, bob_password)
-        .check_encoding()
-        .unwrap();
+    let envelope = hello_envelope().lock(KeyDerivationMethod::HKDF, bob_password);
+    envelope.check_encoding().unwrap();
     let ur = envelope.ur();
     #[rustfmt::skip]
     let expected_format = (indoc! {r#"
@@ -457,21 +455,24 @@ fn test_secret_2() {
 
     bc_envelope::register_tags();
 
-    // Alice encrypts a message so that it can only be decrypted by two specific passwords.
+    // Alice encrypts a message so that it can be decrypted by three specific passwords.
     let bob_password = "correct horse battery staple";
     let carol_password = "Able was I ere I saw Elba";
+    let gracy_password = "Madam, in Eden, I'm Adam";
     let content_key = SymmetricKey::new();
     let envelope = hello_envelope()
         .encrypt_subject(&content_key)
         .unwrap()
         .add_secret(KeyDerivationMethod::HKDF, bob_password, &content_key)
         .add_secret(KeyDerivationMethod::Scrypt, carol_password, &content_key)
+        .add_secret(KeyDerivationMethod::Argon2id, gracy_password, &content_key)
         .check_encoding()
         .unwrap();
     let ur = envelope.ur();
     #[rustfmt::skip]
     let expected_format = (indoc! {r#"
         ENCRYPTED [
+            'hasSecret': EncryptedKey(Argon2id)
             'hasSecret': EncryptedKey(HKDF(SHA256))
             'hasSecret': EncryptedKey(Scrypt)
         ]
@@ -498,6 +499,14 @@ fn test_secret_2() {
         .extract_subject::<String>()
         .unwrap();
     assert_eq!(carol_received_plaintext, PLAINTEXT_HELLO);
+    let gracy_received_plaintext = received_envelope
+        .unlock_subject(gracy_password)
+        .unwrap()
+        .check_encoding()
+        .unwrap()
+        .extract_subject::<String>()
+        .unwrap();
+    assert_eq!(gracy_received_plaintext, PLAINTEXT_HELLO);
     // Eve tries to decrypt the message with a different password
     assert!(received_envelope.unlock_subject("wrong password").is_err());
 }
