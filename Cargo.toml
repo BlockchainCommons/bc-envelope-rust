@@ -1,6 +1,6 @@
 [package]
 name = "bc-envelope"
-version = "0.27.2"
+version = "0.28.0"
 edition = "2024"
 description = "Gordian Envelope for Rust."
 authors = ["Blockchain Commons"]
@@ -18,12 +18,12 @@ keywords = [
 categories = ["data-structures", "encoding"] # https://crates.io/category_slugs
 
 [dependencies]
-dcbor = { version = "^0.18.0", features = ["anyhow", "multithreaded"] }
+dcbor = { version = "^0.19.0", features = ["anyhow", "multithreaded"] }
 bc-rand = "^0.4.0"
-bc-crypto = "^0.8.0"
-bc-components = "^0.20.0"
-bc-ur = "^0.8.0"
-known-values = { version = "^0.3.0", optional = true }
+bc-crypto = "^0.9.0"
+bc-components = "^0.21.0"
+bc-ur = "^0.9.0"
+known-values = { version = "^0.4.0", optional = true }
 
 paste = "^1.0.12"
 hex = "^0.4.3"
