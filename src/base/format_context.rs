@@ -209,7 +209,7 @@ impl TagsStoreTrait for FormatContext {
     }
 
     /// Looks up a tag by its numeric value.
-    fn tag_for_value(&self, value: u64) -> Option<Tag> {
+    fn tag_for_value(&self, value: TagValue) -> Option<Tag> {
         self.tags.tag_for_value(value)
     }
 
@@ -219,7 +219,7 @@ impl TagsStoreTrait for FormatContext {
     }
 
     /// Returns a name for a tag value, either the assigned name or a generic representation.
-    fn name_for_value(&self, value: u64) -> String {
+    fn name_for_value(&self, value: TagValue) -> String {
         self.tags.name_for_value(value)
     }
 }

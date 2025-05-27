@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/bc-envelope/0.28.0")]
+#![doc(html_root_url = "https://docs.rs/bc-envelope/0.28.1")]
 #![warn(rust_2018_idioms)]
 
 //! # Gordian Envelope: A Flexible Container for Structured Data
@@ -20,7 +20,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bc-envelope = "0.28.0"
+//! bc-envelope = "0.28.1"
 //! ```
 //!
 //! ## Specification
@@ -69,17 +69,17 @@
 //! ### Getting the basic parts of an envelope
 //!
 //! * [`Envelope::subject`] Returns the subject of an envelope.
-//! * [`Envelope::as_predicate`] If the envelope’s subject is an assertion return
-//!   its predicate, else return `None`.
-//! * [`Envelope::as_object`] If the envelope’s subject is an assertion return its
-//!   object, else return `None`.
+//! * [`Envelope::as_predicate`] If the envelope’s subject is an assertion
+//!   return its predicate, else return `None`.
+//! * [`Envelope::as_object`] If the envelope’s subject is an assertion return
+//!   its object, else return `None`.
 //!
 //! ### Getting assertions on an envelope
 //!
 //! * [`Envelope::assertions`] Returns the assertions of an envelope.
 //! * [`Envelope::has_assertions`] Returns whether an envelope has assertions.
-//! * [`Envelope::as_assertion`] If the envelope’s subject is an assertion return
-//!   it, else return `None`.
+//! * [`Envelope::as_assertion`] If the envelope’s subject is an assertion
+//!   return it, else return `None`.
 //!
 //! ### Getting the specific types of an envelope
 //!
@@ -164,8 +164,8 @@
 //! ### CBOR diagnostic notation
 //!
 //! * [`Envelope::diagnostic`] Formats an envelope in CBOR diagnostic notation.
-//! * [`Envelope::diagnostic`] Formats an envelope in CBOR diagnostic
-//!   notation, with optional annotations.
+//! * [`Envelope::diagnostic`] Formats an envelope in CBOR diagnostic notation,
+//!   with optional annotations.
 //!
 //! ### CBOR hexadecimal notation
 //!
@@ -198,19 +198,18 @@
 //!
 //! ### Signing
 //!
-//! * [`Envelope::add_signature`] Creates a signature for the envelope's subject and
-//!   returns a new envelope with a `'signed': Signature` assertion.
-//! * [`Envelope::add_signature_opt`] Creates a signature for the envelope's subject
+//! * [`Envelope::add_signature`] Creates a signature for the envelope's subject
 //!   and returns a new envelope with a `'signed': Signature` assertion.
+//! * [`Envelope::add_signature_opt`] Creates a signature for the envelope's
+//!   subject and returns a new envelope with a `'signed': Signature` assertion.
 //! * [`Envelope::add_signatures`] Creates several signatures for the envelope's
 //!   subject and returns a new envelope with additional `'signed': Signature`
 //!   assertions.
 //! * [`Envelope::add_signatures_opt`] Creates several signatures for the
 //!   envelope's subject and returns a new envelope with additional `'signed':
 //!   Signature` assertions.
-//! * [`Envelope::add_signature`] Creates a signature for the
-//!   envelope's subject and returns a new envelope with a `'signed':
-//!   Signature` assertion.
+//! * [`Envelope::add_signature`] Creates a signature for the envelope's subject
+//!   and returns a new envelope with a `'signed': Signature` assertion.
 //!
 //! ### Verifying by returning a boolean
 //!
@@ -236,10 +235,10 @@
 //!
 //! ### Helpers
 //!
-//! * [`Envelope::verify_signature`] Returns an array of `Signature`s from all of the
-//!   envelope's `signed` predicates.
-//! * [`Envelope::make_signed_assertion`] Convenience constructor for a
-//!   `signed: Signature` assertion envelope.
+//! * [`Envelope::verify_signature`] Returns an array of `Signature`s from all
+//!   of the envelope's `signed` predicates.
+//! * [`Envelope::make_signed_assertion`] Convenience constructor for a `signed:
+//!   Signature` assertion envelope.
 //!
 //! # Splitting Envelopes with SSKR
 //!
@@ -298,13 +297,13 @@
 //!     * [`Envelope::elide_target`]
 //!
 //! * Returns a version with the given element(s) elided, encrypted, or
-//!     compressed:
+//!   compressed:
 //!     * [`Envelope::elide_removing_set_with_action`]
 //!     * [`Envelope::elide_removing_array_with_action`]
 //!     * [`Envelope::elide_removing_target_with_action`]
 //!
 //! * Returns a version with all elements except the given element(s) elided,
-//!     encrypted, or compressed:
+//!   encrypted, or compressed:
 //!     * [`Envelope::elide_revealing_set_with_action`]
 //!     * [`Envelope::elide_revealing_array_with_action`]
 //!     * [`Envelope::elide_revealing_target_with_action`]
@@ -334,48 +333,52 @@
 //!
 //! ### Constructing Expressions, Requests, and Responses
 //!
-//! * [`Expression::new`] Creates an envelope with a `«function»`
-//!   subject.
-//! * [`Parameter::new_named`] Creates a new envelope containing a
-//!   `❰parameter❱: value` assertion.
-//! * [`Parameter::new_known`] Optionally adds a `❰parameter❱:
-//!   value` assertion to the envelope.
-//! * [`ExpressionBehavior::with_parameter`] Adds a `❰parameter❱: value` assertion to the
-//!   envelope.
-//! * [`ExpressionBehavior::with_optional_parameter`] Optionally adds a `❰parameter❱:
-//!   value` assertion to the envelope.
-//! * [`Request::new`] Creates an envelope with an `ARID` subject and a
-//!   `body: «function»` assertion.
+//! * [`Expression::new`] Creates an envelope with a `«function»` subject.
+//! * [`Parameter::new_named`] Creates a new envelope containing a `❰parameter❱:
+//!   value` assertion.
+//! * [`Parameter::new_known`] Optionally adds a `❰parameter❱: value` assertion
+//!   to the envelope.
+//! * [`ExpressionBehavior::with_parameter`] Adds a `❰parameter❱: value`
+//!   assertion to the envelope.
+//! * [`ExpressionBehavior::with_optional_parameter`] Optionally adds a
+//!   `❰parameter❱: value` assertion to the envelope.
+//! * [`Request::new`] Creates an envelope with an `ARID` subject and a `body:
+//!   «function»` assertion.
 //! * [`Response::new_success`] Creates an envelope with an `ARID` subject and a
 //!   `result: value` assertion.
-//! * [`Response::new_success`] Creates an envelope with an `ARID`
-//!   subject and a `result: value` assertion for each provided result.
-//! * [`Response::new_failure`] Creates an envelope with an `ARID`
-//!   subject and a `error: value` assertion.
+//! * [`Response::new_success`] Creates an envelope with an `ARID` subject and a
+//!   `result: value` assertion for each provided result.
+//! * [`Response::new_failure`] Creates an envelope with an `ARID` subject and a
+//!   `error: value` assertion.
 //! * [`Response::new_early_failure`] Creates an envelope with an `unknown`
 //!   subject and a `error: value` assertion.
 //!
 //! ### Decoding Parameters and Results
 //!
-//! * [`ExpressionBehavior::extract_object_for_parameter`] Returns the argument for the
-//!   given parameter, decoded as the given type.
-//! * [`ExpressionBehavior::extract_objects_for_parameter`] Returns an array of arguments
+//! * [`ExpressionBehavior::extract_object_for_parameter`] Returns the argument
 //!   for the given parameter, decoded as the given type.
+//! * [`ExpressionBehavior::extract_objects_for_parameter`] Returns an array of
+//!   arguments for the given parameter, decoded as the given type.
 //! * [`ResponseBehavior::result`] Returns the object of the `result` predicate.
-//! * [`ResponseBehavior::result`] Returns the objects of every `result` predicate.
-//! * [`ResponseBehavior::extract_result`] Returns the object of the `result` predicate,
-//!   decoded as the given type.
+//! * [`ResponseBehavior::result`] Returns the objects of every `result`
+//!   predicate.
+//! * [`ResponseBehavior::extract_result`] Returns the object of the `result`
+//!   predicate, decoded as the given type.
 //! * [`ResponseBehavior::extract_result`] Returns the objects of every `result`
 //!   predicate, decoded as the given type.
-//! * [`ResponseBehavior::extract_result`] Returns whether the `result` predicate has the
-//!   `KnownValue` `.ok`.
-//! * [`ResponseBehavior::extract_error`] Returns the error value, decoded as the given type.
+//! * [`ResponseBehavior::extract_result`] Returns whether the `result`
+//!   predicate has the `KnownValue` `.ok`.
+//! * [`ResponseBehavior::extract_error`] Returns the error value, decoded as
+//!   the given type.
 
 pub mod base;
-pub use base::elide::{ self, ObscureAction };
-pub use base::walk::{ self, EdgeType };
-pub use base::{ register_tags, register_tags_in, FormatContext, GLOBAL_FORMAT_CONTEXT };
-pub use base::{ Assertion, Envelope, EnvelopeEncodable, Error, Result };
+pub use base::{
+    Assertion, Envelope, EnvelopeEncodable, Error, FormatContext,
+    GLOBAL_FORMAT_CONTEXT, Result,
+    elide::{self, ObscureAction},
+    register_tags, register_tags_in,
+    walk::{self, EdgeType},
+};
 
 pub mod extension;
 pub mod prelude;
@@ -383,45 +386,28 @@ pub mod seal;
 
 mod string_utils;
 
+#[cfg(feature = "recipient")]
+pub use bc_components::{EncapsulationPrivateKey, Encrypter, SigningOptions};
+#[cfg(feature = "recipient")]
+pub use bc_components::{PrivateKeyBase, PublicKeys};
 #[cfg(feature = "signature")]
-pub use bc_components::{ Signer, Verifier };
-
+pub use bc_components::{Signer, Verifier};
 #[cfg(feature = "signature")]
 pub use extension::SignatureMetadata;
-
-#[cfg(feature = "recipient")]
-pub use bc_components::{ EncapsulationPrivateKey, Encrypter, SigningOptions };
-
-#[cfg(feature = "recipient")]
-pub use bc_components::{ PrivateKeyBase, PublicKeys };
-
 #[cfg(feature = "known_value")]
-pub use known_values::{ self, KnownValue, KnownValuesStore, KNOWN_VALUES };
+pub use known_values::{self, KNOWN_VALUES, KnownValue, KnownValuesStore};
 
 #[cfg(feature = "known_value")]
 /// Converts a KnownValue to an Envelope.
 impl EnvelopeEncodable for KnownValue {
-    fn into_envelope(self) -> Envelope {
-        Envelope::new_with_known_value(self)
-    }
+    fn into_envelope(self) -> Envelope { Envelope::new_with_known_value(self) }
 }
 
+#[cfg(feature = "attachment")]
+pub use extension::attachment::{Attachable, Attachments};
 #[cfg(feature = "expression")]
 pub use extension::expressions::{
-    functions,
-    parameters,
-    Event,
-    EventBehavior,
-    Expression,
-    ExpressionBehavior,
-    Function,
-    IntoExpression,
-    Parameter,
-    Request,
-    RequestBehavior,
-    Response,
-    ResponseBehavior,
+    Event, EventBehavior, Expression, ExpressionBehavior, Function,
+    IntoExpression, Parameter, Request, RequestBehavior, Response,
+    ResponseBehavior, functions, parameters,
 };
-
-#[cfg(feature = "attachment")]
-pub use extension::attachment::{ Attachments, Attachable };
