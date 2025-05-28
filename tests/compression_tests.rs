@@ -45,7 +45,7 @@ fn test_compress_subject() {
         .wrap_envelope()
         .add_signature_opt(&alice_private_key(), Some(options), None);
     assert_eq!(original.to_cbor_data().len(), 458);
-    let s = original.tree_format(false);
+    let s = original.tree_format();
     // println!("{}", s);
     #[rustfmt::skip]
     assert_eq!(s, indoc! {r#"
@@ -62,7 +62,7 @@ fn test_compress_subject() {
     "#}.trim());
     let compressed = original.compress_subject().unwrap().check_encoding().unwrap();
     assert_eq!(compressed.clone().to_cbor_data().len(), 374);
-    let s = compressed.tree_format(false);
+    let s = compressed.tree_format();
     // println!("{}", s);
     #[rustfmt::skip]
     assert_eq!(s, indoc! {r#"

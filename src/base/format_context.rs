@@ -21,6 +21,19 @@ use crate::Envelope;
 #[cfg(any(feature = "expression", feature = "known_value"))]
 use crate::string_utils::StringUtils;
 
+#[derive(Clone)]
+pub enum FormatContextOpt {
+    None,
+    Global,
+    Custom(&'static FormatContext),
+}
+
+impl Default for FormatContextOpt {
+    fn default() -> Self {
+        FormatContextOpt::Global
+    }
+}
+
 /// Context object for formatting Gordian Envelopes with annotations.
 ///
 /// The `FormatContext` provides information about CBOR tags, known values, functions,

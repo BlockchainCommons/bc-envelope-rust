@@ -27,9 +27,10 @@ pub mod queries;
 pub mod format;
 pub mod format_context;
 pub use format_context::*;
-pub use format_context::{ FormatContext, GLOBAL_FORMAT_CONTEXT };
+pub use format_context::{ FormatContext, FormatContextOpt, GLOBAL_FORMAT_CONTEXT };
 
 pub mod tree_format;
+pub use tree_format::TreeFormatOpts;
 
 /// Types dealing with recursive walking of envelopes.
 ///

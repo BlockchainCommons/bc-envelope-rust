@@ -40,7 +40,7 @@ fn test_envelope_non_correlation() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(e2.tree_format(false), indoc! {r#"
+    assert_eq!(e2.tree_format(), indoc! {r#"
         4f0f2d55 NODE
             8cc96cdb subj "Hello."
             dd412f1d ASSERTION
