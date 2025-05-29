@@ -7,7 +7,7 @@ pub use crate::SignatureMetadata;
 pub use crate::{Attachable, Attachments};
 pub use crate::{
     DigestDisplayFormat, Envelope, EnvelopeEncodable, Error as EnvelopeError,
-    FormatContext, FormatContextOpt, Result as EnvelopeResult,
+    FormatContext, FormatContextOpt, Result as EnvelopeResult, TreeFormatOpts,
     elide::{self, ObscureAction},
     register_tags, register_tags_in,
     walk::EdgeType,
@@ -17,7 +17,7 @@ pub use crate::{
 pub use crate::{
     Event, EventBehavior, Expression, ExpressionBehavior, Function,
     IntoExpression, Parameter, Request, RequestBehavior, Response,
-    ResponseBehavior, TreeFormatOpts, functions, parameters,
+    ResponseBehavior, functions, parameters,
 };
 #[cfg(feature = "known_value")]
 pub use crate::{KnownValue, KnownValuesStore, known_values};
