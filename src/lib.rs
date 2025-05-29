@@ -373,8 +373,9 @@
 
 pub mod base;
 pub use base::{
-    Assertion, Envelope, EnvelopeEncodable, Error, FormatContext,
-    FormatContextOpt, GLOBAL_FORMAT_CONTEXT, Result, TreeFormatOpts,
+    Assertion, DigestDisplayFormat, Envelope, EnvelopeEncodable, Error,
+    FormatContext, FormatContextOpt, GLOBAL_FORMAT_CONTEXT, Result,
+    TreeFormatOpts,
     elide::{self, ObscureAction},
     register_tags, register_tags_in,
     walk::{self, EdgeType},

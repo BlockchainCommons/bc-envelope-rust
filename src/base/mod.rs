@@ -14,7 +14,7 @@ pub use envelope::Envelope;
 pub mod elide;
 
 pub mod error;
-pub use error::{ Error, Result };
+pub use error::{Error, Result};
 
 pub mod envelope_encodable;
 pub use envelope_encodable::EnvelopeEncodable;
@@ -26,11 +26,12 @@ pub mod queries;
 /// Types dealing with formatting envelopes.
 pub mod format;
 pub mod format_context;
-pub use format_context::*;
-pub use format_context::{ FormatContext, FormatContextOpt, GLOBAL_FORMAT_CONTEXT };
+pub use format_context::{
+    FormatContext, FormatContextOpt, GLOBAL_FORMAT_CONTEXT, *,
+};
 
 pub mod tree_format;
-pub use tree_format::TreeFormatOpts;
+pub use tree_format::{DigestDisplayFormat, TreeFormatOpts};
 
 /// Types dealing with recursive walking of envelopes.
 ///

@@ -6,8 +6,8 @@ pub use crate::SignatureMetadata;
 #[cfg(feature = "attachment")]
 pub use crate::{Attachable, Attachments};
 pub use crate::{
-    Envelope, EnvelopeEncodable, Error as EnvelopeError, FormatContext,
-    FormatContextOpt, Result as EnvelopeResult,
+    DigestDisplayFormat, Envelope, EnvelopeEncodable, Error as EnvelopeError,
+    FormatContext, FormatContextOpt, Result as EnvelopeResult,
     elide::{self, ObscureAction},
     register_tags, register_tags_in,
     walk::EdgeType,

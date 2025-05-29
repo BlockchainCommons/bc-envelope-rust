@@ -41,6 +41,7 @@
 use std::{cell::RefCell, collections::HashSet};
 
 use bc_components::{Digest, DigestProvider};
+use bc_ur::UREncodable;
 
 use super::{
     EnvelopeSummary, FormatContextOpt, envelope::EnvelopeCase, walk::EdgeType,
@@ -49,11 +50,26 @@ use crate::{Envelope, FormatContext, with_format_context};
 #[cfg(feature = "known_value")]
 use crate::{extension::KnownValuesStore, string_utils::StringUtils};
 
+#[derive(Clone, Copy)]
+pub enum DigestDisplayFormat {
+    /// Default: Display a shortened version of the digest (first 8 characters).
+    Short,
+    /// Display the full digest for each element in the tree.
+    Full,
+    /// Display a `ur:digest` UR for each element in the tree.
+    UR,
+}
+
+impl Default for DigestDisplayFormat {
+    fn default() -> Self { DigestDisplayFormat::Short }
+}
+
 #[derive(Clone, Default)]
 pub struct TreeFormatOpts {
     hide_nodes: bool,
     highlighting_target: HashSet<Digest>,
     context: FormatContextOpt,
+    digest_display: DigestDisplayFormat,
 }
 
 impl TreeFormatOpts {
@@ -72,6 +88,12 @@ impl TreeFormatOpts {
     /// Sets the formatting context for the tree representation.
     pub fn context(mut self, context: FormatContextOpt) -> Self {
         self.context = context;
+        self
+    }
+
+    /// Sets the digest display option for the tree representation.
+    pub fn digest_display(mut self, opt: DigestDisplayFormat) -> Self {
+        self.digest_display = opt;
         self
     }
 }
@@ -116,36 +138,40 @@ impl Envelope {
 
         let elements = elements.borrow();
 
+        // Closure to format elements with a given context and digest option
+        let format_elements =
+            |elements: &[TreeElement], context: &FormatContext| -> String {
+                elements
+                    .iter()
+                    .map(|e| e.string(context, opts.digest_display))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            };
+
         match &opts.context {
             FormatContextOpt::None => {
                 let context_ref = &FormatContext::default();
-                elements
-                    .iter()
-                    .map(|e| e.string(context_ref))
-                    .collect::<Vec<_>>()
-                    .join("\n")
+                format_elements(&elements, context_ref)
             }
             FormatContextOpt::Global => {
                 with_format_context!(|context| {
-                    elements
-                        .iter()
-                        .map(|e| e.string(context))
-                        .collect::<Vec<_>>()
-                        .join("\n")
+                    format_elements(&elements, context)
                 })
             }
-            FormatContextOpt::Custom(ctx) => elements
-                .iter()
-                .map(|e| e.string(ctx))
-                .collect::<Vec<_>>()
-                .join("\n"),
+            FormatContextOpt::Custom(ctx) => format_elements(&elements, ctx),
         }
     }
 }
 
 impl Envelope {
-    /// Returns a shortened hexadecimal representation of the envelope's digest.
-    pub fn short_id(&self) -> String { self.digest().short_description() }
+    /// Returns a text representation of the envelope's digest.
+    pub fn short_id(&self, opt: DigestDisplayFormat) -> String {
+        match opt {
+            DigestDisplayFormat::Short => self.digest().short_description(),
+            DigestDisplayFormat::Full => self.digest().hex(),
+            DigestDisplayFormat::UR => self.digest().ur_string(),
+        }
+    }
 
     /// Returns a short summary of the envelope's content with a maximum length.
     ///
@@ -224,10 +250,11 @@ impl TreeElement {
     }
 
     /// Formats the tree element as a string.
-    ///
-    /// # Arguments
-    /// * `context` - The formatting context
-    fn string(&self, context: &FormatContext) -> String {
+    fn string(
+        &self,
+        context: &FormatContext,
+        digest_display: DigestDisplayFormat,
+    ) -> String {
         let line = vec![
             if self.is_highlighted {
                 Some("*".to_string())
@@ -235,7 +262,7 @@ impl TreeElement {
                 None
             },
             if self.show_id {
-                Some(self.envelope.short_id())
+                Some(self.envelope.short_id(digest_display))
             } else {
                 None
             },

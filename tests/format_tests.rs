@@ -25,23 +25,39 @@ use crate::common::{check_encoding::*, test_data::*};
 #[test]
 fn test_plaintext() {
     let envelope = Envelope::new(PLAINTEXT_HELLO);
+
     #[rustfmt::skip]
     assert_eq!(envelope.format(), indoc! {r#"
         "Hello."
     "#}.trim());
+
     assert_eq!(envelope.format_flat(), r#""Hello.""#);
+
     #[rustfmt::skip]
     assert_eq!(envelope.tree_format(), indoc! {r#"
         8cc96cdb "Hello."
     "#}.trim());
+
     #[rustfmt::skip]
     assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().context(FormatContextOpt::None)), indoc! {r#"
         8cc96cdb "Hello."
     "#}.trim());
+
+    #[rustfmt::skip]
+    assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().digest_display(DigestDisplayFormat::Full)), indoc! {r#"
+        8cc96cdb771176e835114a0f8936690b41cfed0df22d014eedd64edaea945d59 "Hello."
+    "#}.trim());
+
+    #[rustfmt::skip]
+    assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().digest_display(DigestDisplayFormat::UR)), indoc! {r#"
+        ur:digest/hdcxlksojzuyktbykovsecbygebsldeninbdfptkwebtwzdpadglwetbgltnwdmwhlhksbbthtpy "Hello."
+    "#}.trim());
+
     #[rustfmt::skip]
     assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         "Hello."
     "#}.trim());
+
     assert_eq!(
         envelope.elements_count(),
         envelope.tree_format().split('\n').count()
@@ -58,16 +74,19 @@ fn test_signed_plaintext() {
         Some(options),
         None,
     );
+
     #[rustfmt::skip]
     assert_eq!(envelope.format(), indoc! {r#"
         "Hello." [
             'signed': Signature
         ]
     "#}.trim());
+
     assert_eq!(
         envelope.format_flat(),
         r#""Hello." [ 'signed': Signature ]"#
     );
+
     let s = envelope.tree_format();
     #[rustfmt::skip]
     assert_eq!(s, indoc! {r#"
@@ -77,6 +96,7 @@ fn test_signed_plaintext() {
                 d0e39e78 pred 'signed'
                 b8bb043f obj Signature
     "#}.trim());
+
     let s = envelope.tree_format_opt(
         TreeFormatOpts::default().context(FormatContextOpt::None),
     );
@@ -88,6 +108,7 @@ fn test_signed_plaintext() {
                 d0e39e78 pred '3'
                 b8bb043f obj 40020(h'd0f6b2577edb3f4b0f533e21577bc12a58aaca2604bc71e84bd4e2c81421900bca361a1a8de3b7dbfe1cb5c16e34cb8c9a78fe6f7a387e959bbb15f6f3d898d3')
     "#}.trim());
+
     #[rustfmt::skip]
     assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         "Hello."
@@ -95,6 +116,7 @@ fn test_signed_plaintext() {
                 'signed'
                 Signature
     "#}.trim());
+
     let s = envelope.tree_format_opt(
         TreeFormatOpts::default()
             .hide_nodes(true)
@@ -127,7 +149,9 @@ fn test_encrypt_subject() {
             "knows": "Bob"
         ]
     "#}.trim());
+
     assert_eq!(envelope.format_flat(), r#"ENCRYPTED [ "knows": "Bob" ]"#);
+
     #[rustfmt::skip]
     assert_eq!(envelope.tree_format(), indoc! {r#"
         8955db5e NODE
@@ -136,6 +160,7 @@ fn test_encrypt_subject() {
                 db7dd21c pred "knows"
                 13b74194 obj "Bob"
     "#}.trim());
+
     #[rustfmt::skip]
     assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         ENCRYPTED
@@ -143,6 +168,7 @@ fn test_encrypt_subject() {
                 "knows"
                 "Bob"
     "#}.trim());
+
     assert_eq!(
         envelope.elements_count(),
         envelope.tree_format().split('\n').count()
@@ -156,19 +182,23 @@ fn test_top_level_assertion() {
     assert_eq!(envelope.format(), indoc! {r#"
         "knows": "Bob"
     "#}.trim());
+
     assert_eq!(envelope.format_flat(), r#""knows": "Bob""#);
+
     #[rustfmt::skip]
     assert_eq!(envelope.tree_format(), indoc! {r#"
         78d666eb ASSERTION
             db7dd21c pred "knows"
             13b74194 obj "Bob"
     "#}.trim());
+
     #[rustfmt::skip]
     assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         ASSERTION
             "knows"
             "Bob"
     "#}.trim());
+
     assert_eq!(
         envelope.elements_count(),
         envelope.tree_format().split('\n').count()
@@ -185,7 +215,9 @@ fn test_elided_object() {
             "knows": ELIDED
         ]
     "#}.trim());
+
     assert_eq!(elided.format_flat(), r#""Alice" [ "knows": ELIDED ]"#);
+
     #[rustfmt::skip]
     assert_eq!(elided.tree_format(), indoc! {r#"
         8955db5e NODE
@@ -194,6 +226,7 @@ fn test_elided_object() {
                 db7dd21c pred "knows"
                 13b74194 obj ELIDED
     "#}.trim());
+
     #[rustfmt::skip]
     assert_eq!(elided.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         "Alice"
@@ -201,6 +234,7 @@ fn test_elided_object() {
                 "knows"
                 ELIDED
     "#}.trim());
+
     assert_eq!(
         elided.elements_count(),
         elided.tree_format().split('\n').count()
@@ -224,10 +258,12 @@ fn test_signed_subject() {
             'signed': Signature
         ]
     "#}.trim());
+
     assert_eq!(
         envelope.format_flat(),
         r#""Alice" [ "knows": "Bob", "knows": "Carol", 'signed': Signature ]"#
     );
+
     let s = envelope.tree_format();
     // println!("{}", s);
     #[rustfmt::skip]
@@ -244,6 +280,7 @@ fn test_signed_subject() {
                 db7dd21c pred "knows"
                 13b74194 obj "Bob"
     "#}.trim());
+
     let s =
         envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true));
     // println!("{}", s);
@@ -260,6 +297,7 @@ fn test_signed_subject() {
                 "knows"
                 "Bob"
     "#}.trim());
+
     assert_eq!(
         envelope.elements_count(),
         envelope.tree_format().split('\n').count()
@@ -276,7 +314,9 @@ fn test_signed_subject() {
             ELIDED (3)
         ]
     "#}.trim());
+
     assert_eq!(elided.format_flat(), r#""Alice" [ ELIDED (3) ]"#);
+
     let s = elided.tree_format();
     // println!("{}", s);
     #[rustfmt::skip]
@@ -287,6 +327,7 @@ fn test_signed_subject() {
             4012caf2 ELIDED
             78d666eb ELIDED
     "#}.trim());
+
     #[rustfmt::skip]
     assert_eq!(elided.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         "Alice"
@@ -294,6 +335,7 @@ fn test_signed_subject() {
             ELIDED
             ELIDED
     "#}.trim());
+
     assert_eq!(
         elided.elements_count(),
         elided.tree_format().split('\n').count()
@@ -321,12 +363,13 @@ fn test_wrap_then_signed() {
             'signed': Signature
         ]
     "#}.trim());
+
     assert_eq!(
         envelope.format_flat(),
         r#"{ "Alice" [ "knows": "Bob", "knows": "Carol" ] } [ 'signed': Signature ]"#
     );
+
     let s = envelope.tree_format();
-    // println!("{}", s);
     #[rustfmt::skip]
     assert_eq!(s, indoc! {r#"
         66c9d594 NODE
@@ -343,9 +386,9 @@ fn test_wrap_then_signed() {
                 d0e39e78 pred 'signed'
                 e30a727c obj Signature
     "#}.trim());
+
     let s =
         envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true));
-    // println!("{}", s);
     #[rustfmt::skip]
     assert_eq!(s, indoc! {r#"
         WRAPPED
@@ -360,6 +403,47 @@ fn test_wrap_then_signed() {
                 'signed'
                 Signature
     "#}.trim());
+
+    let s = envelope.tree_format_opt(
+        TreeFormatOpts::default().digest_display(DigestDisplayFormat::Full),
+    );
+    #[rustfmt::skip]
+    assert_eq!(s, indoc! {r#"
+        66c9d5944eaedc418d8acf52df7842f50c2aa2d0da2857ad1048412cd070c3e8 NODE
+            9e3b06737407b10cac0b9353dd978c4a68537709554dabdd66a8b68b8bd36cf6 subj WRAPPED
+                b8d857f6e06a836fbc68ca0ce43e55ceb98eefd949119dab344e11c4ba5a0471 subj NODE
+                    13941b487c1ddebce827b6ec3f46d982938acdc7e3b6a140db36062d9519dd2f subj "Alice"
+                    4012caf2d96bf3962514bcfdcf8dd70c351735dec72c856ec5cdcf2ee35d6a91 ASSERTION
+                        db7dd21c5169b4848d2a1bcb0a651c9617cdd90bae29156baaefbb2a8abef5ba pred "knows"
+                        afb8122e3227657b415f9f1c930d4891fb040b3e23c1f7770f185e2d0396c737 obj "Carol"
+                    78d666eb8f4c0977a0425ab6aa21ea16934a6bc97c6f0c3abaefac951c1714a2 ASSERTION
+                        db7dd21c5169b4848d2a1bcb0a651c9617cdd90bae29156baaefbb2a8abef5ba pred "knows"
+                        13b741949c37b8e09cc3daa3194c58e4fd6b2f14d4b1d0f035a46d6d5a1d3f11 obj "Bob"
+            f13623dac926c57e2ac128868dfaa22fb8e434a7e4a552029992d6f6283da533 ASSERTION
+                d0e39e788c0d8f0343af4588db21d3d51381db454bdf710a9a1891aaa537693c pred 'signed'
+                e30a727cc1f43fbe3c9fd228447c34faaf6b54101bf7bcd766e280f8449ceade obj Signature
+    "#}.trim());
+
+    let s = envelope.tree_format_opt(
+        TreeFormatOpts::default().digest_display(DigestDisplayFormat::UR),
+    );
+    #[rustfmt::skip]
+    assert_eq!(s, indoc! {r#"
+        ur:digest/hdcxiysotlmwglpluofplgletkgmurksfwykbndroetitndehgpmbefdfpdwtijosrvsbsdlsndm NODE
+            ur:digest/hdcxnnframjkjyatpabnpsbdmuguutmslkgeisguktasgogtpyutiypdrplulutejzynmygrnlly subj WRAPPED
+                ur:digest/hdcxrotphgynvtimlsjlrfissgbnvefmgotorhmnwstagabyntpyeeglbyssrdhtaajsaetafrbw subj NODE
+                    ur:digest/hdcxbwmwcwfdkecauerfvsdirpwpfhfgtalfmulesnstvlrpoyfzuyenamdpmdcfutdlstyaqzrk subj "Alice"
+                    ur:digest/hdcxfzbgsgwztajewfmtdabbrfzctklgtsbnecchecuestdwlpjtsksntkdmvlhlimmetlcpiyms ASSERTION
+                        ur:digest/hdcxuykitdcegyinqzlrlgdrcwsbbkihcemtchsntabdpldtbzjepkwsrkdrlernykrddpjtgdfh pred "knows"
+                        ur:digest/hdcxperobgdmeydiihkgfphenecemubtfdmezoaabdfmcnseylktbscshydpaxmtstemtarhmngd obj "Carol"
+                    ur:digest/hdcxkstbiywmmygsasktnbfwhtrppkclwdcmmugejesokejlbnftrdwspsmdcechbboerhzebtws ASSERTION
+                        ur:digest/hdcxuykitdcegyinqzlrlgdrcwsbbkihcemtchsntabdpldtbzjepkwsrkdrlernykrddpjtgdfh pred "knows"
+                        ur:digest/hdcxbwrlfpmwnsemrovtnssrtnotcfgshdvezcjedlbbtypatiwtecoxjnjnhtcafhbysptsnsnl obj "Bob"
+            ur:digest/hdcxwnencntnsodsskkbdrsedelnlgzsoedlroveeeosveongmaonlmotbyndefsoneorfutayas ASSERTION
+                ur:digest/hdcxtivlnnkslkbtmyaxfxpefelouycltetlbwlyuyfegrurjsbknycsmepkoneminfnrpjpssla pred 'signed'
+                ur:digest/hdcxvlbkjpkesewkfhrnfnnetddefykeeezspejeghbecwylrftsiyvolayafynswduefytsgaos obj Signature
+    "#}.trim());
+
     assert_eq!(
         envelope.elements_count(),
         envelope.tree_format().split('\n').count()
@@ -395,10 +479,12 @@ fn test_encrypt_to_recipients() {
             'hasRecipient': SealedMessage
         ]
     "#}.trim());
+
     assert_eq!(
         envelope.format_flat(),
         r#"ENCRYPTED [ 'hasRecipient': SealedMessage, 'hasRecipient': SealedMessage ]"#
     );
+
     #[rustfmt::skip]
     assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         ENCRYPTED
@@ -409,6 +495,7 @@ fn test_encrypt_to_recipients() {
                 'hasRecipient'
                 SealedMessage
     "#}.trim());
+
     assert_eq!(
         envelope.elements_count(),
         envelope.tree_format().split('\n').count()
@@ -436,10 +523,12 @@ fn test_assertion_positions() {
             ]
         ]
     "#}.trim());
+
     assert_eq!(
         envelope.format_flat(),
         r#""subject" [ "predicate" [ "predicate-predicate": "predicate-object" ] : "object" [ "object-predicate": "object-object" ] ]"#
     );
+
     #[rustfmt::skip]
     assert_eq!(envelope.tree_format(), indoc! {r#"
         e06d7003 NODE
@@ -456,6 +545,7 @@ fn test_assertion_positions() {
                         88bb262f pred "object-predicate"
                         0bdb89a6 obj "object-object"
     "#}.trim());
+
     #[rustfmt::skip]
     assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         "subject"
@@ -469,6 +559,7 @@ fn test_assertion_positions() {
                         "object-predicate"
                         "object-object"
     "#}.trim());
+
     assert_eq!(
         envelope.elements_count(),
         envelope.tree_format().split('\n').count()
@@ -640,6 +731,7 @@ fn test_complex_metadata() {
                                 'language'
                                 "en"
     "#}.trim());
+
     assert_eq!(
         book_metadata.elements_count(),
         book_metadata.tree_format().split('\n').count()
@@ -709,10 +801,12 @@ fn test_credential() {
             'signed': Signature
         ]
     "#}.trim());
+
     assert_eq!(
         credential.format_flat(),
         r#"{ ARID(4676635a) [ 'isA': "Certificate of Completion", "certificateNumber": "123-456-789", "continuingEducationUnits": 1, "expirationDate": 2028-01-01, "firstName": "James", "issueDate": 2020-01-01, "lastName": "Maxwell", "photo": "This is James Maxwell's photo.", "professionalDevelopmentHours": 15, "subject": "RF and Microwave Engineering", "topics": ["Subject 1", "Subject 2"], 'controller': "Example Electrical Engineering Board", 'issuer': "Example Electrical Engineering Board" ] } [ 'note': "Signed by Example Electrical Engineering Board", 'signed': Signature ]"#
     );
+
     let s = credential.tree_format();
     // println!("{}", s);
     #[rustfmt::skip]
@@ -767,6 +861,7 @@ fn test_credential() {
                 0fcd6a39 pred 'note'
                 f106bad1 obj "Signed by Example Electrical Engineering…"
     "#}.trim());
+
     #[rustfmt::skip]
     assert_eq!(credential.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         WRAPPED
@@ -817,6 +912,7 @@ fn test_credential() {
                 'note'
                 "Signed by Example Electrical Engineering…"
     "#}.trim());
+
     assert_eq!(
         credential.elements_count(),
         credential.tree_format().split('\n').count()
@@ -888,6 +984,7 @@ fn test_redacted_credential() {
         .add_signature_opt(&bob_private_key(), Some(options), None)
         .check_encoding()
         .unwrap();
+
     #[rustfmt::skip]
     assert_eq!(warranty.format(), indoc! {r#"
         {
@@ -915,10 +1012,12 @@ fn test_redacted_credential() {
             'signed': Signature
         ]
     "#}.trim());
+
     assert_eq!(
         warranty.format_flat(),
         r#"{ { { ARID(4676635a) [ 'isA': "Certificate of Completion", "expirationDate": 2028-01-01, "firstName": "James", "lastName": "Maxwell", "subject": "RF and Microwave Engineering", 'issuer': "Example Electrical Engineering Board", ELIDED (7) ] } [ 'note': "Signed by Example Electrical Engineering Board", 'signed': Signature ] } [ "employeeHiredDate": 2022-01-01, "employeeStatus": "active" ] } [ 'note': "Signed by Employer Corp.", 'signed': Signature ]"#
     );
+
     let s = warranty.tree_format();
     // println!("{}", s);
     #[rustfmt::skip]
@@ -975,6 +1074,7 @@ fn test_redacted_credential() {
                 d0e39e78 pred 'signed'
                 5ba600c9 obj Signature
     "#}.trim());
+
     let s =
         warranty.tree_format_opt(TreeFormatOpts::default().hide_nodes(true));
     // println!("{}", s);
@@ -1028,6 +1128,7 @@ fn test_redacted_credential() {
                 'signed'
                 Signature
     "#}.trim());
+
     assert_eq!(
         warranty.elements_count(),
         warranty.tree_format().split('\n').count()
