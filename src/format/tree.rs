@@ -44,9 +44,9 @@ use bc_components::{Digest, DigestProvider};
 use bc_ur::UREncodable;
 
 use super::{
-    EnvelopeSummary, FormatContextOpt, envelope::EnvelopeCase, walk::EdgeType,
+    EnvelopeSummary, FormatContextOpt,
 };
-use crate::{Envelope, FormatContext, with_format_context};
+use crate::{base::envelope::EnvelopeCase, with_format_context, EdgeType, Envelope, FormatContext};
 #[cfg(feature = "known_value")]
 use crate::{extension::KnownValuesStore, string_utils::StringUtils};
 
@@ -65,14 +65,14 @@ impl Default for DigestDisplayFormat {
 }
 
 #[derive(Clone, Default)]
-pub struct TreeFormatOpts {
+pub struct TreeFormatOpts<'a> {
     hide_nodes: bool,
     highlighting_target: HashSet<Digest>,
-    context: FormatContextOpt,
+    context: FormatContextOpt<'a>,
     digest_display: DigestDisplayFormat,
 }
 
-impl TreeFormatOpts {
+impl<'a> TreeFormatOpts<'a> {
     /// Sets whether to hide NODE identifiers in the tree representation.
     pub fn hide_nodes(mut self, hide: bool) -> Self {
         self.hide_nodes = hide;
@@ -86,7 +86,7 @@ impl TreeFormatOpts {
     }
 
     /// Sets the formatting context for the tree representation.
-    pub fn context(mut self, context: FormatContextOpt) -> Self {
+    pub fn context(mut self, context: FormatContextOpt<'a>) -> Self {
         self.context = context;
         self
     }
@@ -116,7 +116,7 @@ impl Envelope {
     ///   representation. Default is an empty set.
     /// * `context` - Formatting context. Default is
     ///   `TreeFormatContext::Global`.
-    pub fn tree_format_opt(&self, opts: TreeFormatOpts) -> String {
+    pub fn tree_format_opt<'a>(&self, opts: TreeFormatOpts<'a>) -> String {
         let elements: RefCell<Vec<TreeElement>> = RefCell::new(Vec::new());
         let visitor = |envelope: Self,
                        level: usize,

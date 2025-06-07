@@ -37,11 +37,11 @@
 
 use bc_components::XID;
 use dcbor::prelude::*;
-use crate::{Envelope, Assertion, string_utils::StringUtils, FormatContext, with_format_context};
+use crate::{base::envelope::EnvelopeCase, string_utils::StringUtils, with_format_context, Assertion, Envelope, FormatContext};
 #[cfg(feature = "known_value")]
 use crate::{KnownValue, known_values};
 
-use super::{EnvelopeSummary, envelope::EnvelopeCase};
+use super::EnvelopeSummary;
 
 /// Support for the various text output formats for ``Envelope``.
 impl Envelope {
@@ -70,46 +70,6 @@ impl Envelope {
         })
     }
 
-    /// Returns the CBOR diagnostic notation for this envelope, with annotations.
-    ///
-    /// See [RFC-8949 §8](https://www.rfc-editor.org/rfc/rfc8949.html#name-diagnostic-notation)
-    /// for information on CBOR diagnostic notation.
-    pub fn diagnostic_annotated(&self) -> String {
-        with_format_context!(|context: &FormatContext| {
-            self.tagged_cbor().diagnostic_opt(true, false, false, Some(context.tags()))
-        })
-    }
-
-    /// Returns the CBOR diagnostic notation for this envelope.
-    ///
-    /// Uses the current format context.
-    ///
-    /// See [RFC-8949 §8](https://www.rfc-editor.org/rfc/rfc8949.html#name-diagnostic-notation)
-    /// for information on CBOR diagnostic notation.
-    pub fn diagnostic(&self) -> String {
-        self.tagged_cbor().diagnostic()
-    }
-
-    /// Returns the CBOR hex dump of this envelope.
-    ///
-    /// See [RFC-8949](https://www.rfc-editor.org/rfc/rfc8949.html) for information on
-    /// the CBOR binary format.
-    pub fn hex_opt(&self, annotate: bool, context: Option<&FormatContext>) -> String {
-        let cbor: CBOR = self.clone().into();
-        cbor.hex_opt(annotate, Some(context.unwrap_or(&FormatContext::default()).tags()))
-    }
-
-    /// Returns the CBOR hex dump of this envelope.
-    ///
-    /// Uses the current format context.
-    ///
-    /// See [RFC-8949](https://www.rfc-editor.org/rfc/rfc8949.html) for information on
-    /// the CBOR binary format.
-    pub fn hex(&self) -> String {
-        with_format_context!(|context| {
-            self.hex_opt(true, Some(context))
-        })
-    }
 }
 
 /// Implementers of this trait define how to be formatted in when output in envelope notation.
@@ -337,18 +297,6 @@ impl Ord for EnvelopeFormatItem {
         }
     }
 }
-
-// impl EnvelopeFormat for Digest {
-//     fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
-//         EnvelopeFormatItem::Item(hex::encode(self.data()))
-//     }
-// }
-
-// impl EnvelopeFormat for ARID {
-//     fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
-//         EnvelopeFormatItem::Item(hex::encode(self.data()))
-//     }
-// }
 
 /// Implements formatting for CBOR values in envelope notation.
 impl EnvelopeFormat for CBOR {

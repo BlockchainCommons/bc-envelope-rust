@@ -21,10 +21,11 @@ impl EnvelopeSummary for CBOR {
                 };
                 Ok(string.replace('\n', "\\n").flanked_by("\"", "\""))
             }
-            CBORCase::Array(_) => Ok(self.summary_opt(context)),
-            CBORCase::Map(_) => Ok(self.summary_opt(context)),
+            CBORCase::Array(_) => Ok(self.diagnostic_opt(DiagFormatOpts::default().summarize(true).tags(TagsStoreOpt::Custom(context.tags())))),
+
+            CBORCase::Map(_) => Ok(self.diagnostic_opt(DiagFormatOpts::default().summarize(true).tags(TagsStoreOpt::Custom(context.tags())))),
             CBORCase::Simple(v) => Ok(v.to_string()),
-            CBORCase::Tagged(_, _) => Ok(self.summary_opt(context)),
+            CBORCase::Tagged(_, _) => Ok(self.diagnostic_opt(DiagFormatOpts::default().summarize(true).tags(TagsStoreOpt::Custom(context.tags())))),
         }
     }
 }

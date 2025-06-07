@@ -23,16 +23,6 @@ pub mod envelope_decodable;
 
 pub mod queries;
 
-/// Types dealing with formatting envelopes.
-pub mod format;
-pub mod format_context;
-pub use format_context::{
-    FormatContext, FormatContextOpt, GLOBAL_FORMAT_CONTEXT, *,
-};
-
-pub mod tree_format;
-pub use tree_format::{DigestDisplayFormat, TreeFormatOpts};
-
 /// Types dealing with recursive walking of envelopes.
 ///
 /// The [`Envelope`] type itself has functions for walking envelopes.
@@ -40,5 +30,3 @@ pub mod walk;
 
 pub mod wrap;
 
-pub mod envelope_summary;
-pub use envelope_summary::EnvelopeSummary;

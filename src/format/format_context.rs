@@ -22,15 +22,25 @@ use crate::Envelope;
 use crate::string_utils::StringUtils;
 
 #[derive(Clone)]
-pub enum FormatContextOpt {
+pub enum FormatContextOpt<'a> {
     None,
     Global,
-    Custom(&'static FormatContext),
+    Custom(&'a FormatContext),
 }
 
-impl Default for FormatContextOpt {
+impl<'a> Default for FormatContextOpt<'a> {
     fn default() -> Self {
         FormatContextOpt::Global
+    }
+}
+
+impl<'a> From<FormatContextOpt<'a>> for TagsStoreOpt<'a> {
+    fn from(opt: FormatContextOpt<'a>) -> Self {
+        match opt {
+            FormatContextOpt::None => TagsStoreOpt::None,
+            FormatContextOpt::Global => TagsStoreOpt::Global,
+            FormatContextOpt::Custom(context) => TagsStoreOpt::Custom(context.tags()),
+        }
     }
 }
 
