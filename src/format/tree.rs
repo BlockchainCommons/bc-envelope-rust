@@ -43,13 +43,11 @@ use std::{cell::RefCell, collections::HashSet};
 use bc_components::{Digest, DigestProvider};
 use bc_ur::UREncodable;
 
-use super::{EnvelopeSummary, FormatContextOpt};
+use super::FormatContextOpt;
 use crate::{
-    EdgeType, Envelope, FormatContext, base::envelope::EnvelopeCase,
+    EdgeType, Envelope, FormatContext,
     with_format_context,
 };
-#[cfg(feature = "known_value")]
-use crate::{extension::KnownValuesStore, string_utils::StringUtils};
 
 #[derive(Clone, Copy)]
 pub enum DigestDisplayFormat {
@@ -104,7 +102,7 @@ impl Envelope {
     /// Returns a tree-formatted string representation of the envelope with
     /// default options.
     pub fn tree_format(&self) -> String {
-        self.tree_format_opt(TreeFormatOpts::default())
+        self.tree_format_opt(&TreeFormatOpts::default())
     }
 
     /// Returns a tree-formatted string representation of the envelope with the
@@ -117,7 +115,7 @@ impl Envelope {
     ///   representation. Default is an empty set.
     /// * `context` - Formatting context. Default is
     ///   `TreeFormatContext::Global`.
-    pub fn tree_format_opt<'a>(&self, opts: TreeFormatOpts<'a>) -> String {
+    pub fn tree_format_opt<'a>(&self, opts: &TreeFormatOpts<'a>) -> String {
         let elements: RefCell<Vec<TreeElement>> = RefCell::new(Vec::new());
         let visitor = |envelope: Self,
                        level: usize,
@@ -171,39 +169,6 @@ impl Envelope {
             DigestDisplayFormat::Short => self.digest().short_description(),
             DigestDisplayFormat::Full => self.digest().hex(),
             DigestDisplayFormat::UR => self.digest().ur_string(),
-        }
-    }
-
-    /// Returns a short summary of the envelope's content with a maximum length.
-    ///
-    /// # Arguments
-    /// * `max_length` - The maximum length of the summary
-    /// * `context` - The formatting context
-    pub fn summary(
-        &self,
-        max_length: usize,
-        context: &FormatContext,
-    ) -> String {
-        match self.case() {
-            EnvelopeCase::Node { .. } => "NODE".to_string(),
-            EnvelopeCase::Leaf { cbor, .. } => cbor
-                .envelope_summary(max_length, &FormatContextOpt::Custom(context))
-                .unwrap(),
-            EnvelopeCase::Wrapped { .. } => "WRAPPED".to_string(),
-            EnvelopeCase::Assertion(_) => "ASSERTION".to_string(),
-            EnvelopeCase::Elided(_) => "ELIDED".to_string(),
-            #[cfg(feature = "known_value")]
-            EnvelopeCase::KnownValue { value, .. } => {
-                let known_value = KnownValuesStore::known_value_for_raw_value(
-                    value.value(),
-                    Some(context.known_values()),
-                );
-                known_value.to_string().flanked_by("'", "'")
-            }
-            #[cfg(feature = "encrypt")]
-            EnvelopeCase::Encrypted(_) => "ENCRYPTED".to_string(),
-            #[cfg(feature = "compress")]
-            EnvelopeCase::Compressed(_) => "COMPRESSED".to_string(),
         }
     }
 }

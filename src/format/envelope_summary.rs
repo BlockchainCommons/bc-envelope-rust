@@ -1,7 +1,50 @@
 use anyhow::Result;
 use dcbor::prelude::*;
 
-use crate::{FormatContext, FormatContextOpt, string_utils::StringUtils};
+#[cfg(feature = "known_value")]
+use crate::extension::KnownValuesStore;
+use crate::{
+    Envelope, FormatContext, FormatContextOpt, base::envelope::EnvelopeCase,
+    string_utils::StringUtils,
+};
+
+impl Envelope {
+    /// Returns a short summary of the envelope's content with a maximum length.
+    ///
+    /// # Arguments
+    /// * `max_length` - The maximum length of the summary
+    /// * `context` - The formatting context
+    pub fn summary(
+        &self,
+        max_length: usize,
+        context: &FormatContext,
+    ) -> String {
+        match self.case() {
+            EnvelopeCase::Node { .. } => "NODE".to_string(),
+            EnvelopeCase::Leaf { cbor, .. } => cbor
+                .envelope_summary(
+                    max_length,
+                    &FormatContextOpt::Custom(context),
+                )
+                .unwrap(),
+            EnvelopeCase::Wrapped { .. } => "WRAPPED".to_string(),
+            EnvelopeCase::Assertion(_) => "ASSERTION".to_string(),
+            EnvelopeCase::Elided(_) => "ELIDED".to_string(),
+            #[cfg(feature = "known_value")]
+            EnvelopeCase::KnownValue { value, .. } => {
+                let known_value = KnownValuesStore::known_value_for_raw_value(
+                    value.value(),
+                    Some(context.known_values()),
+                );
+                known_value.to_string().flanked_by("'", "'")
+            }
+            #[cfg(feature = "encrypt")]
+            EnvelopeCase::Encrypted(_) => "ENCRYPTED".to_string(),
+            #[cfg(feature = "compress")]
+            EnvelopeCase::Compressed(_) => "COMPRESSED".to_string(),
+        }
+    }
+}
 
 pub trait EnvelopeSummary {
     fn envelope_summary<'a>(

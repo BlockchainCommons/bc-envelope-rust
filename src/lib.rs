@@ -382,6 +382,7 @@ pub mod format;
 pub use format::{
     DigestDisplayFormat, FormatContext, FormatContextOpt,
     GLOBAL_FORMAT_CONTEXT, TreeFormatOpts, register_tags, register_tags_in,
+    MermaidFormatOpts
 };
 
 pub mod extension;

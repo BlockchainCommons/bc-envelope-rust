@@ -39,22 +39,22 @@ fn test_plaintext() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().context(FormatContextOpt::None)), indoc! {r#"
+    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().context(FormatContextOpt::None)), indoc! {r#"
         8cc96cdb "Hello."
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().digest_display(DigestDisplayFormat::Full)), indoc! {r#"
+    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().digest_display(DigestDisplayFormat::Full)), indoc! {r#"
         8cc96cdb771176e835114a0f8936690b41cfed0df22d014eedd64edaea945d59 "Hello."
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().digest_display(DigestDisplayFormat::UR)), indoc! {r#"
+    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().digest_display(DigestDisplayFormat::UR)), indoc! {r#"
         ur:digest/hdcxlksojzuyktbykovsecbygebsldeninbdfptkwebtwzdpadglwetbgltnwdmwhlhksbbthtpy "Hello."
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         "Hello."
     "#}.trim());
 
@@ -98,7 +98,7 @@ fn test_signed_plaintext() {
     "#}.trim());
 
     let s = envelope.tree_format_opt(
-        TreeFormatOpts::default().context(FormatContextOpt::None),
+        &TreeFormatOpts::default().context(FormatContextOpt::None),
     );
     #[rustfmt::skip]
     assert_eq!(s, indoc! {r#"
@@ -110,7 +110,7 @@ fn test_signed_plaintext() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         "Hello."
             ASSERTION
                 'signed'
@@ -118,7 +118,7 @@ fn test_signed_plaintext() {
     "#}.trim());
 
     let s = envelope.tree_format_opt(
-        TreeFormatOpts::default()
+        &TreeFormatOpts::default()
             .hide_nodes(true)
             .context(FormatContextOpt::None),
     );
@@ -162,7 +162,7 @@ fn test_encrypt_subject() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         ENCRYPTED
             ASSERTION
                 "knows"
@@ -193,7 +193,7 @@ fn test_top_level_assertion() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         ASSERTION
             "knows"
             "Bob"
@@ -228,7 +228,7 @@ fn test_elided_object() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(elided.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+    assert_eq!(elided.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         "Alice"
             ASSERTION
                 "knows"
@@ -282,7 +282,7 @@ fn test_signed_subject() {
     "#}.trim());
 
     let s =
-        envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true));
+        envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true));
     // println!("{}", s);
     #[rustfmt::skip]
     assert_eq!(s, indoc! {r#"
@@ -329,7 +329,7 @@ fn test_signed_subject() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(elided.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+    assert_eq!(elided.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         "Alice"
             ELIDED
             ELIDED
@@ -388,7 +388,7 @@ fn test_wrap_then_signed() {
     "#}.trim());
 
     let s =
-        envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true));
+        envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true));
     #[rustfmt::skip]
     assert_eq!(s, indoc! {r#"
         WRAPPED
@@ -405,7 +405,7 @@ fn test_wrap_then_signed() {
     "#}.trim());
 
     let s = envelope.tree_format_opt(
-        TreeFormatOpts::default().digest_display(DigestDisplayFormat::Full),
+        &TreeFormatOpts::default().digest_display(DigestDisplayFormat::Full),
     );
     #[rustfmt::skip]
     assert_eq!(s, indoc! {r#"
@@ -425,7 +425,7 @@ fn test_wrap_then_signed() {
     "#}.trim());
 
     let s = envelope.tree_format_opt(
-        TreeFormatOpts::default().digest_display(DigestDisplayFormat::UR),
+        &TreeFormatOpts::default().digest_display(DigestDisplayFormat::UR),
     );
     #[rustfmt::skip]
     assert_eq!(s, indoc! {r#"
@@ -486,7 +486,7 @@ fn test_encrypt_to_recipients() {
     );
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         ENCRYPTED
             ASSERTION
                 'hasRecipient'
@@ -547,7 +547,7 @@ fn test_assertion_positions() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         "subject"
             ASSERTION
                 "predicate"
@@ -689,7 +689,7 @@ fn test_complex_metadata() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(book_metadata.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+    assert_eq!(book_metadata.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         Digest(26d05af5)
             ASSERTION
                 'dereferenceVia'
@@ -863,7 +863,7 @@ fn test_credential() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(credential.tree_format_opt(TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+    assert_eq!(credential.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         WRAPPED
             ARID(4676635a)
                 ASSERTION
@@ -1013,6 +1013,8 @@ fn test_redacted_credential() {
         ]
     "#}.trim());
 
+    println!("{}", warranty.mermaid_format_opt(&MermaidFormatOpts::default().hide_nodes(true)));
+
     assert_eq!(
         warranty.format_flat(),
         r#"{ { { ARID(4676635a) [ 'isA': "Certificate of Completion", "expirationDate": 2028-01-01, "firstName": "James", "lastName": "Maxwell", "subject": "RF and Microwave Engineering", 'issuer': "Example Electrical Engineering Board", ELIDED (7) ] } [ 'note': "Signed by Example Electrical Engineering Board", 'signed': Signature ] } [ "employeeHiredDate": 2022-01-01, "employeeStatus": "active" ] } [ 'note': "Signed by Employer Corp.", 'signed': Signature ]"#
@@ -1076,7 +1078,7 @@ fn test_redacted_credential() {
     "#}.trim());
 
     let s =
-        warranty.tree_format_opt(TreeFormatOpts::default().hide_nodes(true));
+        warranty.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true));
     // println!("{}", s);
     #[rustfmt::skip]
     assert_eq!(s, indoc! {r#"
