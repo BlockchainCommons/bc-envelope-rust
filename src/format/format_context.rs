@@ -1,23 +1,21 @@
-use bc_components::tags::*;
 #[cfg(any(feature = "expression", feature = "known_value"))]
 use std::sync::Arc;
-use std::sync::{ Mutex, Once };
-#[cfg(feature = "known_value")]
-use known_values::{ KnownValuesStore, KnownValue, KNOWN_VALUES };
+use std::sync::{Mutex, Once};
+
 #[cfg(feature = "known_value")]
 use bc_components::tags::TAG_KNOWN_VALUE;
+use bc_components::tags::*;
+#[cfg(feature = "known_value")]
+use known_values::{KNOWN_VALUES, KnownValue, KnownValuesStore};
 
 #[cfg(feature = "expression")]
-use crate::extension::expressions::{
-    FunctionsStore,
-    ParametersStore,
-    GLOBAL_FUNCTIONS,
-    GLOBAL_PARAMETERS,
-};
-
+use super::notation::EnvelopeFormatOpts;
 #[cfg(feature = "expression")]
 use crate::Envelope;
-
+#[cfg(feature = "expression")]
+use crate::extension::expressions::{
+    FunctionsStore, GLOBAL_FUNCTIONS, GLOBAL_PARAMETERS, ParametersStore,
+};
 #[cfg(any(feature = "expression", feature = "known_value"))]
 use crate::string_utils::StringUtils;
 
@@ -29,8 +27,25 @@ pub enum FormatContextOpt<'a> {
 }
 
 impl<'a> Default for FormatContextOpt<'a> {
-    fn default() -> Self {
-        FormatContextOpt::Global
+    fn default() -> Self { FormatContextOpt::Global }
+}
+
+impl<'a> FormatContextOpt<'a> {
+    /// Returns an owned reference to the context if available.
+    ///
+    /// For `Global`, this returns an `Arc<FormatContext>` so the reference
+    /// is valid beyond the scope of the mutex guard.
+    pub fn context_owned(&self) -> Option<std::sync::Arc<FormatContext>> {
+        match self {
+            FormatContextOpt::None => None,
+            FormatContextOpt::Global => {
+                let guard = GLOBAL_FORMAT_CONTEXT.get();
+                guard.as_ref().map(|ctx| std::sync::Arc::new(ctx.clone()))
+            }
+            FormatContextOpt::Custom(context) => {
+                Some(std::sync::Arc::new((*context).clone()))
+            }
+        }
     }
 }
 
@@ -39,21 +54,23 @@ impl<'a> From<FormatContextOpt<'a>> for TagsStoreOpt<'a> {
         match opt {
             FormatContextOpt::None => TagsStoreOpt::None,
             FormatContextOpt::Global => TagsStoreOpt::Global,
-            FormatContextOpt::Custom(context) => TagsStoreOpt::Custom(context.tags()),
+            FormatContextOpt::Custom(context) => {
+                TagsStoreOpt::Custom(context.tags())
+            }
         }
     }
 }
 
 /// Context object for formatting Gordian Envelopes with annotations.
 ///
-/// The `FormatContext` provides information about CBOR tags, known values, functions,
-/// and parameters that are used to annotate the output of envelope formatting functions.
-/// This context enables human-readable output when converting envelopes to string
-/// representations like diagnostic notation.
+/// The `FormatContext` provides information about CBOR tags, known values,
+/// functions, and parameters that are used to annotate the output of envelope
+/// formatting functions. This context enables human-readable output when
+/// converting envelopes to string representations like diagnostic notation.
 ///
 /// This type is central to the diagnostic capabilities of Gordian Envelope,
-/// translating numeric CBOR tags into meaningful names and providing context-specific
-/// formatting for special values.
+/// translating numeric CBOR tags into meaningful names and providing
+/// context-specific formatting for special values.
 ///
 /// # Format Context Content
 ///
@@ -72,24 +89,27 @@ impl<'a> From<FormatContextOpt<'a>> for TagsStoreOpt<'a> {
 ///
 /// # Example
 ///
-/// Using the global format context to produce annotated CBOR diagnostic notation:
+/// Using the global format context to produce annotated CBOR diagnostic
+/// notation:
 ///
 /// ```
 /// # use bc_envelope::prelude::*;
 /// # use indoc::indoc;
 /// # let e = Envelope::new("Hello.");
 /// # bc_envelope::register_tags();
-/// assert_eq!(e.diagnostic_annotated(),
-/// indoc! {r#"
+/// assert_eq!(
+///     e.diagnostic_annotated(),
+///     indoc! {r#"
 /// 200(   / envelope /
 ///     201("Hello.")   / leaf /
 /// )
-/// "#}.trim()
+/// "#}
+///     .trim()
 /// );
 /// ```
 ///
-/// The annotations (comments after the `/` characters) provide human-readable context
-/// for the CBOR tags and structure.
+/// The annotations (comments after the `/` characters) provide human-readable
+/// context for the CBOR tags and structure.
 #[derive(Clone)]
 pub struct FormatContext {
     flat: bool,
@@ -105,16 +125,21 @@ pub struct FormatContext {
 impl FormatContext {
     /// Creates a new format context with the specified components.
     ///
-    /// This constructor allows full customization of the format context by providing
-    /// optional components. Any component not provided will be initialized with its default.
+    /// This constructor allows full customization of the format context by
+    /// providing optional components. Any component not provided will be
+    /// initialized with its default.
     ///
     /// # Parameters
     ///
-    /// * `flat` - If true, formatting will be flattened without indentation and structure
+    /// * `flat` - If true, formatting will be flattened without indentation and
+    ///   structure
     /// * `tags` - Optional CBOR tag registry for mapping tag numbers to names
-    /// * `known_values` - Optional known values registry (requires `known_value` feature)
-    /// * `functions` - Optional functions registry (requires `expression` feature)
-    /// * `parameters` - Optional parameters registry (requires `expression` feature)
+    /// * `known_values` - Optional known values registry (requires
+    ///   `known_value` feature)
+    /// * `functions` - Optional functions registry (requires `expression`
+    ///   feature)
+    /// * `parameters` - Optional parameters registry (requires `expression`
+    ///   feature)
     ///
     /// # Returns
     ///
@@ -124,7 +149,7 @@ impl FormatContext {
         tags: Option<&TagsStore>,
         #[cfg(feature = "known_value")] known_values: Option<&KnownValuesStore>,
         #[cfg(feature = "expression")] functions: Option<&FunctionsStore>,
-        #[cfg(feature = "expression")] parameters: Option<&ParametersStore>
+        #[cfg(feature = "expression")] parameters: Option<&ParametersStore>,
     ) -> Self {
         Self {
             flat,
@@ -142,13 +167,13 @@ impl FormatContext {
     ///
     /// When flat formatting is enabled, envelope formatting functions produce
     /// more compact output without indentation and structural formatting.
-    pub fn is_flat(&self) -> bool {
-        self.flat
-    }
+    pub fn is_flat(&self) -> bool { self.flat }
 
-    /// Sets whether flat formatting should be enabled and returns the modified context.
+    /// Sets whether flat formatting should be enabled and returns the modified
+    /// context.
     ///
-    /// This method allows fluent-style modification of the context's flat formatting setting.
+    /// This method allows fluent-style modification of the context's flat
+    /// formatting setting.
     ///
     /// # Parameters
     ///
@@ -166,65 +191,56 @@ impl FormatContext {
     ///
     /// The tags registry maps CBOR tag numbers to human-readable names
     /// and provides summarizers for tag-specific formatting.
-    pub fn tags(&self) -> &TagsStore {
-        &self.tags
-    }
+    pub fn tags(&self) -> &TagsStore { &self.tags }
 
     /// Returns a mutable reference to the CBOR tags registry.
     ///
     /// This allows modifying the tags registry to add or change tag mappings.
-    pub fn tags_mut(&mut self) -> &mut TagsStore {
-        &mut self.tags
-    }
+    pub fn tags_mut(&mut self) -> &mut TagsStore { &mut self.tags }
 
     /// Returns a reference to the known values registry.
     ///
-    /// The known values registry maps symbolic values (like "true", "false", etc.)
-    /// to their canonical string representations.
+    /// The known values registry maps symbolic values (like "true", "false",
+    /// etc.) to their canonical string representations.
     ///
     /// This method is only available when the `known_value` feature is enabled.
     #[cfg(feature = "known_value")]
-    pub fn known_values(&self) -> &KnownValuesStore {
-        &self.known_values
-    }
+    pub fn known_values(&self) -> &KnownValuesStore { &self.known_values }
 
     /// Returns a reference to the functions registry.
     ///
-    /// The functions registry maps function identifiers to their human-readable names
-    /// for use in expression formatting.
+    /// The functions registry maps function identifiers to their human-readable
+    /// names for use in expression formatting.
     ///
     /// This method is only available when the `expression` feature is enabled.
     #[cfg(feature = "expression")]
-    pub fn functions(&self) -> &FunctionsStore {
-        &self.functions
-    }
+    pub fn functions(&self) -> &FunctionsStore { &self.functions }
 
     /// Returns a reference to the parameters registry.
     ///
-    /// The parameters registry maps parameter identifiers to their human-readable names
-    /// for use in expression formatting.
+    /// The parameters registry maps parameter identifiers to their
+    /// human-readable names for use in expression formatting.
     ///
     /// This method is only available when the `expression` feature is enabled.
     #[cfg(feature = "expression")]
-    pub fn parameters(&self) -> &ParametersStore {
-        &self.parameters
-    }
+    pub fn parameters(&self) -> &ParametersStore { &self.parameters }
 }
 
-/// Implementation of `TagsStoreTrait` for `FormatContext`, delegating to the internal `TagsStore`.
+/// Implementation of `TagsStoreTrait` for `FormatContext`, delegating to the
+/// internal `TagsStore`.
 ///
-/// This implementation allows a `FormatContext` to be used anywhere a `TagsStoreTrait`
-/// is required, providing the tag resolution functionality directly.
+/// This implementation allows a `FormatContext` to be used anywhere a
+/// `TagsStoreTrait` is required, providing the tag resolution functionality
+/// directly.
 impl TagsStoreTrait for FormatContext {
     /// Returns the assigned name for a tag if one exists.
     fn assigned_name_for_tag(&self, tag: &Tag) -> Option<String> {
         self.tags.assigned_name_for_tag(tag)
     }
 
-    /// Returns a name for a tag, either the assigned name or a generic representation.
-    fn name_for_tag(&self, tag: &Tag) -> String {
-        self.tags.name_for_tag(tag)
-    }
+    /// Returns a name for a tag, either the assigned name or a generic
+    /// representation.
+    fn name_for_tag(&self, tag: &Tag) -> String { self.tags.name_for_tag(tag) }
 
     /// Looks up a tag by its name.
     fn tag_for_name(&self, name: &str) -> Option<Tag> {
@@ -241,13 +257,15 @@ impl TagsStoreTrait for FormatContext {
         self.tags.summarizer(tag)
     }
 
-    /// Returns a name for a tag value, either the assigned name or a generic representation.
+    /// Returns a name for a tag value, either the assigned name or a generic
+    /// representation.
     fn name_for_value(&self, value: TagValue) -> String {
         self.tags.name_for_value(value)
     }
 }
 
-/// Default implementation for `FormatContext`, creating an instance with default components.
+/// Default implementation for `FormatContext`, creating an instance with
+/// default components.
 impl Default for FormatContext {
     /// Creates a default `FormatContext` with:
     /// - Flat formatting disabled (structured formatting)
@@ -259,9 +277,12 @@ impl Default for FormatContext {
         Self::new(
             false,
             None,
-            #[cfg(feature = "known_value")] None,
-            #[cfg(feature = "expression")] None,
-            #[cfg(feature = "expression")] None
+            #[cfg(feature = "known_value")]
+            None,
+            #[cfg(feature = "expression")]
+            None,
+            #[cfg(feature = "expression")]
+            None,
         )
     }
 }
@@ -269,7 +290,8 @@ impl Default for FormatContext {
 /// A container for lazily initializing the global format context.
 ///
 /// This type ensures the global format context is only initialized once,
-/// even in multithreaded contexts, and provides thread-safe access to the context.
+/// even in multithreaded contexts, and provides thread-safe access to the
+/// context.
 pub struct LazyFormatContext {
     /// Initialization flag to ensure one-time initialization
     init: Once,
@@ -278,10 +300,12 @@ pub struct LazyFormatContext {
 }
 
 impl LazyFormatContext {
-    /// Gets a thread-safe reference to the format context, initializing it if necessary.
+    /// Gets a thread-safe reference to the format context, initializing it if
+    /// necessary.
     ///
-    /// On first access, this method initializes the format context with standard
-    /// registrations for tags, known values, functions, and parameters.
+    /// On first access, this method initializes the format context with
+    /// standard registrations for tags, known values, functions, and
+    /// parameters.
     ///
     /// # Returns
     ///
@@ -309,9 +333,12 @@ impl LazyFormatContext {
             let context = FormatContext::new(
                 false,
                 Some(tags),
-                #[cfg(feature = "known_value")] Some(known_values),
-                #[cfg(feature = "expression")] Some(functions),
-                #[cfg(feature = "expression")] Some(parameters)
+                #[cfg(feature = "known_value")]
+                Some(known_values),
+                #[cfg(feature = "expression")]
+                Some(functions),
+                #[cfg(feature = "expression")]
+                Some(parameters),
             );
             *self.data.lock().unwrap() = Some(context);
         });
@@ -322,15 +349,13 @@ impl LazyFormatContext {
 /// Global singleton instance of `FormatContext` for application-wide use.
 ///
 /// Access this using the `with_format_context!` macro.
-pub static GLOBAL_FORMAT_CONTEXT: LazyFormatContext = LazyFormatContext {
-    init: Once::new(),
-    data: Mutex::new(None),
-};
+pub static GLOBAL_FORMAT_CONTEXT: LazyFormatContext =
+    LazyFormatContext { init: Once::new(), data: Mutex::new(None) };
 
 /// A macro to access the global format context for read-only operations.
 ///
-/// This macro provides a convenient way to use the global format context without
-/// dealing with mutex locking and unlocking directly.
+/// This macro provides a convenient way to use the global format context
+/// without dealing with mutex locking and unlocking directly.
 ///
 /// # Example
 ///
@@ -341,20 +366,18 @@ pub static GLOBAL_FORMAT_CONTEXT: LazyFormatContext = LazyFormatContext {
 /// ```
 #[macro_export]
 macro_rules! with_format_context {
-    ($action:expr) => {
-        {
+    ($action:expr) => {{
         let binding = $crate::GLOBAL_FORMAT_CONTEXT.get();
         let context = &*binding.as_ref().unwrap();
         #[allow(clippy::redundant_closure_call)]
         $action(context)
-        }
-    };
+    }};
 }
 
 /// A macro to access the global format context for read-write operations.
 ///
-/// This macro provides a convenient way to use and modify the global format context
-/// without dealing with mutex locking and unlocking directly.
+/// This macro provides a convenient way to use and modify the global format
+/// context without dealing with mutex locking and unlocking directly.
 ///
 /// # Example
 ///
@@ -370,14 +393,12 @@ macro_rules! with_format_context {
 /// ```
 #[macro_export]
 macro_rules! with_format_context_mut {
-    ($action:expr) => {
-        {
+    ($action:expr) => {{
         let mut binding = $crate::GLOBAL_FORMAT_CONTEXT.get();
         let context = binding.as_mut().unwrap();
         #[allow(clippy::redundant_closure_call)]
         $action(context)
-        }
-    };
+    }};
 }
 
 /// Registers standard tags and summarizers in a format context.
@@ -400,38 +421,43 @@ pub fn register_tags_in(context: &mut FormatContext) {
         context.tags_mut().set_summarizer(
             TAG_KNOWN_VALUE,
             Arc::new(move |untagged_cbor: CBOR| {
-                Ok(
-                    known_values
-                        .name(KnownValue::from_untagged_cbor(untagged_cbor)?)
-                        .flanked_by("'", "'")
-                )
-            })
+                Ok(known_values
+                    .name(KnownValue::from_untagged_cbor(untagged_cbor)?)
+                    .flanked_by("'", "'"))
+            }),
         );
     }
 
-    // Register expression-related summarizers when the expression feature is enabled
+    // Register expression-related summarizers when the expression feature is
+    // enabled
     #[cfg(feature = "expression")]
     {
-        use crate::extension::expressions::{ Function, FunctionsStore, Parameter, ParametersStore };
+        use crate::extension::expressions::{
+            Function, FunctionsStore, Parameter, ParametersStore,
+        };
 
-        // Function summarizer - formats functions with special delimiter characters
+        // Function summarizer - formats functions with special delimiter
+        // characters
         let functions = context.functions().clone();
         context.tags_mut().set_summarizer(
             TAG_FUNCTION,
             Arc::new(move |untagged_cbor: CBOR| {
                 let f = Function::from_untagged_cbor(untagged_cbor)?;
-                Ok(FunctionsStore::name_for_function(&f, Some(&functions)).flanked_by("«", "»"))
-            })
+                Ok(FunctionsStore::name_for_function(&f, Some(&functions))
+                    .flanked_by("«", "»"))
+            }),
         );
 
-        // Parameter summarizer - formats parameters with special delimiter characters
+        // Parameter summarizer - formats parameters with special delimiter
+        // characters
         let parameters = context.parameters().clone();
         context.tags_mut().set_summarizer(
             TAG_PARAMETER,
             Arc::new(move |untagged_cbor: CBOR| {
                 let p = Parameter::from_untagged_cbor(untagged_cbor)?;
-                Ok(ParametersStore::name_for_parameter(&p, Some(&parameters)).flanked_by("❰", "❱"))
-            })
+                Ok(ParametersStore::name_for_parameter(&p, Some(&parameters))
+                    .flanked_by("❰", "❱"))
+            }),
         );
 
         // Request summarizer - formats requests with request() notation
@@ -439,12 +465,14 @@ pub fn register_tags_in(context: &mut FormatContext) {
         context.tags_mut().set_summarizer(
             TAG_REQUEST,
             Arc::new(move |untagged_cbor: CBOR| {
-                Ok(
-                    Envelope::new(untagged_cbor)
-                        .format_opt(Some(&cloned_context))
-                        .flanked_by("request(", ")")
-                )
-            })
+                Ok(Envelope::new(untagged_cbor)
+                    .format_opt(
+                        EnvelopeFormatOpts::default()
+                            .flat(cloned_context.is_flat())
+                            .context(FormatContextOpt::Custom(&cloned_context)),
+                    )
+                    .flanked_by("request(", ")"))
+            }),
         );
 
         // Response summarizer - formats responses with response() notation
@@ -452,12 +480,14 @@ pub fn register_tags_in(context: &mut FormatContext) {
         context.tags_mut().set_summarizer(
             TAG_RESPONSE,
             Arc::new(move |untagged_cbor: CBOR| {
-                Ok(
-                    Envelope::new(untagged_cbor)
-                        .format_opt(Some(&cloned_context))
-                        .flanked_by("response(", ")")
-                )
-            })
+                Ok(Envelope::new(untagged_cbor)
+                    .format_opt(
+                        EnvelopeFormatOpts::default()
+                            .flat(cloned_context.is_flat())
+                            .context(FormatContextOpt::Custom(&cloned_context)),
+                    )
+                    .flanked_by("response(", ")"))
+            }),
         );
 
         // Event summarizer - formats events with event() notation
@@ -465,12 +495,14 @@ pub fn register_tags_in(context: &mut FormatContext) {
         context.tags_mut().set_summarizer(
             TAG_EVENT,
             Arc::new(move |untagged_cbor: CBOR| {
-                Ok(
-                    Envelope::new(untagged_cbor)
-                        .format_opt(Some(&cloned_context))
-                        .flanked_by("event(", ")")
-                )
-            })
+                Ok(Envelope::new(untagged_cbor)
+                    .format_opt(
+                        EnvelopeFormatOpts::default()
+                            .flat(cloned_context.is_flat())
+                            .context(FormatContextOpt::Custom(&cloned_context)),
+                    )
+                    .flanked_by("event(", ")"))
+            }),
         );
     }
 }

@@ -43,10 +43,11 @@ use std::{cell::RefCell, collections::HashSet};
 use bc_components::{Digest, DigestProvider};
 use bc_ur::UREncodable;
 
-use super::{
-    EnvelopeSummary, FormatContextOpt,
+use super::{EnvelopeSummary, FormatContextOpt};
+use crate::{
+    EdgeType, Envelope, FormatContext, base::envelope::EnvelopeCase,
+    with_format_context,
 };
-use crate::{base::envelope::EnvelopeCase, with_format_context, EdgeType, Envelope, FormatContext};
 #[cfg(feature = "known_value")]
 use crate::{extension::KnownValuesStore, string_utils::StringUtils};
 
@@ -185,9 +186,9 @@ impl Envelope {
     ) -> String {
         match self.case() {
             EnvelopeCase::Node { .. } => "NODE".to_string(),
-            EnvelopeCase::Leaf { cbor, .. } => {
-                cbor.envelope_summary(max_length, context).unwrap()
-            }
+            EnvelopeCase::Leaf { cbor, .. } => cbor
+                .envelope_summary(max_length, FormatContextOpt::Custom(context))
+                .unwrap(),
             EnvelopeCase::Wrapped { .. } => "WRAPPED".to_string(),
             EnvelopeCase::Assertion(_) => "ASSERTION".to_string(),
             EnvelopeCase::Elided(_) => "ELIDED".to_string(),

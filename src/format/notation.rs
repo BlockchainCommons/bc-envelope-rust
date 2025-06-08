@@ -1,18 +1,20 @@
-//! Formats an envelope as a CBOR data structure and provides human-readable text representations.
+//! Formats an envelope as a CBOR data structure and provides human-readable
+//! text representations.
 //!
 //! This module provides functionality for formatting envelopes in various ways:
 //!
-//! 1. **Envelope Notation**: A human-readable text representation showing the semantic structure
-//!    of an envelope (the `format` methods)
+//! 1. **Envelope Notation**: A human-readable text representation showing the
+//!    semantic structure of an envelope (the `format` methods)
 //!
 //! 2. **CBOR Diagnostics**: Text representation of the underlying CBOR structure, following
 //!    [RFC-8949 §8](https://www.rfc-editor.org/rfc/rfc8949.html#name-diagnostic-notation)
 //!    (the `diagnostic` methods)
 //!
-//! 3. **CBOR Hex**: Hexadecimal representation of the raw CBOR bytes (the `hex` methods)
+//! 3. **CBOR Hex**: Hexadecimal representation of the raw CBOR bytes (the `hex`
+//!    methods)
 //!
-//! All of these formats can be used for debugging, visualization, and understanding the
-//! structure of envelopes.
+//! All of these formats can be used for debugging, visualization, and
+//! understanding the structure of envelopes.
 //!
 //! # Examples
 //!
@@ -37,44 +39,67 @@
 
 use bc_components::XID;
 use dcbor::prelude::*;
-use crate::{base::envelope::EnvelopeCase, string_utils::StringUtils, with_format_context, Assertion, Envelope, FormatContext};
+
+use super::EnvelopeSummary;
+use crate::{
+    Assertion, Envelope, FormatContext, FormatContextOpt,
+    base::envelope::EnvelopeCase, string_utils::StringUtils,
+};
 #[cfg(feature = "known_value")]
 use crate::{KnownValue, known_values};
 
-use super::EnvelopeSummary;
+#[derive(Clone, Default)]
+pub struct EnvelopeFormatOpts<'a> {
+    flat: bool,
+    context: FormatContextOpt<'a>,
+}
+
+impl<'a> EnvelopeFormatOpts<'a> {
+    /// Sets the flat format option.
+    pub fn flat(mut self, flat: bool) -> Self {
+        self.flat = flat;
+        self
+    }
+
+    /// Sets the format context option.
+    pub fn context(mut self, context: FormatContextOpt<'a>) -> Self {
+        self.context = context;
+        self
+    }
+}
 
 /// Support for the various text output formats for ``Envelope``.
 impl Envelope {
     /// Returns the envelope notation for this envelope.
-    pub fn format_opt(&self, context: Option<&FormatContext>) -> String {
-        let context = context.cloned().unwrap_or(FormatContext::default());
-        self.format_item(&context).format(context.is_flat()).trim().to_string()
+    pub fn format_opt<'a>(&self, opts: EnvelopeFormatOpts<'a>) -> String {
+        self.format_item(opts.clone())
+            .format(opts)
+            .trim()
+            .to_string()
     }
 
     /// Returns the envelope notation for this envelope.
     ///
     /// Uses the current format context.
     pub fn format(&self) -> String {
-        with_format_context!(|context| {
-            self.format_opt(Some(context))
-        })
+        self.format_opt(EnvelopeFormatOpts::default())
     }
 
     /// Returns the envelope notation for this envelope in flat format.
     ///
     /// In flat format, the envelope is printed on a single line.
     pub fn format_flat(&self) -> String {
-        with_format_context!(|context: &FormatContext| {
-            let context = context.clone().set_flat(true);
-            self.format_opt(Some(&context))
-        })
+        self.format_opt(EnvelopeFormatOpts::default().flat(true))
     }
-
 }
 
-/// Implementers of this trait define how to be formatted in when output in envelope notation.
+/// Implementers of this trait define how to be formatted in when output in
+/// envelope notation.
 pub trait EnvelopeFormat {
-    fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem;
+    fn format_item<'a>(
+        &self,
+        opts: EnvelopeFormatOpts<'a>,
+    ) -> EnvelopeFormatItem;
 }
 
 /// This type is returned by implementers of the [`EnvelopeFormat`] trait.
@@ -90,7 +115,9 @@ pub enum EnvelopeFormatItem {
 impl EnvelopeFormatItem {
     fn flatten(&self) -> Vec<EnvelopeFormatItem> {
         match self {
-            EnvelopeFormatItem::List(items) => items.iter().flat_map(|i| i.flatten()).collect(),
+            EnvelopeFormatItem::List(items) => {
+                items.iter().flat_map(|i| i.flatten()).collect()
+            }
             _ => vec![self.clone()],
         }
     }
@@ -106,8 +133,13 @@ impl EnvelopeFormatItem {
                 break;
             }
             if let EnvelopeFormatItem::End(end_string) = current.clone() {
-                if let EnvelopeFormatItem::Begin(begin_string) = input[0].clone() {
-                    result.push(EnvelopeFormatItem::End(format!("{} {}", end_string, begin_string)));
+                if let EnvelopeFormatItem::Begin(begin_string) =
+                    input[0].clone()
+                {
+                    result.push(EnvelopeFormatItem::End(format!(
+                        "{} {}",
+                        end_string, begin_string
+                    )));
                     result.push(EnvelopeFormatItem::Begin("".to_string()));
                     input.remove(0);
                 } else {
@@ -121,9 +153,7 @@ impl EnvelopeFormatItem {
         result
     }
 
-    fn indent(level: usize) -> String {
-        " ".repeat(level * 4)
-    }
+    fn indent(level: usize) -> String { " ".repeat(level * 4) }
 
     fn add_space_at_end_if_needed(s: &str) -> String {
         if s.is_empty() {
@@ -135,8 +165,8 @@ impl EnvelopeFormatItem {
         }
     }
 
-    fn format(&self, is_flat: bool) -> String {
-        if is_flat {
+    fn format(&self, opts: EnvelopeFormatOpts<'_>) -> String {
+        if opts.flat {
             return self.format_flat();
         }
         self.format_hierarchical()
@@ -153,18 +183,18 @@ impl EnvelopeFormatItem {
                     }
                     line += &s;
                     line += " ";
-                },
+                }
                 EnvelopeFormatItem::End(s) => {
                     if !line.ends_with(' ') {
                         line += " ";
                     }
                     line += &s;
                     line += " ";
-                },
+                }
                 EnvelopeFormatItem::Item(s) => line += &s,
                 EnvelopeFormatItem::Separator => {
                     line = line.trim_end().to_string() + ", ";
-                },
+                }
                 EnvelopeFormatItem::List(items) => {
                     for item in items {
                         line += &item.format_flat();
@@ -187,7 +217,8 @@ impl EnvelopeFormatItem {
                         let c = if current_line.is_empty() {
                             delimiter
                         } else {
-                            Self::add_space_at_end_if_needed(&current_line) + &delimiter
+                            Self::add_space_at_end_if_needed(&current_line)
+                                + &delimiter
                         };
                         lines.push(Self::indent(level) + &c + "\n");
                     }
@@ -225,9 +256,7 @@ impl EnvelopeFormatItem {
 
 /// Implements conversion from string slice to EnvelopeFormatItem.
 impl From<&str> for EnvelopeFormatItem {
-    fn from(s: &str) -> Self {
-        Self::Item(s.to_string())
-    }
+    fn from(s: &str) -> Self { Self::Item(s.to_string()) }
 }
 
 /// Implements string display for EnvelopeFormatItem.
@@ -247,11 +276,22 @@ impl std::fmt::Display for EnvelopeFormatItem {
 impl PartialEq for EnvelopeFormatItem {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (EnvelopeFormatItem::Begin(s1), EnvelopeFormatItem::Begin(s2)) => s1 == s2,
-            (EnvelopeFormatItem::End(s1), EnvelopeFormatItem::End(s2)) => s1 == s2,
-            (EnvelopeFormatItem::Item(s1), EnvelopeFormatItem::Item(s2)) => s1 == s2,
-            (EnvelopeFormatItem::Separator, EnvelopeFormatItem::Separator) => true,
-            (EnvelopeFormatItem::List(items1), EnvelopeFormatItem::List(items2)) => items1 == items2,
+            (EnvelopeFormatItem::Begin(s1), EnvelopeFormatItem::Begin(s2)) => {
+                s1 == s2
+            }
+            (EnvelopeFormatItem::End(s1), EnvelopeFormatItem::End(s2)) => {
+                s1 == s2
+            }
+            (EnvelopeFormatItem::Item(s1), EnvelopeFormatItem::Item(s2)) => {
+                s1 == s2
+            }
+            (EnvelopeFormatItem::Separator, EnvelopeFormatItem::Separator) => {
+                true
+            }
+            (
+                EnvelopeFormatItem::List(items1),
+                EnvelopeFormatItem::List(items2),
+            ) => items1 == items2,
             _ => false,
         }
     }
@@ -276,7 +316,6 @@ impl PartialOrd for EnvelopeFormatItem {
     }
 }
 
-
 /// Implements total ordering for EnvelopeFormatItem.
 impl Ord for EnvelopeFormatItem {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
@@ -288,11 +327,21 @@ impl Ord for EnvelopeFormatItem {
             _ => {}
         }
         match (self, other) {
-            (EnvelopeFormatItem::Begin(l), EnvelopeFormatItem::Begin(r)) => l.cmp(r),
-            (EnvelopeFormatItem::End(l), EnvelopeFormatItem::End(r)) => l.cmp(r),
-            (EnvelopeFormatItem::Item(l), EnvelopeFormatItem::Item(r)) => l.cmp(r),
-            (EnvelopeFormatItem::Separator, EnvelopeFormatItem::Separator) => std::cmp::Ordering::Equal,
-            (EnvelopeFormatItem::List(l), EnvelopeFormatItem::List(r)) => l.cmp(r),
+            (EnvelopeFormatItem::Begin(l), EnvelopeFormatItem::Begin(r)) => {
+                l.cmp(r)
+            }
+            (EnvelopeFormatItem::End(l), EnvelopeFormatItem::End(r)) => {
+                l.cmp(r)
+            }
+            (EnvelopeFormatItem::Item(l), EnvelopeFormatItem::Item(r)) => {
+                l.cmp(r)
+            }
+            (EnvelopeFormatItem::Separator, EnvelopeFormatItem::Separator) => {
+                std::cmp::Ordering::Equal
+            }
+            (EnvelopeFormatItem::List(l), EnvelopeFormatItem::List(r)) => {
+                l.cmp(r)
+            }
             _ => std::cmp::Ordering::Equal,
         }
     }
@@ -300,16 +349,19 @@ impl Ord for EnvelopeFormatItem {
 
 /// Implements formatting for CBOR values in envelope notation.
 impl EnvelopeFormat for CBOR {
-    fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
+    fn format_item<'a>(
+        &self,
+        opts: EnvelopeFormatOpts<'a>,
+    ) -> EnvelopeFormatItem {
         match self.as_case() {
             CBORCase::Tagged(tag, cbor) if tag == &Envelope::cbor_tags()[0] => {
                 Envelope::from_untagged_cbor(cbor.clone())
-                    .map(|envelope| envelope.format_item(context))
+                    .map(|envelope| envelope.format_item(opts))
                     .unwrap_or_else(|_| "<error>".into())
             }
             _ => EnvelopeFormatItem::Item(
-                self.envelope_summary(usize::MAX, context)
-                    .unwrap_or_else(|_| "<error>".into())
+                self.envelope_summary(usize::MAX, opts.context)
+                    .unwrap_or_else(|_| "<error>".into()),
             ),
         }
     }
@@ -317,54 +369,75 @@ impl EnvelopeFormat for CBOR {
 
 /// Implements formatting for Envelope in envelope notation.
 impl EnvelopeFormat for Envelope {
-    fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
+    fn format_item<'a>(
+        &self,
+        opts: EnvelopeFormatOpts<'a>,
+    ) -> EnvelopeFormatItem {
         match self.case() {
-            EnvelopeCase::Leaf { cbor, .. } => cbor.format_item(context),
-            EnvelopeCase::Wrapped { envelope, .. } => EnvelopeFormatItem::List(vec![
-                EnvelopeFormatItem::Begin("{".to_string()),
-                envelope.format_item(context),
-                EnvelopeFormatItem::End("}".to_string()),
-            ]),
-            EnvelopeCase::Assertion(assertion) => assertion.format_item(context),
+            EnvelopeCase::Leaf { cbor, .. } => cbor.format_item(opts.clone()),
+            EnvelopeCase::Wrapped { envelope, .. } => {
+                EnvelopeFormatItem::List(vec![
+                    EnvelopeFormatItem::Begin("{".to_string()),
+                    envelope.format_item(opts.clone()),
+                    EnvelopeFormatItem::End("}".to_string()),
+                ])
+            }
+            EnvelopeCase::Assertion(assertion) => {
+                assertion.format_item(opts.clone())
+            }
             #[cfg(feature = "known_value")]
-            EnvelopeCase::KnownValue { value, .. } => value.format_item(context),
+            EnvelopeCase::KnownValue { value, .. } => {
+                value.format_item(opts.clone())
+            }
             #[cfg(feature = "encrypt")]
-            EnvelopeCase::Encrypted(_) => EnvelopeFormatItem::Item("ENCRYPTED".to_string()),
+            EnvelopeCase::Encrypted(_) => {
+                EnvelopeFormatItem::Item("ENCRYPTED".to_string())
+            }
             #[cfg(feature = "compress")]
-            EnvelopeCase::Compressed(_) => EnvelopeFormatItem::Item("COMPRESSED".to_string()),
+            EnvelopeCase::Compressed(_) => {
+                EnvelopeFormatItem::Item("COMPRESSED".to_string())
+            }
             EnvelopeCase::Node { subject, assertions, .. } => {
                 let mut items: Vec<EnvelopeFormatItem> = Vec::new();
 
-                let subject_item = subject.format_item(context);
+                let subject_item = subject.format_item(opts.clone());
                 let mut elided_count = 0;
                 #[cfg(feature = "encrypt")]
                 let mut encrypted_count = 0;
                 #[cfg(feature = "compress")]
                 let mut compressed_count = 0;
                 #[cfg(feature = "known_value")]
-                let mut type_assertion_items: Vec<Vec<EnvelopeFormatItem>> = Vec::new();
-                let mut assertion_items: Vec<Vec<EnvelopeFormatItem>> = Vec::new();
+                let mut type_assertion_items: Vec<
+                    Vec<EnvelopeFormatItem>,
+                > = Vec::new();
+                let mut assertion_items: Vec<Vec<EnvelopeFormatItem>> =
+                    Vec::new();
 
                 for assertion in assertions {
                     match assertion.case() {
                         EnvelopeCase::Elided(_) => {
                             elided_count += 1;
-                        },
+                        }
                         #[cfg(feature = "encrypt")]
                         EnvelopeCase::Encrypted(_) => {
                             encrypted_count += 1;
-                        },
+                        }
                         #[cfg(feature = "compress")]
                         EnvelopeCase::Compressed(_) => {
                             compressed_count += 1;
-                        },
+                        }
                         _ => {
-                            let item = vec![assertion.format_item(context)];
+                            let item =
+                                vec![assertion.format_item(opts.clone())];
                             #[cfg(feature = "known_value")]
                             {
                                 let mut is_type_assertion = false;
-                                if let Some(predicate) = assertion.as_predicate() {
-                                    if let Some(known_value) = predicate.subject().as_known_value() {
+                                if let Some(predicate) =
+                                    assertion.as_predicate()
+                                {
+                                    if let Some(known_value) =
+                                        predicate.subject().as_known_value()
+                                    {
                                         if *known_value == known_values::IS_A {
                                             is_type_assertion = true;
                                         }
@@ -378,7 +451,7 @@ impl EnvelopeFormat for Envelope {
                             }
                             #[cfg(not(feature = "known_value"))]
                             assertion_items.push(item);
-                        },
+                        }
                     }
                 }
                 #[cfg(feature = "known_value")]
@@ -388,23 +461,38 @@ impl EnvelopeFormat for Envelope {
                 assertion_items.splice(0..0, type_assertion_items);
                 #[cfg(feature = "compress")]
                 if compressed_count > 1 {
-                    assertion_items.push(vec![EnvelopeFormatItem::Item(format!("COMPRESSED ({})", compressed_count))]);
+                    assertion_items.push(vec![EnvelopeFormatItem::Item(
+                        format!("COMPRESSED ({})", compressed_count),
+                    )]);
                 } else if compressed_count > 0 {
-                    assertion_items.push(vec![EnvelopeFormatItem::Item("COMPRESSED".to_string())]);
+                    assertion_items.push(vec![EnvelopeFormatItem::Item(
+                        "COMPRESSED".to_string(),
+                    )]);
                 }
                 if elided_count > 1 {
-                    assertion_items.push(vec![EnvelopeFormatItem::Item(format!("ELIDED ({})", elided_count))]);
+                    assertion_items.push(vec![EnvelopeFormatItem::Item(
+                        format!("ELIDED ({})", elided_count),
+                    )]);
                 } else if elided_count > 0 {
-                    assertion_items.push(vec![EnvelopeFormatItem::Item("ELIDED".to_string())]);
+                    assertion_items.push(vec![EnvelopeFormatItem::Item(
+                        "ELIDED".to_string(),
+                    )]);
                 }
                 #[cfg(feature = "encrypt")]
                 if encrypted_count > 1 {
-                    assertion_items.push(vec![EnvelopeFormatItem::Item(format!("ENCRYPTED ({})", encrypted_count))]);
+                    assertion_items.push(vec![EnvelopeFormatItem::Item(
+                        format!("ENCRYPTED ({})", encrypted_count),
+                    )]);
                 } else if encrypted_count > 0 {
-                    assertion_items.push(vec![EnvelopeFormatItem::Item("ENCRYPTED".to_string())]);
+                    assertion_items.push(vec![EnvelopeFormatItem::Item(
+                        "ENCRYPTED".to_string(),
+                    )]);
                 }
                 let joined_assertions_items: Vec<Vec<EnvelopeFormatItem>> =
-                    itertools::intersperse_with(assertion_items, || vec![EnvelopeFormatItem::Separator]).collect();
+                    itertools::intersperse_with(assertion_items, || {
+                        vec![EnvelopeFormatItem::Separator]
+                    })
+                    .collect();
 
                 let needs_braces = subject.is_subject_assertion();
 
@@ -419,19 +507,24 @@ impl EnvelopeFormat for Envelope {
                 items.extend(joined_assertions_items.into_iter().flatten());
                 items.push(EnvelopeFormatItem::End("]".to_string()));
                 EnvelopeFormatItem::List(items)
-            },
-            EnvelopeCase::Elided(_) => EnvelopeFormatItem::Item("ELIDED".to_string()),
+            }
+            EnvelopeCase::Elided(_) => {
+                EnvelopeFormatItem::Item("ELIDED".to_string())
+            }
         }
     }
 }
 
 /// Implements formatting for Assertion in envelope notation.
 impl EnvelopeFormat for Assertion {
-    fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
+    fn format_item<'a>(
+        &self,
+        opts: EnvelopeFormatOpts<'a>,
+    ) -> EnvelopeFormatItem {
         EnvelopeFormatItem::List(vec![
-            self.predicate().format_item(context),
+            self.predicate().format_item(opts.clone()),
             EnvelopeFormatItem::Item(": ".to_string()),
-            self.object().format_item(context),
+            self.object().format_item(opts),
         ])
     }
 }
@@ -439,26 +532,47 @@ impl EnvelopeFormat for Assertion {
 #[cfg(feature = "known_value")]
 /// Implements formatting for KnownValue in envelope notation.
 impl EnvelopeFormat for KnownValue {
-    fn format_item(&self, context: &FormatContext) -> EnvelopeFormatItem {
-        EnvelopeFormatItem::Item(context
-            .known_values()
-            .assigned_name(self)
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| self.name())
-            .flanked_by("'", "'")
-        )
+    fn format_item<'a>(
+        &self,
+        opts: EnvelopeFormatOpts<'a>,
+    ) -> EnvelopeFormatItem {
+        let name = match opts.context {
+            FormatContextOpt::None => {
+                self.name().to_string().flanked_by("'", "'")
+            }
+            FormatContextOpt::Global => {
+                crate::with_format_context!(|context: &FormatContext| {
+                    context
+                        .known_values()
+                        .assigned_name(self)
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| self.name().to_string())
+                })
+            }
+            FormatContextOpt::Custom(format_context) => {
+                    format_context
+                        .known_values()
+                        .assigned_name(self)
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| self.name().to_string())
+            }
+        };
+        EnvelopeFormatItem::Item(name.flanked_by("'", "'"))
     }
 }
 
 /// Implements formatting for XID in envelope notation.
 impl EnvelopeFormat for XID {
-    fn format_item(&self, _context: &FormatContext) -> EnvelopeFormatItem {
+    fn format_item<'a>(
+        &self,
+        _opts: EnvelopeFormatOpts<'a>,
+    ) -> EnvelopeFormatItem {
         EnvelopeFormatItem::Item(hex::encode(self.data()))
     }
 }
 
- impl Envelope {
-    fn description(&self, context: Option<&FormatContext>) -> String {
+impl Envelope {
+    fn description<'a>(&self, opts: EnvelopeFormatOpts<'a>) -> String {
         match self.case() {
             EnvelopeCase::Node { subject, assertions, .. } => {
                 let assertions = assertions
@@ -469,12 +583,25 @@ impl EnvelopeFormat for XID {
                     .flanked_by("[", "]");
                 format!(".node({}, {})", subject, assertions)
             }
-            EnvelopeCase::Leaf { cbor, .. } => format!(".cbor({})", cbor.format_item(context.unwrap_or(&FormatContext::default()))),
-            EnvelopeCase::Wrapped { envelope, .. } => format!(".wrapped({})", envelope),
-            EnvelopeCase::Assertion(assertion) => format!(".assertion({}, {})", assertion.predicate(), assertion.object()),
+            EnvelopeCase::Leaf { cbor, .. } => {
+                format!(
+                            ".cbor({})",
+                            cbor.format_item(opts)
+                        )
+            },
+            EnvelopeCase::Wrapped { envelope, .. } => {
+                format!(".wrapped({})", envelope)
+            }
+            EnvelopeCase::Assertion(assertion) => format!(
+                ".assertion({}, {})",
+                assertion.predicate(),
+                assertion.object()
+            ),
             EnvelopeCase::Elided(_) => ".elided".to_string(),
             #[cfg(feature = "known_value")]
-            EnvelopeCase::KnownValue { value, .. } => format!(".knownValue({})", value),
+            EnvelopeCase::KnownValue { value, .. } => {
+                format!(".knownValue({})", value)
+            }
             #[cfg(feature = "encrypt")]
             EnvelopeCase::Encrypted(_) => ".encrypted".to_string(),
             #[cfg(feature = "compress")]
@@ -486,6 +613,6 @@ impl EnvelopeFormat for XID {
 /// Implements string display for Envelope.
 impl std::fmt::Display for Envelope {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.description(None))
+        f.write_str(&self.description(EnvelopeFormatOpts::default()))
     }
 }
