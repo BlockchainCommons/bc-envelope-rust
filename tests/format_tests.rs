@@ -1082,53 +1082,53 @@ fn test_redacted_credential() {
     // println!("{}", s);
     #[rustfmt::skip]
     assert_eq!(s, indoc! {r#"
-        WRAPPED
-            WRAPPED
-                WRAPPED
-                    ARID(4676635a)
+        subj WRAPPED
+            subj WRAPPED
+                subj WRAPPED
+                    subj ARID(4676635a)
                         ELIDED
                         ASSERTION
-                            "expirationDate"
-                            2028-01-01
+                            pred "expirationDate"
+                            obj 2028-01-01
                         ASSERTION
-                            "lastName"
-                            "Maxwell"
-                        ELIDED
-                        ASSERTION
-                            'isA'
-                            "Certificate of Completion"
-                        ELIDED
+                            pred "lastName"
+                            obj "Maxwell"
                         ELIDED
                         ASSERTION
-                            "firstName"
-                            "James"
-                        ELIDED
+                            pred 'isA'
+                            obj "Certificate of Completion"
                         ELIDED
                         ELIDED
                         ASSERTION
-                            "subject"
-                            "RF and Microwave Engineering"
+                            pred "firstName"
+                            obj "James"
+                        ELIDED
+                        ELIDED
+                        ELIDED
                         ASSERTION
-                            'issuer'
-                            "Example Electrical Engineering Board"
+                            pred "subject"
+                            obj "RF and Microwave Engineering"
+                        ASSERTION
+                            pred 'issuer'
+                            obj "Example Electrical Engineering Board"
                     ASSERTION
-                        'signed'
-                        Signature
+                        pred 'signed'
+                        obj Signature
                     ASSERTION
-                        'note'
-                        "Signed by Example Electrical Engineering…"
+                        pred 'note'
+                        obj "Signed by Example Electrical Engineering…"
                 ASSERTION
-                    "employeeHiredDate"
-                    2022-01-01
+                    pred "employeeHiredDate"
+                    obj 2022-01-01
                 ASSERTION
-                    "employeeStatus"
-                    "active"
+                    pred "employeeStatus"
+                    obj "active"
             ASSERTION
-                'note'
-                "Signed by Employer Corp."
+                pred 'note'
+                obj "Signed by Employer Corp."
             ASSERTION
-                'signed'
-                Signature
+                pred 'signed'
+                obj Signature
     "#}.trim());
 
     assert_eq!(

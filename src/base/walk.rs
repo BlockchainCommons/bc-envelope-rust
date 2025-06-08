@@ -199,7 +199,7 @@ impl Envelope {
     /// Use the public `walk` method with `hide_nodes = true` instead of calling this directly.
     fn walk_tree<Parent: Clone>(&self, visit: &Visitor<'_, Parent>)
     {
-        self._walk_tree(0, None, visit);
+        self._walk_tree(0, EdgeType::None, None, visit);
     }
 
     /// Recursive implementation of tree-based traversal.
@@ -207,27 +207,27 @@ impl Envelope {
     /// This internal method performs the actual recursive traversal of the envelope's semantic tree,
     /// skipping node containers and focusing on the semantic content elements. It maintains the
     /// correct level and edge relationships while skipping structural elements.
-    fn _walk_tree<Parent: Clone>(&self, level: usize, parent: Option<Parent>, visit: &Visitor<'_, Parent>) -> Option<Parent> {
+    fn _walk_tree<Parent: Clone>(&self, level: usize, incoming_edge: EdgeType, parent: Option<Parent>, visit: &Visitor<'_, Parent>) -> Option<Parent> {
         let mut parent = parent;
         let mut subject_level = level;
         if !self.is_node() {
-            parent = visit(self.clone(), level, EdgeType::None, parent);
+            parent = visit(self.clone(), level, incoming_edge, parent);
             subject_level = level + 1;
         }
         match self.case() {
             EnvelopeCase::Node { subject, assertions, .. } => {
-                let assertion_parent = subject._walk_tree(subject_level, parent.clone(), visit);
+                let assertion_parent = subject._walk_tree(subject_level, EdgeType::Subject, parent.clone(), visit);
                 let assertion_level = subject_level + 1;
                 for assertion in assertions {
-                    assertion._walk_tree(assertion_level, assertion_parent.clone(), visit);
+                    assertion._walk_tree(assertion_level, EdgeType::Assertion, assertion_parent.clone(), visit);
                 }
             },
             EnvelopeCase::Wrapped { envelope, .. } => {
-                envelope._walk_tree(subject_level, parent.clone(), visit);
+                envelope._walk_tree(subject_level, EdgeType::Wrapped, parent.clone(), visit);
             },
             EnvelopeCase::Assertion(assertion) => {
-                assertion.predicate()._walk_tree(subject_level, parent.clone(), visit);
-                assertion.object()._walk_tree(subject_level, parent.clone(), visit);
+                assertion.predicate()._walk_tree(subject_level, EdgeType::Predicate, parent.clone(), visit);
+                assertion.object()._walk_tree(subject_level, EdgeType::Object, parent.clone(), visit);
             },
             _ => {},
         }
