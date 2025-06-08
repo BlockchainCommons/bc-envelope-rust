@@ -71,8 +71,8 @@ impl<'a> EnvelopeFormatOpts<'a> {
 /// Support for the various text output formats for ``Envelope``.
 impl Envelope {
     /// Returns the envelope notation for this envelope.
-    pub fn format_opt<'a>(&self, opts: EnvelopeFormatOpts<'a>) -> String {
-        self.format_item(opts.clone())
+    pub fn format_opt<'a>(&self, opts: &EnvelopeFormatOpts<'a>) -> String {
+        self.format_item(opts)
             .format(opts)
             .trim()
             .to_string()
@@ -82,14 +82,14 @@ impl Envelope {
     ///
     /// Uses the current format context.
     pub fn format(&self) -> String {
-        self.format_opt(EnvelopeFormatOpts::default())
+        self.format_opt(&EnvelopeFormatOpts::default())
     }
 
     /// Returns the envelope notation for this envelope in flat format.
     ///
     /// In flat format, the envelope is printed on a single line.
     pub fn format_flat(&self) -> String {
-        self.format_opt(EnvelopeFormatOpts::default().flat(true))
+        self.format_opt(&EnvelopeFormatOpts::default().flat(true))
     }
 }
 
@@ -98,7 +98,7 @@ impl Envelope {
 pub trait EnvelopeFormat {
     fn format_item<'a>(
         &self,
-        opts: EnvelopeFormatOpts<'a>,
+        opts: &EnvelopeFormatOpts<'a>,
     ) -> EnvelopeFormatItem;
 }
 
@@ -165,7 +165,7 @@ impl EnvelopeFormatItem {
         }
     }
 
-    fn format(&self, opts: EnvelopeFormatOpts<'_>) -> String {
+    fn format(&self, opts: &EnvelopeFormatOpts<'_>) -> String {
         if opts.flat {
             return self.format_flat();
         }
@@ -351,7 +351,7 @@ impl Ord for EnvelopeFormatItem {
 impl EnvelopeFormat for CBOR {
     fn format_item<'a>(
         &self,
-        opts: EnvelopeFormatOpts<'a>,
+        opts: &EnvelopeFormatOpts<'a>,
     ) -> EnvelopeFormatItem {
         match self.as_case() {
             CBORCase::Tagged(tag, cbor) if tag == &Envelope::cbor_tags()[0] => {
@@ -360,7 +360,7 @@ impl EnvelopeFormat for CBOR {
                     .unwrap_or_else(|_| "<error>".into())
             }
             _ => EnvelopeFormatItem::Item(
-                self.envelope_summary(usize::MAX, opts.context)
+                self.envelope_summary(usize::MAX, &opts.context)
                     .unwrap_or_else(|_| "<error>".into()),
             ),
         }
@@ -371,23 +371,23 @@ impl EnvelopeFormat for CBOR {
 impl EnvelopeFormat for Envelope {
     fn format_item<'a>(
         &self,
-        opts: EnvelopeFormatOpts<'a>,
+        opts: &EnvelopeFormatOpts<'a>,
     ) -> EnvelopeFormatItem {
         match self.case() {
-            EnvelopeCase::Leaf { cbor, .. } => cbor.format_item(opts.clone()),
+            EnvelopeCase::Leaf { cbor, .. } => cbor.format_item(opts),
             EnvelopeCase::Wrapped { envelope, .. } => {
                 EnvelopeFormatItem::List(vec![
                     EnvelopeFormatItem::Begin("{".to_string()),
-                    envelope.format_item(opts.clone()),
+                    envelope.format_item(opts),
                     EnvelopeFormatItem::End("}".to_string()),
                 ])
             }
             EnvelopeCase::Assertion(assertion) => {
-                assertion.format_item(opts.clone())
+                assertion.format_item(opts)
             }
             #[cfg(feature = "known_value")]
             EnvelopeCase::KnownValue { value, .. } => {
-                value.format_item(opts.clone())
+                value.format_item(opts)
             }
             #[cfg(feature = "encrypt")]
             EnvelopeCase::Encrypted(_) => {
@@ -400,7 +400,7 @@ impl EnvelopeFormat for Envelope {
             EnvelopeCase::Node { subject, assertions, .. } => {
                 let mut items: Vec<EnvelopeFormatItem> = Vec::new();
 
-                let subject_item = subject.format_item(opts.clone());
+                let subject_item = subject.format_item(opts);
                 let mut elided_count = 0;
                 #[cfg(feature = "encrypt")]
                 let mut encrypted_count = 0;
@@ -428,7 +428,7 @@ impl EnvelopeFormat for Envelope {
                         }
                         _ => {
                             let item =
-                                vec![assertion.format_item(opts.clone())];
+                                vec![assertion.format_item(opts)];
                             #[cfg(feature = "known_value")]
                             {
                                 let mut is_type_assertion = false;
@@ -519,10 +519,10 @@ impl EnvelopeFormat for Envelope {
 impl EnvelopeFormat for Assertion {
     fn format_item<'a>(
         &self,
-        opts: EnvelopeFormatOpts<'a>,
+        opts: &EnvelopeFormatOpts<'a>,
     ) -> EnvelopeFormatItem {
         EnvelopeFormatItem::List(vec![
-            self.predicate().format_item(opts.clone()),
+            self.predicate().format_item(opts),
             EnvelopeFormatItem::Item(": ".to_string()),
             self.object().format_item(opts),
         ])
@@ -534,7 +534,7 @@ impl EnvelopeFormat for Assertion {
 impl EnvelopeFormat for KnownValue {
     fn format_item<'a>(
         &self,
-        opts: EnvelopeFormatOpts<'a>,
+        opts: &EnvelopeFormatOpts<'a>,
     ) -> EnvelopeFormatItem {
         let name = match opts.context {
             FormatContextOpt::None => {
@@ -565,14 +565,14 @@ impl EnvelopeFormat for KnownValue {
 impl EnvelopeFormat for XID {
     fn format_item<'a>(
         &self,
-        _opts: EnvelopeFormatOpts<'a>,
+        _opts: &EnvelopeFormatOpts<'a>,
     ) -> EnvelopeFormatItem {
         EnvelopeFormatItem::Item(hex::encode(self.data()))
     }
 }
 
 impl Envelope {
-    fn description<'a>(&self, opts: EnvelopeFormatOpts<'a>) -> String {
+    fn description<'a>(&self, opts: &EnvelopeFormatOpts<'a>) -> String {
         match self.case() {
             EnvelopeCase::Node { subject, assertions, .. } => {
                 let assertions = assertions
@@ -613,6 +613,6 @@ impl Envelope {
 /// Implements string display for Envelope.
 impl std::fmt::Display for Envelope {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.description(EnvelopeFormatOpts::default()))
+        f.write_str(&self.description(&EnvelopeFormatOpts::default()))
     }
 }

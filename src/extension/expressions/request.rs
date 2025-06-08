@@ -386,4 +386,14 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_parameter_format() {
+        crate::register_tags();
+
+        let parameter = Parameter::new_named("testParam");
+        let envelope = parameter.into_envelope();
+        let expected = r#"❰"testParam"❱"#;
+        assert_eq!(envelope.format(), expected);
+    }
 }

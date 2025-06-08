@@ -38,7 +38,7 @@ impl Envelope {
     pub fn hex_opt<'a>(&self, opts: HexFormatOpts<'a>) -> String {
         let cbor: CBOR = self.clone().into();
         let hex_opts: dcbor::HexFormatOpts<'a> = opts.into();
-        cbor.hex_opt(hex_opts)
+        cbor.hex_opt(&hex_opts)
     }
 
     /// Returns the CBOR hex dump of this envelope.

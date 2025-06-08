@@ -11,7 +11,7 @@ impl Envelope {
     pub fn diagnostic_annotated(&self) -> String {
         with_format_context!(|context: &FormatContext| {
             self.tagged_cbor().diagnostic_opt(
-                DiagFormatOpts::default().annotate(true).tags(TagsStoreOpt::Custom(context.tags())),
+                &DiagFormatOpts::default().annotate(true).tags(TagsStoreOpt::Custom(context.tags())),
             )
         })
     }

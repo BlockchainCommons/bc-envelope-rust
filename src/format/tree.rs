@@ -187,7 +187,7 @@ impl Envelope {
         match self.case() {
             EnvelopeCase::Node { .. } => "NODE".to_string(),
             EnvelopeCase::Leaf { cbor, .. } => cbor
-                .envelope_summary(max_length, FormatContextOpt::Custom(context))
+                .envelope_summary(max_length, &FormatContextOpt::Custom(context))
                 .unwrap(),
             EnvelopeCase::Wrapped { .. } => "WRAPPED".to_string(),
             EnvelopeCase::Assertion(_) => "ASSERTION".to_string(),

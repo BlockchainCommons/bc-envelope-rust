@@ -1,13 +1,13 @@
 use anyhow::Result;
 use dcbor::prelude::*;
 
-use crate::{FormatContextOpt, string_utils::StringUtils};
+use crate::{FormatContext, FormatContextOpt, string_utils::StringUtils};
 
 pub trait EnvelopeSummary {
     fn envelope_summary<'a>(
         &self,
         max_length: usize,
-        context: FormatContextOpt<'a>,
+        context: &FormatContextOpt<'a>,
     ) -> Result<String>;
 }
 
@@ -15,7 +15,7 @@ impl EnvelopeSummary for CBOR {
     fn envelope_summary<'a>(
         &self,
         max_length: usize,
-        context: FormatContextOpt<'a>,
+        context: &FormatContextOpt<'a>,
     ) -> Result<String> {
         match self.as_case() {
             CBORCase::Unsigned(n) => Ok(n.to_string()),
@@ -34,21 +34,72 @@ impl EnvelopeSummary for CBOR {
             }
             CBORCase::Simple(v) => Ok(v.to_string()),
 
-            CBORCase::Array(_) => Ok(self.diagnostic_opt(
-                DiagFormatOpts::default()
-                    .summarize(true)
-                    .tags(context.into()),
-            )),
-            CBORCase::Map(_) => Ok(self.diagnostic_opt(
-                DiagFormatOpts::default()
-                    .summarize(true)
-                    .tags(context.into()),
-            )),
-            CBORCase::Tagged(_, _) => Ok(self.diagnostic_opt(
-                DiagFormatOpts::default()
-                    .summarize(true)
-                    .tags(context.into()),
-            )),
+            CBORCase::Array(_) => match context {
+                FormatContextOpt::None => Ok(self.diagnostic_opt(
+                    &DiagFormatOpts::default()
+                        .summarize(true)
+                        .tags(TagsStoreOpt::None),
+                )),
+                FormatContextOpt::Global => {
+                    crate::with_format_context!(|ctx: &FormatContext| {
+                        Ok(self.diagnostic_opt(
+                            &DiagFormatOpts::default()
+                                .summarize(true)
+                                .tags(TagsStoreOpt::Custom(ctx.tags())),
+                        ))
+                    })
+                }
+                FormatContextOpt::Custom(format_context) => Ok(self
+                    .diagnostic_opt(
+                        &DiagFormatOpts::default()
+                            .summarize(true)
+                            .tags(TagsStoreOpt::Custom(format_context.tags())),
+                    )),
+            },
+            CBORCase::Map(_) => match context {
+                FormatContextOpt::None => Ok(self.diagnostic_opt(
+                    &DiagFormatOpts::default()
+                        .summarize(true)
+                        .tags(TagsStoreOpt::None),
+                )),
+                FormatContextOpt::Global => {
+                    crate::with_format_context!(|ctx: &FormatContext| {
+                        Ok(self.diagnostic_opt(
+                            &DiagFormatOpts::default()
+                                .summarize(true)
+                                .tags(TagsStoreOpt::Custom(ctx.tags())),
+                        ))
+                    })
+                }
+                FormatContextOpt::Custom(format_context) => Ok(self
+                    .diagnostic_opt(
+                        &DiagFormatOpts::default()
+                            .summarize(true)
+                            .tags(TagsStoreOpt::Custom(format_context.tags())),
+                    )),
+            },
+            CBORCase::Tagged(_, _) => match context {
+                FormatContextOpt::None => Ok(self.diagnostic_opt(
+                    &DiagFormatOpts::default()
+                        .summarize(true)
+                        .tags(TagsStoreOpt::None),
+                )),
+                FormatContextOpt::Global => {
+                    crate::with_format_context!(|ctx: &FormatContext| {
+                        Ok(self.diagnostic_opt(
+                            &DiagFormatOpts::default()
+                                .summarize(true)
+                                .tags(TagsStoreOpt::Custom(ctx.tags())),
+                        ))
+                    })
+                }
+                FormatContextOpt::Custom(format_context) => Ok(self
+                    .diagnostic_opt(
+                        &DiagFormatOpts::default()
+                            .summarize(true)
+                            .tags(TagsStoreOpt::Custom(format_context.tags())),
+                    )),
+            },
         }
     }
 }
