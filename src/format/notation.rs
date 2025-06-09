@@ -42,7 +42,7 @@ use dcbor::prelude::*;
 
 use super::EnvelopeSummary;
 use crate::{
-    Assertion, Envelope, FormatContext, FormatContextOpt,
+    Assertion, Envelope, FormatContextOpt,
     base::envelope::EnvelopeCase, string_utils::StringUtils,
 };
 #[cfg(feature = "known_value")]
@@ -541,7 +541,7 @@ impl EnvelopeFormat for KnownValue {
                 self.name().to_string().flanked_by("'", "'")
             }
             FormatContextOpt::Global => {
-                crate::with_format_context!(|context: &FormatContext| {
+                crate::with_format_context!(|context: &crate::FormatContext| {
                     context
                         .known_values()
                         .assigned_name(self)

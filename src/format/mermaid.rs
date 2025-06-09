@@ -58,7 +58,7 @@ impl std::fmt::Display for MermaidTheme {
 #[derive(Clone)]
 pub struct MermaidFormatOpts<'a> {
     hide_nodes: bool,
-    color: bool,
+    monochrome: bool,
     theme: MermaidTheme,
     orientation: MermaidOrientation,
     highlighting_target: HashSet<Digest>,
@@ -69,7 +69,7 @@ impl Default for MermaidFormatOpts<'_> {
     fn default() -> Self {
         Self {
             hide_nodes: false,
-            color: true,
+            monochrome: false,
             theme: MermaidTheme::default(),
             orientation: MermaidOrientation::default(),
             highlighting_target: HashSet::new(),
@@ -86,10 +86,10 @@ impl<'a> MermaidFormatOpts<'a> {
         self
     }
 
-    /// Sets the color mode for the tree representation. (default is
-    /// ColorLight).
-    pub fn color(mut self, color: bool) -> Self {
-        self.color = color;
+    /// When set to true, the tree representation will use a monochrome
+    /// color scheme (default is false).
+    pub fn monochrome(mut self, monochrome: bool) -> Self {
+        self.monochrome = monochrome;
         self
     }
 
@@ -175,7 +175,7 @@ impl Envelope {
             let indent = "    ".repeat(element.level);
             let content = if let Some(parent) = element.parent.as_ref() {
                 let mut this_link_styles = Vec::new();
-                if opts.color {
+                if !opts.monochrome {
                     if let Some(color) =
                         element.incoming_edge.link_stroke_color()
                     {
@@ -200,7 +200,7 @@ impl Envelope {
                 element.format_node(&mut element_ids)
             };
             let mut this_node_styles = Vec::new();
-            if opts.color {
+            if !opts.monochrome {
                 let stroke_color = element.envelope.node_color();
                 this_node_styles.push(format!("stroke:{}", stroke_color));
             }

@@ -1323,7 +1323,7 @@ fn test_redacted_credential() {
 
     let actual = warranty.mermaid_format_opt(
         &MermaidFormatOpts::default()
-            .color(false)
+            .monochrome(true)
             .theme(MermaidTheme::Forest)
             .orientation(MermaidOrientation::TopToBottom)
             .hide_nodes(true),
