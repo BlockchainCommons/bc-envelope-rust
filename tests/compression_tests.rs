@@ -48,7 +48,7 @@ fn test_compress_subject() {
     let s = original.tree_format();
     // println!("{}", s);
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
+    assert_actual_expected!(s, indoc! {r#"
         ec608f27 NODE
             d7183f04 subj WRAPPED
                 7f35e345 subj NODE
@@ -65,7 +65,7 @@ fn test_compress_subject() {
     let s = compressed.tree_format();
     // println!("{}", s);
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
+    assert_actual_expected!(s, indoc! {r#"
         ec608f27 NODE
             d7183f04 subj COMPRESSED
             0db2ee20 ASSERTION
@@ -75,7 +75,7 @@ fn test_compress_subject() {
     let s = compressed.mermaid_format();
     // println!("{}", s);
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
+    assert_actual_expected!(s, indoc! {r#"
         %%{ init: { 'theme': 'default', 'flowchart': { 'curve': 'basis' } } }%%
         graph LR
         0(("NODE<br>ec608f27"))

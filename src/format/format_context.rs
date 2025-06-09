@@ -308,14 +308,6 @@ pub static GLOBAL_FORMAT_CONTEXT: LazyFormatContext =
 ///
 /// This macro provides a convenient way to use the global format context
 /// without dealing with mutex locking and unlocking directly.
-///
-/// # Example
-///
-/// ```
-/// # use bc_envelope::prelude::*;
-/// # let e = Envelope::new("Hello.");
-/// let formatted = with_format_context!(|ctx| e.format_opt(Some(ctx)));
-/// ```
 #[macro_export]
 macro_rules! with_format_context {
     ($action:expr) => {{
@@ -330,19 +322,6 @@ macro_rules! with_format_context {
 ///
 /// This macro provides a convenient way to use and modify the global format
 /// context without dealing with mutex locking and unlocking directly.
-///
-/// # Example
-///
-/// ```
-/// # use bc_envelope::prelude::*;
-/// # use bc_envelope::with_format_context_mut;
-/// with_format_context_mut!(|ctx: &mut FormatContext| {
-///     // Use a mutable reference method instead of set_flat which consumes self
-///     let flat_setting = ctx.is_flat();
-///     // Do something with the flat setting
-///     assert!(!flat_setting);
-/// });
-/// ```
 #[macro_export]
 macro_rules! with_format_context_mut {
     ($action:expr) => {{

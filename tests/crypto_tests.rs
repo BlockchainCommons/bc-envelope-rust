@@ -19,7 +19,7 @@ fn plaintext() {
     let expected_format = (indoc! {r#"
         "Hello."
     "#}).trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     // Alice ➡️ ☁️ ➡️ Bob
 
@@ -52,7 +52,7 @@ fn symmetric_encryption() {
     let expected_format = (indoc! {r#"
         ENCRYPTED
     "#}).trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     // Alice ➡️ ☁️ ➡️ Bob
 
@@ -149,7 +149,7 @@ fn sign_then_encrypt() {
     let expected_format = (indoc! {r#"
         ENCRYPTED
     "#}).trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     // Alice ➡️ ☁️ ➡️ Bob
 
@@ -225,7 +225,7 @@ fn test_encrypt_then_sign() {
             'signed': Signature
         ]
     "#}).trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     // Alice ➡️ ☁️ ➡️ Bob
 
@@ -269,7 +269,7 @@ fn test_multi_recipient() {
             'hasRecipient': SealedMessage
         ]
     "#}).trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     // Alice ➡️ ☁️ ➡️ Bob
     // Alice ➡️ ☁️ ➡️ Carol
@@ -329,7 +329,7 @@ fn test_visible_signature_multi_recipient() {
             'signed': Signature
         ]
     "#}).trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     // Alice ➡️ ☁️ ➡️ Bob
     // Alice ➡️ ☁️ ➡️ Carol
@@ -395,7 +395,7 @@ fn test_hidden_signature_multi_recipient() {
             'hasRecipient': SealedMessage
         ]
     "#}).trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     // Alice ➡️ ☁️ ➡️ Bob
     // Alice ➡️ ☁️ ➡️ Carol
@@ -460,7 +460,7 @@ fn test_secret_1() {
             'hasSecret': EncryptedKey(HKDF(SHA256))
         ]
     "#}).trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
     // Alice ➡️ ☁️ ➡️ Bob, Eve
     // The envelope is received
     let received_envelope = Envelope::from_ur(&ur).unwrap();
@@ -511,7 +511,7 @@ fn test_secret_2() {
             'hasSecret': EncryptedKey(Scrypt)
         ]
     "#}).trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
     // Alice ➡️ ☁️ ➡️ Bob, Carol, Eve
     // The envelope is received
     let received_envelope = Envelope::from_ur(&ur).unwrap();

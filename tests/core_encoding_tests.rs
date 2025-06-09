@@ -16,7 +16,7 @@ fn test_1() -> anyhow::Result<()> {
     let e = Envelope::new("Hello.");
 
     #[rustfmt::skip]
-    assert_eq!(e.diagnostic_annotated(), indoc! {r#"
+    assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
             201("Hello.")   / leaf /
         )
@@ -31,7 +31,7 @@ fn test_2() -> anyhow::Result<()> {
     let e = Envelope::new(Into::<CBOR>::into(array));
 
     #[rustfmt::skip]
-    assert_eq!(e.diagnostic_annotated(), indoc! {r#"
+    assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
             201(   / leaf /
                 [1, 2, 3]
@@ -50,7 +50,7 @@ fn test_3() -> anyhow::Result<()> {
 
     let e4 = e2.add_assertion_envelope(e3).unwrap();
     #[rustfmt::skip]
-    assert_eq!(e4.format(), indoc! {r#"
+    assert_actual_expected!(e4.format(), indoc! {r#"
         {
             "C": "D"
         } [
@@ -61,7 +61,7 @@ fn test_3() -> anyhow::Result<()> {
     // println!("{}", e4.diagnostic_annotated());
 
     #[rustfmt::skip]
-    assert_eq!(e4.diagnostic_annotated(), indoc! {r#"
+    assert_actual_expected!(e4.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
             [
                 {
@@ -81,7 +81,7 @@ fn test_3() -> anyhow::Result<()> {
     let e5 = e1.add_assertion_envelope(e4).unwrap().check_encoding()?;
 
     #[rustfmt::skip]
-    assert_eq!(e5.format(), indoc! {r#"
+    assert_actual_expected!(e5.format(), indoc! {r#"
         {
             "A": "B"
         } [
@@ -94,7 +94,7 @@ fn test_3() -> anyhow::Result<()> {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(e5.diagnostic_annotated(), indoc! {r#"
+    assert_actual_expected!(e5.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
             [
                 {

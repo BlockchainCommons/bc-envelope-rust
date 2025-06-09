@@ -22,7 +22,7 @@ fn test_signed_plaintext() {
             'signed': Signature
         ]
     "#}.trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     // Alice ➡️ ☁️ ➡️ Bob
 
@@ -63,7 +63,7 @@ fn multisigned_plaintext() {
             'signed': Signature
         ]
     "#}.trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     // Alice & Carol ➡️ ☁️ ➡️ Bob
     let ur = envelope.ur();
@@ -107,7 +107,7 @@ fn signed_with_metadata() {
             ]
         ]
     "#}.trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     // Alice ➡️ ☁️ ➡️ Bob
     let ur = envelope.ur();
@@ -124,7 +124,7 @@ fn signed_with_metadata() {
             'note': "Alice signed this."
         ]
     "#}.trim();
-    assert_eq!(metadata.format(), expected_format);
+    assert_actual_expected!(metadata.format(), expected_format);
     let note = metadata.object_for_predicate(NOTE).unwrap().extract_subject::<String>().unwrap();
     assert_eq!(note, "Alice signed this.");
 

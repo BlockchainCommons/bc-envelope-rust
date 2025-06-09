@@ -20,7 +20,7 @@ fn test_known_value() {
 fn test_date() {
     let date = dcbor::Date::from_string("2018-01-07").unwrap();
     let envelope = Envelope::new(date).check_encoding().unwrap();
-    assert_eq!(envelope.format(), "2018-01-07");
+    assert_actual_expected!(envelope.format(), "2018-01-07");
 }
 
 #[test]

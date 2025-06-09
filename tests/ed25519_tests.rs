@@ -24,7 +24,7 @@ fn test_ed25519_signed_plaintext() {
             'signed': Signature(Ed25519)
         ]
     "#}.trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     // Alice ➡️ ☁️ ➡️ Bob
 

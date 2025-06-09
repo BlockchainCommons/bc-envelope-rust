@@ -27,38 +27,38 @@ fn test_plaintext() {
     let envelope = Envelope::new(PLAINTEXT_HELLO);
 
     #[rustfmt::skip]
-    assert_eq!(envelope.format(), indoc! {r#"
+    assert_actual_expected!(envelope.format(), indoc! {r#"
         "Hello."
     "#}.trim());
 
-    assert_eq!(envelope.format_flat(), r#""Hello.""#);
+    assert_actual_expected!(envelope.format_flat(), r#""Hello.""#);
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format(), indoc! {r#"
+    assert_actual_expected!(envelope.tree_format(), indoc! {r#"
         8cc96cdb "Hello."
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().context(FormatContextOpt::None)), indoc! {r#"
+    assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().context(FormatContextOpt::None)), indoc! {r#"
         8cc96cdb "Hello."
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().digest_display(DigestDisplayFormat::Full)), indoc! {r#"
+    assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().digest_display(DigestDisplayFormat::Full)), indoc! {r#"
         8cc96cdb771176e835114a0f8936690b41cfed0df22d014eedd64edaea945d59 "Hello."
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().digest_display(DigestDisplayFormat::UR)), indoc! {r#"
+    assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().digest_display(DigestDisplayFormat::UR)), indoc! {r#"
         ur:digest/hdcxlksojzuyktbykovsecbygebsldeninbdfptkwebtwzdpadglwetbgltnwdmwhlhksbbthtpy "Hello."
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+    assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         "Hello."
     "#}.trim());
 
-    assert_eq!(
+    assert_actual_expected!(
         envelope.elements_count(),
         envelope.tree_format().split('\n').count()
     );
@@ -76,20 +76,20 @@ fn test_signed_plaintext() {
     );
 
     #[rustfmt::skip]
-    assert_eq!(envelope.format(), indoc! {r#"
+    assert_actual_expected!(envelope.format(), indoc! {r#"
         "Hello." [
             'signed': Signature
         ]
     "#}.trim());
 
-    assert_eq!(
+    assert_actual_expected!(
         envelope.format_flat(),
         r#""Hello." [ 'signed': Signature ]"#
     );
 
     let s = envelope.tree_format();
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
+    assert_actual_expected!(s, indoc! {r#"
         949a991e NODE
             8cc96cdb subj "Hello."
             fcb4e2be ASSERTION
@@ -101,7 +101,7 @@ fn test_signed_plaintext() {
         &TreeFormatOpts::default().context(FormatContextOpt::None),
     );
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
+    assert_actual_expected!(s, indoc! {r#"
         949a991e NODE
             8cc96cdb subj "Hello."
             fcb4e2be ASSERTION
@@ -110,11 +110,11 @@ fn test_signed_plaintext() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
-        "Hello."
+    assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+        subj "Hello."
             ASSERTION
-                'signed'
-                Signature
+                pred 'signed'
+                obj Signature
     "#}.trim());
 
     let s = envelope.tree_format_opt(
@@ -123,11 +123,11 @@ fn test_signed_plaintext() {
             .context(FormatContextOpt::None),
     );
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
-        "Hello."
+    assert_actual_expected!(s, indoc! {r#"
+        subj "Hello."
             ASSERTION
-                '3'
-                40020(h'd0f6b2577edb3f4b0f533e21577bc12a58aaca2604bc71e84bd4e2c81421900bca361a1a8de3b7dbfe1cb5c16e34cb8c9a78fe6f7a387e959bbb15f6f3d898d3')
+                pred '3'
+                obj 40020(h'd0f6b2577edb3f4b0f533e21577bc12a58aaca2604bc71e84bd4e2c81421900bca361a1a8de3b7dbfe1cb5c16e34cb8c9a78fe6f7a387e959bbb15f6f3d898d3')
     "#}.trim());
 
     assert_eq!(
@@ -144,16 +144,16 @@ fn test_encrypt_subject() {
         .encrypt_subject(&SymmetricKey::new())
         .unwrap();
     #[rustfmt::skip]
-    assert_eq!(envelope.format(), indoc! {r#"
+    assert_actual_expected!(envelope.format(), indoc! {r#"
         ENCRYPTED [
             "knows": "Bob"
         ]
     "#}.trim());
 
-    assert_eq!(envelope.format_flat(), r#"ENCRYPTED [ "knows": "Bob" ]"#);
+    assert_actual_expected!(envelope.format_flat(), r#"ENCRYPTED [ "knows": "Bob" ]"#);
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format(), indoc! {r#"
+    assert_actual_expected!(envelope.tree_format(), indoc! {r#"
         8955db5e NODE
             13941b48 subj ENCRYPTED
             78d666eb ASSERTION
@@ -181,12 +181,12 @@ fn test_encrypt_subject() {
         linkStyle 2 stroke:green,stroke-width:2px
         linkStyle 3 stroke:blue,stroke-width:2px
     "#}.trim();
-    assert_eq!(actual, expected);
+    assert_actual_expected!(actual, expected);
 
     let actual = envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true));
     // println!("{}", actual);
     #[rustfmt::skip]
-    assert_eq!(actual, indoc! {r#"
+    assert_actual_expected!(actual, indoc! {r#"
         subj ENCRYPTED
             ASSERTION
                 pred "knows"
@@ -203,24 +203,24 @@ fn test_encrypt_subject() {
 fn test_top_level_assertion() {
     let envelope = Envelope::new_assertion("knows", "Bob");
     #[rustfmt::skip]
-    assert_eq!(envelope.format(), indoc! {r#"
+    assert_actual_expected!(envelope.format(), indoc! {r#"
         "knows": "Bob"
     "#}.trim());
 
-    assert_eq!(envelope.format_flat(), r#""knows": "Bob""#);
+    assert_actual_expected!(envelope.format_flat(), r#""knows": "Bob""#);
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format(), indoc! {r#"
+    assert_actual_expected!(envelope.tree_format(), indoc! {r#"
         78d666eb ASSERTION
             db7dd21c pred "knows"
             13b74194 obj "Bob"
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+    assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         ASSERTION
-            "knows"
-            "Bob"
+            pred "knows"
+            obj "Bob"
     "#}.trim());
 
     assert_eq!(
@@ -234,16 +234,16 @@ fn test_elided_object() {
     let envelope = Envelope::new("Alice").add_assertion("knows", "Bob");
     let elided = envelope.elide_removing_target(&"Bob".to_envelope());
     #[rustfmt::skip]
-    assert_eq!(elided.format(), indoc! {r#"
+    assert_actual_expected!(elided.format(), indoc! {r#"
         "Alice" [
             "knows": ELIDED
         ]
     "#}.trim());
 
-    assert_eq!(elided.format_flat(), r#""Alice" [ "knows": ELIDED ]"#);
+    assert_actual_expected!(elided.format_flat(), r#""Alice" [ "knows": ELIDED ]"#);
 
     #[rustfmt::skip]
-    assert_eq!(elided.tree_format(), indoc! {r#"
+    assert_actual_expected!(elided.tree_format(), indoc! {r#"
         8955db5e NODE
             13941b48 subj "Alice"
             78d666eb ASSERTION
@@ -252,11 +252,11 @@ fn test_elided_object() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(elided.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
-        "Alice"
+    assert_actual_expected!(elided.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+        subj "Alice"
             ASSERTION
-                "knows"
-                ELIDED
+                pred "knows"
+                obj ELIDED
     "#}.trim());
 
     assert_eq!(
@@ -275,7 +275,7 @@ fn test_signed_subject() {
         .add_assertion("knows", "Carol")
         .add_signature_opt(&alice_private_key(), Some(options), None);
     #[rustfmt::skip]
-    assert_eq!(envelope.format(), indoc! {r#"
+    assert_actual_expected!(envelope.format(), indoc! {r#"
         "Alice" [
             "knows": "Bob"
             "knows": "Carol"
@@ -283,7 +283,7 @@ fn test_signed_subject() {
         ]
     "#}.trim());
 
-    assert_eq!(
+    assert_actual_expected!(
         envelope.format_flat(),
         r#""Alice" [ "knows": "Bob", "knows": "Carol", 'signed': Signature ]"#
     );
@@ -291,7 +291,7 @@ fn test_signed_subject() {
     let s = envelope.tree_format();
     // println!("{}", s);
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
+    assert_actual_expected!(s, indoc! {r#"
         d595106e NODE
             13941b48 subj "Alice"
             399c974c ASSERTION
@@ -309,17 +309,17 @@ fn test_signed_subject() {
         envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true));
     // println!("{}", s);
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
-        "Alice"
+    assert_actual_expected!(s, indoc! {r#"
+        subj "Alice"
             ASSERTION
-                'signed'
-                Signature
+                pred 'signed'
+                obj Signature
             ASSERTION
-                "knows"
-                "Carol"
+                pred "knows"
+                obj "Carol"
             ASSERTION
-                "knows"
-                "Bob"
+                pred "knows"
+                obj "Bob"
     "#}.trim());
 
     assert_eq!(
@@ -333,18 +333,18 @@ fn test_signed_subject() {
     target.insert(envelope.subject().digest().into_owned());
     let elided = envelope.elide_revealing_set(&target);
     #[rustfmt::skip]
-    assert_eq!(elided.format(), indoc! {r#"
+    assert_actual_expected!(elided.format(), indoc! {r#"
         "Alice" [
             ELIDED (3)
         ]
     "#}.trim());
 
-    assert_eq!(elided.format_flat(), r#""Alice" [ ELIDED (3) ]"#);
+    assert_actual_expected!(elided.format_flat(), r#""Alice" [ ELIDED (3) ]"#);
 
     let s = elided.tree_format();
     // println!("{}", s);
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
+    assert_actual_expected!(s, indoc! {r#"
         d595106e NODE
             13941b48 subj "Alice"
             399c974c ELIDED
@@ -353,8 +353,8 @@ fn test_signed_subject() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(elided.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
-        "Alice"
+    assert_actual_expected!(elided.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+        subj "Alice"
             ELIDED
             ELIDED
             ELIDED
@@ -377,7 +377,7 @@ fn test_wrap_then_signed() {
         .wrap_envelope()
         .add_signature_opt(&alice_private_key(), Some(options), None);
     #[rustfmt::skip]
-    assert_eq!(envelope.format(), indoc! {r#"
+    assert_actual_expected!(envelope.format(), indoc! {r#"
         {
             "Alice" [
                 "knows": "Bob"
@@ -388,14 +388,14 @@ fn test_wrap_then_signed() {
         ]
     "#}.trim());
 
-    assert_eq!(
+    assert_actual_expected!(
         envelope.format_flat(),
         r#"{ "Alice" [ "knows": "Bob", "knows": "Carol" ] } [ 'signed': Signature ]"#
     );
 
     let s = envelope.tree_format();
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
+    assert_actual_expected!(s, indoc! {r#"
         66c9d594 NODE
             9e3b0673 subj WRAPPED
                 b8d857f6 subj NODE
@@ -414,25 +414,25 @@ fn test_wrap_then_signed() {
     let s =
         envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true));
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
-        WRAPPED
-            "Alice"
+    assert_actual_expected!(s, indoc! {r#"
+        subj WRAPPED
+            subj "Alice"
                 ASSERTION
-                    "knows"
-                    "Carol"
+                    pred "knows"
+                    obj "Carol"
                 ASSERTION
-                    "knows"
-                    "Bob"
+                    pred "knows"
+                    obj "Bob"
             ASSERTION
-                'signed'
-                Signature
+                pred 'signed'
+                obj Signature
     "#}.trim());
 
     let s = envelope.tree_format_opt(
         &TreeFormatOpts::default().digest_display(DigestDisplayFormat::Full),
     );
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
+    assert_actual_expected!(s, indoc! {r#"
         66c9d5944eaedc418d8acf52df7842f50c2aa2d0da2857ad1048412cd070c3e8 NODE
             9e3b06737407b10cac0b9353dd978c4a68537709554dabdd66a8b68b8bd36cf6 subj WRAPPED
                 b8d857f6e06a836fbc68ca0ce43e55ceb98eefd949119dab344e11c4ba5a0471 subj NODE
@@ -452,7 +452,7 @@ fn test_wrap_then_signed() {
         &TreeFormatOpts::default().digest_display(DigestDisplayFormat::UR),
     );
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
+    assert_actual_expected!(s, indoc! {r#"
         ur:digest/hdcxiysotlmwglpluofplgletkgmurksfwykbndroetitndehgpmbefdfpdwtijosrvsbsdlsndm NODE
             ur:digest/hdcxnnframjkjyatpabnpsbdmuguutmslkgeisguktasgogtpyutiypdrplulutejzynmygrnlly subj WRAPPED
                 ur:digest/hdcxrotphgynvtimlsjlrfissgbnvefmgotorhmnwstagabyntpyeeglbyssrdhtaajsaetafrbw subj NODE
@@ -497,27 +497,27 @@ fn test_encrypt_to_recipients() {
         .check_encoding()
         .unwrap();
     #[rustfmt::skip]
-    assert_eq!(envelope.format(), indoc! {r#"
+    assert_actual_expected!(envelope.format(), indoc! {r#"
         ENCRYPTED [
             'hasRecipient': SealedMessage
             'hasRecipient': SealedMessage
         ]
     "#}.trim());
 
-    assert_eq!(
+    assert_actual_expected!(
         envelope.format_flat(),
         r#"ENCRYPTED [ 'hasRecipient': SealedMessage, 'hasRecipient': SealedMessage ]"#
     );
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
-        ENCRYPTED
+    assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+        subj ENCRYPTED
             ASSERTION
-                'hasRecipient'
-                SealedMessage
+                pred 'hasRecipient'
+                obj SealedMessage
             ASSERTION
-                'hasRecipient'
-                SealedMessage
+                pred 'hasRecipient'
+                obj SealedMessage
     "#}.trim());
 
     assert_eq!(
@@ -537,7 +537,7 @@ fn test_assertion_positions() {
         .check_encoding()
         .unwrap();
     #[rustfmt::skip]
-    assert_eq!(envelope.format(), indoc! {r#"
+    assert_actual_expected!(envelope.format(), indoc! {r#"
         "subject" [
             "predicate" [
                 "predicate-predicate": "predicate-object"
@@ -548,13 +548,13 @@ fn test_assertion_positions() {
         ]
     "#}.trim());
 
-    assert_eq!(
+    assert_actual_expected!(
         envelope.format_flat(),
         r#""subject" [ "predicate" [ "predicate-predicate": "predicate-object" ] : "object" [ "object-predicate": "object-object" ] ]"#
     );
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format(), indoc! {r#"
+    assert_actual_expected!(envelope.tree_format(), indoc! {r#"
         e06d7003 NODE
             8e4e62eb subj "subject"
             91a436e0 ASSERTION
@@ -571,17 +571,17 @@ fn test_assertion_positions() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
-        "subject"
+    assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+        subj "subject"
             ASSERTION
-                "predicate"
+                subj "predicate"
                     ASSERTION
-                        "predicate-predicate"
-                        "predicate-object"
-                "object"
+                        pred "predicate-predicate"
+                        obj "predicate-object"
+                subj "object"
                     ASSERTION
-                        "object-predicate"
-                        "object-object"
+                        pred "object-predicate"
+                        obj "object-object"
     "#}.trim());
 
     assert_eq!(
@@ -637,7 +637,7 @@ fn test_complex_metadata() {
         .unwrap();
 
     #[rustfmt::skip]
-    assert_eq!(book_metadata.format(), indoc! {r#"
+    assert_actual_expected!(book_metadata.format(), indoc! {r#"
         Digest(26d05af5) [
             "format": "EPUB"
             "work": ARID(7fb90a9d) [
@@ -658,13 +658,13 @@ fn test_complex_metadata() {
             'dereferenceVia': "IPFS"
         ]
     "#}.trim());
-    assert_eq!(
+    assert_actual_expected!(
         book_metadata.format_flat(),
         r#"Digest(26d05af5) [ "format": "EPUB", "work": ARID(7fb90a9d) [ 'isA': "novel", "author": ARID(9c747ace) [ 'dereferenceVia': "LibraryOfCongress", 'name': "Ayn Rand" ], "isbn": "9780451191144", 'dereferenceVia': "LibraryOfCongress", 'name': "Atlas Shrugged" [ 'language': "en" ], 'name': "La rebelión de Atlas" [ 'language': "es" ] ], 'dereferenceVia': "IPFS" ]"#
     );
 
     #[rustfmt::skip]
-    assert_eq!(book_metadata.tree_format(), indoc! {r#"
+    assert_actual_expected!(book_metadata.tree_format(), indoc! {r#"
         c93370e7 NODE
             0c1e45b9 subj Digest(26d05af5)
             83b00bef ASSERTION
@@ -713,47 +713,47 @@ fn test_complex_metadata() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(book_metadata.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
-        Digest(26d05af5)
+    assert_actual_expected!(book_metadata.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+        subj Digest(26d05af5)
             ASSERTION
-                'dereferenceVia'
-                "IPFS"
+                pred 'dereferenceVia'
+                obj "IPFS"
             ASSERTION
-                "format"
-                "EPUB"
+                pred "format"
+                obj "EPUB"
             ASSERTION
-                "work"
-                ARID(7fb90a9d)
+                pred "work"
+                subj ARID(7fb90a9d)
                     ASSERTION
-                        "isbn"
-                        "9780451191144"
+                        pred "isbn"
+                        obj "9780451191144"
                     ASSERTION
-                        'isA'
-                        "novel"
+                        pred 'isA'
+                        obj "novel"
                     ASSERTION
-                        'name'
-                        "La rebelión de Atlas"
+                        pred 'name'
+                        subj "La rebelión de Atlas"
                             ASSERTION
-                                'language'
-                                "es"
+                                pred 'language'
+                                obj "es"
                     ASSERTION
-                        "author"
-                        ARID(9c747ace)
+                        pred "author"
+                        subj ARID(9c747ace)
                             ASSERTION
-                                'dereferenceVia'
-                                "LibraryOfCongress"
+                                pred 'dereferenceVia'
+                                obj "LibraryOfCongress"
                             ASSERTION
-                                'name'
-                                "Ayn Rand"
+                                pred 'name'
+                                obj "Ayn Rand"
                     ASSERTION
-                        'dereferenceVia'
-                        "LibraryOfCongress"
+                        pred 'dereferenceVia'
+                        obj "LibraryOfCongress"
                     ASSERTION
-                        'name'
-                        "Atlas Shrugged"
+                        pred 'name'
+                        subj "Atlas Shrugged"
                             ASSERTION
-                                'language'
-                                "en"
+                                pred 'language'
+                                obj "en"
     "#}.trim());
 
     assert_eq!(
@@ -803,7 +803,7 @@ fn credential() -> Envelope {
 fn test_credential() {
     let credential = credential();
     #[rustfmt::skip]
-    assert_eq!(credential.format(), indoc! {r#"
+    assert_actual_expected!(credential.format(), indoc! {r#"
         {
             ARID(4676635a) [
                 'isA': "Certificate of Completion"
@@ -826,7 +826,7 @@ fn test_credential() {
         ]
     "#}.trim());
 
-    assert_eq!(
+    assert_actual_expected!(
         credential.format_flat(),
         r#"{ ARID(4676635a) [ 'isA': "Certificate of Completion", "certificateNumber": "123-456-789", "continuingEducationUnits": 1, "expirationDate": 2028-01-01, "firstName": "James", "issueDate": 2020-01-01, "lastName": "Maxwell", "photo": "This is James Maxwell's photo.", "professionalDevelopmentHours": 15, "subject": "RF and Microwave Engineering", "topics": ["Subject 1", "Subject 2"], 'controller': "Example Electrical Engineering Board", 'issuer': "Example Electrical Engineering Board" ] } [ 'note': "Signed by Example Electrical Engineering Board", 'signed': Signature ]"#
     );
@@ -834,7 +834,7 @@ fn test_credential() {
     let s = credential.tree_format();
     // println!("{}", s);
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
+    assert_actual_expected!(s, indoc! {r#"
         0b721f78 NODE
             397a2d4c subj WRAPPED
                 8122ffa9 subj NODE
@@ -887,54 +887,54 @@ fn test_credential() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(credential.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
-        WRAPPED
-            ARID(4676635a)
+    assert_actual_expected!(credential.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
+        subj WRAPPED
+            subj ARID(4676635a)
                 ASSERTION
-                    "certificateNumber"
-                    "123-456-789"
+                    pred "certificateNumber"
+                    obj "123-456-789"
                 ASSERTION
-                    "expirationDate"
-                    2028-01-01
+                    pred "expirationDate"
+                    obj 2028-01-01
                 ASSERTION
-                    "lastName"
-                    "Maxwell"
+                    pred "lastName"
+                    obj "Maxwell"
                 ASSERTION
-                    "issueDate"
-                    2020-01-01
+                    pred "issueDate"
+                    obj 2020-01-01
                 ASSERTION
-                    'isA'
-                    "Certificate of Completion"
+                    pred 'isA'
+                    obj "Certificate of Completion"
                 ASSERTION
-                    "photo"
-                    "This is James Maxwell's photo."
+                    pred "photo"
+                    obj "This is James Maxwell's photo."
                 ASSERTION
-                    "professionalDevelopmentHours"
-                    15
+                    pred "professionalDevelopmentHours"
+                    obj 15
                 ASSERTION
-                    "firstName"
-                    "James"
+                    pred "firstName"
+                    obj "James"
                 ASSERTION
-                    "topics"
-                    ["Subject 1", "Subject 2"]
+                    pred "topics"
+                    obj ["Subject 1", "Subject 2"]
                 ASSERTION
-                    "continuingEducationUnits"
-                    1
+                    pred "continuingEducationUnits"
+                    obj 1
                 ASSERTION
-                    'controller'
-                    "Example Electrical Engineering Board"
+                    pred 'controller'
+                    obj "Example Electrical Engineering Board"
                 ASSERTION
-                    "subject"
-                    "RF and Microwave Engineering"
+                    pred "subject"
+                    obj "RF and Microwave Engineering"
                 ASSERTION
-                    'issuer'
-                    "Example Electrical Engineering Board"
+                    pred 'issuer'
+                    obj "Example Electrical Engineering Board"
             ASSERTION
-                'signed'
-                Signature
+                pred 'signed'
+                obj Signature
             ASSERTION
-                'note'
-                "Signed by Example Electrical Engineering…"
+                pred 'note'
+                obj "Signed by Example Electrical Engineering…"
     "#}.trim());
 
     assert_eq!(
@@ -1010,7 +1010,7 @@ fn test_redacted_credential() {
         .unwrap();
 
     #[rustfmt::skip]
-    assert_eq!(warranty.format(), indoc! {r#"
+    assert_actual_expected!(warranty.format(), indoc! {r#"
         {
             {
                 {
@@ -1037,7 +1037,7 @@ fn test_redacted_credential() {
         ]
     "#}.trim());
 
-    assert_eq!(
+    assert_actual_expected!(
         warranty.format_flat(),
         r#"{ { { ARID(4676635a) [ 'isA': "Certificate of Completion", "expirationDate": 2028-01-01, "firstName": "James", "lastName": "Maxwell", "subject": "RF and Microwave Engineering", 'issuer': "Example Electrical Engineering Board", ELIDED (7) ] } [ 'note': "Signed by Example Electrical Engineering Board", 'signed': Signature ] } [ "employeeHiredDate": 2022-01-01, "employeeStatus": "active" ] } [ 'note': "Signed by Employer Corp.", 'signed': Signature ]"#
     );
@@ -1045,7 +1045,7 @@ fn test_redacted_credential() {
     let s = warranty.tree_format();
     // println!("{}", s);
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
+    assert_actual_expected!(s, indoc! {r#"
         7ab3e6b1 NODE
             3907ee6f subj WRAPPED
                 719d5955 subj NODE
@@ -1103,7 +1103,7 @@ fn test_redacted_credential() {
         warranty.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true));
     // println!("{}", s);
     #[rustfmt::skip]
-    assert_eq!(s, indoc! {r#"
+    assert_actual_expected!(s, indoc! {r#"
         subj WRAPPED
             subj WRAPPED
                 subj WRAPPED
@@ -1319,11 +1319,7 @@ fn test_redacted_credential() {
         linkStyle 48 stroke:green,stroke-width:2px
         linkStyle 49 stroke:blue,stroke-width:2px
     "#}.trim();
-    if expected != actual {
-        println!("\n{}\n", actual);
-        panic!("Mermaid format does not match expected output.");
-    }
-    // assert_eq!(expected, actual);
+    assert_actual_expected!(expected, actual);
 
     let actual = warranty.mermaid_format_opt(
         &MermaidFormatOpts::default()
@@ -1478,9 +1474,5 @@ fn test_redacted_credential() {
         linkStyle 44 stroke-width:2px
         linkStyle 45 stroke-width:2px
     "#}.trim();
-    if expected != actual {
-        println!("\n{}\n", actual);
-        panic!("Mermaid format does not match expected output.");
-    }
-    // assert_eq!(expected, actual);
+    assert_actual_expected!(expected, actual);
 }

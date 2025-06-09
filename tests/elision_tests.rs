@@ -30,12 +30,12 @@ fn test_envelope_elision() -> anyhow::Result<()> {
     assert!(!e1.is_identical_to(&e2));
 
     #[rustfmt::skip]
-    assert_eq!(e2.format(), indoc! {r#"
+    assert_actual_expected!(e2.format(), indoc! {r#"
         ELIDED
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(e2.diagnostic_annotated(), indoc! {r#"
+    assert_actual_expected!(e2.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
             h'8cc96cdb771176e835114a0f8936690b41cfed0df22d014eedd64edaea945d59'
         )
@@ -44,7 +44,7 @@ fn test_envelope_elision() -> anyhow::Result<()> {
     let e3 = e2.unelide(&e1)?;
     assert!(e3.is_equivalent_to(&e1));
     #[rustfmt::skip]
-    assert_eq!(e3.format(), indoc! {r#"
+    assert_actual_expected!(e3.format(), indoc! {r#"
         "Hello."
     "#}.trim());
 
@@ -56,7 +56,7 @@ fn test_single_assertion_remove_elision() -> anyhow::Result<()> {
     // The original Envelope
     let e1 = single_assertion_envelope();
     #[rustfmt::skip]
-    assert_eq!(e1.format(), indoc! {r#"
+    assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
             "knows": "Bob"
         ]
@@ -65,14 +65,14 @@ fn test_single_assertion_remove_elision() -> anyhow::Result<()> {
     // Elide the entire envelope
     let e2 = e1.elide_removing_target(&e1).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e2.format(), indoc! {r#"
+    assert_actual_expected!(e2.format(), indoc! {r#"
         ELIDED
     "#}.trim());
 
     // Elide just the envelope's subject
     let e3 = e1.elide_removing_target(&"Alice".to_envelope()).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e3.format(), indoc! {r#"
+    assert_actual_expected!(e3.format(), indoc! {r#"
         ELIDED [
             "knows": "Bob"
         ]
@@ -81,7 +81,7 @@ fn test_single_assertion_remove_elision() -> anyhow::Result<()> {
     // Elide just the assertion's predicate
     let e4 = e1.elide_removing_target(&"knows".to_envelope()).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e4.format(), indoc! {r#"
+    assert_actual_expected!(e4.format(), indoc! {r#"
         "Alice" [
             ELIDED: "Bob"
         ]
@@ -90,7 +90,7 @@ fn test_single_assertion_remove_elision() -> anyhow::Result<()> {
     // Elide just the assertion's object
     let e5 = e1.elide_removing_target(&"Bob".to_envelope()).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e5.format(), indoc! {r#"
+    assert_actual_expected!(e5.format(), indoc! {r#"
         "Alice" [
             "knows": ELIDED
         ]
@@ -99,7 +99,7 @@ fn test_single_assertion_remove_elision() -> anyhow::Result<()> {
     // Elide the entire assertion
     let e6 = e1.elide_removing_target(&assertion_envelope()).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e6.format(), indoc! {r#"
+    assert_actual_expected!(e6.format(), indoc! {r#"
         "Alice" [
             ELIDED
         ]
@@ -113,7 +113,7 @@ fn test_double_assertion_remove_elision() -> anyhow::Result<()> {
     // The original Envelope
     let e1 = double_assertion_envelope();
     #[rustfmt::skip]
-    assert_eq!(e1.format(), indoc! {r#"
+    assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
             "knows": "Bob"
             "knows": "Carol"
@@ -123,14 +123,14 @@ fn test_double_assertion_remove_elision() -> anyhow::Result<()> {
     // Elide the entire envelope
     let e2 = e1.elide_removing_target(&e1).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e2.format(), indoc! {r#"
+    assert_actual_expected!(e2.format(), indoc! {r#"
         ELIDED
     "#}.trim());
 
     // Elide just the envelope's subject
     let e3 = e1.elide_removing_target(&"Alice".to_envelope()).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e3.format(), indoc! {r#"
+    assert_actual_expected!(e3.format(), indoc! {r#"
         ELIDED [
             "knows": "Bob"
             "knows": "Carol"
@@ -140,7 +140,7 @@ fn test_double_assertion_remove_elision() -> anyhow::Result<()> {
     // Elide just the assertion's predicate
     let e4 = e1.elide_removing_target(&"knows".to_envelope()).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e4.format(), indoc! {r#"
+    assert_actual_expected!(e4.format(), indoc! {r#"
         "Alice" [
             ELIDED: "Bob"
             ELIDED: "Carol"
@@ -150,7 +150,7 @@ fn test_double_assertion_remove_elision() -> anyhow::Result<()> {
     // Elide just the assertion's object
     let e5 = e1.elide_removing_target(&"Bob".to_envelope()).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e5.format(), indoc! {r#"
+    assert_actual_expected!(e5.format(), indoc! {r#"
         "Alice" [
             "knows": "Carol"
             "knows": ELIDED
@@ -160,7 +160,7 @@ fn test_double_assertion_remove_elision() -> anyhow::Result<()> {
     // Elide the entire assertion
     let e6 = e1.elide_removing_target(&assertion_envelope()).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e6.format(), indoc! {r#"
+    assert_actual_expected!(e6.format(), indoc! {r#"
         "Alice" [
             "knows": "Carol"
             ELIDED
@@ -175,7 +175,7 @@ fn test_single_assertion_reveal_elision() -> anyhow::Result<()> {
     // The original Envelope
     let e1 = single_assertion_envelope();
     #[rustfmt::skip]
-    assert_eq!(e1.format(), indoc! {r#"
+    assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
             "knows": "Bob"
         ]
@@ -184,14 +184,14 @@ fn test_single_assertion_reveal_elision() -> anyhow::Result<()> {
     // Elide revealing nothing
     let e2 = e1.elide_revealing_array(&[]).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e2.format(), indoc! {r#"
+    assert_actual_expected!(e2.format(), indoc! {r#"
         ELIDED
     "#}.trim());
 
     // Reveal just the envelope's structure
     let e3 = e1.elide_revealing_array(&[&e1]).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e3.format(), indoc! {r#"
+    assert_actual_expected!(e3.format(), indoc! {r#"
         ELIDED [
             ELIDED
         ]
@@ -200,7 +200,7 @@ fn test_single_assertion_reveal_elision() -> anyhow::Result<()> {
     // Reveal just the envelope's subject
     let e4 = e1.elide_revealing_array(&[&e1, &"Alice".to_envelope()]).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e4.format(), indoc! {r#"
+    assert_actual_expected!(e4.format(), indoc! {r#"
         "Alice" [
             ELIDED
         ]
@@ -209,7 +209,7 @@ fn test_single_assertion_reveal_elision() -> anyhow::Result<()> {
     // Reveal just the assertion's structure.
     let e5 = e1.elide_revealing_array(&[&e1, &assertion_envelope()]).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e5.format(), indoc! {r#"
+    assert_actual_expected!(e5.format(), indoc! {r#"
         ELIDED [
             ELIDED: ELIDED
         ]
@@ -220,7 +220,7 @@ fn test_single_assertion_reveal_elision() -> anyhow::Result<()> {
         .elide_revealing_array(&[&e1, &assertion_envelope(), &"knows".to_envelope()])
         .check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e6.format(), indoc! {r#"
+    assert_actual_expected!(e6.format(), indoc! {r#"
         ELIDED [
             "knows": ELIDED
         ]
@@ -231,7 +231,7 @@ fn test_single_assertion_reveal_elision() -> anyhow::Result<()> {
         .elide_revealing_array(&[&e1, &assertion_envelope(), &"Bob".to_envelope()])
         .check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e7.format(), indoc! {r#"
+    assert_actual_expected!(e7.format(), indoc! {r#"
         ELIDED [
             ELIDED: "Bob"
         ]
@@ -245,7 +245,7 @@ fn test_double_assertion_reveal_elision() -> anyhow::Result<()> {
     // The original Envelope
     let e1 = double_assertion_envelope();
     #[rustfmt::skip]
-    assert_eq!(e1.format(), indoc! {r#"
+    assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
             "knows": "Bob"
             "knows": "Carol"
@@ -255,14 +255,14 @@ fn test_double_assertion_reveal_elision() -> anyhow::Result<()> {
     // Elide revealing nothing
     let e2 = e1.elide_revealing_array(&[]).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e2.format(), indoc! {r#"
+    assert_actual_expected!(e2.format(), indoc! {r#"
         ELIDED
     "#}.trim());
 
     // Reveal just the envelope's structure
     let e3 = e1.elide_revealing_array(&[&e1]).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e3.format(), indoc! {r#"
+    assert_actual_expected!(e3.format(), indoc! {r#"
         ELIDED [
             ELIDED (2)
         ]
@@ -271,7 +271,7 @@ fn test_double_assertion_reveal_elision() -> anyhow::Result<()> {
     // Reveal just the envelope's subject
     let e4 = e1.elide_revealing_array(&[&e1, &"Alice".to_envelope()]).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e4.format(), indoc! {r#"
+    assert_actual_expected!(e4.format(), indoc! {r#"
         "Alice" [
             ELIDED (2)
         ]
@@ -280,7 +280,7 @@ fn test_double_assertion_reveal_elision() -> anyhow::Result<()> {
     // Reveal just the assertion's structure.
     let e5 = e1.elide_revealing_array(&[&e1, &assertion_envelope()]).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e5.format(), indoc! {r#"
+    assert_actual_expected!(e5.format(), indoc! {r#"
         ELIDED [
             ELIDED: ELIDED
             ELIDED
@@ -292,7 +292,7 @@ fn test_double_assertion_reveal_elision() -> anyhow::Result<()> {
         .elide_revealing_array(&[&e1, &assertion_envelope(), &"knows".to_envelope()])
         .check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e6.format(), indoc! {r#"
+    assert_actual_expected!(e6.format(), indoc! {r#"
         ELIDED [
             "knows": ELIDED
             ELIDED
@@ -304,7 +304,7 @@ fn test_double_assertion_reveal_elision() -> anyhow::Result<()> {
         .elide_revealing_array(&[&e1, &assertion_envelope(), &"Bob".to_envelope()])
         .check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e7.format(), indoc! {r#"
+    assert_actual_expected!(e7.format(), indoc! {r#"
         ELIDED [
             ELIDED: "Bob"
             ELIDED
@@ -318,7 +318,7 @@ fn test_double_assertion_reveal_elision() -> anyhow::Result<()> {
 fn test_digests() -> anyhow::Result<()> {
     let e1 = double_assertion_envelope();
     #[rustfmt::skip]
-    assert_eq!(e1.format(), indoc! {r#"
+    assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
             "knows": "Bob"
             "knows": "Carol"
@@ -327,13 +327,13 @@ fn test_digests() -> anyhow::Result<()> {
 
     let e2 = e1.elide_revealing_set(&e1.digests(0)).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e2.format(), indoc! {r#"
+    assert_actual_expected!(e2.format(), indoc! {r#"
         ELIDED
     "#}.trim());
 
     let e3 = e1.elide_revealing_set(&e1.digests(1)).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e3.format(), indoc! {r#"
+    assert_actual_expected!(e3.format(), indoc! {r#"
         "Alice" [
             ELIDED (2)
         ]
@@ -341,7 +341,7 @@ fn test_digests() -> anyhow::Result<()> {
 
     let e4 = e1.elide_revealing_set(&e1.digests(2)).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e4.format(), indoc! {r#"
+    assert_actual_expected!(e4.format(), indoc! {r#"
         "Alice" [
             ELIDED: ELIDED
             ELIDED: ELIDED
@@ -350,7 +350,7 @@ fn test_digests() -> anyhow::Result<()> {
 
     let e5 = e1.elide_revealing_set(&e1.digests(3)).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e5.format(), indoc! {r#"
+    assert_actual_expected!(e5.format(), indoc! {r#"
         "Alice" [
             "knows": "Bob"
             "knows": "Carol"
@@ -364,7 +364,7 @@ fn test_digests() -> anyhow::Result<()> {
 fn test_target_reveal() -> anyhow::Result<()> {
     let e1 = double_assertion_envelope().add_assertion("livesAt", "123 Main St.");
     #[rustfmt::skip]
-    assert_eq!(e1.format(), indoc! {r#"
+    assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
             "knows": "Bob"
             "knows": "Carol"
@@ -383,7 +383,7 @@ fn test_target_reveal() -> anyhow::Result<()> {
     target.extend(e1.assertion_with_predicate("livesAt")?.deep_digests());
     let e2 = e1.elide_revealing_set(&target).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e2.format(), indoc! {r#"
+    assert_actual_expected!(e2.format(), indoc! {r#"
         "Alice" [
             "knows": "Bob"
             "livesAt": "123 Main St."
@@ -398,7 +398,7 @@ fn test_target_reveal() -> anyhow::Result<()> {
 fn test_targeted_remove() -> anyhow::Result<()> {
     let e1 = double_assertion_envelope().add_assertion("livesAt", "123 Main St.");
     #[rustfmt::skip]
-    assert_eq!(e1.format(), indoc! {r#"
+    assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
             "knows": "Bob"
             "knows": "Carol"
@@ -411,7 +411,7 @@ fn test_targeted_remove() -> anyhow::Result<()> {
     target2.extend(assertion_envelope().digests(1));
     let e2 = e1.elide_removing_set(&target2).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e2.format(), indoc! {r#"
+    assert_actual_expected!(e2.format(), indoc! {r#"
         "Alice" [
             "knows": "Carol"
             "livesAt": "123 Main St."
@@ -424,7 +424,7 @@ fn test_targeted_remove() -> anyhow::Result<()> {
     target3.extend(e1.assertion_with_predicate("livesAt")?.deep_digests());
     let e3 = e1.elide_removing_set(&target3).check_encoding()?;
     #[rustfmt::skip]
-    assert_eq!(e3.format(), indoc! {r#"
+    assert_actual_expected!(e3.format(), indoc! {r#"
         "Alice" [
             "knows": "Bob"
             "knows": "Carol"

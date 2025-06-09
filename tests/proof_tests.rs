@@ -28,7 +28,7 @@ fn test_friends_list() {
         .add_assertion_salted("knows", "Carol", true)
         .add_assertion_salted("knows", "Dan", true);
     #[rustfmt::skip]
-    assert_eq!(alice_friends.format(), indoc! {r#"
+    assert_actual_expected!(alice_friends.format(), indoc! {r#"
         "Alice" [
             {
                 "knows": "Bob"
@@ -51,7 +51,7 @@ fn test_friends_list() {
     // Alice provides just the root digest of her document to a third party. This is
     // simply an envelope in which everything has been elided and nothing revealed.
     let alice_friends_root = alice_friends.elide_revealing_set(&HashSet::new());
-    assert_eq!(alice_friends_root.format(), "ELIDED");
+    assert_actual_expected!(alice_friends_root.format(), "ELIDED");
 
     // Now Alice wants to prove to the third party that her document contains a "knows
     // Bob" assertion. To do this, she produces a proof that is an envelope with the
@@ -65,7 +65,7 @@ fn test_friends_list() {
     let knows_bob_assertion = Envelope::new_assertion("knows", "Bob");
     let alice_knows_bob_proof = alice_friends.proof_contains_target(&knows_bob_assertion).unwrap().check_encoding().unwrap();
     #[rustfmt::skip]
-    assert_eq!(alice_knows_bob_proof.format(), indoc! {r#"
+    assert_actual_expected!(alice_knows_bob_proof.format(), indoc! {r#"
         ELIDED [
             ELIDED [
                 ELIDED
@@ -97,7 +97,7 @@ fn test_multi_position() {
     // associates easier to guess.
     let knows_proof = alice_friends.proof_contains_target(&Envelope::new("knows")).unwrap().check_encoding().unwrap();
     #[rustfmt::skip]
-    assert_eq!(knows_proof.format(), indoc! {r#"
+    assert_actual_expected!(knows_proof.format(), indoc! {r#"
         ELIDED [
             {
                 ELIDED: ELIDED
@@ -146,7 +146,7 @@ fn test_verifiable_credential() {
     let address_proof = credential.proof_contains_target(&address_assertion).unwrap().check_encoding().unwrap();
     // The proof includes digests from all the elided assertions.
     #[rustfmt::skip]
-    assert_eq!(address_proof.format(), indoc! {r#"
+    assert_actual_expected!(address_proof.format(), indoc! {r#"
         {
             ELIDED [
                 ELIDED [

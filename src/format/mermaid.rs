@@ -319,8 +319,11 @@ impl Envelope {
             EnvelopeCase::Wrapped { .. }    => ("[/", "\\]"),
             EnvelopeCase::Assertion(..)     => ("([", "])"),
             EnvelopeCase::Elided(..)        => ("{{", "}}"),
+            #[cfg(feature = "known_value")]
             EnvelopeCase::KnownValue { .. } => ("[/", "/]"),
+            #[cfg(feature = "encrypt")]
             EnvelopeCase::Encrypted(..)     => (">",  "]"),
+            #[cfg(feature = "compress")]
             EnvelopeCase::Compressed(..)    => ("[[", "]]"),
         }
     }
@@ -333,8 +336,11 @@ impl Envelope {
             EnvelopeCase::Wrapped { .. }    => "blue",
             EnvelopeCase::Assertion(..)     => "green",
             EnvelopeCase::Elided(..)        => "gray",
+            #[cfg(feature = "known_value")]
             EnvelopeCase::KnownValue { .. } => "goldenrod",
+            #[cfg(feature = "encrypt")]
             EnvelopeCase::Encrypted(..)     => "coral",
+            #[cfg(feature = "compress")]
             EnvelopeCase::Compressed(..)    => "purple",
         }
     }

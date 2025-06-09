@@ -18,14 +18,14 @@ fn test_envelope_non_correlation() {
     let e2 = e1.add_salt_using(&mut rng).check_encoding().unwrap();
 
     #[rustfmt::skip]
-    assert_eq!(e2.format(), indoc! {r#"
+    assert_actual_expected!(e2.format(), indoc! {r#"
         "Hello." [
             'salt': Salt
         ]
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(e2.diagnostic_annotated(), indoc! {r#"
+    assert_actual_expected!(e2.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
             [
                 201("Hello."),   / leaf /
@@ -40,7 +40,7 @@ fn test_envelope_non_correlation() {
     "#}.trim());
 
     #[rustfmt::skip]
-    assert_eq!(e2.tree_format(), indoc! {r#"
+    assert_actual_expected!(e2.tree_format(), indoc! {r#"
         4f0f2d55 NODE
             8cc96cdb subj "Hello."
             dd412f1d ASSERTION
@@ -70,7 +70,7 @@ fn test_predicate_correlation() {
             "note": "Bar"
         ]
     "#}.trim();
-    assert_eq!(e1.format(), e1_expected_format);
+    assert_actual_expected!(e1.format(), e1_expected_format);
 
     // e1 and e2 have the same predicate
     assert!(e1.assertions().first().unwrap().as_predicate().unwrap()
@@ -86,7 +86,7 @@ fn test_predicate_correlation() {
             ELIDED
         ]
     "#}.trim();
-    assert_eq!(e1_elided.format(), redacted_expected_format);
+    assert_actual_expected!(e1_elided.format(), redacted_expected_format);
 }
 
 #[test]
@@ -114,7 +114,7 @@ fn test_add_salt() {
             ]
         ]
     "#}.trim();
-    assert_eq!(e1.format(), e1_expected_format);
+    assert_actual_expected!(e1.format(), e1_expected_format);
 
     let e1_elided = e1.elide_revealing_target(&e1).check_encoding().unwrap();
 
@@ -124,5 +124,5 @@ fn test_add_salt() {
             ELIDED
         ]
     "#}.trim();
-    assert_eq!(e1_elided.format(), redacted_expected_format);
+    assert_actual_expected!(e1_elided.format(), redacted_expected_format);
 }

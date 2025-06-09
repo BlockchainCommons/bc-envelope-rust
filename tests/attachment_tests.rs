@@ -29,7 +29,7 @@ fn test_attachment() -> anyhow::Result<()> {
         );
 
     #[rustfmt::skip]
-    assert_eq!(seed_envelope.format(), indoc! {r#"
+    assert_actual_expected!(seed_envelope.format(), indoc! {r#"
         Bytes(16) [
             'isA': 'Seed'
             'attachment': {
@@ -75,7 +75,7 @@ fn test_attachment() -> anyhow::Result<()> {
     )?;
     let payload = v1_attachment.attachment_payload()?;
     #[rustfmt::skip]
-    assert_eq!(payload.format(), indoc! {r#"
+    assert_actual_expected!(payload.format(), indoc! {r#"
         "Attachment Data V1"
     "#}.trim());
     assert_eq!(v1_attachment.attachment_vendor()?, "com.example");

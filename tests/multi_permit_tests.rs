@@ -5,6 +5,8 @@
     feature = "types"
 ))]
 
+mod common;
+
 use bc_components::{
     KeyDerivationMethod, SSKRGroupSpec, SSKRSpec, SymmetricKey, keypair,
 };
@@ -52,7 +54,7 @@ fn test_multi_permit() -> anyhow::Result<()> {
             'signed': Signature
         ]
     "#}.trim();
-    assert_eq!(signed_envelope.format(), expected_format);
+    assert_actual_expected!(signed_envelope.format(), expected_format);
 
     //
     // Alice picks a random symmetric "content key" and uses it to encrypt the
@@ -66,7 +68,7 @@ fn test_multi_permit() -> anyhow::Result<()> {
     let expected_format = indoc! {r#"
         ENCRYPTED
     "#}.trim();
-    assert_eq!(encrypted_envelope.format(), expected_format);
+    assert_actual_expected!(encrypted_envelope.format(), expected_format);
 
     //
     // Alice wants to be able to recover the envelope later using a password she
@@ -87,7 +89,7 @@ fn test_multi_permit() -> anyhow::Result<()> {
             'hasSecret': EncryptedKey(Argon2id)
         ]
     "#}.trim();
-    assert_eq!(locked_envelope.format(), expected_format);
+    assert_actual_expected!(locked_envelope.format(), expected_format);
 
     //
     // Next, Alice wants to be able to unlock her envelope using her private
@@ -107,7 +109,7 @@ fn test_multi_permit() -> anyhow::Result<()> {
             'hasSecret': EncryptedKey(Argon2id)
         ]
     "#}.trim();
-    assert_eq!(locked_envelope.format(), expected_format);
+    assert_actual_expected!(locked_envelope.format(), expected_format);
 
     //
     // An SSKR share is a kind of permit defined by the characteristic that one
@@ -142,7 +144,7 @@ fn test_multi_permit() -> anyhow::Result<()> {
             'sskrShare': SSKRShare
         ]
     "#}.trim();
-    assert_eq!(sharded_envelopes[0].format(), expected_format);
+    assert_actual_expected!(sharded_envelopes[0].format(), expected_format);
 
     //
     // So now there are three envelopes, and five different ways to unlock

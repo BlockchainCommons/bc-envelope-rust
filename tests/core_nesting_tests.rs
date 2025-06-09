@@ -15,13 +15,13 @@ fn test_predicate_enclosures() {
 
     let knows_bob = Envelope::new_assertion(&knows, &bob);
     #[rustfmt::skip]
-    assert_eq!(knows_bob.format(), indoc! {r#"
+    assert_actual_expected!(knows_bob.format(), indoc! {r#"
         "knows": "Bob"
     "#}.trim());
 
     let ab = Envelope::new_assertion(a, b);
     #[rustfmt::skip]
-    assert_eq!(ab.format(),indoc! {r#"
+    assert_actual_expected!(ab.format(),indoc! {r#"
         "A": "B"
     "#}.trim());
 
@@ -29,7 +29,7 @@ fn test_predicate_enclosures() {
         .check_encoding()
         .unwrap();
     #[rustfmt::skip]
-    assert_eq!(knows_ab_bob.format(), indoc! {r#"
+    assert_actual_expected!(knows_ab_bob.format(), indoc! {r#"
         "knows" [
             "A": "B"
         ]
@@ -40,7 +40,7 @@ fn test_predicate_enclosures() {
         .check_encoding()
         .unwrap();
     #[rustfmt::skip]
-    assert_eq!(knows_bob_ab.format(), indoc! {r#"
+    assert_actual_expected!(knows_bob_ab.format(), indoc! {r#"
         "knows": "Bob" [
             "A": "B"
         ]
@@ -52,7 +52,7 @@ fn test_predicate_enclosures() {
         .check_encoding()
         .unwrap();
     #[rustfmt::skip]
-    assert_eq!(knows_bob_enclose_ab.format(), indoc! {r#"
+    assert_actual_expected!(knows_bob_enclose_ab.format(), indoc! {r#"
         {
             "knows": "Bob"
         } [
@@ -66,7 +66,7 @@ fn test_predicate_enclosures() {
         .check_encoding()
         .unwrap();
     #[rustfmt::skip]
-    assert_eq!(alice_knows_bob.format(), indoc! {r#"
+    assert_actual_expected!(alice_knows_bob.format(), indoc! {r#"
         "Alice" [
             "knows": "Bob"
         ]
@@ -78,7 +78,7 @@ fn test_predicate_enclosures() {
         .check_encoding()
         .unwrap();
     #[rustfmt::skip]
-    assert_eq!(alice_ab_knows_bob.format(), indoc! {r#"
+    assert_actual_expected!(alice_ab_knows_bob.format(), indoc! {r#"
         "Alice" [
             "A": "B"
             "knows": "Bob"
@@ -93,7 +93,7 @@ fn test_predicate_enclosures() {
         .check_encoding()
         .unwrap();
     #[rustfmt::skip]
-    assert_eq!(alice_knows_ab_bob.format(), indoc! {r#"
+    assert_actual_expected!(alice_knows_ab_bob.format(), indoc! {r#"
         "Alice" [
             "knows" [
                 "A": "B"
@@ -110,7 +110,7 @@ fn test_predicate_enclosures() {
         .check_encoding()
         .unwrap();
     #[rustfmt::skip]
-    assert_eq!(alice_knows_bob_ab.format(), indoc! {r#"
+    assert_actual_expected!(alice_knows_bob_ab.format(), indoc! {r#"
         "Alice" [
             "knows": "Bob" [
                 "A": "B"
@@ -129,7 +129,7 @@ fn test_predicate_enclosures() {
         .check_encoding()
         .unwrap();
     #[rustfmt::skip]
-    assert_eq!(alice_knows_ab_bob_ab.format(), indoc! {r#"
+    assert_actual_expected!(alice_knows_ab_bob_ab.format(), indoc! {r#"
         "Alice" [
             "knows" [
                 "A": "B"
@@ -153,7 +153,7 @@ fn test_predicate_enclosures() {
         .check_encoding()
         .unwrap();
     #[rustfmt::skip]
-    assert_eq!(alice_ab_knows_ab_bob_ab.format(), indoc! {r#"
+    assert_actual_expected!(alice_ab_knows_ab_bob_ab.format(), indoc! {r#"
         "Alice" [
             "A": "B"
             "knows" [
@@ -180,7 +180,7 @@ fn test_predicate_enclosures() {
         .check_encoding()
         .unwrap();
     #[rustfmt::skip]
-    assert_eq!(alice_ab_knows_ab_bob_ab_enclose_ab.format(), indoc! {r#"
+    assert_actual_expected!(alice_ab_knows_ab_bob_ab_enclose_ab.format(), indoc! {r#"
         "Alice" [
             {
                 "knows" [
@@ -205,7 +205,7 @@ fn test_nesting_plaintext() {
     let expected_format = indoc! {r#"
         "Hello."
     "#}.trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     let elided_envelope = envelope.elide();
     assert!(elided_envelope.is_equivalent_to(&envelope));
@@ -214,7 +214,7 @@ fn test_nesting_plaintext() {
     let expected_elided_format = indoc! {r#"
         ELIDED
     "#}.trim();
-    assert_eq!(elided_envelope.format(), expected_elided_format);
+    assert_actual_expected!(elided_envelope.format(), expected_elided_format);
 }
 
 #[test]
@@ -227,7 +227,7 @@ fn test_nesting_once() {
             "Hello."
         }
     "#}.trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     let elided_envelope = Envelope::new("Hello.").elide().wrap_envelope().check_encoding().unwrap();
 
@@ -239,7 +239,7 @@ fn test_nesting_once() {
             ELIDED
         }
     "#}.trim();
-    assert_eq!(elided_envelope.format(), expected_elided_format);
+    assert_actual_expected!(elided_envelope.format(), expected_elided_format);
 }
 
 #[test]
@@ -258,7 +258,7 @@ fn test_nesting_twice() {
             }
         }
     "#}.trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     let target = envelope.unwrap_envelope().unwrap().unwrap_envelope().unwrap();
     let elided_envelope = envelope.elide_removing_target(&target);
@@ -271,7 +271,7 @@ fn test_nesting_twice() {
             }
         }
     "#}.trim();
-    assert_eq!(elided_envelope.format(), expected_elided_format);
+    assert_actual_expected!(elided_envelope.format(), expected_elided_format);
     assert!(envelope.is_equivalent_to(&elided_envelope));
     assert!(envelope.is_equivalent_to(&elided_envelope));
 }
@@ -299,7 +299,7 @@ fn test_assertions_on_all_parts_of_envelope() {
             ]
         ]
     "#}.trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 }
 
 #[test]
@@ -316,5 +316,5 @@ fn test_assertion_on_bare_assertion() {
             "assertion-predicate": "assertion-object"
         ]
     "#}.trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 }

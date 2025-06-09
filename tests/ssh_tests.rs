@@ -29,7 +29,7 @@ fn test_ssh_signed_plaintext() {
             'signed': Signature(SshEd25519)
         ]
     "#}.trim();
-    assert_eq!(envelope.format(), expected_format);
+    assert_actual_expected!(envelope.format(), expected_format);
 
     // Alice ➡️ ☁️ ➡️ Bob
 
