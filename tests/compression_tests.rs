@@ -72,6 +72,27 @@ fn test_compress_subject() {
                 d0e39e78 pred 'signed'
                 f0d3ce4c obj Signature
     "#}.trim());
+    let s = compressed.mermaid_format();
+    // println!("{}", s);
+    #[rustfmt::skip]
+    assert_eq!(s, indoc! {r#"
+        %%{ init: { 'theme': 'default', 'flowchart': { 'curve': 'basis' } } }%%
+        graph LR
+        0(("NODE<br>ec608f27"))
+            0 -- subj --> 1[["COMPRESSED<br>d7183f04"]]
+            0 --> 2(["ASSERTION<br>0db2ee20"])
+                2 -- pred --> 3[/"'signed'<br>d0e39e78"/]
+                2 -- obj --> 4["Signature<br>f0d3ce4c"]
+        style 0 stroke:red,stroke-width:4px
+        style 1 stroke:purple,stroke-width:4px
+        style 2 stroke:green,stroke-width:4px
+        style 3 stroke:goldenrod,stroke-width:4px
+        style 4 stroke:teal,stroke-width:4px
+        linkStyle 0 stroke:red,stroke-width:2px
+        linkStyle 1 stroke-width:2px
+        linkStyle 2 stroke:green,stroke-width:2px
+        linkStyle 3 stroke:blue,stroke-width:2px
+    "#}.trim());
     let uncompressed = compressed.uncompress_subject().unwrap().check_encoding().unwrap();
     assert_eq!(uncompressed.digest(), original.digest());
     assert_eq!(uncompressed.structural_digest(), original.structural_digest());

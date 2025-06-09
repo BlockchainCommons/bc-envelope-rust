@@ -3,12 +3,64 @@ use std::{cell::RefCell, collections::HashSet, rc::Rc};
 use bc_components::{Digest, DigestProvider};
 
 use super::FormatContextOpt;
-use crate::{base::envelope::EnvelopeCase, with_format_context, EdgeType, Envelope, FormatContext, GLOBAL_FORMAT_CONTEXT};
+use crate::{
+    EdgeType, Envelope, base::envelope::EnvelopeCase, with_format_context,
+};
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum MermaidOrientation {
+    LeftToRight,
+    TopToBottom,
+    RightToLeft,
+    BottomToTop,
+}
+
+impl Default for MermaidOrientation {
+    fn default() -> Self { MermaidOrientation::LeftToRight }
+}
+
+impl std::fmt::Display for MermaidOrientation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MermaidOrientation::LeftToRight => write!(f, "LR"),
+            MermaidOrientation::TopToBottom => write!(f, "TB"),
+            MermaidOrientation::RightToLeft => write!(f, "RL"),
+            MermaidOrientation::BottomToTop => write!(f, "BT"),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum MermaidTheme {
+    Default,
+    Neutral,
+    Dark,
+    Forest,
+    Base,
+}
+
+impl Default for MermaidTheme {
+    fn default() -> Self { MermaidTheme::Default }
+}
+
+impl std::fmt::Display for MermaidTheme {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MermaidTheme::Default => write!(f, "default"),
+            MermaidTheme::Neutral => write!(f, "neutral"),
+            MermaidTheme::Dark => write!(f, "dark"),
+            MermaidTheme::Forest => write!(f, "forest"),
+            MermaidTheme::Base => write!(f, "base"),
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct MermaidFormatOpts<'a> {
     hide_nodes: bool,
     color: bool,
+    theme: MermaidTheme,
+    orientation: MermaidOrientation,
     highlighting_target: HashSet<Digest>,
     context: FormatContextOpt<'a>,
 }
@@ -18,6 +70,8 @@ impl Default for MermaidFormatOpts<'_> {
         Self {
             hide_nodes: false,
             color: true,
+            theme: MermaidTheme::default(),
+            orientation: MermaidOrientation::default(),
             highlighting_target: HashSet::new(),
             context: FormatContextOpt::Global,
         }
@@ -25,15 +79,30 @@ impl Default for MermaidFormatOpts<'_> {
 }
 
 impl<'a> MermaidFormatOpts<'a> {
-    /// Sets whether to hide NODE identifiers in the tree representation (default is false).
+    /// Sets whether to hide NODE identifiers in the tree representation
+    /// (default is false).
     pub fn hide_nodes(mut self, hide: bool) -> Self {
         self.hide_nodes = hide;
         self
     }
 
-    /// Sets whether to use color in the tree representation (default is true).
+    /// Sets the color mode for the tree representation. (default is
+    /// ColorLight).
     pub fn color(mut self, color: bool) -> Self {
         self.color = color;
+        self
+    }
+
+    /// Sets the theme for the tree representation (default is Default).
+    pub fn theme(mut self, theme: MermaidTheme) -> Self {
+        self.theme = theme;
+        self
+    }
+
+    /// Sets the orientation of the tree representation (default is
+    /// LeftToRight).
+    pub fn orientation(mut self, orientation: MermaidOrientation) -> Self {
+        self.orientation = orientation;
         self
     }
 
@@ -91,8 +160,11 @@ impl Envelope {
             elements.iter().map(|e| e.id).collect();
 
         let mut lines = vec![
-            "%%{ init: { 'flowchart': { 'curve': 'basis' } } }%%".to_string(),
-            "graph LR".to_string()
+            format!(
+                "%%{{ init: {{ 'theme': '{}', 'flowchart': {{ 'curve': 'basis' }} }} }}%%",
+                opts.theme
+            ),
+            format!("graph {}", opts.orientation),
         ];
 
         let mut node_styles: Vec<String> = Vec::new();
@@ -100,32 +172,49 @@ impl Envelope {
         let mut link_index = 0;
 
         for element in elements.iter() {
-            let indent = "  ".repeat(element.level);
-            let mut this_node_styles = Vec::new();
-            let content = if element.parent.is_some() {
+            let indent = "    ".repeat(element.level);
+            let content = if let Some(parent) = element.parent.as_ref() {
                 let mut this_link_styles = Vec::new();
                 if opts.color {
-                    if let Some(color) = element.incoming_edge.link_stroke_color() {
+                    if let Some(color) =
+                        element.incoming_edge.link_stroke_color()
+                    {
                         this_link_styles.push(format!("stroke:{}", color));
                     }
                 }
-                this_link_styles.push("stroke-width:2px".to_string());
+                if element.is_highlighted && parent.is_highlighted {
+                    this_link_styles.push("stroke-width:4px".to_string());
+                } else {
+                    this_link_styles.push("stroke-width:2px".to_string());
+                }
                 if !this_link_styles.is_empty() {
-                    link_styles.push(format!("linkStyle {} {}", link_index, this_link_styles.join(",")));
+                    link_styles.push(format!(
+                        "linkStyle {} {}",
+                        link_index,
+                        this_link_styles.join(",")
+                    ));
                 }
                 link_index += 1;
                 element.format_edge(&mut element_ids)
             } else {
                 element.format_node(&mut element_ids)
             };
+            let mut this_node_styles = Vec::new();
             if opts.color {
-                let (stroke_color, fill_color) = element.envelope.node_color();
+                let stroke_color = element.envelope.node_color();
                 this_node_styles.push(format!("stroke:{}", stroke_color));
-                this_node_styles.push(format!("fill:{}", fill_color));
             }
-            this_node_styles.push("stroke-width:4px".to_string());
+            if element.is_highlighted {
+                this_node_styles.push("stroke-width:6px".to_string());
+            } else {
+                this_node_styles.push("stroke-width:4px".to_string());
+            }
             if !this_node_styles.is_empty() {
-                node_styles.push(format!("style {} {}", element.id, this_node_styles.join(",")));
+                node_styles.push(format!(
+                    "style {} {}",
+                    element.id,
+                    this_node_styles.join(",")
+                ));
             }
             lines.push(format!("{}{}", indent, content));
         }
@@ -156,6 +245,7 @@ struct MermaidElement {
     show_id: bool,
     /// Whether this element should be highlighted in the output
     is_highlighted: bool,
+    /// The parent element in the tree, if any
     parent: Option<Rc<MermaidElement>>,
 }
 
@@ -183,13 +273,19 @@ impl MermaidElement {
     fn format_node(&self, element_ids: &mut HashSet<usize>) -> String {
         if element_ids.contains(&self.id) {
             element_ids.remove(&self.id);
+            let mut lines: Vec<String> = Vec::new();
             let summary = with_format_context!(|ctx| {
-                format!(r#"{}"#, self.envelope.summary(20, ctx).replace('"', "&quot;"))
+                format!(
+                    r#"{}"#,
+                    self.envelope.summary(20, ctx).replace('"', "&quot;")
+                )
             });
-            let lines = vec![
-                self.envelope.digest().short_description(),
-                summary,
-            ].join("<br>");
+            lines.push(summary);
+            if self.show_id {
+                let id = self.envelope.digest().short_description();
+                lines.push(id);
+            }
+            let lines = lines.join("<br>");
             let (frame_l, frame_r) = self.envelope.mermaid_frame();
             let id = self.id;
             format!(r#"{id}{frame_l}"{lines}"{frame_r}"#)
@@ -228,17 +324,18 @@ impl Envelope {
             EnvelopeCase::Compressed(..)    => ("[[", "]]"),
         }
     }
+
     #[rustfmt::skip]
-    fn node_color(&self) -> (&'static str, &'static str) {
+    fn node_color(&self) -> &'static str {
         match self.case() {
-            EnvelopeCase::Node { .. }       => ("#b62128", "#4e2325"),
-            EnvelopeCase::Leaf { .. }       => ("#0c7883", "#1c383a"),
-            EnvelopeCase::Wrapped { .. }    => ("#4554f8", "#2a2e57"),
-            EnvelopeCase::Assertion(..)     => ("#8abe5e", "#3c4930"),
-            EnvelopeCase::Elided(..)        => ("#a6aaa9", "#434443"),
-            EnvelopeCase::KnownValue { .. } => ("#d7ac48", "#584c2e"),
-            EnvelopeCase::Encrypted(..)     => ("#ff9d35", "#594026"),
-            EnvelopeCase::Compressed(..)    => ("#a01d76", "#412036"),
+            EnvelopeCase::Node { .. }       => "red",
+            EnvelopeCase::Leaf { .. }       => "teal",
+            EnvelopeCase::Wrapped { .. }    => "blue",
+            EnvelopeCase::Assertion(..)     => "green",
+            EnvelopeCase::Elided(..)        => "gray",
+            EnvelopeCase::KnownValue { .. } => "goldenrod",
+            EnvelopeCase::Encrypted(..)     => "coral",
+            EnvelopeCase::Compressed(..)    => "purple",
         }
     }
 }
@@ -246,9 +343,9 @@ impl Envelope {
 impl EdgeType {
     pub fn link_stroke_color(&self) -> Option<&'static str> {
         match self {
-            EdgeType::Subject | EdgeType::Wrapped => Some("#f66"),
-            EdgeType::Predicate => Some("#6f6"),
-            EdgeType::Object => Some("#66f"),
+            EdgeType::Subject | EdgeType::Wrapped => Some("red"),
+            EdgeType::Predicate => Some("green"),
+            EdgeType::Object => Some("blue"),
             _ => None,
         }
     }

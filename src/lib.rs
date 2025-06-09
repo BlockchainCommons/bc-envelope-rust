@@ -381,8 +381,8 @@ pub use base::{
 pub mod format;
 pub use format::{
     DigestDisplayFormat, FormatContext, FormatContextOpt,
-    GLOBAL_FORMAT_CONTEXT, TreeFormatOpts, register_tags, register_tags_in,
-    MermaidFormatOpts
+    GLOBAL_FORMAT_CONTEXT, MermaidFormatOpts, MermaidOrientation, MermaidTheme,
+    TreeFormatOpts, register_tags, register_tags_in,
 };
 
 pub mod extension;

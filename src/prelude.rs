@@ -7,8 +7,8 @@ pub use crate::SignatureMetadata;
 pub use crate::{Attachable, Attachments};
 pub use crate::{
     DigestDisplayFormat, Envelope, EnvelopeEncodable, Error as EnvelopeError,
-    FormatContext, FormatContextOpt, MermaidFormatOpts,
-    Result as EnvelopeResult, TreeFormatOpts,
+    FormatContext, FormatContextOpt, MermaidFormatOpts, MermaidOrientation,
+    MermaidTheme, Result as EnvelopeResult, TreeFormatOpts,
     elide::{self, ObscureAction},
     register_tags, register_tags_in,
     walk::EdgeType,
