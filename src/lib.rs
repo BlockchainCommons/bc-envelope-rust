@@ -388,6 +388,7 @@ pub use format::{
 pub mod extension;
 pub mod prelude;
 pub mod seal;
+pub mod pattern;
 
 mod string_utils;
 

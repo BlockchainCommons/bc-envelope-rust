@@ -208,6 +208,17 @@ impl Envelope {
         matches!(self.case(), EnvelopeCase::Elided(_))
     }
 
+    /// `true` if the envelope is a leaf node that contains a number, `false`
+    pub fn is_number(&self) -> bool {
+        self.as_leaf().map(|c| c.is_number()).unwrap_or(false)
+    }
+
+    /// `true` if the envelope is a leaf node that contains the NaN value,
+    /// `false` otherwise.
+    pub fn is_nan(&self) -> bool {
+        self.as_leaf().map(|c| c.is_nan()).unwrap_or(false)
+    }
+
     /// `true` if the subject of the envelope is an assertion, `false`
     /// otherwise.
     pub fn is_subject_assertion(&self) -> bool {
@@ -268,6 +279,18 @@ impl Envelope {
             return true;
         }
         false
+    }
+
+    /// `true` if the subject of the envelope is a number, `false`
+    /// otherwise.
+    pub fn is_subject_number(&self) -> bool {
+        self.subject().is_number()
+    }
+
+    /// `true` if the subject of the envelope is the NaN value, `false`
+    /// otherwise.
+    pub fn is_subject_nan(&self) -> bool {
+        self.subject().is_nan()
     }
 
     /// `true` if the envelope is *internal*, that is, it has child elements, or
