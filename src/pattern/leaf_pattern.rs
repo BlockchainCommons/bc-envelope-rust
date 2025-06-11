@@ -42,36 +42,23 @@ impl LeafPattern {
 }
 
 impl Matcher for LeafPattern {
-    fn paths(&self, envelope: &Envelope) -> impl Iterator<Item = Path> {
-        let subject = envelope.subject();
+    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
         match self {
             LeafPattern::Any => {
                 if envelope.is_leaf() {
-                    Some(vec![subject]).into_iter()
+                    vec![vec![envelope.clone()]]
                 } else {
-                    None.into_iter()
+                    vec![]
                 }
             }
             LeafPattern::Number(pattern) => {
-                if pattern.matches(&subject) {
-                    Some(vec![subject]).into_iter()
-                } else {
-                    None.into_iter()
-                }
+                pattern.paths(envelope)
             }
             LeafPattern::Text(pattern) => {
-                if pattern.matches(&subject) {
-                    Some(vec![subject]).into_iter()
-                } else {
-                    None.into_iter()
-                }
+                pattern.paths(envelope)
             }
             LeafPattern::Boolean(pattern) => {
-                if pattern.matches(&subject) {
-                    Some(vec![subject]).into_iter()
-                } else {
-                    None.into_iter()
-                }
+                pattern.paths(envelope)
             }
         }
     }

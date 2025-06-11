@@ -2,7 +2,7 @@ use super::{
     AndPattern, AssertionsPattern, LeafPattern, Matcher, OrPattern, Path,
     WrappedPattern,
 };
-use crate::Envelope;
+use crate::{pattern::{SequencePattern, SubjectPattern}, Envelope};
 
 /// The main pattern type used for matching envelopes.
 #[derive(Debug, Clone)]
@@ -29,6 +29,9 @@ pub enum Pattern {
     Or(OrPattern),
     /// Matches a sequence of elements.
     Assertion(AssertionsPattern),
+    /// Matches a sequence of elements.
+    Sequence(SequencePattern),
+    Subject(SubjectPattern),
     ///// Matches an element with a specific cardinality.
     //// Repeat(RepeatPattern),
 }
@@ -138,25 +141,42 @@ impl Pattern {
     }
 }
 
+impl Pattern {
+    pub fn sequence(patterns: Vec<Pattern>) -> Self {
+        Pattern::Sequence(SequencePattern::new(patterns))
+    }
+}
+
+impl Pattern {
+    pub fn subject() -> Self {
+        Pattern::Subject(SubjectPattern::any())
+    }
+}
+
 impl Matcher for Pattern {
-    fn paths(&self, envelope: &Envelope) -> impl Iterator<Item = Path> {
-        // All of these patterns must return `IntoIter<Vec<Envelope>>`.
+    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
         match self {
-            Pattern::Any => vec![vec![envelope.clone()]].into_iter(),
+            Pattern::Any => vec![vec![envelope.clone()]],
             Pattern::Leaf(pattern) => {
-                pattern.paths(envelope).collect::<Vec<_>>().into_iter()
+                pattern.paths(envelope)
             }
             Pattern::And(pattern) => {
-                pattern.paths(envelope).collect::<Vec<_>>().into_iter()
+                pattern.paths(envelope)
             }
             Pattern::Or(pattern) => {
-                pattern.paths(envelope).collect::<Vec<_>>().into_iter()
+                pattern.paths(envelope)
             }
             Pattern::Wrapped(pattern) => {
-                pattern.paths(envelope).collect::<Vec<_>>().into_iter()
+                pattern.paths(envelope)
             }
             Pattern::Assertion(pattern) => {
-                pattern.paths(envelope).collect::<Vec<_>>().into_iter()
+                pattern.paths(envelope)
+            }
+            Pattern::Sequence(pattern) => {
+                pattern.paths(envelope)
+            }
+            Pattern::Subject(pattern) => {
+                pattern.paths(envelope)
             }
         }
     }

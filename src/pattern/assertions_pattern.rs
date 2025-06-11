@@ -29,7 +29,7 @@ impl AssertionsPattern {
 }
 
 impl Matcher for AssertionsPattern {
-    fn paths(&self, envelope: &Envelope) -> impl Iterator<Item = Path> {
+    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
         let assertions = envelope.assertions();
         if assertions.is_empty() {
             return Vec::new().into_iter();

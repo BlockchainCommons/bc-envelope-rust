@@ -88,7 +88,7 @@ impl NumberPattern {
 }
 
 impl Matcher for NumberPattern {
-    fn paths(&self, envelope: &Envelope) -> impl Iterator<Item = Path> {
+    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
         let subject = envelope.subject();
         let is_hit = match self {
             NumberPattern::Any => subject.is_number(),
@@ -114,9 +114,9 @@ impl Matcher for NumberPattern {
         };
 
         if is_hit {
-            Some(Vec::from_iter([subject])).into_iter()
+            vec![vec![envelope.clone()]]
         } else {
-            None.into_iter()
+            vec![]
         }
     }
 }

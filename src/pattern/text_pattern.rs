@@ -1,5 +1,5 @@
-use crate::Envelope;
 use super::{Matcher, Path};
+use crate::Envelope;
 
 /// Pattern for matching text values.
 #[derive(Debug, Clone)]
@@ -14,9 +14,7 @@ pub enum TextPattern {
 
 impl TextPattern {
     /// Creates a new `TextPattern` that matches any text.
-    pub fn any() -> Self {
-        TextPattern::Any
-    }
+    pub fn any() -> Self { TextPattern::Any }
 
     /// Creates a new `TextPattern` that matches the specific text.
     pub fn exact<T: Into<String>>(value: T) -> Self {
@@ -24,26 +22,25 @@ impl TextPattern {
     }
 
     /// Creates a new `TextPattern` that matches the regex for a text.
-    pub fn regex(regex: regex::Regex) -> Self {
-        TextPattern::Regex(regex)
-    }
+    pub fn regex(regex: regex::Regex) -> Self { TextPattern::Regex(regex) }
 }
 
 impl Matcher for TextPattern {
-    fn paths(&self, envelope: &Envelope) -> impl Iterator<Item = Path> {
-        let is_hit = envelope
-            .extract_subject::<String>()
-            .ok()
-            .map_or(false, |value| match self {
-                TextPattern::Any => true,
-                TextPattern::Exact(want) => value == *want,
-                TextPattern::Regex(regex) => regex.is_match(&value),
-            });
+    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
+        let is_hit =
+            envelope
+                .extract_subject::<String>()
+                .ok()
+                .map_or(false, |value| match self {
+                    TextPattern::Any => true,
+                    TextPattern::Exact(want) => value == *want,
+                    TextPattern::Regex(regex) => regex.is_match(&value),
+                });
 
         if is_hit {
-            Some(Vec::from_iter([envelope.subject()])).into_iter()
+            vec![vec![envelope.clone()]]
         } else {
-            None.into_iter()
+            vec![]
         }
     }
 }

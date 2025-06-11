@@ -8,9 +8,7 @@ pub enum PredicatePattern {
 }
 
 impl PredicatePattern {
-    pub fn any() -> Self {
-        PredicatePattern::Any
-    }
+    pub fn any() -> Self { PredicatePattern::Any }
 
     pub fn pattern(pattern: Pattern) -> Self {
         PredicatePattern::Pattern(pattern)
@@ -18,22 +16,22 @@ impl PredicatePattern {
 }
 
 impl Matcher for PredicatePattern {
-    fn paths(&self, envelope: &Envelope) -> impl Iterator<Item = Path> {
+    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
         if let Some(predicate) = envelope.as_predicate() {
             match self {
                 PredicatePattern::Any => {
-                    Some(Vec::from_iter([envelope.clone(), predicate.clone()])).into_iter()
+                    vec![vec![envelope.clone(), predicate.clone()]]
                 }
                 PredicatePattern::Pattern(pattern) => {
                     if pattern.matches(&predicate) {
-                        Some(Vec::from_iter([envelope.clone(), predicate.clone()])).into_iter()
+                        vec![vec![envelope.clone(), predicate.clone()]]
                     } else {
-                        None.into_iter()
+                        vec![]
                     }
                 }
             }
         } else {
-            return None.into_iter();
+            vec![]
         }
     }
 }

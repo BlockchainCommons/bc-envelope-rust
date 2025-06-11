@@ -12,6 +12,8 @@ mod text_pattern;
 mod wrapped_pattern;
 mod predicate_pattern;
 mod object_pattern;
+mod sequence_pattern;
+mod subject_pattern;
 
 // mod array_pattern;
 // mod byte_string_pattern;
@@ -36,6 +38,8 @@ pub use text_pattern::TextPattern;
 pub use wrapped_pattern::WrappedPattern;
 pub use predicate_pattern::PredicatePattern;
 pub use object_pattern::ObjectPattern;
+pub use sequence_pattern::SequencePattern;
+pub use subject_pattern::SubjectPattern;
 
 // pub use array_pattern::ArrayPattern;
 // pub use byte_string_pattern::ByteStringPattern;

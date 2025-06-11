@@ -15,11 +15,11 @@ impl AndPattern {
 }
 
 impl Matcher for AndPattern {
-    fn paths(&self, envelope: &Envelope) -> impl Iterator<Item = Path> {
+    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
         if self.patterns.iter().all(|pattern| pattern.matches(envelope)) {
-            Some(Vec::from_iter([envelope.subject()])).into_iter()
+            vec![vec![envelope.clone()]]
         } else {
-            None.into_iter()
+            vec![]
         }
     }
 }

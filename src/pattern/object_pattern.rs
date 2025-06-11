@@ -18,22 +18,22 @@ impl ObjectPattern {
 }
 
 impl Matcher for ObjectPattern {
-    fn paths(&self, envelope: &Envelope) -> impl Iterator<Item = Path> {
+    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
         if let Some(object) = envelope.as_object() {
             match self {
                 ObjectPattern::Any => {
-                    Some(Vec::from_iter([envelope.clone(), object.clone()])).into_iter()
+                    vec![vec![envelope.clone(), object.clone()]]
                 }
                 ObjectPattern::Pattern(pattern) => {
                     if pattern.matches(&object) {
-                        Some(Vec::from_iter([envelope.clone(), object.clone()])).into_iter()
+                        vec![vec![envelope.clone(), object.clone()]]
                     } else {
-                        None.into_iter()
+                        vec![]
                     }
                 }
             }
         } else {
-            return None.into_iter();
+            return vec![];
         }
     }
 }

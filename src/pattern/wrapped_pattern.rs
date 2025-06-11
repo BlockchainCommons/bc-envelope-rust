@@ -11,31 +11,32 @@ pub enum WrappedPattern {
 
 impl WrappedPattern {
     /// Creates a new `WrappedPattern` that matches any wrapped envelope.
-    pub fn any() -> Self {
-        WrappedPattern::Any
-    }
+    pub fn any() -> Self { WrappedPattern::Any }
 
-    /// Creates a new `WrappedPattern` that matches a wrapped envelope with a specific pattern as its subject.
+    /// Creates a new `WrappedPattern` that matches a wrapped envelope with a
+    /// specific pattern as its subject.
     pub fn subject(pattern: Pattern) -> Self {
         WrappedPattern::Subject(Box::new(pattern))
     }
 }
 
 impl Matcher for WrappedPattern {
-    fn paths(&self, envelope: &Envelope) -> impl Iterator<Item = Path> {
+    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
         if let Some(content) = envelope.subject().unwrap_envelope().ok() {
             match self {
-                WrappedPattern::Any => Some(Vec::from_iter([envelope.clone(), content])).into_iter(),
+                WrappedPattern::Any => {
+                    vec![vec![envelope.clone(), content]]
+                }
                 WrappedPattern::Subject(pattern) => {
                     if pattern.matches(&content) {
-                        Some(Vec::from_iter([envelope.clone(), content])).into_iter()
+                        vec![vec![envelope.clone(), content]]
                     } else {
-                        None.into_iter()
+                        vec![]
                     }
                 }
             }
         } else {
-            None.into_iter()
+            vec![]
         }
     }
 }
