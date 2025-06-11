@@ -15,7 +15,11 @@ fn format_path(path: &Path) -> String {
 }
 
 fn format_paths(paths: &Vec<Path>) -> String {
-    paths.into_iter().map(format_path).collect::<Vec<_>>().join("\n\n")
+    paths
+        .into_iter()
+        .map(format_path)
+        .collect::<Vec<_>>()
+        .join("\n\n")
 }
 
 fn print_paths(paths: &Vec<Path>) {
@@ -45,27 +49,24 @@ fn test_bool_pattern() {
     // The matched paths include the assertion. In other words, the
     // path just includes the envelope itself as its only element.
     let paths = Pattern::any_bool().paths(&envelope);
-    // print_paths(&paths);
     #[rustfmt::skip]
     let expected = indoc! {r#"
         true [ "an": "assertion" ]
     "#}.trim();
-    assert_eq!(format_paths(&paths), expected);
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Matching a boolean and the subject in a sequence returns a path
     // where the first element is the original envelope and the second
     // element is the subject.
-    let paths = Pattern::sequence(vec![
-        Pattern::any_bool(),
-        Pattern::subject()
-    ]).paths(&envelope);
-    // print_paths(&paths);
+    let paths =
+        Pattern::sequence(vec![Pattern::any_bool(), Pattern::subject()])
+            .paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
         true [ "an": "assertion" ]
             true
     "#}.trim();
-    assert_eq!(format_paths(&paths), expected);
+    assert_actual_expected!(format_paths(&paths), expected);
 }
 
 #[test]
@@ -96,27 +97,24 @@ fn test_number_pattern() {
 
     // The matched paths include the assertion.
     let paths = Pattern::any_number().paths(&envelope);
-    // print_paths(&paths);
     #[rustfmt::skip]
     let expected = indoc! {r#"
         42 [ "an": "assertion" ]
     "#}.trim();
-    assert_eq!(format_paths(&paths), expected);
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Matching a number and the subject in a sequence returns a path
     // where the first element is the original envelope and the second
     // element is the subject.
-    let paths = Pattern::sequence(vec![
-        Pattern::any_number(),
-        Pattern::subject()
-    ]).paths(&envelope);
-    // print_paths(&paths);
+    let paths =
+        Pattern::sequence(vec![Pattern::any_number(), Pattern::subject()])
+            .paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
         42 [ "an": "assertion" ]
             42
     "#}.trim();
-    assert_eq!(format_paths(&paths), expected);
+    assert_actual_expected!(format_paths(&paths), expected);
 }
 
 #[test]
@@ -143,41 +141,60 @@ fn test_text_pattern() {
 
     // The matched paths include the assertion.
     let paths = Pattern::any_text().paths(&envelope);
-    // print_paths(&paths);
     #[rustfmt::skip]
     let expected = indoc! {r#"
         "hello" [ "greeting": "world" ]
     "#}.trim();
-    assert_eq!(format_paths(&paths), expected);
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Matching a text and the subject in a sequence returns a path
     // where the first element is the original envelope and the second
     // element is the subject.
-    let paths = Pattern::sequence(vec![
-        Pattern::any_text(),
-        Pattern::subject()
-    ]).paths(&envelope);
-    // print_paths(&paths);
+    let paths =
+        Pattern::sequence(vec![Pattern::any_text(), Pattern::subject()])
+            .paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
         "hello" [ "greeting": "world" ]
             "hello"
     "#}.trim();
-    assert_eq!(format_paths(&paths), expected);
+    assert_actual_expected!(format_paths(&paths), expected);
 }
 
 #[test]
 fn test_and_pattern() {
-    let envelope = Envelope::new(42);
+    let envelope = Envelope::new(42).add_assertion("an", "assertion");
 
+    // The subject matches the first pattern but not the second.
+    let pattern = Pattern::and(vec![Pattern::number(42), Pattern::text("foo")]);
+    assert!(!pattern.matches(&envelope));
+
+    // The subject matches both patterns.
     let pattern = Pattern::and(vec![
         Pattern::number_greater_than(40),
         Pattern::number_less_than(50),
     ]);
     assert!(pattern.matches(&envelope));
 
-    let pattern = Pattern::and(vec![Pattern::number(42), Pattern::text("foo")]);
-    assert!(!pattern.matches(&envelope));
+    // The path includes the assertion.
+    let paths = pattern.paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        42 [ "an": "assertion" ]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let sequence_pattern = Pattern::sequence(vec![
+        pattern.clone(),
+        Pattern::subject(),
+    ]);
+    let paths = sequence_pattern.paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        42 [ "an": "assertion" ]
+            42
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 }
 
 #[test]
