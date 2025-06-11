@@ -16,7 +16,7 @@ impl AndPattern {
 
 impl Matcher for AndPattern {
     fn paths(&self, envelope: &Envelope) -> impl Iterator<Item = Path> {
-        if self.patterns.iter().all(|pattern| pattern.is_match(envelope)) {
+        if self.patterns.iter().all(|pattern| pattern.matches(envelope)) {
             Some(Vec::from_iter([envelope.subject()])).into_iter()
         } else {
             None.into_iter()

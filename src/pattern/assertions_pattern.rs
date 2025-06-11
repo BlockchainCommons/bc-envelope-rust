@@ -1,30 +1,14 @@
 use super::{Matcher, Path, Pattern};
 use crate::Envelope;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Selector {
-    /// Selects the entire matching assertion.
-    Assertion,
-    /// Selects the predicate of the matching assertion.
-    Predicate,
-    /// Selects the object of the matching assertion.
-    Object,
-}
-
 #[derive(Debug, Clone)]
 pub enum AssertionsPattern {
     /// Matches any assertion.
     Any,
     /// Matches assertions with predicates that match a specific pattern.
-    WithPredicate {
-        pattern: Box<Pattern>,
-        selector: Selector,
-    },
+    WithPredicate(Box<Pattern>),
     /// Matches assertions with objects that match a specific pattern.
-    WithObject {
-        pattern: Box<Pattern>,
-        selector: Selector,
-    },
+    WithObject(Box<Pattern>),
 }
 
 impl AssertionsPattern {
@@ -33,17 +17,14 @@ impl AssertionsPattern {
 
     /// Creates a new `AssertionsPattern` that matches assertions
     /// with predicates that match a specific pattern.
-    pub fn with_predicate(pattern: Pattern, selector: Selector) -> Self {
-        AssertionsPattern::WithPredicate {
-            pattern: Box::new(pattern),
-            selector,
-        }
+    pub fn with_predicate(pattern: Pattern) -> Self {
+        AssertionsPattern::WithPredicate(Box::new(pattern))
     }
 
     /// Creates a new `AssertionsPattern` that matches
     /// assertions with objects that match a specific pattern.
-    pub fn with_object(pattern: Pattern, selector: Selector) -> Self {
-        AssertionsPattern::WithObject { pattern: Box::new(pattern), selector }
+    pub fn with_object(pattern: Pattern) -> Self {
+        AssertionsPattern::WithObject(Box::new(pattern))
     }
 }
 
@@ -58,71 +39,23 @@ impl Matcher for AssertionsPattern {
         for assertion in assertions {
             match self {
                 AssertionsPattern::Any => {
-                    hits.push(vec![envelope.clone(), assertion.clone()]);
+                    hits.push(vec![assertion.clone()]);
                 }
-                AssertionsPattern::WithPredicate { pattern, selector } => {
+                AssertionsPattern::WithPredicate(pattern) => {
                     if let Some(predicate) = assertion.as_predicate() {
-                        if pattern.is_match(&predicate) {
-                            match selector {
-                                Selector::Assertion => {
-                                    hits.push(vec![
-                                        envelope.clone(),
-                                        assertion.clone(),
-                                    ]);
-                                }
-                                Selector::Predicate => {
-                                    if let Some(predicate) =
-                                        assertion.as_predicate()
-                                    {
-                                        hits.push(vec![
-                                            envelope.clone(),
-                                            predicate.clone(),
-                                        ]);
-                                    }
-                                }
-                                Selector::Object => {
-                                    if let Some(object) = assertion.as_object()
-                                    {
-                                        hits.push(vec![
-                                            envelope.clone(),
-                                            object.clone(),
-                                        ]);
-                                    }
-                                }
-                            }
+                        if pattern.matches(&predicate) {
+                            hits.push(vec![
+                                assertion.clone(),
+                            ]);
                         }
                     }
                 }
-                AssertionsPattern::WithObject { pattern, selector } => {
+                AssertionsPattern::WithObject(pattern) => {
                     if let Some(object) = assertion.as_object() {
-                        if pattern.is_match(&object) {
-                            match selector {
-                                Selector::Assertion => {
-                                    hits.push(vec![
-                                        envelope.clone(),
-                                        assertion.clone(),
-                                    ]);
-                                }
-                                Selector::Predicate => {
-                                    if let Some(predicate) =
-                                        assertion.as_predicate()
-                                    {
-                                        hits.push(vec![
-                                            envelope.clone(),
-                                            predicate.clone(),
-                                        ]);
-                                    }
-                                }
-                                Selector::Object => {
-                                    if let Some(object) = assertion.as_object()
-                                    {
-                                        hits.push(vec![
-                                            envelope.clone(),
-                                            object.clone(),
-                                        ]);
-                                    }
-                                }
-                            }
+                        if pattern.matches(&object) {
+                            hits.push(vec![
+                                assertion.clone(),
+                            ]);
                         }
                     }
                 }

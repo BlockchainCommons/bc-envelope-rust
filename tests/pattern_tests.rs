@@ -28,51 +28,51 @@ fn print_paths(paths: Vec<Path>) {
 fn test_bool_pattern() {
     let envelope = Envelope::new(true);
 
-    assert!(Pattern::any_bool().is_match(&envelope));
-    assert!(Pattern::bool(true).is_match(&envelope));
-    assert!(!Pattern::bool(false).is_match(&envelope));
+    assert!(Pattern::any_bool().matches(&envelope));
+    assert!(Pattern::bool(true).matches(&envelope));
+    assert!(!Pattern::bool(false).matches(&envelope));
 
     let envelope = Envelope::new(42);
-    assert!(!Pattern::any_bool().is_match(&envelope));
-    assert!(!Pattern::bool(true).is_match(&envelope));
-    assert!(!Pattern::bool(false).is_match(&envelope));
+    assert!(!Pattern::any_bool().matches(&envelope));
+    assert!(!Pattern::bool(true).matches(&envelope));
+    assert!(!Pattern::bool(false).matches(&envelope));
 }
 
 #[test]
 fn test_number_pattern() {
     let envelope = Envelope::new(42);
 
-    assert!(Pattern::any_number().is_match(&envelope));
-    assert!(Pattern::number(42).is_match(&envelope));
-    assert!(!Pattern::number(43).is_match(&envelope));
-    assert!(Pattern::number_range(40..=50).is_match(&envelope));
-    assert!(!Pattern::number_range(43..=50).is_match(&envelope));
-    assert!(Pattern::number_greater_than(41).is_match(&envelope));
-    assert!(!Pattern::number_greater_than(42).is_match(&envelope));
-    assert!(Pattern::number_less_than(43).is_match(&envelope));
-    assert!(!Pattern::number_less_than(42).is_match(&envelope));
-    assert!(Pattern::number_greater_than_or_equal(42).is_match(&envelope));
-    assert!(!Pattern::number_greater_than_or_equal(43).is_match(&envelope));
+    assert!(Pattern::any_number().matches(&envelope));
+    assert!(Pattern::number(42).matches(&envelope));
+    assert!(!Pattern::number(43).matches(&envelope));
+    assert!(Pattern::number_range(40..=50).matches(&envelope));
+    assert!(!Pattern::number_range(43..=50).matches(&envelope));
+    assert!(Pattern::number_greater_than(41).matches(&envelope));
+    assert!(!Pattern::number_greater_than(42).matches(&envelope));
+    assert!(Pattern::number_less_than(43).matches(&envelope));
+    assert!(!Pattern::number_less_than(42).matches(&envelope));
+    assert!(Pattern::number_greater_than_or_equal(42).matches(&envelope));
+    assert!(!Pattern::number_greater_than_or_equal(43).matches(&envelope));
 
     let envelope = Envelope::new("string");
-    assert!(!Pattern::any_number().is_match(&envelope));
-    assert!(!Pattern::number(42).is_match(&envelope));
+    assert!(!Pattern::any_number().matches(&envelope));
+    assert!(!Pattern::number(42).matches(&envelope));
 }
 
 #[test]
 fn test_text_pattern() {
     let envelope = Envelope::new("hello");
 
-    assert!(Pattern::any_text().is_match(&envelope));
-    assert!(Pattern::text("hello").is_match(&envelope));
-    assert!(!Pattern::text("world").is_match(&envelope));
+    assert!(Pattern::any_text().matches(&envelope));
+    assert!(Pattern::text("hello").matches(&envelope));
+    assert!(!Pattern::text("world").matches(&envelope));
 
     let regex = regex::Regex::new(r"^h.*o$").unwrap();
-    assert!(Pattern::text_regex(regex).is_match(&envelope));
+    assert!(Pattern::text_regex(regex).matches(&envelope));
 
     let envelope = Envelope::new(42);
-    assert!(!Pattern::any_text().is_match(&envelope));
-    assert!(!Pattern::text("hello").is_match(&envelope));
+    assert!(!Pattern::any_text().matches(&envelope));
+    assert!(!Pattern::text("hello").matches(&envelope));
 }
 
 #[test]
@@ -83,10 +83,10 @@ fn test_and_pattern() {
         Pattern::number_greater_than(40),
         Pattern::number_less_than(50),
     ]);
-    assert!(pattern.is_match(&envelope));
+    assert!(pattern.matches(&envelope));
 
     let pattern = Pattern::and(vec![Pattern::number(42), Pattern::text("foo")]);
-    assert!(!pattern.is_match(&envelope));
+    assert!(!pattern.matches(&envelope));
 }
 
 #[test]
@@ -97,19 +97,19 @@ fn test_or_pattern() {
         Pattern::number_greater_than(40),
         Pattern::text("foo"),
     ]);
-    assert!(pattern.is_match(&envelope));
+    assert!(pattern.matches(&envelope));
 
     let pattern = Pattern::or(vec![Pattern::text("bar"), Pattern::text("baz")]);
-    assert!(!pattern.is_match(&envelope));
+    assert!(!pattern.matches(&envelope));
 }
 
 #[test]
 fn test_wrapped_pattern() {
     let envelope = Envelope::new(42).wrap_envelope();
 
-    assert!(Pattern::any_wrapped().is_match(&envelope));
-    assert!(Pattern::wrapped(Pattern::number(42)).is_match(&envelope));
-    assert!(!Pattern::wrapped(Pattern::number(43)).is_match(&envelope));
+    assert!(Pattern::any_wrapped().matches(&envelope));
+    assert!(Pattern::wrapped(Pattern::number(42)).matches(&envelope));
+    assert!(!Pattern::wrapped(Pattern::number(43)).matches(&envelope));
 
     let paths: Vec<Path> = Pattern::wrapped(Pattern::number(42))
         .paths(&envelope)
@@ -124,7 +124,7 @@ fn test_wrapped_pattern() {
 #[test]
 fn test_assertion_pattern() {
     let envelope_without_assertions = Envelope::new("Alice");
-    assert!(!Pattern::any_assertion().is_match(&envelope_without_assertions));
+    assert!(!Pattern::any_assertion().matches(&envelope_without_assertions));
 
     let envelope_with_assertions = envelope_without_assertions
         .add_assertion("knows", "Bob")
@@ -145,7 +145,7 @@ fn test_assertion_predicate_pattern() {
         .add_assertion("knows", "Charlie")
         .add_assertion("worksWith", "David");
 
-    let pattern = Pattern::assertion_with_predicate(Pattern::text("knows"), Selector::Object);
+    let pattern = Pattern::assertion_with_predicate(Pattern::text("knows"));
     let paths: Vec<Path> = pattern.paths(&envelope).into_iter().collect();
     print_paths(paths);
 }

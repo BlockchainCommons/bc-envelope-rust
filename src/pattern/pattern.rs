@@ -2,7 +2,7 @@ use super::{
     AndPattern, AssertionsPattern, LeafPattern, Matcher, OrPattern, Path,
     WrappedPattern,
 };
-use crate::{pattern::Selector, Envelope};
+use crate::Envelope;
 
 /// The main pattern type used for matching envelopes.
 #[derive(Debug, Clone)]
@@ -129,12 +129,12 @@ impl Pattern {
         Pattern::Assertion(AssertionsPattern::any())
     }
 
-    pub fn assertion_with_predicate(pattern: Pattern, selector: Selector) -> Self {
-        Pattern::Assertion(AssertionsPattern::with_predicate(pattern, selector))
+    pub fn assertion_with_predicate(pattern: Pattern) -> Self {
+        Pattern::Assertion(AssertionsPattern::with_predicate(pattern))
     }
 
-    pub fn assertion_with_object(pattern: Pattern, selector: Selector) -> Self {
-        Pattern::Assertion(AssertionsPattern::with_object(pattern, selector))
+    pub fn assertion_with_object(pattern: Pattern) -> Self {
+        Pattern::Assertion(AssertionsPattern::with_object(pattern))
     }
 }
 

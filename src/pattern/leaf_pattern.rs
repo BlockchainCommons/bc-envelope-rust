@@ -1,7 +1,5 @@
-use super::{Matcher, Path};
+use super::{BoolPattern, Matcher, NumberPattern, Path, TextPattern};
 use crate::Envelope;
-
-use super::{NumberPattern, TextPattern, BoolPattern};
 
 /// Pattern for matching leaf values.
 #[derive(Debug, Clone)]
@@ -30,17 +28,13 @@ pub enum LeafPattern {
 
 impl LeafPattern {
     /// Creates a new `LeafPattern` that matches any leaf.
-    pub fn any() -> Self {
-        LeafPattern::Any
-    }
+    pub fn any() -> Self { LeafPattern::Any }
 
     pub fn number(pattern: NumberPattern) -> Self {
         LeafPattern::Number(pattern)
     }
 
-    pub fn text(pattern: TextPattern) -> Self {
-        LeafPattern::Text(pattern)
-    }
+    pub fn text(pattern: TextPattern) -> Self { LeafPattern::Text(pattern) }
 
     pub fn boolean(pattern: BoolPattern) -> Self {
         LeafPattern::Boolean(pattern)
@@ -59,21 +53,21 @@ impl Matcher for LeafPattern {
                 }
             }
             LeafPattern::Number(pattern) => {
-                if pattern.is_match(&subject) {
+                if pattern.matches(&subject) {
                     Some(vec![subject]).into_iter()
                 } else {
                     None.into_iter()
                 }
             }
             LeafPattern::Text(pattern) => {
-                if pattern.is_match(&subject) {
+                if pattern.matches(&subject) {
                     Some(vec![subject]).into_iter()
                 } else {
                     None.into_iter()
                 }
             }
             LeafPattern::Boolean(pattern) => {
-                if pattern.is_match(&subject) {
+                if pattern.matches(&subject) {
                     Some(vec![subject]).into_iter()
                 } else {
                     None.into_iter()

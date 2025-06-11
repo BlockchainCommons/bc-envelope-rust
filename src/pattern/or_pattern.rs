@@ -17,7 +17,7 @@ impl Matcher for OrPattern {
         if self
             .patterns
             .iter()
-            .any(|pattern| pattern.is_match(envelope))
+            .any(|pattern| pattern.matches(envelope))
         {
             Some(Vec::from_iter([envelope.subject()])).into_iter()
         } else {

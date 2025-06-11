@@ -27,7 +27,7 @@ impl Matcher for WrappedPattern {
             match self {
                 WrappedPattern::Any => Some(Vec::from_iter([envelope.clone(), content])).into_iter(),
                 WrappedPattern::Subject(pattern) => {
-                    if pattern.is_match(&content) {
+                    if pattern.matches(&content) {
                         Some(Vec::from_iter([envelope.clone(), content])).into_iter()
                     } else {
                         None.into_iter()
