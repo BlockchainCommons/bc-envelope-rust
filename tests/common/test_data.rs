@@ -50,3 +50,47 @@ pub fn carol_public_key() -> PublicKeys { carol_private_key().public_keys() }
 
 pub fn fake_content_key() -> SymmetricKey { SymmetricKey::from_data(hex!("526afd95b2229c5381baec4a1788507a3c4a566ca5cce64543b46ad12aff0035")) }
 pub fn fake_nonce() -> Nonce { Nonce::from_data(hex!("4d785658f36c22fb5aed3ac0"))}
+
+#[cfg(feature = "signature")]
+pub fn credential() -> Envelope {
+    use std::{cell::RefCell, rc::Rc};
+
+    use bc_components::ARID;
+    use bc_envelope::SigningOptions;
+    use bc_rand::make_fake_random_number_generator;
+
+    use crate::common::check_encoding::CheckEncoding;
+
+    let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
+    let options = SigningOptions::Schnorr { rng };
+    Envelope::new(ARID::from_data(hex!(
+        "4676635a6e6068c2ef3ffd8ff726dd401fd341036e920f136a1d8af5e829496d"
+    )))
+    .add_assertion(known_values::IS_A, "Certificate of Completion")
+    .add_assertion(known_values::ISSUER, "Example Electrical Engineering Board")
+    .add_assertion(
+        known_values::CONTROLLER,
+        "Example Electrical Engineering Board",
+    )
+    .add_assertion("firstName", "James")
+    .add_assertion("lastName", "Maxwell")
+    .add_assertion("issueDate", dcbor::Date::from_string("2020-01-01").unwrap())
+    .add_assertion(
+        "expirationDate",
+        dcbor::Date::from_string("2028-01-01").unwrap(),
+    )
+    .add_assertion("photo", "This is James Maxwell's photo.")
+    .add_assertion("certificateNumber", "123-456-789")
+    .add_assertion("subject", "RF and Microwave Engineering")
+    .add_assertion("continuingEducationUnits", 1)
+    .add_assertion("professionalDevelopmentHours", 15)
+    .add_assertion("topics", vec!["Subject 1", "Subject 2"].to_cbor())
+    .wrap_envelope()
+    .add_signature_opt(&alice_private_key(), Some(options), None)
+    .add_assertion(
+        known_values::NOTE,
+        "Signed by Example Electrical Engineering Board",
+    )
+    .check_encoding()
+    .unwrap()
+}

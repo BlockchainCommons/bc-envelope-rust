@@ -22,3 +22,5 @@ pub use crate::{
 };
 #[cfg(feature = "known_value")]
 pub use crate::{KnownValue, KnownValuesStore, known_values};
+
+pub use crate::pattern::*;

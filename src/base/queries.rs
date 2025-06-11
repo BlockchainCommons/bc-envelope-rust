@@ -219,6 +219,22 @@ impl Envelope {
         self.as_leaf().map(|c| c.is_nan()).unwrap_or(false)
     }
 
+    pub fn as_array(&self) -> Option<Vec<CBOR>> {
+        self.as_leaf().and_then(|c| c.into_array())
+    }
+
+    pub fn as_map(&self) -> Option<dcbor::Map> {
+        self.as_leaf().and_then(|c| c.into_map())
+    }
+
+    pub fn as_text(&self) -> Option<String> {
+        self.as_leaf().and_then(|c| c.into_text())
+    }
+
+    pub fn as_byte_string(&self) -> Option<Vec<u8>> {
+        self.as_leaf().and_then(|c| c.into_byte_string())
+    }
+
     /// `true` if the subject of the envelope is an assertion, `false`
     /// otherwise.
     pub fn is_subject_assertion(&self) -> bool {
