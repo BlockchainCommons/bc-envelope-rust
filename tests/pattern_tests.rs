@@ -408,9 +408,6 @@ fn test_search_pattern() {
             0eb5609b "age": 30
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
-
-    // Actual (INCORRECT):
-    // a47bb3d4 "Alice" [ "age": 30, "knows": "Bob" ]
 }
 
 #[test]
@@ -565,10 +562,13 @@ fn test_search_pattern_credential() {
 
     // Search for numbers (should find education units and hours)
     let number_paths = Pattern::search(Pattern::assertion_with_object(Pattern::any_number())).paths(&cred);
-    assert!(number_paths.len() >= 2); // At least continuingEducationUnits and professionalDevelopmentHours
     // Get the last element of each path as a single-element path for output
-    // let number_paths: Vec<Path> = number_paths.iter()
-    //     .map(|path| vec![(*path.last().unwrap()).clone()])
-    //     .collect();
-    println!("{}", format_paths(&number_paths));
+    let number_paths: Vec<Path> = number_paths.iter()
+        .map(|path| vec![(*path.last().unwrap()).clone()])
+        .collect();
+    let expected = indoc! {r#"
+        54b3e1e7 "professionalDevelopmentHours": 15
+        8ec5e912 "continuingEducationUnits": 1
+    "#}.trim();
+    assert_actual_expected!(format_paths(&number_paths), expected);
 }

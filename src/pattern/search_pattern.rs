@@ -1,5 +1,7 @@
 use std::cell::RefCell;
 
+use bc_components::DigestProvider;
+
 use super::{Matcher, Path, Pattern};
 use crate::Envelope;
 
@@ -32,10 +34,17 @@ impl Matcher for SearchPattern {
             // If the pattern matches, emit the full paths
             for pattern_path in pattern_paths {
                 let mut full_path = new_path.clone();
-                // If the pattern path has more than just the current envelope,
-                // extend with the additional elements
+                // If the pattern path has elements beyond just the current
+                // envelope, extend with those additional
+                // elements. If the pattern path starts with the
+                // current envelope, skip it to avoid duplication.
                 if pattern_path.len() > 1 {
                     full_path.extend(pattern_path.into_iter().skip(1));
+                } else if pattern_path.len() == 1
+                    && pattern_path[0].digest() != current_envelope.digest()
+                {
+                    // Pattern found a different element, add it to the path
+                    full_path.extend(pattern_path);
                 }
                 result_paths.borrow_mut().push(full_path);
             }
