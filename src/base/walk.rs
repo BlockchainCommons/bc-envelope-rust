@@ -99,15 +99,15 @@ impl EdgeType {
 /// - `envelope`: The current envelope element being visited
 /// - `level`: The depth level in the hierarchy (0 for root)
 /// - `incoming_edge`: The type of edge connecting this element to its parent
-/// - `parent`: Optional parent context passed down from the parent's visitor call
+/// - `state`: Optional context passed down from the parent's visitor call
 ///
-/// The visitor returns an optional parent context that will be passed to child elements.
+/// The visitor returns a state that will be passed to child elements.
 /// This enables accumulating state or passing context during traversal.
 ///
 /// # Type Parameters
 ///
-/// * `Parent` - The type of context passed between parent and child elements
-pub type Visitor<'a, Parent> = dyn Fn(&Envelope, usize, EdgeType, Option<Parent>) -> Option<Parent> + 'a;
+/// * `State` - The type of context passed between parent and child elements
+pub type Visitor<'a, State> = dyn Fn(&Envelope, usize, EdgeType, State) -> (State, bool) + 'a;
 
 /// Functions for traversing and manipulating the envelope hierarchy.
 impl Envelope {
@@ -152,11 +152,11 @@ impl Envelope {
     /// envelope.walk(false, &visitor);
     /// assert!(*count.borrow() > 0);
     /// ```
-    pub fn walk<Parent: Clone>(&self, hide_nodes: bool, visit: &Visitor<'_, Parent>) {
+    pub fn walk<State: Clone>(&self, hide_nodes: bool, state: State, visit: &Visitor<'_, State>) {
         if hide_nodes {
-            self.walk_tree(visit);
+            self.walk_tree(state, visit)
         } else {
-            self.walk_structure(visit);
+            self.walk_structure(state, visit)
         }
     }
 
@@ -164,30 +164,35 @@ impl Envelope {
     ///
     /// This is an internal method that begins a structure-based traversal from the root level.
     /// Use the public `walk` method with `hide_nodes = false` instead of calling this directly.
-    fn walk_structure<Parent: Clone>(&self, visit: &Visitor<'_, Parent>) {
-        self._walk_structure(0, EdgeType::None, None, visit);
+    fn walk_structure<State: Clone>(&self, state: State, visit: &Visitor<'_, State>) {
+        self._walk_structure(0, EdgeType::None, state, visit)
     }
 
     /// Recursive implementation of structure-based traversal.
     ///
     /// This internal method performs the actual recursive traversal of the envelope structure,
     /// visiting every element and maintaining the correct level and edge relationships.
-    fn _walk_structure<Parent: Clone>(&self, level: usize, incoming_edge: EdgeType, parent: Option<Parent>, visit: &Visitor<'_, Parent>) {
-        let parent = visit(self, level, incoming_edge, parent);
+    fn _walk_structure<State: Clone>(&self, level: usize, incoming_edge: EdgeType, state: State, visit: &Visitor<'_, State>) {
+        let mut state = state;
+        let stop;
+        (state, stop) = visit(self, level, incoming_edge, state);
+        if stop {
+            return;
+        }
         let next_level = level + 1;
         match self.case() {
             EnvelopeCase::Node { subject, assertions, .. } => {
-                subject._walk_structure(next_level, EdgeType::Subject, parent.clone(), visit);
+                subject._walk_structure(next_level, EdgeType::Subject, state.clone(), visit);
                 for assertion in assertions {
-                    assertion._walk_structure(next_level, EdgeType::Assertion, parent.clone(), visit);
+                    assertion._walk_structure(next_level, EdgeType::Assertion, state.clone(), visit);
                 }
             },
             EnvelopeCase::Wrapped { envelope, .. } => {
-                envelope._walk_structure(next_level, EdgeType::Wrapped, parent, visit);
+                envelope._walk_structure(next_level, EdgeType::Wrapped, state, visit);
             },
             EnvelopeCase::Assertion(assertion) => {
-                assertion.predicate()._walk_structure(next_level, EdgeType::Predicate, parent.clone(), visit);
-                assertion.object()._walk_structure(next_level, EdgeType::Object, parent, visit);
+                assertion.predicate()._walk_structure(next_level, EdgeType::Predicate, state.clone(), visit);
+                assertion.object()._walk_structure(next_level, EdgeType::Object, state, visit);
             },
             _ => {},
         }
@@ -197,9 +202,9 @@ impl Envelope {
     ///
     /// This is an internal method that begins a tree-based traversal from the root level.
     /// Use the public `walk` method with `hide_nodes = true` instead of calling this directly.
-    fn walk_tree<Parent: Clone>(&self, visit: &Visitor<'_, Parent>)
+    fn walk_tree<State: Clone>(&self, state: State, visit: &Visitor<'_, State>)
     {
-        self._walk_tree(0, EdgeType::None, None, visit);
+        _ = self._walk_tree(0, EdgeType::None, state, visit)
     }
 
     /// Recursive implementation of tree-based traversal.
@@ -207,30 +212,34 @@ impl Envelope {
     /// This internal method performs the actual recursive traversal of the envelope's semantic tree,
     /// skipping node containers and focusing on the semantic content elements. It maintains the
     /// correct level and edge relationships while skipping structural elements.
-    fn _walk_tree<Parent: Clone>(&self, level: usize, incoming_edge: EdgeType, parent: Option<Parent>, visit: &Visitor<'_, Parent>) -> Option<Parent> {
-        let mut parent = parent;
+    fn _walk_tree<State: Clone>(&self, level: usize, incoming_edge: EdgeType, state: State, visit: &Visitor<'_, State>) -> State {
+        let mut state = state;
         let mut subject_level = level;
         if !self.is_node() {
-            parent = visit(self, level, incoming_edge, parent);
+            let stop;
+            (state, stop) = visit(self, level, incoming_edge, state);
+            if stop {
+                return state;
+            }
             subject_level = level + 1;
         }
         match self.case() {
             EnvelopeCase::Node { subject, assertions, .. } => {
-                let assertion_parent = subject._walk_tree(subject_level, EdgeType::Subject, parent.clone(), visit);
+                let assertion_state = subject._walk_tree(subject_level, EdgeType::Subject, state.clone(), visit);
                 let assertion_level = subject_level + 1;
                 for assertion in assertions {
-                    assertion._walk_tree(assertion_level, EdgeType::Assertion, assertion_parent.clone(), visit);
+                    assertion._walk_tree(assertion_level, EdgeType::Assertion, assertion_state.clone(), visit);
                 }
             },
             EnvelopeCase::Wrapped { envelope, .. } => {
-                envelope._walk_tree(subject_level, EdgeType::Wrapped, parent.clone(), visit);
+                envelope._walk_tree(subject_level, EdgeType::Wrapped, state.clone(), visit);
             },
             EnvelopeCase::Assertion(assertion) => {
-                assertion.predicate()._walk_tree(subject_level, EdgeType::Predicate, parent.clone(), visit);
-                assertion.object()._walk_tree(subject_level, EdgeType::Object, parent.clone(), visit);
+                assertion.predicate()._walk_tree(subject_level, EdgeType::Predicate, state.clone(), visit);
+                assertion.object()._walk_tree(subject_level, EdgeType::Object, state.clone(), visit);
             },
             _ => {},
         }
-        parent
+        state
     }
 }

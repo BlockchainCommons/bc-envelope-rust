@@ -8,7 +8,7 @@ macro_rules! assert_actual_expected {
         match (&$actual, &$expected) {
             (actual_val, expected_val) => {
                 if !(*actual_val == *expected_val) {
-                    println!("Actual:\n{actual_val}");
+                    println!("Actual:\n{actual_val}\nExpected:\n{expected_val}");
                     assert_eq!(*actual_val, *expected_val);
                 }
             }
@@ -18,7 +18,7 @@ macro_rules! assert_actual_expected {
         match (&$actual, &$expected) {
             (actual_val, expected_val) => {
                 if !(*actual_val == *expected_val) {
-                    println!("Actual:\n{actual_val}");
+                    println!("Actual:\n{actual_val}\nExpected:\n{expected_val}");
                     assert_eq!(*actual_val, *expected_val, $crate::option::Option::Some($crate::format_args!($($arg)+)));
                 }
             }

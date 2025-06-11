@@ -120,8 +120,8 @@ impl Envelope {
         let visitor = |envelope: &Envelope,
                        level: usize,
                        incoming_edge: EdgeType,
-                       _: Option<&()>|
-         -> _ {
+                       _: ()|
+         -> (_, bool) {
             let elem = TreeElement::new(
                 level,
                 envelope.clone(),
@@ -130,10 +130,10 @@ impl Envelope {
                 opts.highlighting_target.contains(&envelope.digest()),
             );
             elements.borrow_mut().push(elem);
-            None
+            ((), false)
         };
         let s = self.clone();
-        s.walk(opts.hide_nodes, &visitor);
+        s.walk(opts.hide_nodes, (), &visitor);
 
         let elements = elements.borrow();
 

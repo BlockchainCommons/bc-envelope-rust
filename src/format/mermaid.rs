@@ -136,7 +136,7 @@ impl Envelope {
                        level: usize,
                        incoming_edge: EdgeType,
                        parent: Option<Rc<MermaidElement>>|
-         -> _ {
+         -> (_, bool) {
             let id = *next_id.borrow_mut();
             *next_id.borrow_mut() += 1;
             let elem = Rc::new(MermaidElement::new(
@@ -149,10 +149,10 @@ impl Envelope {
                 parent.clone(),
             ));
             elements.borrow_mut().push(elem.clone());
-            Some(elem)
+            (Some(elem), false)
         };
         let s = self.clone();
-        s.walk(opts.hide_nodes, &visitor);
+        s.walk(opts.hide_nodes, None, &visitor);
 
         let elements = elements.borrow();
 

@@ -95,15 +95,15 @@ impl Envelope {
     /// ```
     pub fn digests(&self, level_limit: usize) -> HashSet<Digest> {
         let result = RefCell::new(HashSet::new());
-        let visitor = |envelope: &Envelope, level: usize, _: EdgeType, _: Option<&()>| -> _ {
+        let visitor = |envelope: &Envelope, level: usize, _: EdgeType, _: ()| -> (_, bool) {
             if level < level_limit {
                 let mut result = result.borrow_mut();
                 result.insert(envelope.digest().into_owned());
                 result.insert(envelope.subject().digest().into_owned());
             }
-            None
+            ((), false)  // Continue walking
         };
-        self.walk(false, &visitor);
+        self.walk(false, (), &visitor);
         result.into_inner()
     }
 
@@ -219,7 +219,7 @@ impl Envelope {
     /// ```
     pub fn structural_digest(&self) -> Digest {
         let image = RefCell::new(Vec::new());
-        let visitor = |envelope: &Envelope, _: usize, _: EdgeType, _: Option<&()>| -> _ {
+        let visitor = |envelope: &Envelope, _: usize, _: EdgeType, _: ()| -> (_, bool) {
             // Add a discriminator to the image for the obscured cases.
             match envelope.case() {
                 EnvelopeCase::Elided(_) => image.borrow_mut().push(1),
@@ -230,9 +230,9 @@ impl Envelope {
                 _ => {}
             }
             image.borrow_mut().extend_from_slice(envelope.digest().data());
-            None
+            ((), false)  // Continue walking
         };
-        self.walk(false, &visitor);
+        self.walk(false, (), &visitor);
         Digest::from_image(image.into_inner())
     }
 

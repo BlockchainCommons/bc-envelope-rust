@@ -1283,7 +1283,7 @@ fn test_redacted_credential() {
         linkStyle 48 stroke:green,stroke-width:2px
         linkStyle 49 stroke:blue,stroke-width:2px
     "#}.trim();
-    assert_actual_expected!(expected, actual);
+    assert_actual_expected!(actual, expected);
 
     let actual = warranty.mermaid_format_opt(
         &MermaidFormatOpts::default()
@@ -1438,5 +1438,5 @@ fn test_redacted_credential() {
         linkStyle 44 stroke-width:2px
         linkStyle 45 stroke-width:2px
     "#}.trim();
-    assert_actual_expected!(expected, actual);
+    assert_actual_expected!(actual, expected);
 }
