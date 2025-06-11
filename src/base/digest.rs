@@ -34,7 +34,7 @@ impl DigestProvider for Envelope {
     /// # use bc_components::DigestProvider;
     /// let envelope = Envelope::new("Hello.");
     /// let elided = envelope.elide();
-    /// 
+    ///
     /// // Even though the content is elided, the digests match
     /// assert_eq!(envelope.digest(), elided.digest());
     /// ```
@@ -83,19 +83,19 @@ impl Envelope {
     /// let envelope = Envelope::new("Alice")
     ///     .add_assertion("name", "Alice Smith")
     ///     .add_assertion("age", 30);
-    ///     
+    ///
     /// // Level 0 returns an empty set
     /// assert_eq!(envelope.digests(0).len(), 0);
-    /// 
+    ///
     /// // Level 1 returns just the envelope's digest
     /// assert_eq!(envelope.digests(1).len(), 2); // Envelope and subject digests
-    /// 
+    ///
     /// // A deeper level includes assertion digests
     /// assert!(envelope.digests(3).len() > 4); // Includes assertions plus their predicates and objects
     /// ```
     pub fn digests(&self, level_limit: usize) -> HashSet<Digest> {
         let result = RefCell::new(HashSet::new());
-        let visitor = |envelope: Self, level: usize, _: EdgeType, _: Option<&()>| -> _ {
+        let visitor = |envelope: &Envelope, level: usize, _: EdgeType, _: Option<&()>| -> _ {
             if level < level_limit {
                 let mut result = result.borrow_mut();
                 result.insert(envelope.digest().into_owned());
@@ -127,10 +127,10 @@ impl Envelope {
     ///     .add_assertion("address", Envelope::new("Address")
     ///         .add_assertion("city", "Boston")
     ///         .add_assertion("zip", "02108"));
-    ///     
+    ///
     /// // Gets all digests from the entire structure
     /// let digests = envelope.deep_digests();
-    /// 
+    ///
     /// // This includes nested assertions digests
     /// assert!(digests.len() > 10);
     /// ```
@@ -158,13 +158,13 @@ impl Envelope {
     ///     .add_assertion("address", Envelope::new("Address")
     ///         .add_assertion("city", "Boston")
     ///         .add_assertion("zip", "02108"));
-    ///     
+    ///
     /// // Gets just the shallow digests
     /// let shallow = envelope.shallow_digests();
-    /// 
+    ///
     /// // Gets all digests
     /// let deep = envelope.deep_digests();
-    /// 
+    ///
     /// // The shallow set is smaller than the deep set
     /// assert!(shallow.len() < deep.len());
     /// ```
@@ -176,7 +176,7 @@ impl Envelope {
     ///
     /// While the regular `digest()` method provides a value for comparing semantic equivalence
     /// (whether two envelopes contain the same information), this method produces a digest
-    /// that additionally captures the structural form of the envelope, including its 
+    /// that additionally captures the structural form of the envelope, including its
     /// elision patterns, encryption, and compression.
     ///
     /// This allows distinguishing between envelopes that contain the same information
@@ -186,10 +186,10 @@ impl Envelope {
     ///
     /// - **Semantic equivalence** (using `digest()` or `is_equivalent_to()`) - Two envelopes
     ///   contain the same information in their unobscured form, complexity O(1)
-    ///   
+    ///
     /// - **Structural identity** (using `structural_digest()` or `is_identical_to()`) - Two envelopes
     ///   not only contain the same information but also have the same structure, including elision
-    ///   patterns, encryption, compression, etc., complexity O(m + n) where m and n are the 
+    ///   patterns, encryption, compression, etc., complexity O(m + n) where m and n are the
     ///   number of elements in each envelope
     ///
     /// # Returns
@@ -204,22 +204,22 @@ impl Envelope {
     /// // Two envelopes with the same content but different structure
     /// let envelope1 = Envelope::new("Alice")
     ///     .add_assertion("name", "Alice Smith");
-    ///     
+    ///
     /// let envelope2 = Envelope::new("Alice")
     ///     .add_assertion("name", "Alice Smith")
     ///     .elide_removing_target(&Envelope::new("Alice"));
-    ///     
+    ///
     /// // They are semantically equivalent
     /// assert!(envelope1.is_equivalent_to(&envelope2));
     /// assert_eq!(envelope1.digest(), envelope2.digest());
-    /// 
+    ///
     /// // But they are structurally different
     /// assert!(!envelope1.is_identical_to(&envelope2));
     /// assert_ne!(envelope1.structural_digest(), envelope2.structural_digest());
     /// ```
     pub fn structural_digest(&self) -> Digest {
         let image = RefCell::new(Vec::new());
-        let visitor = |envelope: Self, _: usize, _: EdgeType, _: Option<&()>| -> _ {
+        let visitor = |envelope: &Envelope, _: usize, _: EdgeType, _: Option<&()>| -> _ {
             // Add a discriminator to the image for the obscured cases.
             match envelope.case() {
                 EnvelopeCase::Elided(_) => image.borrow_mut().push(1),
@@ -259,10 +259,10 @@ impl Envelope {
     /// // Create two envelopes with the same semantic content but different structure
     /// let original = Envelope::new("Hello world");
     /// let elided = original.elide();
-    /// 
+    ///
     /// // They are semantically equivalent (contain the same information)
     /// assert!(original.is_equivalent_to(&elided));
-    /// 
+    ///
     /// // But they have different structures
     /// assert!(!original.is_identical_to(&elided));
     /// ```
@@ -277,7 +277,7 @@ impl Envelope {
     ///
     /// 1. If the envelopes are *not* semantically equivalent (different digests),
     ///    returns `false` - different content means they cannot be identical
-    /// 
+    ///
     /// 2. If the envelopes are semantically equivalent (same digests), then it
     ///    compares their structural digests to check if they have the same structure
     ///    (elision patterns, encryption, etc.)
@@ -303,13 +303,13 @@ impl Envelope {
     /// let env1 = Envelope::new("Alice");
     /// let env2 = Envelope::new("Alice");
     /// let env3 = Envelope::new("Bob");
-    ///     
+    ///
     /// // Semantically different envelopes are not identical
     /// assert!(!env1.is_identical_to(&env3));
-    /// 
+    ///
     /// // Two envelopes with same content and structure are identical
     /// assert!(env1.is_identical_to(&env2));
-    /// 
+    ///
     /// // Envelopes with same content but different structure (one elided) are not identical
     /// let elided = env1.elide();
     /// assert!(env1.is_equivalent_to(&elided));  // semantically the same
@@ -328,7 +328,7 @@ impl Envelope {
 /// This implements the `==` operator for envelopes using the `is_identical_to()`
 /// method, which checks for both semantic equivalence and structural identity.
 /// Following the corrected behavior of that method:
-/// 
+///
 /// 1. Envelopes with different content (not semantically equivalent) are not equal (!=)
 /// 2. Envelopes with the same content but different structure are not equal (!=)
 /// 3. Only envelopes with both the same content and structure are equal (==)
@@ -350,13 +350,13 @@ impl Envelope {
 /// let env1 = Envelope::new("Alice");
 /// let env2 = Envelope::new("Alice");
 /// let env3 = Envelope::new("Bob");
-/// 
+///
 /// // Same content and structure are equal
 /// assert!(env1 == env2);
-/// 
+///
 /// // Different content means not equal
 /// assert!(env1 != env3);
-/// 
+///
 /// // Same content but different structure (one elided) are not equal
 /// assert!(env1 != env1.elide());
 /// ```

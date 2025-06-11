@@ -107,7 +107,7 @@ impl EdgeType {
 /// # Type Parameters
 ///
 /// * `Parent` - The type of context passed between parent and child elements
-pub type Visitor<'a, Parent> = dyn Fn(Envelope, usize, EdgeType, Option<Parent>) -> Option<Parent> + 'a;
+pub type Visitor<'a, Parent> = dyn Fn(&Envelope, usize, EdgeType, Option<Parent>) -> Option<Parent> + 'a;
 
 /// Functions for traversing and manipulating the envelope hierarchy.
 impl Envelope {
@@ -143,7 +143,7 @@ impl Envelope {
     ///
     /// // Count the number of elements in the envelope
     /// let count = RefCell::new(0);
-    /// let visitor = |_env: Envelope, _level: usize, _edge: EdgeType, _parent: Option<()>| -> Option<()> {
+    /// let visitor = |_env: &Envelope, _level: usize, _edge: EdgeType, _parent: Option<()>| -> Option<()> {
     ///     *count.borrow_mut() += 1;
     ///     None
     /// };
@@ -173,7 +173,7 @@ impl Envelope {
     /// This internal method performs the actual recursive traversal of the envelope structure,
     /// visiting every element and maintaining the correct level and edge relationships.
     fn _walk_structure<Parent: Clone>(&self, level: usize, incoming_edge: EdgeType, parent: Option<Parent>, visit: &Visitor<'_, Parent>) {
-        let parent = visit(self.clone(), level, incoming_edge, parent);
+        let parent = visit(self, level, incoming_edge, parent);
         let next_level = level + 1;
         match self.case() {
             EnvelopeCase::Node { subject, assertions, .. } => {
@@ -211,7 +211,7 @@ impl Envelope {
         let mut parent = parent;
         let mut subject_level = level;
         if !self.is_node() {
-            parent = visit(self.clone(), level, incoming_edge, parent);
+            parent = visit(self, level, incoming_edge, parent);
             subject_level = level + 1;
         }
         match self.case() {

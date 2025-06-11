@@ -132,7 +132,7 @@ impl Envelope {
         let elements: RefCell<Vec<Rc<MermaidElement>>> =
             RefCell::new(Vec::new());
         let next_id = RefCell::new(0);
-        let visitor = |envelope: Self,
+        let visitor = |envelope: &Envelope,
                        level: usize,
                        incoming_edge: EdgeType,
                        parent: Option<Rc<MermaidElement>>|

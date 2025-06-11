@@ -117,7 +117,7 @@ impl Envelope {
     ///   `TreeFormatContext::Global`.
     pub fn tree_format_opt<'a>(&self, opts: &TreeFormatOpts<'a>) -> String {
         let elements: RefCell<Vec<TreeElement>> = RefCell::new(Vec::new());
-        let visitor = |envelope: Self,
+        let visitor = |envelope: &Envelope,
                        level: usize,
                        incoming_edge: EdgeType,
                        _: Option<&()>|
