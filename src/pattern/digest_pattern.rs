@@ -1,6 +1,6 @@
 use bc_components::{Digest, DigestProvider};
 use crate::Envelope;
-use super::match_pattern::MatchPattern;
+use super::matcher::Matcher;
 
 /// Pattern for matching envelopes by their digest.
 #[derive(Debug, Clone)]

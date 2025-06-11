@@ -2,7 +2,7 @@
 use dcbor::prelude::*;
 
 use crate::Envelope;
-use super::match_pattern::MatchPattern;
+use super::matcher::Matcher;
 
 /// Pattern for matching tag values.
 #[derive(Debug, Clone)]

@@ -1,5 +1,3 @@
-use std::ops::RangeInclusive;
-
 use super::{Matcher, Path};
 use crate::Envelope;
 

@@ -1,7 +1,7 @@
 use dcbor::prelude::*;
 
+use super::matcher::Matcher;
 use crate::Envelope;
-use super::match_pattern::MatchPattern;
 
 /// Pattern for matching byte string values.
 #[derive(Debug, Clone)]

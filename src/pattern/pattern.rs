@@ -60,8 +60,8 @@ impl Pattern {
         Pattern::Leaf(LeafPattern::Text(super::TextPattern::exact(value)))
     }
 
-    pub fn text_regex(regex: regex::Regex) -> Self {
-        Pattern::Leaf(LeafPattern::Text(super::TextPattern::regex(regex)))
+    pub fn text_regex(regex: &regex::Regex) -> Self {
+        Pattern::Leaf(LeafPattern::Text(super::TextPattern::regex(regex.clone())))
     }
 }
 

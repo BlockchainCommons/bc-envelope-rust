@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use super::{match_pattern::MatchPattern, pattern::Pattern};
+use super::{matcher::Matcher, pattern::Pattern};
 use crate::Envelope;
 
 /// A pattern that matches a repeated element.

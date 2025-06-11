@@ -1,7 +1,7 @@
 use known_values::KnownValue;
 
+use super::matcher::Matcher;
 use crate::Envelope;
-use super::match_pattern::MatchPattern;
 
 /// Pattern for matching known values.
 #[derive(Debug, Clone)]
@@ -25,7 +25,9 @@ impl MatchPattern for KnownValuePattern {
                 KnownValuePattern::Any => true,
                 KnownValuePattern::KnownValue(expected) => value == *expected,
                 KnownValuePattern::Name(name) => value.to_string() == *name,
-                KnownValuePattern::NameRegex(regex) => regex.is_match(&value.to_string()),
+                KnownValuePattern::NameRegex(regex) => {
+                    regex.is_match(&value.to_string())
+                }
                 KnownValuePattern::Unit => value.to_string() == "unit",
             }
         } else {

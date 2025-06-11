@@ -30,21 +30,16 @@ impl AssertionsPattern {
 
 impl Matcher for AssertionsPattern {
     fn paths(&self, envelope: &Envelope) -> Vec<Path> {
-        let assertions = envelope.assertions();
-        if assertions.is_empty() {
-            return Vec::new().into_iter();
-        }
-
-        let mut hits = Vec::new();
-        for assertion in assertions {
+        let mut result = Vec::new();
+        for assertion in envelope.assertions() {
             match self {
                 AssertionsPattern::Any => {
-                    hits.push(vec![assertion.clone()]);
+                    result.push(vec![assertion.clone()]);
                 }
                 AssertionsPattern::WithPredicate(pattern) => {
                     if let Some(predicate) = assertion.as_predicate() {
                         if pattern.matches(&predicate) {
-                            hits.push(vec![
+                            result.push(vec![
                                 assertion.clone(),
                             ]);
                         }
@@ -53,7 +48,7 @@ impl Matcher for AssertionsPattern {
                 AssertionsPattern::WithObject(pattern) => {
                     if let Some(object) = assertion.as_object() {
                         if pattern.matches(&object) {
-                            hits.push(vec![
+                            result.push(vec![
                                 assertion.clone(),
                             ]);
                         }
@@ -61,7 +56,6 @@ impl Matcher for AssertionsPattern {
                 }
             }
         }
-
-        hits.into_iter()
+        result
     }
 }
