@@ -11,7 +11,7 @@ impl SequencePattern {
     /// Creates a new `SequencePattern` with the given patterns.
     pub fn new(patterns: Vec<Pattern>) -> Self {
         let mut iter = patterns.into_iter();
-        let first_pat = iter.next().unwrap_or_else(|| Pattern::any());
+        let first_pat = iter.next().unwrap_or_else(|| Pattern::none());
         // Build rest as a recursive SequencePattern if more remain
         let rest_patterns: Vec<Pattern> = iter.collect();
         let rest = if rest_patterns.is_empty() {

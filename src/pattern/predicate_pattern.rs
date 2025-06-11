@@ -4,14 +4,14 @@ use crate::Envelope;
 #[derive(Debug, Clone)]
 pub enum PredicatePattern {
     Any,
-    Pattern(Pattern),
+    Pattern(Box<Pattern>),
 }
 
 impl PredicatePattern {
     pub fn any() -> Self { PredicatePattern::Any }
 
     pub fn pattern(pattern: Pattern) -> Self {
-        PredicatePattern::Pattern(pattern)
+        PredicatePattern::Pattern(Box::new(pattern))
     }
 }
 
@@ -20,11 +20,11 @@ impl Matcher for PredicatePattern {
         if let Some(predicate) = envelope.as_predicate() {
             match self {
                 PredicatePattern::Any => {
-                    vec![vec![envelope.clone(), predicate.clone()]]
+                    vec![vec![predicate.clone()]]
                 }
                 PredicatePattern::Pattern(pattern) => {
                     if pattern.matches(&predicate) {
-                        vec![vec![envelope.clone(), predicate.clone()]]
+                        vec![vec![predicate.clone()]]
                     } else {
                         vec![]
                     }

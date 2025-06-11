@@ -4,7 +4,7 @@ use crate::Envelope;
 #[derive(Debug, Clone)]
 pub enum ObjectPattern {
     Any,
-    Pattern(Pattern),
+    Pattern(Box<Pattern>),
 }
 
 impl ObjectPattern {
@@ -13,7 +13,7 @@ impl ObjectPattern {
     }
 
     pub fn pattern(pattern: Pattern) -> Self {
-        ObjectPattern::Pattern(pattern)
+        ObjectPattern::Pattern(Box::new(pattern))
     }
 }
 
@@ -22,11 +22,11 @@ impl Matcher for ObjectPattern {
         if let Some(object) = envelope.as_object() {
             match self {
                 ObjectPattern::Any => {
-                    vec![vec![envelope.clone(), object.clone()]]
+                    vec![vec![object.clone()]]
                 }
                 ObjectPattern::Pattern(pattern) => {
                     if pattern.matches(&object) {
-                        vec![vec![envelope.clone(), object.clone()]]
+                        vec![vec![object.clone()]]
                     } else {
                         vec![]
                     }
