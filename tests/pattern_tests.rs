@@ -9,7 +9,7 @@ fn format_path(path: &Path) -> String {
     let mut lines = Vec::new();
     for (i, element) in path.iter().enumerate() {
         let indent = " ".repeat(i * 4);
-        lines.push(format!("{}{}", indent, element.format_flat()));
+        lines.push(format!("{}{} {}", indent, element.short_id(DigestDisplayFormat::Short), element.format_flat()));
     }
     lines.join("\n")
 }
@@ -47,7 +47,7 @@ fn test_bool_pattern() {
     let paths = Pattern::any_bool().paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        true [ "an": "assertion" ]
+        50d1019e true [ "an": "assertion" ]
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -59,8 +59,8 @@ fn test_bool_pattern() {
             .paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        true [ "an": "assertion" ]
-            true
+        50d1019e true [ "an": "assertion" ]
+            27abdedd true
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
@@ -95,7 +95,7 @@ fn test_number_pattern() {
     let paths = Pattern::any_number().paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        42 [ "an": "assertion" ]
+        6cb2ea4a 42 [ "an": "assertion" ]
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -107,8 +107,8 @@ fn test_number_pattern() {
             .paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        42 [ "an": "assertion" ]
-            42
+        6cb2ea4a 42 [ "an": "assertion" ]
+            7f83f7bd 42
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
@@ -139,7 +139,7 @@ fn test_text_pattern() {
     let paths = Pattern::any_text().paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        "hello" [ "greeting": "world" ]
+        80a8c700 "hello" [ "greeting": "world" ]
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -151,8 +151,8 @@ fn test_text_pattern() {
             .paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        "hello" [ "greeting": "world" ]
-            "hello"
+        80a8c700 "hello" [ "greeting": "world" ]
+            cb835593 "hello"
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
@@ -176,7 +176,7 @@ fn test_and_pattern() {
     let paths = pattern.paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        42 [ "an": "assertion" ]
+        6cb2ea4a 42 [ "an": "assertion" ]
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -185,8 +185,8 @@ fn test_and_pattern() {
     let paths = sequence_pattern.paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        42 [ "an": "assertion" ]
-            42
+        6cb2ea4a 42 [ "an": "assertion" ]
+            7f83f7bd 42
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
@@ -210,7 +210,7 @@ fn test_or_pattern() {
     let paths = pattern.paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        42 [ "an": "assertion" ]
+        6cb2ea4a 42 [ "an": "assertion" ]
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -219,8 +219,8 @@ fn test_or_pattern() {
     let paths = sequence_pattern.paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        42 [ "an": "assertion" ]
-            42
+        6cb2ea4a 42 [ "an": "assertion" ]
+            7f83f7bd 42
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
@@ -240,7 +240,7 @@ fn test_wrapped_pattern() {
     let paths = Pattern::any_wrapped().paths(&envelope_with_assertion);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        { 42 } [ "an": "assertion" ]
+        169aba00 { 42 } [ "an": "assertion" ]
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -249,7 +249,7 @@ fn test_wrapped_pattern() {
         .paths(&envelope_with_assertion);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        { 42 } [ "an": "assertion" ]
+        169aba00 { 42 } [ "an": "assertion" ]
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -265,8 +265,8 @@ fn test_wrapped_pattern() {
             .paths(&envelope_with_assertion);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        { 42 } [ "an": "assertion" ]
-            { 42 }
+        169aba00 { 42 } [ "an": "assertion" ]
+            58b1ac6a { 42 }
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -276,7 +276,7 @@ fn test_wrapped_pattern() {
     let paths = Pattern::unwrap().paths(&envelope_with_assertion);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        42
+        7f83f7bd 42
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -292,9 +292,9 @@ fn test_wrapped_pattern() {
     .paths(&envelope_with_assertion);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        { 42 } [ "an": "assertion" ]
-            { 42 }
-                42
+        169aba00 { 42 } [ "an": "assertion" ]
+            58b1ac6a { 42 }
+                7f83f7bd 42
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
@@ -314,8 +314,8 @@ fn test_assertion_pattern() {
     let paths = Pattern::any_assertion().paths(&envelope_with_assertions);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        "knows": "Bob"
-        "worksWith": "Charlie"
+        78d666eb "knows": "Bob"
+        c269cf0a "worksWith": "Charlie"
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
@@ -333,8 +333,8 @@ fn test_assertion_predicate_pattern() {
         .paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        "knows": "Bob"
-        "knows": "Charlie"
+        78d666eb "knows": "Bob"
+        7af83724 "knows": "Charlie"
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -343,24 +343,232 @@ fn test_assertion_predicate_pattern() {
         Pattern::any_object(),
     ]);
     let paths = pattern.paths(&envelope);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
-        "knows": "Bob"
-            "Bob"
-        "knows": "Charlie"
-            "Charlie"
+        78d666eb "knows": "Bob"
+            13b74194 "Bob"
+        7af83724 "knows": "Charlie"
+            ee8e3b02 "Charlie"
     "#}
     .trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
 
-// #[test]
-// fn test_credential() {
-//     let credential = credential();
-//     println!("{}", credential.tree_format());
+#[test]
+fn test_search_pattern() {
+    // Test searching for text in a simple envelope
+    let envelope = Envelope::new("Alice")
+        .add_assertion("knows", "Bob")
+        .add_assertion("age", 30);
 
-//     let paths = Pattern::wrapped(Pattern::any())
-//         .paths(&credential);
-//     println!("{}", paths[0][1].tree_format());
+    // Search for any text should find "Alice" (root subject), "Alice" (subject path), "knows", and "Bob"
+    let paths = Pattern::search(Pattern::any_text()).paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        a47bb3d4 "Alice" [ "age": 30, "knows": "Bob" ]
+        a47bb3d4 "Alice" [ "age": 30, "knows": "Bob" ]
+            13941b48 "Alice"
+        a47bb3d4 "Alice" [ "age": 30, "knows": "Bob" ]
+            0eb5609b "age": 30
+                5943be12 "age"
+        a47bb3d4 "Alice" [ "age": 30, "knows": "Bob" ]
+            78d666eb "knows": "Bob"
+                db7dd21c "knows"
+        a47bb3d4 "Alice" [ "age": 30, "knows": "Bob" ]
+            78d666eb "knows": "Bob"
+                13b74194 "Bob"
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
-//     print_paths(&paths);
-// }
+    // Search for specific text should only find matching elements
+    let paths = Pattern::search(Pattern::text("Bob")).paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        a47bb3d4 "Alice" [ "age": 30, "knows": "Bob" ]
+            78d666eb "knows": "Bob"
+                13b74194 "Bob"
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Search for numbers should find the age
+    let paths = Pattern::search(Pattern::any_number()).paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        a47bb3d4 "Alice" [ "age": 30, "knows": "Bob" ]
+            0eb5609b "age": 30
+                cf972730 30
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Search specifically for assertions with objects that are numbers
+    let paths = Pattern::search(Pattern::assertion_with_object(Pattern::any_number())).paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        a47bb3d4 "Alice" [ "age": 30, "knows": "Bob" ]
+            0eb5609b "age": 30
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Actual (INCORRECT):
+    // a47bb3d4 "Alice" [ "age": 30, "knows": "Bob" ]
+}
+
+#[test]
+fn test_search_pattern_nested() {
+    // Test searching in a more complex nested envelope
+    let inner_envelope = Envelope::new("Carol")
+        .add_assertion("title", "Engineer");
+
+    let envelope = Envelope::new("Alice")
+        .add_assertion("knows", inner_envelope)
+        .add_assertion("department", "Engineering");
+
+    // Search for all text should find text at all levels
+    let paths = Pattern::search(Pattern::any_text()).paths(&envelope);
+
+    // Should find:
+    // 0. "Alice" (root envelope matches)
+    // 1. "Alice" (subject)
+    // 2. "department" (predicate)
+    // 3. "Engineering" (object)
+    // 4. "knows" (predicate)
+    // 5. "Carol" envelope (object matches)
+    // 6. "Carol" (nested subject)
+    // 7. "title" (nested predicate)
+    // 8. "Engineer" (nested object)
+    assert_eq!(paths.len(), 9);
+    // println!("{}", format_paths(&paths));
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        a69103e9 "Alice" [ "department": "Engineering", "knows": "Carol" [ "title": "Engineer" ] ]
+        a69103e9 "Alice" [ "department": "Engineering", "knows": "Carol" [ "title": "Engineer" ] ]
+            13941b48 "Alice"
+        a69103e9 "Alice" [ "department": "Engineering", "knows": "Carol" [ "title": "Engineer" ] ]
+            2a26d42a "department": "Engineering"
+                8aaec3ab "department"
+        a69103e9 "Alice" [ "department": "Engineering", "knows": "Carol" [ "title": "Engineer" ] ]
+            2a26d42a "department": "Engineering"
+                71d7c10e "Engineering"
+        a69103e9 "Alice" [ "department": "Engineering", "knows": "Carol" [ "title": "Engineer" ] ]
+            c0c35c79 "knows": "Carol" [ "title": "Engineer" ]
+                db7dd21c "knows"
+        a69103e9 "Alice" [ "department": "Engineering", "knows": "Carol" [ "title": "Engineer" ] ]
+            c0c35c79 "knows": "Carol" [ "title": "Engineer" ]
+                59e8c540 "Carol" [ "title": "Engineer" ]
+        a69103e9 "Alice" [ "department": "Engineering", "knows": "Carol" [ "title": "Engineer" ] ]
+            c0c35c79 "knows": "Carol" [ "title": "Engineer" ]
+                59e8c540 "Carol" [ "title": "Engineer" ]
+                    afb8122e "Carol"
+        a69103e9 "Alice" [ "department": "Engineering", "knows": "Carol" [ "title": "Engineer" ] ]
+            c0c35c79 "knows": "Carol" [ "title": "Engineer" ]
+                59e8c540 "Carol" [ "title": "Engineer" ]
+                    a4d32c8f "title": "Engineer"
+                        d380cf3f "title"
+        a69103e9 "Alice" [ "department": "Engineering", "knows": "Carol" [ "title": "Engineer" ] ]
+            c0c35c79 "knows": "Carol" [ "title": "Engineer" ]
+                59e8c540 "Carol" [ "title": "Engineer" ]
+                    a4d32c8f "title": "Engineer"
+                        df9ac43f "Engineer"
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Verify we can find "Carol" nested inside
+    let carol_paths: Vec<_> = paths.iter()
+        .filter(|path| path.last().unwrap().format_flat().contains("Carol"))
+        .collect();
+    assert_eq!(carol_paths.len(), 3); // Root envelope, Carol envelope, and Carol subject
+
+    // The path to "Carol" subject should be: envelope -> knows assertion -> Carol envelope -> "Carol"
+    let carol_subject_path = carol_paths.iter()
+        .find(|path| path.last().unwrap().format_flat() == "\"Carol\"")
+        .unwrap();
+    assert_eq!(carol_subject_path.len(), 4);
+}
+
+#[test]
+fn test_search_pattern_with_wrapped() {
+    // Test searching in wrapped envelopes
+    let inner = Envelope::new("secret")
+        .add_assertion("classification", "top-secret");
+
+    let envelope = Envelope::new("Alice")
+        .add_assertion("data", inner.wrap_envelope());
+
+    // Search for text should find text in wrapped envelopes too
+    let paths = Pattern::search(Pattern::text("secret")).paths(&envelope);
+    // println!("{}", format_paths(&paths));
+    let expected = indoc! {r#"
+        1435493d "Alice" [ "data": { "secret" [ "classification": "top-secret" ] } ]
+            a5d4710e "data": { "secret" [ "classification": "top-secret" ] }
+                41dca0cd { "secret" [ "classification": "top-secret" ] }
+                    f66baec9 "secret" [ "classification": "top-secret" ]
+        1435493d "Alice" [ "data": { "secret" [ "classification": "top-secret" ] } ]
+            a5d4710e "data": { "secret" [ "classification": "top-secret" ] }
+                41dca0cd { "secret" [ "classification": "top-secret" ] }
+                    f66baec9 "secret" [ "classification": "top-secret" ]
+                        fa445f41 "secret"
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Should find "secret" twice: once as the wrapped envelope match, once as the subject
+    assert_eq!(paths.len(), 2);
+
+    // Both should contain "secret" in the last element
+    for path in &paths {
+        assert!(path.last().unwrap().format_flat().contains("secret"));
+    }
+}
+
+#[cfg(feature = "signature")]
+#[test]
+fn test_search_pattern_credential() {
+    use crate::common::test_data::credential;
+
+    let cred = credential();
+
+    // Search for all text in the credential
+    let text_paths = Pattern::search(Pattern::any_text()).paths(&cred);
+    // Get the last element of each path as a single-element path for output
+    let found_elements: Vec<Path> = text_paths.iter()
+        .map(|path| vec![(*path.last().unwrap()).clone()])
+        .collect();
+    // println!("{}", format_paths(&found_elements));
+    let expected = indoc! {r#"
+        9e3bff3a "certificateNumber"
+        21c21808 "123-456-789"
+        6e5d379f "expirationDate"
+        5f82a16a "lastName"
+        fe4d5230 "Maxwell"
+        222afe69 "issueDate"
+        051beee6 "Certificate of Completion"
+        3976ef74 "photo"
+        231b8527 "This is James Maxwell's photo."
+        f13aa855 "professionalDevelopmentHours"
+        4395643b "firstName"
+        d6d0b768 "James"
+        e6bf4dd3 "topics"
+        2b191589 "continuingEducationUnits"
+        f8489ac1 "Example Electrical Engineering Board"
+        8e4e62eb "subject"
+        202c10ef "RF and Microwave Engineering"
+        f8489ac1 "Example Electrical Engineering Board"
+        f106bad1 "Signed by Example Electrical Engineering Board"
+    "#}.trim();
+    assert_actual_expected!(format_paths(&found_elements), expected);
+
+    // Search for specific strings that should be in the credential
+    let james_paths = Pattern::search(Pattern::text("James")).paths(&cred);
+    assert_eq!(james_paths.len(), 1);
+
+    let maxwell_paths = Pattern::search(Pattern::text("Maxwell")).paths(&cred);
+    assert_eq!(maxwell_paths.len(), 1);
+
+    // Search for numbers (should find education units and hours)
+    let number_paths = Pattern::search(Pattern::assertion_with_object(Pattern::any_number())).paths(&cred);
+    assert!(number_paths.len() >= 2); // At least continuingEducationUnits and professionalDevelopmentHours
+    // Get the last element of each path as a single-element path for output
+    // let number_paths: Vec<Path> = number_paths.iter()
+    //     .map(|path| vec![(*path.last().unwrap()).clone()])
+    //     .collect();
+    println!("{}", format_paths(&number_paths));
+}

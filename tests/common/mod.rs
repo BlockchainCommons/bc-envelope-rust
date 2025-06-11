@@ -2,6 +2,10 @@ pub mod test_data;
 pub mod test_seed;
 pub mod check_encoding;
 
+/// A macro to assert that two values are equal, printing them if they are not,
+/// including newlines and indentation they may contain. This macro is useful
+/// for debugging tests where you want to see the actual and expected values
+/// when they do not match.
 #[macro_export]
 macro_rules! assert_actual_expected {
     ($actual:expr, $expected:expr $(,)?) => {

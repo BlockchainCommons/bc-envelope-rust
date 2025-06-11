@@ -132,8 +132,7 @@ impl Envelope {
             elements.borrow_mut().push(elem);
             ((), false)
         };
-        let s = self.clone();
-        s.walk(opts.hide_nodes, (), &visitor);
+        self.walk(opts.hide_nodes, (), &visitor);
 
         let elements = elements.borrow();
 

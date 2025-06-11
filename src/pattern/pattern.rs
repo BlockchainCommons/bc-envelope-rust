@@ -1,6 +1,6 @@
 use super::{
     AndPattern, AssertionsPattern, LeafPattern, Matcher, OrPattern, Path,
-    WrappedPattern,
+    SearchPattern, WrappedPattern,
 };
 use crate::{
     Envelope,
@@ -41,6 +41,8 @@ pub enum Pattern {
     Subject(SubjectPattern),
     Predicate(PredicatePattern),
     Object(ObjectPattern),
+    /// Searches the entire envelope tree for matches.
+    Search(Box<SearchPattern>),
     ///// Matches an element with a specific cardinality.
     //// Repeat(RepeatPattern),
 }
@@ -177,6 +179,12 @@ impl Pattern {
     }
 }
 
+impl Pattern {
+    pub fn search(pattern: Pattern) -> Self {
+        Pattern::Search(Box::new(SearchPattern::new(pattern)))
+    }
+}
+
 impl Matcher for Pattern {
     fn paths(&self, envelope: &Envelope) -> Vec<Path> {
         match self {
@@ -191,6 +199,7 @@ impl Matcher for Pattern {
             Pattern::Subject(pattern) => pattern.paths(envelope),
             Pattern::Predicate(pattern) => pattern.paths(envelope),
             Pattern::Object(pattern) => pattern.paths(envelope),
+            Pattern::Search(pattern) => pattern.paths(envelope),
         }
     }
 }
