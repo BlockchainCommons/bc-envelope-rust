@@ -2,14 +2,16 @@ use std::cell::RefCell;
 
 use bc_components::DigestProvider;
 
-use crate::pattern::{Matcher, Path, Pattern};
-use crate::Envelope;
+use crate::{
+    Envelope,
+    pattern::{Matcher, Path, Pattern},
+};
 
 #[derive(Debug, Clone)]
-pub struct SearchPattern(Pattern);
+pub struct SearchPattern(Box<Pattern>);
 
 impl SearchPattern {
-    pub fn new(pattern: Pattern) -> Self { SearchPattern(pattern) }
+    pub fn new(pattern: Pattern) -> Self { SearchPattern(Box::new(pattern)) }
 
     pub fn pattern(&self) -> &Pattern { &self.0 }
 }

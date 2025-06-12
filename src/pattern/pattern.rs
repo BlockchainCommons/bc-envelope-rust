@@ -1,58 +1,31 @@
 use super::{
     Matcher, Path,
     leaf::{BoolPattern, LeafPattern, NumberPattern, TextPattern},
-    meta::{AndPattern, OrPattern, SearchPattern},
-    structure::{AssertionsPattern, WrappedPattern},
-};
-use crate::{
-    Envelope,
-    pattern::{
-        meta::SequencePattern,
-        structure::{ObjectPattern, PredicatePattern, SubjectPattern},
+    meta::{
+        AndPattern, MetaPattern, OrPattern, SearchPattern, SequencePattern,
+    },
+    structure::{
+        AssertionsPattern, ObjectPattern, PredicatePattern, StructurePattern,
+        SubjectPattern, WrappedPattern,
     },
 };
+use crate::Envelope;
 
 /// The main pattern type used for matching envelopes.
 #[derive(Debug, Clone)]
 pub enum Pattern {
-    //
-    // Meta Patterns
-    //
-
     /// Matches any element.
     Any,
     /// Never matches any element.
     None,
-    /// Matches an element that matches all conditions.
-    And(AndPattern),
-    /// Matches an element that matches any condition.
-    Or(OrPattern),
-    /// Matches a sequence of elements.
-    Sequence(SequencePattern),
-    /// Searches the entire envelope tree for matches.
-    Search(Box<SearchPattern>),
-    /// Matches an element with a specific cardinality.
-    //Repeat(RepeatPattern),
 
-    //
-    // Structure Patterns
-    //
+    /// Meta-patterns for combining and modifying other patterns.
+    Meta(MetaPattern),
 
-    /// Matches elements with a specific digest.
-    // Digest(DigestPattern),
-    /// Matches a node with specific properties.
-    // Node(NodePattern),
-    /// Matches an obscured element.
-    // Obscured(ObscuredPattern),
-    /// Matches an assertion element.
-    Assertion(AssertionsPattern),
-    /// Matches a wrapped element.
-    Wrapped(WrappedPattern),
-    Subject(SubjectPattern),
-    Predicate(PredicatePattern),
-    Object(ObjectPattern),
+    /// Structure patterns for matching envelope elements.
+    Structure(StructurePattern),
 
-    /// Matches a leaf with specific properties.
+    /// Leaf patterns for matching CBOR values.
     Leaf(LeafPattern),
 }
 
@@ -130,61 +103,79 @@ impl Pattern {
 
 impl Pattern {
     pub fn and(patterns: Vec<Pattern>) -> Self {
-        Pattern::And(AndPattern::new(patterns))
+        Pattern::Meta(MetaPattern::and(AndPattern::new(patterns)))
     }
 
     pub fn or(patterns: Vec<Pattern>) -> Self {
-        Pattern::Or(OrPattern::new(patterns))
+        Pattern::Meta(MetaPattern::or(OrPattern::new(patterns)))
     }
 }
 
 impl Pattern {
-    pub fn any_wrapped() -> Self { Pattern::Wrapped(WrappedPattern::any()) }
+    pub fn any_wrapped() -> Self {
+        Pattern::Structure(StructurePattern::wrapped(WrappedPattern::any()))
+    }
 
-    pub fn unwrap() -> Self { Pattern::Wrapped(WrappedPattern::unwrap()) }
+    pub fn unwrap() -> Self {
+        Pattern::Structure(StructurePattern::wrapped(WrappedPattern::unwrap()))
+    }
 }
 
 impl Pattern {
     pub fn any_assertion() -> Self {
-        Pattern::Assertion(AssertionsPattern::any())
+        Pattern::Structure(StructurePattern::assertions(
+            AssertionsPattern::any(),
+        ))
     }
 
     pub fn assertion_with_predicate(pattern: Pattern) -> Self {
-        Pattern::Assertion(AssertionsPattern::with_predicate(pattern))
+        Pattern::Structure(StructurePattern::assertions(
+            AssertionsPattern::with_predicate(pattern),
+        ))
     }
 
     pub fn assertion_with_object(pattern: Pattern) -> Self {
-        Pattern::Assertion(AssertionsPattern::with_object(pattern))
+        Pattern::Structure(StructurePattern::assertions(
+            AssertionsPattern::with_object(pattern),
+        ))
     }
 }
 
 impl Pattern {
     pub fn sequence(patterns: Vec<Pattern>) -> Self {
-        Pattern::Sequence(SequencePattern::new(patterns))
+        Pattern::Meta(MetaPattern::sequence(SequencePattern::new(patterns)))
     }
 }
 
 impl Pattern {
-    pub fn subject() -> Self { Pattern::Subject(SubjectPattern::any()) }
+    pub fn subject() -> Self {
+        Pattern::Structure(StructurePattern::subject(SubjectPattern::any()))
+    }
 
     pub fn any_predicate() -> Self {
-        Pattern::Predicate(PredicatePattern::any())
+        Pattern::Structure(StructurePattern::predicate(PredicatePattern::any()))
     }
 
     pub fn predicate(pattern: Pattern) -> Self {
-        Pattern::Predicate(PredicatePattern::pattern(pattern))
+        Pattern::Structure(StructurePattern::predicate(
+            PredicatePattern::pattern(pattern),
+        ))
     }
 
-    pub fn any_object() -> Self { Pattern::Object(ObjectPattern::any()) }
+    pub fn any_object() -> Self {
+        Pattern::Structure(StructurePattern::object(ObjectPattern::any()))
+    }
 
     pub fn object(pattern: Pattern) -> Self {
-        Pattern::Object(ObjectPattern::pattern(pattern))
+        Pattern::Structure(StructurePattern::object(ObjectPattern::pattern(
+            pattern,
+        )))
     }
 }
 
 impl Pattern {
     pub fn search(pattern: Pattern) -> Self {
-        Pattern::Search(Box::new(SearchPattern::new(pattern)))
+        Pattern::Meta(MetaPattern::search(SearchPattern::new(pattern)))
     }
 }
 
@@ -193,16 +184,9 @@ impl Matcher for Pattern {
         match self {
             Pattern::Any => vec![vec![envelope.clone()]],
             Pattern::None => vec![],
+            Pattern::Meta(pattern) => pattern.paths(envelope),
+            Pattern::Structure(pattern) => pattern.paths(envelope),
             Pattern::Leaf(pattern) => pattern.paths(envelope),
-            Pattern::And(pattern) => pattern.paths(envelope),
-            Pattern::Or(pattern) => pattern.paths(envelope),
-            Pattern::Wrapped(pattern) => pattern.paths(envelope),
-            Pattern::Assertion(pattern) => pattern.paths(envelope),
-            Pattern::Sequence(pattern) => pattern.paths(envelope),
-            Pattern::Subject(pattern) => pattern.paths(envelope),
-            Pattern::Predicate(pattern) => pattern.paths(envelope),
-            Pattern::Object(pattern) => pattern.paths(envelope),
-            Pattern::Search(pattern) => pattern.paths(envelope),
         }
     }
 }
