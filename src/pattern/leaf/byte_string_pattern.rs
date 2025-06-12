@@ -41,13 +41,15 @@ impl Matcher for ByteStringPattern {
 
 #[cfg(test)]
 mod tests {
+    use dcbor::prelude::*;
+
     use super::*;
     use crate::Envelope;
 
     #[test]
     fn test_byte_string_pattern_any() {
         let bytes = vec![1, 2, 3, 4];
-        let envelope = Envelope::new(dcbor::CBOR::to_byte_string(bytes));
+        let envelope = Envelope::new(CBOR::to_byte_string(bytes));
         let pattern = ByteStringPattern::any();
         let paths = pattern.paths(&envelope);
         assert_eq!(paths.len(), 1);
@@ -62,8 +64,7 @@ mod tests {
     #[test]
     fn test_byte_string_pattern_exact() {
         let bytes = vec![1, 2, 3, 4];
-        let envelope =
-            Envelope::new(dcbor::CBOR::to_byte_string(bytes.clone()));
+        let envelope = Envelope::new(CBOR::to_byte_string(bytes.clone()));
         let pattern = ByteStringPattern::exact(bytes.clone());
         let paths = pattern.paths(&envelope);
         assert_eq!(paths.len(), 1);

@@ -1,7 +1,6 @@
 #![cfg(feature = "compress")]
 use bc_components::DigestProvider;
 use bc_envelope::prelude::*;
-use dcbor::prelude::*;
 
 mod common;
 #[cfg(feature = "signature")]

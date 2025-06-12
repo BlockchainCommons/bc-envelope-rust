@@ -60,7 +60,7 @@ mod tests {
     #[test]
     fn test_array_pattern_any() {
         // Create a CBOR array directly
-        let cbor_array = vec![CBOR::from(1), CBOR::from(2), CBOR::from(3)];
+        let cbor_array = vec![1, 2, 3].to_cbor();
         let envelope = Envelope::new(cbor_array);
         let pattern = ArrayPattern::any();
         let paths = pattern.paths(&envelope);
@@ -76,7 +76,7 @@ mod tests {
     #[test]
     fn test_array_pattern_count() {
         // Create a CBOR array directly
-        let cbor_array = vec![CBOR::from(1), CBOR::from(2), CBOR::from(3)];
+        let cbor_array = vec![1, 2, 3].to_cbor();
         let envelope = Envelope::new(cbor_array);
 
         // Test exact count

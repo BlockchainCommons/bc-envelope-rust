@@ -20,7 +20,7 @@ use crate::{Envelope, EnvelopeEncodable, Error, KnownValue, known_values};
 ///
 /// Types are represented as assertions with the `'isA'` predicate (known value
 /// 1) and an object that specifies the type. The type object is typically
-/// either:
+///    either:
 ///
 /// 1. A Known Value from the registry (e.g., `known_values::SEED_TYPE`)
 /// 2. A custom type represented as an envelope

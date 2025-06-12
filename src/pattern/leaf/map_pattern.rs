@@ -52,13 +52,15 @@ impl Matcher for MapPattern {
 
 #[cfg(test)]
 mod tests {
+    use dcbor::prelude::*;
+
     use super::*;
     use crate::Envelope;
 
     #[test]
     fn test_map_pattern_any() {
         // Create a CBOR map directly
-        let mut cbor_map = dcbor::Map::new();
+        let mut cbor_map = Map::new();
         cbor_map.insert("key1", "value1");
         cbor_map.insert("key2", "value2");
         let envelope = Envelope::new(cbor_map);
@@ -77,7 +79,7 @@ mod tests {
     #[test]
     fn test_map_pattern_count() {
         // Create a CBOR map directly
-        let mut cbor_map = dcbor::Map::new();
+        let mut cbor_map = Map::new();
         cbor_map.insert("key1", "value1");
         cbor_map.insert("key2", "value2");
         let envelope = Envelope::new(cbor_map);

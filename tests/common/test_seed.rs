@@ -2,7 +2,6 @@
 
 use bc_components::tags;
 use bc_envelope::prelude::*;
-use bc_ur::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Seed {

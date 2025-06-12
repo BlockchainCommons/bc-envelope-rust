@@ -1,6 +1,5 @@
 use bc_components::Digest;
 use bc_envelope::prelude::*;
-use dcbor::prelude::*;
 use indoc::indoc;
 
 mod common;

@@ -84,17 +84,6 @@ These documents are essential for understanding the Gordian Envelope format and 
 
 ## Current Status and Roadmap
 
-### 🟢 Complete: Comprehensive Crate Documentation
-
-- **Goal**: Enhance the documentation for the `bc-envelope` crate to improve usability and understanding. Document all public API elements, including structs, enums, and functions.
-- **Status**: All documented! ✅
-
-#### Additional Items for Future Documentation
-
-All items have been documented! ✅
-
-**✅ `seal`, `seal_opt`, and `unseal` functions** (`seal.rs`) - Convenience functions that combine signing and encryption (or decryption and verification) in one operation
-
 #### Documentation Quality Criteria
 
 - **Comprehensive**: All public API elements have documentation
