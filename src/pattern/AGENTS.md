@@ -34,7 +34,7 @@ leaf/
 - [x] byte_string_pattern.rs
 - [x] cbor_pattern.rs
 - [x] known_value_pattern.rs
-- [ ] map_pattern.rs
+- [x] map_pattern.rs
 - [ ] null_pattern.rs
 - [ ] tag_pattern.rs
 - [x] bool_pattern.rs

@@ -381,8 +381,11 @@ fn test_array_pattern() {
 
     // The matched paths include the assertion
     let paths = Pattern::any_array().paths(&envelope);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0], vec![envelope.clone()]);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        70db8c16 [1, 2, 3] [ "type": "list" ]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Test with empty array
     let empty_array = Vec::<i32>::new().to_cbor();
@@ -395,10 +398,12 @@ fn test_array_pattern() {
     let paths =
         Pattern::sequence(vec![Pattern::any_array(), Pattern::subject()])
             .paths(&envelope);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 2);
-    assert_eq!(paths[0][0], envelope);
-    assert_eq!(paths[0][1], envelope.subject());
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        70db8c16 [1, 2, 3] [ "type": "list" ]
+            4abc3113 [1, 2, 3]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 }
 
 #[test]
@@ -434,8 +439,11 @@ fn test_map_pattern() {
 
     // The matched paths include the assertion
     let paths = Pattern::any_map().paths(&envelope);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0], vec![envelope.clone()]);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        1d96ee45 {"key1": "value1", "key2": "value2"} [ "type": "dictionary" ]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Test with empty map
     let empty_map = Map::new();
@@ -447,8 +455,10 @@ fn test_map_pattern() {
     // Test sequence patterns
     let paths = Pattern::sequence(vec![Pattern::any_map(), Pattern::subject()])
         .paths(&envelope);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 2);
-    assert_eq!(paths[0][0], envelope);
-    assert_eq!(paths[0][1], envelope.subject());
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        1d96ee45 {"key1": "value1", "key2": "value2"} [ "type": "dictionary" ]
+            0e16f9b4 {"key1": "value1", "key2": "value2"}
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 }
