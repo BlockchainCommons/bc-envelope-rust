@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use bc_components::DigestProvider;
 
-use super::{Matcher, Path, Pattern};
+use crate::pattern::{Matcher, Path, Pattern};
 use crate::Envelope;
 
 #[derive(Debug, Clone)]

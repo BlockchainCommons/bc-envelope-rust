@@ -1,4 +1,5 @@
-use super::{BoolPattern, Matcher, NumberPattern, Path, TextPattern};
+use super::{BoolPattern, NumberPattern, TextPattern};
+use crate::pattern::{Matcher, Path};
 use crate::Envelope;
 
 /// Pattern for matching leaf values.

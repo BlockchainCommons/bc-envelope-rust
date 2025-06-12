@@ -1,10 +1,10 @@
-use super::{Matcher, Path, Pattern};
+use crate::pattern::{Matcher, Path, Pattern};
 use crate::Envelope;
 
 /// A pattern that matches if all contained patterns match.
 #[derive(Debug, Clone)]
 pub struct AndPattern {
-    pub(crate) patterns: Vec<Pattern>,
+    pub patterns: Vec<Pattern>,
 }
 
 impl AndPattern {

@@ -1,4 +1,4 @@
-use super::{Matcher, Path};
+use crate::pattern::{Matcher, Path};
 use crate::Envelope;
 
 /// Pattern for matching boolean values.

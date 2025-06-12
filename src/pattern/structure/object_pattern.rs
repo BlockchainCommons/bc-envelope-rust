@@ -1,4 +1,4 @@
-use super::{Matcher, Path, Pattern};
+use crate::pattern::{Matcher, Path, Pattern};
 use crate::Envelope;
 
 #[derive(Debug, Clone)]

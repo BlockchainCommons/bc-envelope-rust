@@ -1,11 +1,14 @@
 use super::{
-    AndPattern, AssertionsPattern, LeafPattern, Matcher, OrPattern, Path,
-    SearchPattern, WrappedPattern,
+    Matcher, Path,
+    leaf::{BoolPattern, LeafPattern, NumberPattern, TextPattern},
+    meta::{AndPattern, OrPattern, SearchPattern},
+    structure::{AssertionsPattern, WrappedPattern},
 };
 use crate::{
     Envelope,
     pattern::{
-        ObjectPattern, PredicatePattern, SequencePattern, SubjectPattern,
+        meta::SequencePattern,
+        structure::{ObjectPattern, PredicatePattern, SubjectPattern},
     },
 };
 
@@ -57,71 +60,65 @@ impl Pattern {
 
 impl Pattern {
     pub fn any_bool() -> Self {
-        Pattern::Leaf(LeafPattern::Boolean(super::BoolPattern::any()))
+        Pattern::Leaf(LeafPattern::Boolean(BoolPattern::any()))
     }
 
     pub fn bool(b: bool) -> Self {
-        Pattern::Leaf(LeafPattern::Boolean(super::BoolPattern::exact(b)))
+        Pattern::Leaf(LeafPattern::Boolean(BoolPattern::exact(b)))
     }
 }
 
 impl Pattern {
     pub fn any_text() -> Self {
-        Pattern::Leaf(LeafPattern::Text(super::TextPattern::any()))
+        Pattern::Leaf(LeafPattern::Text(TextPattern::any()))
     }
 
     pub fn text<T: Into<String>>(value: T) -> Self {
-        Pattern::Leaf(LeafPattern::Text(super::TextPattern::exact(value)))
+        Pattern::Leaf(LeafPattern::Text(TextPattern::exact(value)))
     }
 
     pub fn text_regex(regex: &regex::Regex) -> Self {
-        Pattern::Leaf(LeafPattern::Text(super::TextPattern::regex(
-            regex.clone(),
-        )))
+        Pattern::Leaf(LeafPattern::Text(TextPattern::regex(regex.clone())))
     }
 }
 
 impl Pattern {
     pub fn any_number() -> Self {
-        Pattern::Leaf(LeafPattern::Number(super::NumberPattern::any()))
+        Pattern::Leaf(LeafPattern::Number(NumberPattern::any()))
     }
 
     pub fn number<T: Into<f64>>(value: T) -> Self {
-        Pattern::Leaf(LeafPattern::Number(super::NumberPattern::exact(value)))
+        Pattern::Leaf(LeafPattern::Number(NumberPattern::exact(value)))
     }
 
     pub fn number_range<A: Into<f64> + Copy>(
         range: std::ops::RangeInclusive<A>,
     ) -> Self {
-        Pattern::Leaf(LeafPattern::Number(super::NumberPattern::range(range)))
+        Pattern::Leaf(LeafPattern::Number(NumberPattern::range(range)))
     }
 
     pub fn number_greater_than<T: Into<f64>>(value: T) -> Self {
-        Pattern::Leaf(LeafPattern::Number(super::NumberPattern::greater_than(
-            value,
-        )))
+        Pattern::Leaf(LeafPattern::Number(NumberPattern::greater_than(value)))
     }
 
     pub fn number_greater_than_or_equal<T: Into<f64>>(value: T) -> Self {
         Pattern::Leaf(LeafPattern::Number(
-            super::NumberPattern::greater_than_or_equal(value),
+            NumberPattern::greater_than_or_equal(value),
         ))
     }
 
     pub fn number_less_than<T: Into<f64>>(value: T) -> Self {
-        Pattern::Leaf(LeafPattern::Number(super::NumberPattern::less_than(
+        Pattern::Leaf(LeafPattern::Number(NumberPattern::less_than(value)))
+    }
+
+    pub fn number_less_than_or_equal<T: Into<f64>>(value: T) -> Self {
+        Pattern::Leaf(LeafPattern::Number(NumberPattern::less_than_or_equal(
             value,
         )))
     }
 
-    pub fn number_less_than_or_equal<T: Into<f64>>(value: T) -> Self {
-        Pattern::Leaf(LeafPattern::Number(
-            super::NumberPattern::less_than_or_equal(value),
-        ))
-    }
-
     pub fn number_nan() -> Self {
-        Pattern::Leaf(LeafPattern::Number(super::NumberPattern::nan()))
+        Pattern::Leaf(LeafPattern::Number(NumberPattern::nan()))
     }
 }
 
