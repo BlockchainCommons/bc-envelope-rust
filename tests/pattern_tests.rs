@@ -9,7 +9,12 @@ fn format_path(path: &Path) -> String {
     let mut lines = Vec::new();
     for (i, element) in path.iter().enumerate() {
         let indent = " ".repeat(i * 4);
-        lines.push(format!("{}{} {}", indent, element.short_id(DigestDisplayFormat::Short), element.format_flat()));
+        lines.push(format!(
+            "{}{} {}",
+            indent,
+            element.short_id(DigestDisplayFormat::Short),
+            element.format_flat()
+        ));
     }
     lines.join("\n")
 }
@@ -361,7 +366,8 @@ fn test_search_pattern() {
         .add_assertion("knows", "Bob")
         .add_assertion("age", 30);
 
-    // Search for any text should find "Alice" (root subject), "Alice" (subject path), "knows", and "Bob"
+    // Search for any text should find "Alice" (root subject), "Alice" (subject
+    // path), "knows", and "Bob"
     let paths = Pattern::search(Pattern::any_text()).paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
@@ -401,7 +407,9 @@ fn test_search_pattern() {
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Search specifically for assertions with objects that are numbers
-    let paths = Pattern::search(Pattern::assertion_with_object(Pattern::any_number())).paths(&envelope);
+    let paths =
+        Pattern::search(Pattern::assertion_with_object(Pattern::any_number()))
+            .paths(&envelope);
     #[rustfmt::skip]
     let expected = indoc! {r#"
         a47bb3d4 "Alice" [ "age": 30, "knows": "Bob" ]
@@ -413,8 +421,8 @@ fn test_search_pattern() {
 #[test]
 fn test_search_pattern_nested() {
     // Test searching in a more complex nested envelope
-    let inner_envelope = Envelope::new("Carol")
-        .add_assertion("title", "Engineer");
+    let inner_envelope =
+        Envelope::new("Carol").add_assertion("title", "Engineer");
 
     let envelope = Envelope::new("Alice")
         .add_assertion("knows", inner_envelope)
@@ -459,13 +467,16 @@ fn test_search_pattern_nested() {
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Verify we can find "Carol" nested inside
-    let carol_paths: Vec<_> = paths.iter()
+    let carol_paths: Vec<_> = paths
+        .iter()
         .filter(|path| path.last().unwrap().format_flat().contains("Carol"))
         .collect();
     assert_eq!(carol_paths.len(), 3); // Root envelope, Carol envelope, and Carol subject
 
-    // The path to "Carol" subject should be: envelope -> knows assertion -> Carol envelope -> "Carol"
-    let carol_subject_path = carol_paths.iter()
+    // The path to "Carol" subject should be: envelope -> knows assertion ->
+    // Carol envelope -> "Carol"
+    let carol_subject_path = carol_paths
+        .iter()
         .find(|path| path.last().unwrap().format_flat() == "\"Carol\"")
         .unwrap();
     assert_eq!(carol_subject_path.len(), 4);
@@ -474,11 +485,11 @@ fn test_search_pattern_nested() {
 #[test]
 fn test_search_pattern_with_wrapped() {
     // Test searching in wrapped envelopes
-    let inner = Envelope::new("secret")
-        .add_assertion("classification", "top-secret");
+    let inner =
+        Envelope::new("secret").add_assertion("classification", "top-secret");
 
-    let envelope = Envelope::new("Alice")
-        .add_assertion("data", inner.wrap_envelope());
+    let envelope =
+        Envelope::new("Alice").add_assertion("data", inner.wrap_envelope());
 
     // Search for text should find text in wrapped envelopes too
     let paths = Pattern::search(Pattern::text("secret")).paths(&envelope);
@@ -496,7 +507,8 @@ fn test_search_pattern_with_wrapped() {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
-    // Should find "secret" twice: once as the wrapped envelope match, once as the subject
+    // Should find "secret" twice: once as the wrapped envelope match, once as
+    // the subject
     assert_eq!(paths.len(), 2);
 
     // Both should contain "secret" in the last element
@@ -515,7 +527,8 @@ fn test_search_pattern_credential() {
     // Search for all text in the credential
     let text_paths = Pattern::search(Pattern::any_text()).paths(&cred);
     // Get the last element of each path as a single-element path for output
-    let found_elements: Vec<Path> = text_paths.iter()
+    let found_elements: Vec<Path> = text_paths
+        .iter()
         .map(|path| vec![(*path.last().unwrap()).clone()])
         .collect();
     // println!("{}", format_paths(&found_elements));
@@ -539,7 +552,8 @@ fn test_search_pattern_credential() {
         202c10ef "RF and Microwave Engineering"
         f8489ac1 "Example Electrical Engineering Board"
         f106bad1 "Signed by Example Electrical Engineering Board"
-    "#}.trim();
+    "#}
+    .trim();
     assert_actual_expected!(format_paths(&found_elements), expected);
 
     // Search for specific strings that should be in the credential
@@ -550,14 +564,242 @@ fn test_search_pattern_credential() {
     assert_eq!(maxwell_paths.len(), 1);
 
     // Search for numbers (should find education units and hours)
-    let number_paths = Pattern::search(Pattern::assertion_with_object(Pattern::any_number())).paths(&cred);
+    let number_paths =
+        Pattern::search(Pattern::assertion_with_object(Pattern::any_number()))
+            .paths(&cred);
     // Get the last element of each path as a single-element path for output
-    let number_paths: Vec<Path> = number_paths.iter()
+    let number_paths: Vec<Path> = number_paths
+        .iter()
         .map(|path| vec![(*path.last().unwrap()).clone()])
         .collect();
     let expected = indoc! {r#"
         54b3e1e7 "professionalDevelopmentHours": 15
         8ec5e912 "continuingEducationUnits": 1
-    "#}.trim();
+    "#}
+    .trim();
     assert_actual_expected!(format_paths(&number_paths), expected);
+}
+
+#[test]
+fn test_digest_pattern() {
+    let envelope = Envelope::new("Hello, World!");
+    let digest = envelope.digest().into_owned();
+    let hex_digest = hex::encode(digest.as_bytes());
+    let prefix = &hex_digest[0..8];
+
+    // Test exact digest matching
+    assert!(Pattern::digest(digest.clone()).matches(&envelope));
+    assert!(
+        !Pattern::digest(Digest::from_data([0; 32]).into()).matches(&envelope)
+    );
+
+    // Test hex prefix matching
+    assert!(Pattern::digest_hex_prefix(prefix).matches(&envelope));
+    assert!(Pattern::digest_hex_prefix(&hex_digest).matches(&envelope));
+    assert!(!Pattern::digest_hex_prefix("ffffffff").matches(&envelope));
+
+    // Test with envelope that has assertions
+    let envelope_with_assertions =
+        envelope.clone().add_assertion("test", "value");
+    let digest_with_assertions = envelope_with_assertions.digest().into_owned();
+
+    assert!(
+        !Pattern::digest(digest.clone()).matches(&envelope_with_assertions)
+    );
+    assert!(
+        Pattern::digest(digest_with_assertions.clone())
+            .matches(&envelope_with_assertions)
+    );
+
+    // Test paths
+    let paths = Pattern::digest(digest.clone()).paths(&envelope);
+    #[rustfmt::skip]
+    let expected = format!(
+        "{} \"Hello, World!\"",
+        envelope.short_id(DigestDisplayFormat::Short)
+    );
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // No match should return empty paths
+    let paths =
+        Pattern::digest(Digest::from_data([0; 32]).into()).paths(&envelope);
+    assert!(paths.is_empty());
+}
+
+#[test]
+fn test_node_pattern() {
+    // Test with leaf (non-node) envelope
+    let leaf_envelope = Envelope::new("Just a leaf");
+    assert!(!Pattern::any_node().matches(&leaf_envelope));
+    assert!(
+        !Pattern::node_with_assertions_count_range(1..=3)
+            .matches(&leaf_envelope)
+    );
+    assert!(!Pattern::node_with_assertions_count(1).matches(&leaf_envelope));
+
+    // Test with single assertion node
+    let single_assertion_envelope =
+        Envelope::new("Alice").add_assertion("knows", "Bob");
+    assert!(Pattern::any_node().matches(&single_assertion_envelope));
+    assert!(
+        Pattern::node_with_assertions_count_range(1..=3)
+            .matches(&single_assertion_envelope)
+    );
+    assert!(
+        Pattern::node_with_assertions_count(1)
+            .matches(&single_assertion_envelope)
+    );
+    assert!(
+        !Pattern::node_with_assertions_count(2)
+            .matches(&single_assertion_envelope)
+    );
+
+    // Test with multiple assertions node
+    let multi_assertion_envelope = single_assertion_envelope
+        .add_assertion("age", 25)
+        .add_assertion("city", "New York");
+    assert!(Pattern::any_node().matches(&multi_assertion_envelope));
+    assert!(
+        Pattern::node_with_assertions_count_range(1..=5)
+            .matches(&multi_assertion_envelope)
+    );
+    assert!(
+        Pattern::node_with_assertions_count(3)
+            .matches(&multi_assertion_envelope)
+    );
+    assert!(
+        !Pattern::node_with_assertions_count(2)
+            .matches(&multi_assertion_envelope)
+    );
+    assert!(
+        !Pattern::node_with_assertions_count_range(4..=5)
+            .matches(&multi_assertion_envelope)
+    );
+
+    // Test paths
+    let paths = Pattern::any_node().paths(&single_assertion_envelope);
+    #[rustfmt::skip]
+    let expected = format!(
+        "{} \"Alice\" [ \"knows\": \"Bob\" ]",
+        single_assertion_envelope.short_id(DigestDisplayFormat::Short)
+    );
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // No match should return empty paths
+    let paths = Pattern::any_node().paths(&leaf_envelope);
+    assert!(paths.is_empty());
+}
+
+#[test]
+fn test_obscured_pattern() {
+    let original_envelope = Envelope::new("Secret data");
+
+    // Test with elided envelope
+    let elided_envelope = original_envelope.elide();
+    assert!(Pattern::obscured().matches(&elided_envelope));
+    assert!(Pattern::elided().matches(&elided_envelope));
+    assert!(!Pattern::encrypted().matches(&elided_envelope));
+    assert!(!Pattern::compressed().matches(&elided_envelope));
+
+    // Test with original (non-obscured) envelope
+    assert!(!Pattern::obscured().matches(&original_envelope));
+    assert!(!Pattern::elided().matches(&original_envelope));
+    assert!(!Pattern::encrypted().matches(&original_envelope));
+    assert!(!Pattern::compressed().matches(&original_envelope));
+
+    // Test paths for elided envelope
+    let paths = Pattern::elided().paths(&elided_envelope);
+    #[rustfmt::skip]
+    let expected = format!(
+        "{} ELIDED",
+        elided_envelope.short_id(DigestDisplayFormat::Short)
+    );
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // No match should return empty paths
+    let paths = Pattern::elided().paths(&original_envelope);
+    assert!(paths.is_empty());
+
+    #[cfg(feature = "encrypt")]
+    {
+        use bc_components::SymmetricKey;
+
+        // Test with encrypted envelope
+        let key = SymmetricKey::new();
+        let encrypted_envelope =
+            original_envelope.encrypt_subject(&key).unwrap();
+        assert!(Pattern::obscured().matches(&encrypted_envelope));
+        assert!(Pattern::encrypted().matches(&encrypted_envelope));
+        assert!(!Pattern::elided().matches(&encrypted_envelope));
+        assert!(!Pattern::compressed().matches(&encrypted_envelope));
+    }
+
+    #[cfg(feature = "compress")]
+    {
+        // Test with compressed envelope
+        let compressed_envelope = original_envelope.compress().unwrap();
+        assert!(Pattern::obscured().matches(&compressed_envelope));
+        assert!(Pattern::compressed().matches(&compressed_envelope));
+        assert!(!Pattern::elided().matches(&compressed_envelope));
+        assert!(!Pattern::encrypted().matches(&compressed_envelope));
+    }
+}
+
+#[test]
+fn test_mixed_patterns_with_search() {
+    // Create a complex envelope structure
+    let envelope = Envelope::new("Alice")
+        .add_assertion("knows", "Bob")
+        .add_assertion("age", 30)
+        .add_assertion("secret", Envelope::new("top secret").elide());
+
+    // Search for any node patterns
+    let node_paths = Pattern::search(Pattern::any_node()).paths(&envelope);
+    assert_eq!(node_paths.len(), 1);
+
+    // Search for any obscured patterns
+    let obscured_paths = Pattern::search(Pattern::obscured()).paths(&envelope);
+    assert_eq!(obscured_paths.len(), 1);
+
+    // The obscured element should be the elided "top secret"
+    let obscured_element = obscured_paths[0].last().unwrap();
+    assert!(obscured_element.is_elided());
+
+    // Search for specific digest prefix
+    let alice_subject = envelope.subject();
+    let alice_digest = alice_subject.digest();
+    let alice_hex = hex::encode(alice_digest.as_bytes());
+    let alice_prefix = &alice_hex[0..8];
+
+    let digest_paths =
+        Pattern::search(Pattern::digest_hex_prefix(alice_prefix))
+            .paths(&envelope);
+    assert_eq!(digest_paths.len(), 1);
+
+    // The found element should be Alice
+    let alice_element = digest_paths[0].last().unwrap();
+    assert_eq!(alice_element.extract_subject::<String>().unwrap(), "Alice");
+}
+
+#[test]
+fn test_node_pattern_with_sequence() {
+    // Create envelope with exactly 2 assertions
+    let envelope = Envelope::new("Person")
+        .add_assertion("name", "Alice")
+        .add_assertion("age", 25);
+
+    // Test sequence matching node with 2 assertions then extracting subject
+    let paths = Pattern::sequence(vec![
+        Pattern::node_with_assertions_count(2),
+        Pattern::subject(),
+    ])
+    .paths(&envelope);
+
+    #[rustfmt::skip]
+    let expected = format!(
+        "{} \"Person\" [ \"age\": 25, \"name\": \"Alice\" ]\n    {} \"Person\"",
+        envelope.short_id(DigestDisplayFormat::Short),
+        envelope.subject().short_id(DigestDisplayFormat::Short)
+    );
+    assert_actual_expected!(format_paths(&paths), expected);
 }

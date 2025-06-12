@@ -5,8 +5,9 @@ use super::{
         AndPattern, MetaPattern, OrPattern, SearchPattern, SequencePattern,
     },
     structure::{
-        AssertionsPattern, ObjectPattern, PredicatePattern, StructurePattern,
-        SubjectPattern, WrappedPattern,
+        AssertionsPattern, DigestPattern, NodePattern, ObjectPattern,
+        ObscuredPattern, PredicatePattern, StructurePattern, SubjectPattern,
+        WrappedPattern,
     },
 };
 use crate::Envelope;
@@ -170,6 +171,66 @@ impl Pattern {
         Pattern::Structure(StructurePattern::object(ObjectPattern::pattern(
             pattern,
         )))
+    }
+}
+
+impl Pattern {
+    pub fn digest(digest: bc_components::Digest) -> Self {
+        Pattern::Structure(StructurePattern::digest(DigestPattern::digest(
+            digest,
+        )))
+    }
+
+    pub fn digest_hex_prefix<T: Into<String>>(prefix: T) -> Self {
+        Pattern::Structure(StructurePattern::digest(DigestPattern::hex_prefix(
+            prefix,
+        )))
+    }
+
+    pub fn digest_binary_regex(regex: regex::bytes::Regex) -> Self {
+        Pattern::Structure(StructurePattern::digest(
+            DigestPattern::binary_regex(regex),
+        ))
+    }
+
+    pub fn any_node() -> Self {
+        Pattern::Structure(StructurePattern::node(NodePattern::any()))
+    }
+
+    pub fn node_with_assertions_count_range(
+        range: std::ops::RangeInclusive<usize>,
+    ) -> Self {
+        Pattern::Structure(StructurePattern::node(
+            NodePattern::assertions_count_range(range),
+        ))
+    }
+
+    pub fn node_with_assertions_count(count: usize) -> Self {
+        Pattern::Structure(StructurePattern::node(
+            NodePattern::assertions_count(count),
+        ))
+    }
+
+    pub fn obscured() -> Self {
+        Pattern::Structure(StructurePattern::obscured(ObscuredPattern::any()))
+    }
+
+    pub fn elided() -> Self {
+        Pattern::Structure(
+            StructurePattern::obscured(ObscuredPattern::elided()),
+        )
+    }
+
+    pub fn encrypted() -> Self {
+        Pattern::Structure(StructurePattern::obscured(
+            ObscuredPattern::encrypted(),
+        ))
+    }
+
+    pub fn compressed() -> Self {
+        Pattern::Structure(StructurePattern::obscured(
+            ObscuredPattern::compressed(),
+        ))
     }
 }
 

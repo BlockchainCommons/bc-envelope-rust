@@ -1,6 +1,6 @@
 use super::{
-    AssertionsPattern, ObjectPattern, PredicatePattern, SubjectPattern,
-    WrappedPattern,
+    AssertionsPattern, DigestPattern, NodePattern, ObjectPattern,
+    ObscuredPattern, PredicatePattern, SubjectPattern, WrappedPattern,
 };
 use crate::{
     Envelope,
@@ -12,20 +12,20 @@ use crate::{
 pub enum StructurePattern {
     /// Matches assertions.
     Assertions(AssertionsPattern),
+    /// Matches digests.
+    Digest(DigestPattern),
+    /// Matches nodes.
+    Node(NodePattern),
     /// Matches objects.
     Object(ObjectPattern),
+    /// Matches obscured elements.
+    Obscured(ObscuredPattern),
     /// Matches predicates.
     Predicate(PredicatePattern),
     /// Matches subjects.
     Subject(SubjectPattern),
     /// Matches wrapped envelopes.
     Wrapped(WrappedPattern),
-    // Matches digests.
-    // Digest(DigestPattern),
-    // Matches nodes.
-    // Node(NodePattern),
-    // Matches obscured elements.
-    // Obscured(ObscuredPattern),
 }
 
 impl StructurePattern {
@@ -33,8 +33,20 @@ impl StructurePattern {
         StructurePattern::Assertions(pattern)
     }
 
+    pub fn digest(pattern: DigestPattern) -> Self {
+        StructurePattern::Digest(pattern)
+    }
+
+    pub fn node(pattern: NodePattern) -> Self {
+        StructurePattern::Node(pattern)
+    }
+
     pub fn object(pattern: ObjectPattern) -> Self {
         StructurePattern::Object(pattern)
+    }
+
+    pub fn obscured(pattern: ObscuredPattern) -> Self {
+        StructurePattern::Obscured(pattern)
     }
 
     pub fn predicate(pattern: PredicatePattern) -> Self {
@@ -54,7 +66,10 @@ impl Matcher for StructurePattern {
     fn paths(&self, envelope: &Envelope) -> Vec<Path> {
         match self {
             StructurePattern::Assertions(pattern) => pattern.paths(envelope),
+            StructurePattern::Digest(pattern) => pattern.paths(envelope),
+            StructurePattern::Node(pattern) => pattern.paths(envelope),
             StructurePattern::Object(pattern) => pattern.paths(envelope),
+            StructurePattern::Obscured(pattern) => pattern.paths(envelope),
             StructurePattern::Predicate(pattern) => pattern.paths(envelope),
             StructurePattern::Subject(pattern) => pattern.paths(envelope),
             StructurePattern::Wrapped(pattern) => pattern.paths(envelope),
