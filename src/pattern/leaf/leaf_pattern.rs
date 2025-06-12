@@ -1,7 +1,7 @@
 #[cfg(feature = "known_value")]
 use super::KnownValuePattern;
 use super::{
-    ArrayPattern, BoolPattern, ByteStringPattern, CborPattern, MapPattern,
+    ArrayPattern, BoolPattern, ByteStringPattern, CborPattern, DatePattern, MapPattern,
     NullPattern, NumberPattern, TagPattern, TextPattern,
 };
 use crate::{
@@ -32,6 +32,8 @@ pub enum LeafPattern {
     Boolean(BoolPattern),
     /// Matches the null value.
     Null(NullPattern),
+    /// Matches a date value.
+    Date(DatePattern),
     /// Matches a known value.
     #[cfg(feature = "known_value")]
     KnownValue(KnownValuePattern),
@@ -65,6 +67,8 @@ impl LeafPattern {
 
     pub fn null(pattern: NullPattern) -> Self { LeafPattern::Null(pattern) }
 
+    pub fn date(pattern: DatePattern) -> Self { LeafPattern::Date(pattern) }
+
     #[cfg(feature = "known_value")]
     pub fn known_value(pattern: KnownValuePattern) -> Self {
         LeafPattern::KnownValue(pattern)
@@ -90,6 +94,7 @@ impl Matcher for LeafPattern {
             LeafPattern::Map(pattern) => pattern.paths(envelope),
             LeafPattern::Boolean(pattern) => pattern.paths(envelope),
             LeafPattern::Null(pattern) => pattern.paths(envelope),
+            LeafPattern::Date(pattern) => pattern.paths(envelope),
             #[cfg(feature = "known_value")]
             LeafPattern::KnownValue(pattern) => pattern.paths(envelope),
         }

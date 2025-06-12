@@ -140,6 +140,83 @@ fn test_text_pattern() {
     assert_actual_expected!(format_paths(&paths), expected);
 }
 
+#[test]
+fn test_date_pattern() {
+    use dcbor::Date;
+
+    // Does not match non-date subjects.
+    let envelope = Envelope::new("2023-12-25");
+    assert!(!Pattern::any_date().matches(&envelope));
+
+    // Create a date envelope
+    let date = Date::from_ymd(2023, 12, 25);
+    let envelope = Envelope::new(date.clone());
+
+    // Matches a bare subject that is a date.
+    assert!(Pattern::any_date().matches(&envelope));
+    assert!(Pattern::date(date.clone()).matches(&envelope));
+    assert!(!Pattern::date(Date::from_ymd(2023, 12, 24)).matches(&envelope));
+
+    // Test date range matching
+    let start = Date::from_ymd(2023, 12, 20);
+    let end = Date::from_ymd(2023, 12, 30);
+    assert!(Pattern::date_range(start..=end).matches(&envelope));
+
+    let start = Date::from_ymd(2023, 12, 26);
+    let end = Date::from_ymd(2023, 12, 30);
+    assert!(!Pattern::date_range(start..=end).matches(&envelope));
+
+    // Test ISO-8601 string matching
+    assert!(Pattern::date_iso8601("2023-12-25").matches(&envelope));
+    assert!(!Pattern::date_iso8601("2023-12-24").matches(&envelope));
+
+    // Test regex matching
+    let regex = regex::Regex::new(r"^2023-.*").unwrap();
+    assert!(Pattern::date_regex(regex).matches(&envelope));
+
+    let regex = regex::Regex::new(r"^2024-.*").unwrap();
+    assert!(!Pattern::date_regex(regex).matches(&envelope));
+
+    // Matches a subject that is a date with an assertion.
+    let envelope = envelope.add_assertion("type", "christmas");
+    assert!(Pattern::any_date().matches(&envelope));
+    assert!(Pattern::date(date.clone()).matches(&envelope));
+
+    // The matched paths include the assertion.
+    let paths = Pattern::any_date().paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        20f45d77 2023-12-25 [ "type": "christmas" ]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Matching a date and the subject in a sequence returns a path
+    // where the first element is the original envelope and the second
+    // element is the subject.
+    let paths =
+        Pattern::sequence(vec![Pattern::any_date(), Pattern::subject()])
+            .paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        20f45d77 2023-12-25 [ "type": "christmas" ]
+            3854ff69 2023-12-25
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Test with date-time (not just date)
+    let date_with_time = Date::from_ymd_hms(2023, 12, 25, 15, 30, 45);
+    let envelope_with_time = Envelope::new(date_with_time.clone());
+
+    assert!(Pattern::any_date().matches(&envelope_with_time));
+    assert!(
+        Pattern::date_iso8601("2023-12-25T15:30:45Z")
+            .matches(&envelope_with_time)
+    );
+
+    let regex = regex::Regex::new(r".*T15:30:45Z$").unwrap();
+    assert!(Pattern::date_regex(regex).matches(&envelope_with_time));
+}
+
 #[cfg(feature = "known_value")]
 #[test]
 fn test_known_value_pattern() {
@@ -568,7 +645,8 @@ fn test_tag_pattern_named() {
     assert!(!Pattern::tag_named("unknown_tag").matches(&envelope));
 
     // Test with unregistered tag
-    let unregistered_tagged_cbor = CBOR::to_tagged_value(999, "unregistered_content");
+    let unregistered_tagged_cbor =
+        CBOR::to_tagged_value(999, "unregistered_content");
     let unregistered_envelope = Envelope::new(unregistered_tagged_cbor);
 
     // Should not match by any name since tag 999 is not registered
@@ -586,8 +664,9 @@ fn test_tag_pattern_named() {
     assert_eq!(paths[0][0], envelope);
 
     // Test in sequence pattern
-    let paths = Pattern::sequence(vec![Pattern::tag_named("date"), Pattern::subject()])
-        .paths(&envelope);
+    let paths =
+        Pattern::sequence(vec![Pattern::tag_named("date"), Pattern::subject()])
+            .paths(&envelope);
     assert_eq!(paths.len(), 1);
     assert_eq!(paths[0].len(), 2);
     assert_eq!(paths[0][0], envelope);
@@ -618,7 +697,8 @@ fn test_tag_pattern_regex() {
     assert!(!Pattern::tag_regex(regex.clone()).matches(&envelope));
 
     // Test with unregistered tag
-    let unregistered_tagged_cbor = CBOR::to_tagged_value(999, "unregistered_content");
+    let unregistered_tagged_cbor =
+        CBOR::to_tagged_value(999, "unregistered_content");
     let unregistered_envelope = Envelope::new(unregistered_tagged_cbor);
 
     // Should not match any regex since tag 999 has no name in registry
@@ -639,8 +719,9 @@ fn test_tag_pattern_regex() {
 
     // Test in sequence pattern
     let regex = regex::Regex::new(r".*te$").unwrap();
-    let paths = Pattern::sequence(vec![Pattern::tag_regex(regex), Pattern::subject()])
-        .paths(&envelope);
+    let paths =
+        Pattern::sequence(vec![Pattern::tag_regex(regex), Pattern::subject()])
+            .paths(&envelope);
     assert_eq!(paths.len(), 1);
     assert_eq!(paths[0].len(), 2);
     assert_eq!(paths[0][0], envelope);
@@ -656,11 +737,13 @@ fn test_tag_pattern_with_bc_components_tags() {
 
     // Test with a bc-components tag (e.g., digest tag)
     let digest_tag_value = 40001u64; // TAG_DIGEST from bc-tags
-    let tagged_cbor = CBOR::to_tagged_value(digest_tag_value, [1u8, 2, 3, 4].as_slice());
+    let tagged_cbor =
+        CBOR::to_tagged_value(digest_tag_value, [1u8, 2, 3, 4].as_slice());
     let envelope = Envelope::new(tagged_cbor);
 
-    // Test tag name matching (assuming digest tag is registered with name "digest")
-    // This will verify if the tag is properly registered in the global registry
+    // Test tag name matching (assuming digest tag is registered with name
+    // "digest") This will verify if the tag is properly registered in the
+    // global registry
     let pattern = Pattern::tag_named("digest");
     let matches = pattern.matches(&envelope);
 
@@ -674,6 +757,12 @@ fn test_tag_pattern_with_bc_components_tags() {
     assert!(Pattern::any_tag().matches(&envelope));
 
     // Print debug info for manual verification
-    println!("Digest tag {} matches by name: {}", digest_tag_value, matches);
-    println!("Digest tag {} matches by regex: {}", digest_tag_value, matches_regex);
+    println!(
+        "Digest tag {} matches by name: {}",
+        digest_tag_value, matches
+    );
+    println!(
+        "Digest tag {} matches by regex: {}",
+        digest_tag_value, matches_regex
+    );
 }

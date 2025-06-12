@@ -1,3 +1,6 @@
+use std::ops::RangeInclusive;
+
+use dcbor::Date;
 #[cfg(feature = "known_value")]
 use known_values::KnownValue;
 
@@ -6,8 +9,8 @@ use super::leaf::KnownValuePattern;
 use super::{
     Matcher, Path,
     leaf::{
-        ArrayPattern, BoolPattern, ByteStringPattern, LeafPattern, MapPattern,
-        NullPattern, NumberPattern, TagPattern, TextPattern,
+        ArrayPattern, BoolPattern, ByteStringPattern, DatePattern, LeafPattern,
+        MapPattern, NullPattern, NumberPattern, TagPattern, TextPattern,
     },
     meta::{
         AndPattern, MetaPattern, OrPattern, SearchPattern, SequencePattern,
@@ -67,6 +70,28 @@ impl Pattern {
 
     pub fn text_regex(regex: &regex::Regex) -> Self {
         Pattern::Leaf(LeafPattern::Text(TextPattern::regex(regex.clone())))
+    }
+}
+
+impl Pattern {
+    pub fn any_date() -> Self {
+        Pattern::Leaf(LeafPattern::Date(DatePattern::any()))
+    }
+
+    pub fn date(date: Date) -> Self {
+        Pattern::Leaf(LeafPattern::Date(DatePattern::date(date)))
+    }
+
+    pub fn date_range(range: RangeInclusive<Date>) -> Self {
+        Pattern::Leaf(LeafPattern::Date(DatePattern::range(range)))
+    }
+
+    pub fn date_iso8601(iso_string: impl Into<String>) -> Self {
+        Pattern::Leaf(LeafPattern::Date(DatePattern::iso8601(iso_string)))
+    }
+
+    pub fn date_regex(regex: regex::Regex) -> Self {
+        Pattern::Leaf(LeafPattern::Date(DatePattern::regex(regex)))
     }
 }
 

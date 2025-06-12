@@ -4,6 +4,7 @@ mod array_pattern;
 mod bool_pattern;
 mod byte_string_pattern;
 mod cbor_pattern;
+mod date_pattern;
 mod known_value_pattern;
 mod leaf_pattern;
 mod map_pattern;
@@ -16,6 +17,7 @@ pub(crate) use array_pattern::ArrayPattern;
 pub(crate) use bool_pattern::BoolPattern;
 pub(crate) use byte_string_pattern::ByteStringPattern;
 pub(crate) use cbor_pattern::CborPattern;
+pub(crate) use date_pattern::DatePattern;
 #[cfg(feature = "known_value")]
 pub(crate) use known_value_pattern::KnownValuePattern;
 pub(crate) use leaf_pattern::LeafPattern;
