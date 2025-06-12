@@ -150,7 +150,10 @@ fn test_encrypt_subject() {
         ]
     "#}.trim());
 
-    assert_actual_expected!(envelope.format_flat(), r#"ENCRYPTED [ "knows": "Bob" ]"#);
+    assert_actual_expected!(
+        envelope.format_flat(),
+        r#"ENCRYPTED [ "knows": "Bob" ]"#
+    );
 
     #[rustfmt::skip]
     assert_actual_expected!(envelope.tree_format(), indoc! {r#"
@@ -180,10 +183,12 @@ fn test_encrypt_subject() {
         linkStyle 1 stroke-width:2px
         linkStyle 2 stroke:green,stroke-width:2px
         linkStyle 3 stroke:blue,stroke-width:2px
-    "#}.trim();
+    "#}
+    .trim();
     assert_actual_expected!(actual, expected);
 
-    let actual = envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true));
+    let actual =
+        envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true));
     // println!("{}", actual);
     #[rustfmt::skip]
     assert_actual_expected!(actual, indoc! {r#"
@@ -240,7 +245,10 @@ fn test_elided_object() {
         ]
     "#}.trim());
 
-    assert_actual_expected!(elided.format_flat(), r#""Alice" [ "knows": ELIDED ]"#);
+    assert_actual_expected!(
+        elided.format_flat(),
+        r#""Alice" [ "knows": ELIDED ]"#
+    );
 
     #[rustfmt::skip]
     assert_actual_expected!(elided.tree_format(), indoc! {r#"
@@ -910,54 +918,7 @@ fn test_credential() {
 #[cfg(feature = "signature")]
 #[test]
 fn test_redacted_credential() {
-    let credential = credential();
-    let mut target = HashSet::new();
-    target.insert(credential.digest().into_owned());
-    for assertion in credential.assertions() {
-        target.extend(assertion.deep_digests());
-    }
-    target.insert(credential.subject().digest().into_owned());
-    let content = credential.subject().unwrap_envelope().unwrap();
-    target.insert(content.digest().into_owned());
-    target.insert(content.subject().digest().into_owned());
-
-    target.extend(
-        content
-            .assertion_with_predicate("firstName")
-            .unwrap()
-            .shallow_digests(),
-    );
-    target.extend(
-        content
-            .assertion_with_predicate("lastName")
-            .unwrap()
-            .shallow_digests(),
-    );
-    target.extend(
-        content
-            .assertion_with_predicate(known_values::IS_A)
-            .unwrap()
-            .shallow_digests(),
-    );
-    target.extend(
-        content
-            .assertion_with_predicate(known_values::ISSUER)
-            .unwrap()
-            .shallow_digests(),
-    );
-    target.extend(
-        content
-            .assertion_with_predicate("subject")
-            .unwrap()
-            .shallow_digests(),
-    );
-    target.extend(
-        content
-            .assertion_with_predicate("expirationDate")
-            .unwrap()
-            .shallow_digests(),
-    );
-    let redacted_credential = credential.elide_revealing_set(&target);
+    let redacted_credential = redacted_credential();
     let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
     let options = SigningOptions::Schnorr { rng };
     let warranty = redacted_credential

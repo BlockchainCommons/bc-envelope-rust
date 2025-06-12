@@ -1,13 +1,18 @@
-## Task: Implementation of remaining patterns in the `structure` submodule
+## Task: Implementation of remaining patterns in the `leaf` submodule
 
-- Implement `DigestPattern`, `NodePattern`, and `ObscuredPattern` in the `structure/` submodule.
-- Their current implementations must be considered partial and were written and disabled before the rest of the currently-working API. They may still be considered good starting points.
-- "Obscured" in Envelope parlance means "elided, encrypted, or compressed," which are all transformations of a branch of the envelope tree that still preserve its digest. Look in the `tests` module for examples of how these types of envelopes are constructed and tested.
-- Note that in `pattern_tests.rs`, `format_paths()` prefixes each path elements with the first 8 hex digits of the digest of the envelope. This can be used as a prefix `DigestPattern::HexPrefix`.
+- The task is to implement the remaining patterns in the `leaf` submodule of the `pattern` module.
+- See the list below for the patterns that need to be implemented.
+- Use patterns that are already implemented as a reference for your implementation.
+- Gordian Envelope is a tree structure whose leaves areal CBOR values. The `dcbor` crate in this workspace is used to handle these CBOR values.
+
+## General Guidelines
+
 - Study `envelope.rs` and `queries.rs` to understand the Envelope API.
-- Make sure to add tests for each new pattern in `pattern_tests.rs`.
+- Note that envelope APIs that deal with extracting CBOR leaf values are usually prefixed with `extract_`.
+- There are also predicates like `is_*` that can be used to check the type of a leaf value, e.g., `is_text`, `is_number`, `is_bool`, etc.
+- Make sure to add or adjust tests for any new functionality you add or change.
 - Ensure all crate tests pass. You can skip doc tests for now, so use `cargo test --all-targets` when you want to test the whole crate.
-- Use `cargo test --package bc-envelope --test pattern_tests` to run the tests for the `pattern` module specifically.
+- Use `cargo test --package bc-envelope --test 'pattern_tests*'` to run the tests for the `pattern` module specifically.
 - Make sure all clippy lints are also resolved.
 
 ## The `pattern` Module
@@ -19,35 +24,7 @@ pattern/
 - matcher.rs
   - The `Matcher` trait, which all patterns implement to provide matching functionality.
 
-## Patterns dealing with Envelope Structure
-
-structure/
-
-- [x] structure_pattern.rs
-  - Aggregates all structure patterns
-- [x] digest_pattern.rs
-- [x] node_pattern.rs
-- [x] obscured_pattern.rs
-- [x] assertions_pattern.rs
-- [x] object_pattern.rs
-- [x] predicate_pattern.rs
-- [x] subject_pattern.rs
-- [x] wrapped_pattern.rs
-
-## Meta-Patterns
-
-meta/
-
-- [x] meta_pattern.rs
-  - Aggregates all meta patterns
-- [ ] not_pattern.rs
-- [ ] repeat_pattern.rs
-- [x] and_pattern.rs
-- [x] or_pattern.rs
-- [x] search_pattern.rs
-- [x] sequence_pattern.rs
-
-## Patterns dealing with Leaf Node (CBOR) values
+### Patterns dealing with Leaf Node (CBOR) values
 
 leaf/
 
@@ -63,3 +40,31 @@ leaf/
 - [x] bool_pattern.rs
 - [x] number_pattern.rs
 - [x] text_pattern.rs
+
+### Patterns dealing with Envelope Structure
+
+structure/
+
+- [x] structure_pattern.rs
+  - Aggregates all structure patterns
+- [x] digest_pattern.rs
+- [x] node_pattern.rs
+- [x] obscured_pattern.rs
+- [x] assertions_pattern.rs
+- [x] object_pattern.rs
+- [x] predicate_pattern.rs
+- [x] subject_pattern.rs
+- [x] wrapped_pattern.rs
+
+### Meta-Patterns
+
+meta/
+
+- [x] meta_pattern.rs
+  - Aggregates all meta patterns
+- [ ] not_pattern.rs
+- [ ] repeat_pattern.rs
+- [x] and_pattern.rs
+- [x] or_pattern.rs
+- [x] search_pattern.rs
+- [x] sequence_pattern.rs

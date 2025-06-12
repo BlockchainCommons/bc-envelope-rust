@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use std::collections::HashSet;
+
 use bc_envelope::prelude::*;
 use hex_literal::hex;
 use bc_components::{Nonce, PrivateKeyBase, PublicKeys, PublicKeysProvider, SymmetricKey};
@@ -93,4 +95,55 @@ pub fn credential() -> Envelope {
     )
     .check_encoding()
     .unwrap()
+}
+
+pub fn redacted_credential() -> Envelope {
+    let credential = credential();
+    let mut target = HashSet::new();
+    target.insert(credential.digest().into_owned());
+    for assertion in credential.assertions() {
+        target.extend(assertion.deep_digests());
+    }
+    target.insert(credential.subject().digest().into_owned());
+    let content = credential.subject().unwrap_envelope().unwrap();
+    target.insert(content.digest().into_owned());
+    target.insert(content.subject().digest().into_owned());
+
+    target.extend(
+        content
+            .assertion_with_predicate("firstName")
+            .unwrap()
+            .shallow_digests(),
+    );
+    target.extend(
+        content
+            .assertion_with_predicate("lastName")
+            .unwrap()
+            .shallow_digests(),
+    );
+    target.extend(
+        content
+            .assertion_with_predicate(known_values::IS_A)
+            .unwrap()
+            .shallow_digests(),
+    );
+    target.extend(
+        content
+            .assertion_with_predicate(known_values::ISSUER)
+            .unwrap()
+            .shallow_digests(),
+    );
+    target.extend(
+        content
+            .assertion_with_predicate("subject")
+            .unwrap()
+            .shallow_digests(),
+    );
+    target.extend(
+        content
+            .assertion_with_predicate("expirationDate")
+            .unwrap()
+            .shallow_digests(),
+    );
+    credential.elide_revealing_set(&target)
 }

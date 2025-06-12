@@ -38,12 +38,10 @@ impl Matcher for DigestPattern {
         let digest = envelope.digest();
         let is_hit = match self {
             DigestPattern::Digest(pattern_digest) => *pattern_digest == *digest,
-            DigestPattern::HexPrefix(prefix) => hex::encode(digest.as_bytes())
-                .to_lowercase()
-                .starts_with(&prefix.to_lowercase()),
-            DigestPattern::BinaryRegex(regex) => {
-                regex.is_match(digest.as_bytes())
+            DigestPattern::HexPrefix(prefix) => {
+                hex::encode(digest.data()).starts_with(&prefix.to_lowercase())
             }
+            DigestPattern::BinaryRegex(regex) => regex.is_match(digest.data()),
         };
 
         if is_hit {

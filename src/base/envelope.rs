@@ -1,47 +1,50 @@
-use anyhow::{ bail, Result };
-use bc_components::{ Digest, DigestProvider };
-#[cfg(feature = "encrypt")]
-use bc_components::EncryptedMessage;
-#[cfg(feature = "compress")]
-use bc_components::Compressed;
-use dcbor::prelude::*;
-use crate::{ base::Assertion, EnvelopeEncodable, Error };
-#[cfg(feature = "known_value")]
-use crate::extension::KnownValue;
-
+#[cfg(not(feature = "multithreaded"))]
+use std::rc::Rc as RefCounted;
 #[cfg(feature = "multithreaded")]
 use std::sync::Arc as RefCounted;
 
-#[cfg(not(feature = "multithreaded"))]
-use std::rc::Rc as RefCounted;
+use anyhow::{Result, bail};
+#[cfg(feature = "compress")]
+use bc_components::Compressed;
+#[cfg(feature = "encrypt")]
+use bc_components::EncryptedMessage;
+use bc_components::{Digest, DigestProvider};
+use dcbor::prelude::*;
 
-/// A flexible container for structured data with built-in integrity verification.
+#[cfg(feature = "known_value")]
+use crate::extension::KnownValue;
+use crate::{EnvelopeEncodable, Error, base::Assertion};
+
+/// A flexible container for structured data with built-in integrity
+/// verification.
 ///
-/// Gordian Envelope is the primary data structure of this crate. It provides a way to
-/// encapsulate and organize data with cryptographic integrity, privacy features, and
-/// selective disclosure capabilities.
+/// Gordian Envelope is the primary data structure of this crate. It provides a
+/// way to encapsulate and organize data with cryptographic integrity, privacy
+/// features, and selective disclosure capabilities.
 ///
 /// Key characteristics of envelopes:
 ///
-/// - **Immutability**: Envelopes are immutable. Operations that appear to "modify" an
-///   envelope actually create a new envelope. This immutability is fundamental to
-///   maintaining the integrity of the envelope's digest tree.
+/// - **Immutability**: Envelopes are immutable. Operations that appear to
+///   "modify" an envelope actually create a new envelope. This immutability is
+///   fundamental to maintaining the integrity of the envelope's digest tree.
 ///
-/// - **Semantic Structure**: Envelopes can represent various semantic relationships
-///   through subjects, predicates, and objects (similar to RDF triples).
+/// - **Semantic Structure**: Envelopes can represent various semantic
+///   relationships through subjects, predicates, and objects (similar to RDF
+///   triples).
 ///
-/// - **Digest Tree**: Each envelope maintains a Merkle-like digest tree that ensures
-///   the integrity of its contents and enables verification of individual parts.
+/// - **Digest Tree**: Each envelope maintains a Merkle-like digest tree that
+///   ensures the integrity of its contents and enables verification of
+///   individual parts.
 ///
-/// - **Privacy Features**: Envelopes support selective disclosure through elision,
-///   encryption, and compression of specific parts, while maintaining the overall
-///   integrity of the structure.
+/// - **Privacy Features**: Envelopes support selective disclosure through
+///   elision, encryption, and compression of specific parts, while maintaining
+///   the overall integrity of the structure.
 ///
-/// - **Deterministic Representation**: Envelopes use deterministic CBOR encoding
-///   to ensure consistent serialization across platforms.
+/// - **Deterministic Representation**: Envelopes use deterministic CBOR
+///   encoding to ensure consistent serialization across platforms.
 ///
-/// The Gordian Envelope specification is defined in an IETF Internet Draft, and this
-/// implementation closely follows that specification.
+/// The Gordian Envelope specification is defined in an IETF Internet Draft, and
+/// this implementation closely follows that specification.
 ///
 /// # Example
 ///
@@ -55,7 +58,9 @@ use std::rc::Rc as RefCounted;
 ///     .add_assertion("email", "alice@example.com");
 ///
 /// // Create a partially redacted version by eliding the email
-/// let redacted = person.elide_removing_target(&person.assertion_with_predicate("email").unwrap());
+/// let redacted = person.elide_removing_target(
+///     &person.assertion_with_predicate("email").unwrap(),
+/// );
 ///
 /// // The digest of both envelopes remains the same
 /// assert_eq!(person.digest(), redacted.digest());
@@ -66,47 +71,43 @@ pub struct Envelope(RefCounted<EnvelopeCase>);
 impl Envelope {
     /// Returns a reference to the underlying envelope case.
     ///
-    /// The `EnvelopeCase` enum represents the specific structural variant of this envelope.
-    /// This method provides access to that underlying variant for operations that need
-    /// to differentiate between the different envelope types.
+    /// The `EnvelopeCase` enum represents the specific structural variant of
+    /// this envelope. This method provides access to that underlying
+    /// variant for operations that need to differentiate between the
+    /// different envelope types.
     ///
     /// # Returns
     ///
-    /// A reference to the `EnvelopeCase` that defines this envelope's structure.
-    pub fn case(&self) -> &EnvelopeCase {
-        &self.0
-    }
+    /// A reference to the `EnvelopeCase` that defines this envelope's
+    /// structure.
+    pub fn case(&self) -> &EnvelopeCase { &self.0 }
 }
 
 /// Conversion from `EnvelopeCase` to `Envelope`.
 ///
 /// This allows creating an envelope directly from an envelope case variant.
 impl From<EnvelopeCase> for Envelope {
-    fn from(case: EnvelopeCase) -> Self {
-        Self(RefCounted::new(case))
-    }
+    fn from(case: EnvelopeCase) -> Self { Self(RefCounted::new(case)) }
 }
 
 /// Conversion from `&Envelope` to `Envelope`.
 ///
-/// This creates a clone of the envelope. Since envelopes use reference counting,
-/// this is a relatively inexpensive operation.
+/// This creates a clone of the envelope. Since envelopes use reference
+/// counting, this is a relatively inexpensive operation.
 impl From<&Envelope> for Envelope {
-    fn from(envelope: &Envelope) -> Self {
-        envelope.clone()
-    }
+    fn from(envelope: &Envelope) -> Self { envelope.clone() }
 }
 
 /// The core structural variants of a Gordian Envelope.
 ///
-/// Each variant of this enum represents a different structural form that an envelope
-/// can take, as defined in the Gordian Envelope IETF Internet Draft. The different
-/// cases provide different capabilities and serve different purposes in the envelope
-/// ecosystem.
+/// Each variant of this enum represents a different structural form that an
+/// envelope can take, as defined in the Gordian Envelope IETF Internet Draft.
+/// The different cases provide different capabilities and serve different
+/// purposes in the envelope ecosystem.
 ///
-/// The `EnvelopeCase` is the internal representation of an envelope's structure.
-/// While each case has unique properties, they all maintain a digest that ensures
-/// the integrity of the envelope.
+/// The `EnvelopeCase` is the internal representation of an envelope's
+/// structure. While each case has unique properties, they all maintain a digest
+/// that ensures the integrity of the envelope.
 #[derive(Debug)]
 pub enum EnvelopeCase {
     /// Represents an envelope with a subject and one or more assertions.
@@ -144,10 +145,11 @@ pub enum EnvelopeCase {
     /// Represents an envelope that wraps another envelope.
     ///
     /// Wrapping provides a way to encapsulate an entire envelope as the subject
-    /// of another envelope, enabling hierarchical structures and metadata attachment.
+    /// of another envelope, enabling hierarchical structures and metadata
+    /// attachment.
     ///
-    /// The digest of a wrapped envelope is derived from the digest of the envelope
-    /// it wraps.
+    /// The digest of a wrapped envelope is derived from the digest of the
+    /// envelope it wraps.
     Wrapped {
         /// The envelope being wrapped
         envelope: Envelope,
@@ -159,7 +161,8 @@ pub enum EnvelopeCase {
     ///
     /// An assertion is a statement about a subject, consisting of a predicate
     /// (what is being asserted) and an object (the value of the assertion).
-    /// Assertions are attached to envelope subjects to form semantic statements.
+    /// Assertions are attached to envelope subjects to form semantic
+    /// statements.
     ///
     /// For example, in the statement "Alice hasEmail alice@example.com":
     /// - The subject is "Alice"
@@ -170,30 +173,35 @@ pub enum EnvelopeCase {
     /// Represents an envelope that has been elided, leaving only its digest.
     ///
     /// Elision is a key privacy feature of Gordian Envelope, allowing parts of
-    /// an envelope to be removed while maintaining the integrity of the digest tree.
-    /// This enables selective disclosure of information.
+    /// an envelope to be removed while maintaining the integrity of the digest
+    /// tree. This enables selective disclosure of information.
     Elided(Digest),
 
-    /// Represents a value from a namespace of unsigned integers used for ontological concepts.
+    /// Represents a value from a namespace of unsigned integers used for
+    /// ontological concepts.
     ///
-    /// Known Values are 64-bit unsigned integers used to represent stand-alone ontological
-    /// concepts like relationships (`isA`, `containedIn`), classes (`Seed`, `PrivateKey`),
-    /// or enumerated values (`MainNet`, `OK`). They provide a compact, deterministic
-    /// alternative to URIs for representing common predicates and values.
+    /// Known Values are 64-bit unsigned integers used to represent stand-alone
+    /// ontological concepts like relationships (`isA`, `containedIn`),
+    /// classes (`Seed`, `PrivateKey`), or enumerated values (`MainNet`,
+    /// `OK`). They provide a compact, deterministic alternative to URIs for
+    /// representing common predicates and values.
     ///
-    /// Using Known Values instead of strings for common predicates offers several advantages:
+    /// Using Known Values instead of strings for common predicates offers
+    /// several advantages:
     /// - More compact representation (integers vs. long strings/URIs)
     /// - Standardized semantics across implementations
     /// - Deterministic encoding for cryptographic operations
     /// - Resistance to manipulation attacks that target string representations
     ///
-    /// Known Values are displayed with single quotes, e.g., `'isA'` or by their numeric
-    /// value like `'1'` (when no name is assigned).
+    /// Known Values are displayed with single quotes, e.g., `'isA'` or by their
+    /// numeric value like `'1'` (when no name is assigned).
     ///
-    /// This variant is only available when the `known_value` feature is enabled.
+    /// This variant is only available when the `known_value` feature is
+    /// enabled.
     #[cfg(feature = "known_value")]
     KnownValue {
-        /// The Known Value instance containing the integer value and optional name
+        /// The Known Value instance containing the integer value and optional
+        /// name
         value: KnownValue,
         /// The digest of the known value
         digest: Digest,
@@ -202,8 +210,9 @@ pub enum EnvelopeCase {
     /// Represents an envelope that has been encrypted.
     ///
     /// Encryption is a privacy feature that allows parts of an envelope to be
-    /// encrypted while maintaining the integrity of the digest tree. The encrypted
-    /// content can only be accessed by those with the appropriate key.
+    /// encrypted while maintaining the integrity of the digest tree. The
+    /// encrypted content can only be accessed by those with the appropriate
+    /// key.
     ///
     /// This variant is only available when the `encrypt` feature is enabled.
     #[cfg(feature = "encrypt")]
@@ -213,133 +222,12 @@ pub enum EnvelopeCase {
     ///
     /// Compression reduces the size of an envelope while maintaining its full
     /// content and digest integrity. Unlike elision or encryption, compression
-    /// doesn't restrict access to the content, but simply makes it more compact.
+    /// doesn't restrict access to the content, but simply makes it more
+    /// compact.
     ///
     /// This variant is only available when the `compress` feature is enabled.
     #[cfg(feature = "compress")]
     Compressed(Compressed),
-}
-
-impl Envelope {
-    pub fn r#false() -> Self {
-        Self::new_leaf(false)
-    }
-
-    pub fn r#true() -> Self {
-        Self::new_leaf(true)
-    }
-
-    pub fn is_false(&self) -> bool {
-        self.extract_subject().ok() == Some(false)
-    }
-
-    pub fn is_true(&self) -> bool {
-        self.extract_subject().ok() == Some(true)
-    }
-
-    pub fn is_bool(&self) -> bool {
-        matches!(self.extract_subject(), Ok(dcbor::Simple::True | dcbor::Simple::False))
-    }
-
-    pub fn is_null(&self) -> bool {
-        self.extract_subject().ok() == Some(dcbor::Simple::Null)
-    }
-
-    pub fn null() -> Self {
-        Self::new_leaf(dcbor::Simple::Null)
-    }
-}
-
-#[cfg(feature = "known_value")]
-impl Envelope {
-    pub fn unit() -> Self {
-        Self::new_leaf(known_values::UNIT)
-    }
-
-    pub fn is_subject_unit(&self) -> bool {
-        self.extract_subject().ok() == Some(known_values::UNIT)
-    }
-}
-
-#[cfg(feature = "known_value")]
-impl Envelope {
-    /// Sets the position (index) of the envelope by adding or replacing a
-    /// `known_values::POSITION` assertion.
-    ///
-    /// If there is more than one existing `POSITION` assertion, returns an
-    /// `InvalidFormat` error. If a single `POSITION` assertion exists, it is
-    /// removed before adding the new one. Returns the modified `Envelope` with
-    /// the updated position.
-    ///
-    /// # Arguments
-    ///
-    /// * `position` - The new position value to set.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if there is not exactly one `POSITION` assertion in the
-    /// envelope.
-    pub fn set_position(&mut self, position: usize) -> Result<Self> {
-        // If there is more than one known_values::POSITION assertion, return an error.
-        let position_assertions = self.assertions_with_predicate(known_values::POSITION);
-        if position_assertions.len() > 1 {
-            bail!(Error::InvalidFormat);
-        }
-        // If there is a single known_values::POSITION assertion, remove it.
-        let mut e = if let Some(position_assertion) = position_assertions.first() {
-            self.remove_assertion(position_assertion.clone())
-        } else {
-            self.clone()
-        };
-        // Add a new known_values::POSITION assertion with the given position.
-        e = e.add_assertion(known_values::POSITION, position);
-        // Return the modified envelope.
-        Ok(e)
-    }
-
-    /// Retrieves the position value from the envelope's
-    /// `known_values::POSITION` assertion.
-    ///
-    /// Searches for the `POSITION` assertion and extracts its value as a
-    /// `usize`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the assertion is missing or if the value cannot be
-    /// extracted as a `usize`.
-    pub fn position(&self) -> Result<usize> {
-        // Find the known_values::POSITION assertion in the envelope.
-        let position_envelope = self.object_for_predicate(known_values::POSITION)?;
-        // Try to extract the position value from the assertion.
-        let position = position_envelope.extract_subject::<usize>()?;
-        // Return the position value.
-        Ok(position)
-    }
-
-    /// Removes the `known_values::POSITION` assertion from the envelope.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if there is more than one `POSITION` assertion in the
-    /// envelope.
-    ///
-    /// If there is a single `POSITION` assertion, it is removed and the
-    /// modified envelope is returned. If there are no `POSITION` assertions,
-    /// the original envelope is returned.
-    pub fn remove_position(&self) -> Result<Self> {
-        // Find the known_values::POSITION assertion in the envelope.
-        let position_assertions = self.assertions_with_predicate(known_values::POSITION);
-        // If there is more than one known_values::POSITION assertion, return an error.
-        if position_assertions.len() > 1 {
-            bail!(Error::InvalidFormat);
-        }
-        // If there is a single known_values::POSITION assertion, remove it.
-        if let Some(position_assertion) = position_assertions.first() {
-            Ok(self.remove_assertion(position_assertion.clone()))
-        } else {
-            Ok(self.clone())
-        }
-    }
 }
 
 /// Support for basic envelope creation.
@@ -362,7 +250,9 @@ impl Envelope {
     /// can be any instance that implements ``EnvelopeEncodable``.
     ///
     /// If `subject` is `None`, returns `None`.
-    pub fn new_or_none(subject: Option<impl EnvelopeEncodable>) -> Option<Self> {
+    pub fn new_or_none(
+        subject: Option<impl EnvelopeEncodable>,
+    ) -> Option<Self> {
         subject.map(Self::new)
     }
 
@@ -370,7 +260,7 @@ impl Envelope {
     /// each of which can be any instance that implements ``EnvelopeEncodable``.
     pub fn new_assertion(
         predicate: impl EnvelopeEncodable,
-        object: impl EnvelopeEncodable
+        object: impl EnvelopeEncodable,
     ) -> Self {
         Self::new_with_assertion(Assertion::new(predicate, object))
     }
@@ -380,19 +270,27 @@ impl Envelope {
 impl Envelope {
     pub(crate) fn new_with_unchecked_assertions(
         subject: Self,
-        unchecked_assertions: Vec<Self>
+        unchecked_assertions: Vec<Self>,
     ) -> Self {
         assert!(!unchecked_assertions.is_empty());
         let mut sorted_assertions = unchecked_assertions;
         sorted_assertions.sort_by(|a, b| a.digest().cmp(&b.digest()));
         let mut digests = vec![subject.digest().into_owned()];
-        digests.extend(sorted_assertions.iter().map(|a| a.digest().into_owned()));
+        digests
+            .extend(sorted_assertions.iter().map(|a| a.digest().into_owned()));
         let digest = Digest::from_digests(&digests);
-        (EnvelopeCase::Node { subject, assertions: sorted_assertions, digest }).into()
+        (EnvelopeCase::Node { subject, assertions: sorted_assertions, digest })
+            .into()
     }
 
-    pub(crate) fn new_with_assertions(subject: Self, assertions: Vec<Self>) -> Result<Self> {
-        if !assertions.iter().all(|a| (a.is_subject_assertion() || a.is_subject_obscured())) {
+    pub(crate) fn new_with_assertions(
+        subject: Self,
+        assertions: Vec<Self>,
+    ) -> Result<Self> {
+        if !assertions
+            .iter()
+            .all(|a| (a.is_subject_assertion() || a.is_subject_obscured()))
+        {
             bail!(Error::InvalidFormat);
         }
         Ok(Self::new_with_unchecked_assertions(subject, assertions))
@@ -409,7 +307,9 @@ impl Envelope {
     }
 
     #[cfg(feature = "encrypt")]
-    pub(crate) fn new_with_encrypted(encrypted_message: EncryptedMessage) -> Result<Self> {
+    pub(crate) fn new_with_encrypted(
+        encrypted_message: EncryptedMessage,
+    ) -> Result<Self> {
         if !encrypted_message.has_digest() {
             bail!(Error::MissingDigest);
         }
@@ -442,12 +342,13 @@ impl Envelope {
 
 #[cfg(test)]
 mod tests {
-    use bc_components::DigestProvider;
     #[cfg(feature = "compress")]
     use bc_components::Compressed;
-    use crate::{ Envelope, Assertion };
+    use bc_components::DigestProvider;
+
     #[cfg(feature = "known_value")]
     use crate::extension::KnownValue;
+    use crate::{Assertion, Envelope};
 
     #[test]
     fn test_any_envelope() {
