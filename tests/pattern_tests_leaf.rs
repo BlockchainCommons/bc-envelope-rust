@@ -200,3 +200,60 @@ fn test_known_value_pattern() {
     // Test with unknown name should not match
     assert!(!Pattern::known_value_named("unknown_name").matches(&envelope));
 }
+
+#[cfg(feature = "known_value")]
+#[test]
+fn test_known_value_regex_pattern() {
+    use regex::Regex;
+
+    let value = known_values::DATE;
+    let envelope =
+        Envelope::new(value.clone()).add_assertion("meaning", "timestamp");
+
+    // Test regex that matches "date" - Pattern should match
+    let regex = Regex::new(r"^da.*").unwrap();
+    assert!(Pattern::known_value_regex(regex).matches(&envelope));
+
+    // Test regex that matches names ending with "te" - Pattern should match
+    let regex = Regex::new(r".*te$").unwrap();
+    assert!(Pattern::known_value_regex(regex).matches(&envelope));
+
+    // Test case-insensitive regex - Pattern should match
+    let regex = Regex::new(r"(?i)^DATE$").unwrap();
+    assert!(Pattern::known_value_regex(regex).matches(&envelope));
+
+    // Test regex that doesn't match - Pattern should not match
+    let regex = Regex::new(r"^lang.*").unwrap();
+    assert!(!Pattern::known_value_regex(regex).matches(&envelope));
+
+    // Test with a different known value
+    let language_value = known_values::LANGUAGE;
+    let language_envelope = Envelope::new(language_value.clone());
+
+    // This regex should match "language"
+    let regex = Regex::new(r"lang.*").unwrap();
+    assert!(Pattern::known_value_regex(regex).matches(&language_envelope));
+
+    // This regex should not match "language"
+    let regex = Regex::new(r"^da.*").unwrap();
+    assert!(!Pattern::known_value_regex(regex).matches(&language_envelope));
+
+    // Test with non-known-value envelope - Pattern should not match
+    let text_envelope = Envelope::new("test");
+    let regex = Regex::new(r".*").unwrap();
+    assert!(!Pattern::known_value_regex(regex).matches(&text_envelope));
+
+    // Test regex pattern in sequence patterns
+    let regex = Regex::new(r".*te$").unwrap();
+    let paths = Pattern::sequence(vec![
+        Pattern::known_value_regex(regex),
+        Pattern::subject(),
+    ])
+    .paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        813f39cd 'date' [ "meaning": "timestamp" ]
+            2e40139b 'date'
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+}

@@ -16,6 +16,8 @@ pub enum KnownValuePattern {
     KnownValue(KnownValue),
     /// Matches the name of a known value.
     Named(String),
+    /// Matches the regex for a known value name.
+    Regex(regex::Regex),
 }
 
 #[cfg(feature = "known_value")]
@@ -31,6 +33,12 @@ impl KnownValuePattern {
     /// Creates a new `KnownValuePattern` that matches a known value by name.
     pub fn named(name: impl Into<String>) -> Self {
         KnownValuePattern::Named(name.into())
+    }
+
+    /// Creates a new `KnownValuePattern` that matches the regex for a known
+    /// value name.
+    pub fn regex(regex: regex::Regex) -> Self {
+        KnownValuePattern::Regex(regex)
     }
 }
 
@@ -65,6 +73,14 @@ impl Matcher for KnownValuePattern {
                         }
                     } else {
                         // Registry not initialized, no match
+                        vec![]
+                    }
+                }
+                KnownValuePattern::Regex(regex) => {
+                    // Check if the known value's name matches the regex
+                    if regex.is_match(&value.name()) {
+                        vec![vec![envelope.clone()]]
+                    } else {
                         vec![]
                     }
                 }
@@ -135,6 +151,38 @@ mod tests {
         // Test with non-known-value envelope
         let text_envelope = Envelope::new("test");
         let pattern = KnownValuePattern::named("date");
+        let paths = pattern.paths(&text_envelope);
+        assert!(paths.is_empty());
+    }
+
+    #[test]
+    fn test_known_value_pattern_regex() {
+        // Test regex that matches "date"
+        let value = known_values::DATE;
+        let envelope = Envelope::new(value.clone());
+        let regex = regex::Regex::new(r"^da.*").unwrap();
+        let pattern = KnownValuePattern::regex(regex);
+        let paths = pattern.paths(&envelope);
+        assert_eq!(paths.len(), 1);
+        assert_eq!(paths[0], vec![envelope.clone()]);
+
+        // Test regex that matches names ending with "te"
+        let regex = regex::Regex::new(r".*te$").unwrap();
+        let pattern = KnownValuePattern::regex(regex);
+        let paths = pattern.paths(&envelope);
+        assert_eq!(paths.len(), 1);
+        assert_eq!(paths[0], vec![envelope.clone()]);
+
+        // Test regex that doesn't match
+        let regex = regex::Regex::new(r"^lang.*").unwrap();
+        let pattern = KnownValuePattern::regex(regex);
+        let paths = pattern.paths(&envelope);
+        assert!(paths.is_empty());
+
+        // Test with non-known-value envelope
+        let text_envelope = Envelope::new("test");
+        let regex = regex::Regex::new(r".*").unwrap();
+        let pattern = KnownValuePattern::regex(regex);
         let paths = pattern.paths(&text_envelope);
         assert!(paths.is_empty());
     }

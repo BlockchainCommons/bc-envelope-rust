@@ -122,6 +122,10 @@ impl Pattern {
     pub fn known_value_named<T: Into<String>>(name: T) -> Self {
         Pattern::Leaf(LeafPattern::KnownValue(KnownValuePattern::named(name)))
     }
+
+    pub fn known_value_regex(regex: regex::Regex) -> Self {
+        Pattern::Leaf(LeafPattern::KnownValue(KnownValuePattern::regex(regex)))
+    }
 }
 
 impl Pattern {
