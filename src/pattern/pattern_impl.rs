@@ -1,3 +1,8 @@
+#[cfg(feature = "known_value")]
+use known_values::KnownValue;
+
+#[cfg(feature = "known_value")]
+use super::leaf::KnownValuePattern;
 use super::{
     Matcher, Path,
     leaf::{BoolPattern, LeafPattern, NumberPattern, TextPattern},
@@ -99,6 +104,23 @@ impl Pattern {
 
     pub fn number_nan() -> Self {
         Pattern::Leaf(LeafPattern::Number(NumberPattern::nan()))
+    }
+}
+
+#[cfg(feature = "known_value")]
+impl Pattern {
+    pub fn any_known_value() -> Self {
+        Pattern::Leaf(LeafPattern::KnownValue(KnownValuePattern::any()))
+    }
+
+    pub fn known_value(value: KnownValue) -> Self {
+        Pattern::Leaf(LeafPattern::KnownValue(KnownValuePattern::known_value(
+            value,
+        )))
+    }
+
+    pub fn known_value_named<T: Into<String>>(name: T) -> Self {
+        Pattern::Leaf(LeafPattern::KnownValue(KnownValuePattern::named(name)))
     }
 }
 

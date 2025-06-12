@@ -139,3 +139,64 @@ fn test_text_pattern() {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
+
+#[cfg(feature = "known_value")]
+#[test]
+fn test_known_value_pattern() {
+    use known_values;
+
+    // Does not match non-known-value subjects.
+    let envelope = Envelope::new("test");
+    assert!(!Pattern::any_known_value().matches(&envelope));
+    assert!(!Pattern::known_value(known_values::DATE).matches(&envelope));
+    assert!(!Pattern::known_value_named("date").matches(&envelope));
+
+    // Matches a bare subject that is a known value.
+    let envelope = Envelope::new(known_values::DATE);
+    assert!(Pattern::any_known_value().matches(&envelope));
+    assert!(Pattern::known_value(known_values::DATE).matches(&envelope));
+    assert!(Pattern::known_value_named("date").matches(&envelope));
+    assert!(!Pattern::known_value(known_values::LANGUAGE).matches(&envelope));
+    assert!(!Pattern::known_value_named("language").matches(&envelope));
+
+    // Matches a subject that is a known value with an assertion.
+    let envelope = envelope.add_assertion("meaning", "timestamp");
+    assert!(Pattern::any_known_value().matches(&envelope));
+    assert!(Pattern::known_value(known_values::DATE).matches(&envelope));
+    assert!(Pattern::known_value_named("date").matches(&envelope));
+    assert!(!Pattern::known_value(known_values::LANGUAGE).matches(&envelope));
+    assert!(!Pattern::known_value_named("language").matches(&envelope));
+
+    // The matched paths include the assertion. In other words, the
+    // path just includes the envelope itself as its only element.
+    let paths = Pattern::any_known_value().paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        813f39cd 'date' [ "meaning": "timestamp" ]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Test matching by name
+    let paths = Pattern::known_value_named("date").paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        813f39cd 'date' [ "meaning": "timestamp" ]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Matching a known value and the subject in a sequence returns a path
+    // where the first element is the original envelope and the second
+    // element is the subject.
+    let paths =
+        Pattern::sequence(vec![Pattern::any_known_value(), Pattern::subject()])
+            .paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        813f39cd 'date' [ "meaning": "timestamp" ]
+            2e40139b 'date'
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Test with unknown name should not match
+    assert!(!Pattern::known_value_named("unknown_name").matches(&envelope));
+}
