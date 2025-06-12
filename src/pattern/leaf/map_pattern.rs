@@ -20,13 +20,13 @@ impl MapPattern {
 
     /// Creates a new `MapPattern` that matches maps with a specific count of
     /// entries.
-    pub fn count(range: RangeInclusive<usize>) -> Self {
+    pub fn range_count(range: RangeInclusive<usize>) -> Self {
         MapPattern::Count(range)
     }
 
     /// Creates a new `MapPattern` that matches maps with exactly the specified
     /// count of entries.
-    pub fn exact_count(count: usize) -> Self {
+    pub fn count(count: usize) -> Self {
         MapPattern::Count(count..=count)
     }
 }
@@ -85,17 +85,17 @@ mod tests {
         let envelope = Envelope::new(cbor_map);
 
         // Test exact count
-        let pattern = MapPattern::exact_count(2);
+        let pattern = MapPattern::count(2);
         let paths = pattern.paths(&envelope);
         assert_eq!(paths.len(), 1);
 
         // Test count range
-        let pattern = MapPattern::count(1..=3);
+        let pattern = MapPattern::range_count(1..=3);
         let paths = pattern.paths(&envelope);
         assert_eq!(paths.len(), 1);
 
         // Test count mismatch
-        let pattern = MapPattern::exact_count(5);
+        let pattern = MapPattern::count(5);
         let paths = pattern.paths(&envelope);
         assert!(paths.is_empty());
     }

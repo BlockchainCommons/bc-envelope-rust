@@ -31,7 +31,7 @@ leaf/
 - [x] leaf_pattern.rs
   - Aggregates all leaf patterns
 - [x] array_pattern.rs
-- [ ] byte_string_pattern.rs
+- [x] byte_string_pattern.rs
 - [x] cbor_pattern.rs
 - [x] known_value_pattern.rs
 - [ ] map_pattern.rs

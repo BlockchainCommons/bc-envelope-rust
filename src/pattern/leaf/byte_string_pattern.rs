@@ -10,6 +10,8 @@ pub enum ByteStringPattern {
     Any,
     /// Matches the specific byte string.
     Exact(Vec<u8>),
+    /// Matches the binary regular expression for a byte string.
+    BinaryRegex(regex::bytes::Regex),
 }
 
 impl ByteStringPattern {
@@ -18,6 +20,12 @@ impl ByteStringPattern {
 
     /// Creates a new `ByteStringPattern` that matches a specific byte string.
     pub fn exact(value: Vec<u8>) -> Self { ByteStringPattern::Exact(value) }
+
+    /// Creates a new `ByteStringPattern` that matches the binary regex for a
+    /// byte string.
+    pub fn binary_regex(regex: regex::bytes::Regex) -> Self {
+        ByteStringPattern::BinaryRegex(regex)
+    }
 }
 
 impl Matcher for ByteStringPattern {
@@ -27,6 +35,13 @@ impl Matcher for ByteStringPattern {
                 ByteStringPattern::Any => vec![vec![envelope.clone()]],
                 ByteStringPattern::Exact(value) => {
                     if &bytes == value {
+                        vec![vec![envelope.clone()]]
+                    } else {
+                        vec![]
+                    }
+                }
+                ByteStringPattern::BinaryRegex(regex) => {
+                    if regex.is_match(&bytes) {
                         vec![vec![envelope.clone()]]
                     } else {
                         vec![]
@@ -74,6 +89,32 @@ mod tests {
         let different_bytes = vec![5, 6, 7, 8];
         let pattern = ByteStringPattern::exact(different_bytes);
         let paths = pattern.paths(&envelope);
+        assert!(paths.is_empty());
+    }
+
+    #[test]
+    fn test_byte_string_pattern_binary_regex() {
+        let bytes = vec![0x48, 0x65, 0x6c, 0x6c, 0x6f]; // "Hello"
+        let envelope = Envelope::new(CBOR::to_byte_string(bytes.clone()));
+
+        // Test matching regex
+        let regex = regex::bytes::Regex::new(r"^He.*o$").unwrap();
+        let pattern = ByteStringPattern::binary_regex(regex);
+        let paths = pattern.paths(&envelope);
+        assert_eq!(paths.len(), 1);
+        assert_eq!(paths[0], vec![envelope.clone()]);
+
+        // Test non-matching regex
+        let regex = regex::bytes::Regex::new(r"^World").unwrap();
+        let pattern = ByteStringPattern::binary_regex(regex);
+        let paths = pattern.paths(&envelope);
+        assert!(paths.is_empty());
+
+        // Test with non-byte-string envelope
+        let text_envelope = Envelope::new("test");
+        let regex = regex::bytes::Regex::new(r".*").unwrap();
+        let pattern = ByteStringPattern::binary_regex(regex);
+        let paths = pattern.paths(&text_envelope);
         assert!(paths.is_empty());
     }
 }

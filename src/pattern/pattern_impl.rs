@@ -5,7 +5,9 @@ use known_values::KnownValue;
 use super::leaf::KnownValuePattern;
 use super::{
     Matcher, Path,
-    leaf::{BoolPattern, LeafPattern, NumberPattern, TextPattern},
+    leaf::{
+        BoolPattern, ByteStringPattern, LeafPattern, NumberPattern, TextPattern,
+    },
     meta::{
         AndPattern, MetaPattern, OrPattern, SearchPattern, SequencePattern,
     },
@@ -104,6 +106,22 @@ impl Pattern {
 
     pub fn number_nan() -> Self {
         Pattern::Leaf(LeafPattern::Number(NumberPattern::nan()))
+    }
+}
+
+impl Pattern {
+    pub fn any_byte_string() -> Self {
+        Pattern::Leaf(LeafPattern::ByteString(ByteStringPattern::any()))
+    }
+
+    pub fn byte_string(value: Vec<u8>) -> Self {
+        Pattern::Leaf(LeafPattern::ByteString(ByteStringPattern::exact(value)))
+    }
+
+    pub fn byte_string_binary_regex(regex: regex::bytes::Regex) -> Self {
+        Pattern::Leaf(LeafPattern::ByteString(ByteStringPattern::binary_regex(
+            regex,
+        )))
     }
 }
 

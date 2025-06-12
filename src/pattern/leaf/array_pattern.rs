@@ -20,13 +20,13 @@ impl ArrayPattern {
 
     /// Creates a new `ArrayPattern` that matches arrays with a specific count
     /// of elements.
-    pub fn count(range: RangeInclusive<usize>) -> Self {
+    pub fn range_count(range: RangeInclusive<usize>) -> Self {
         ArrayPattern::Count(range)
     }
 
     /// Creates a new `ArrayPattern` that matches arrays with exactly the
     /// specified count of elements.
-    pub fn exact_count(count: usize) -> Self {
+    pub fn count(count: usize) -> Self {
         ArrayPattern::Count(count..=count)
     }
 }
@@ -80,17 +80,17 @@ mod tests {
         let envelope = Envelope::new(cbor_array);
 
         // Test exact count
-        let pattern = ArrayPattern::exact_count(3);
+        let pattern = ArrayPattern::count(3);
         let paths = pattern.paths(&envelope);
         assert_eq!(paths.len(), 1);
 
         // Test count range
-        let pattern = ArrayPattern::count(2..=4);
+        let pattern = ArrayPattern::range_count(2..=4);
         let paths = pattern.paths(&envelope);
         assert_eq!(paths.len(), 1);
 
         // Test count mismatch
-        let pattern = ArrayPattern::exact_count(5);
+        let pattern = ArrayPattern::count(5);
         let paths = pattern.paths(&envelope);
         assert!(paths.is_empty());
     }

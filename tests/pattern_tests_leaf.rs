@@ -257,3 +257,95 @@ fn test_known_value_regex_pattern() {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
+
+#[test]
+fn test_byte_string_pattern() {
+    use dcbor::prelude::*;
+
+    // Does not match non-byte-string subjects.
+    let envelope = Envelope::new("string");
+    assert!(!Pattern::any_byte_string().matches(&envelope));
+    assert!(!Pattern::byte_string(vec![1, 2, 3]).matches(&envelope));
+
+    // Test with a byte string "Hello"
+    let hello_bytes = vec![0x48, 0x65, 0x6c, 0x6c, 0x6f]; // "Hello"
+    let envelope = Envelope::new(CBOR::to_byte_string(hello_bytes.clone()));
+
+    // Matches any byte string
+    assert!(Pattern::any_byte_string().matches(&envelope));
+
+    // Matches exact byte string
+    assert!(Pattern::byte_string(hello_bytes.clone()).matches(&envelope));
+    assert!(!Pattern::byte_string(vec![1, 2, 3]).matches(&envelope));
+
+    // Matches binary regex
+    let regex = regex::bytes::Regex::new(r"^He.*o$").unwrap();
+    assert!(Pattern::byte_string_binary_regex(regex).matches(&envelope));
+
+    let non_matching_regex = regex::bytes::Regex::new(r"^World").unwrap();
+    assert!(
+        !Pattern::byte_string_binary_regex(non_matching_regex)
+            .matches(&envelope)
+    );
+
+    // Matches a subject that is a byte string with an assertion.
+    let envelope = envelope.add_assertion("type", "greeting");
+    assert!(Pattern::any_byte_string().matches(&envelope));
+    assert!(Pattern::byte_string(hello_bytes.clone()).matches(&envelope));
+
+    let regex = regex::bytes::Regex::new(r".*llo.*").unwrap();
+    assert!(Pattern::byte_string_binary_regex(regex).matches(&envelope));
+
+    // The matched paths include the assertion.
+    let paths = Pattern::any_byte_string().paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        19c2bef3 Bytes(5) [ "type": "greeting" ]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Matching a byte string and the subject in a sequence returns a path
+    // where the first element is the original envelope and the second
+    // element is the subject.
+    let paths =
+        Pattern::sequence(vec![Pattern::any_byte_string(), Pattern::subject()])
+            .paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        19c2bef3 Bytes(5) [ "type": "greeting" ]
+            3a91d2eb Bytes(5)
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Test with binary regex patterns
+    // IMPORTANT: Binary regex patterns must use the (?s-u) flags to work
+    // correctly with arbitrary bytes:
+    // - (?s) allows '.' to match newline characters (like 0x0a)
+    // - (?-u) disables unicode mode so '.' matches any byte, not just valid
+    //   UTF-8 sequences
+    let binary_data = vec![0x00, 0x01, 0xFF, 0xAB, 0xCD];
+    let binary_envelope =
+        Envelope::new(CBOR::to_byte_string(binary_data.clone()));
+
+    // Test pattern that matches any byte containing 0xFF
+    let regex = regex::bytes::Regex::new(r"(?s-u).*\xFF.*").unwrap();
+    assert!(Pattern::byte_string_binary_regex(regex).matches(&binary_envelope));
+
+    // Test pattern that matches specific sequence
+    let regex = regex::bytes::Regex::new(r"(?s-u)\x00\x01").unwrap();
+    assert!(Pattern::byte_string_binary_regex(regex).matches(&binary_envelope));
+
+    // Test pattern that matches any 5 bytes (should match our binary data)
+    let regex = regex::bytes::Regex::new(r"(?s-u)^.{5}$").unwrap();
+    assert!(Pattern::byte_string_binary_regex(regex).matches(&binary_envelope));
+
+    // Test pattern that doesn't match (starts with 0xFF)
+    let regex = regex::bytes::Regex::new(r"(?s-u)^\xFF").unwrap();
+    assert!(
+        !Pattern::byte_string_binary_regex(regex).matches(&binary_envelope)
+    );
+
+    // Test pattern matching high bit bytes
+    let regex = regex::bytes::Regex::new(r"(?s-u)[\x80-\xFF]").unwrap();
+    assert!(Pattern::byte_string_binary_regex(regex).matches(&binary_envelope));
+}
