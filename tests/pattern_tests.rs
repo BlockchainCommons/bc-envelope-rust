@@ -423,18 +423,7 @@ fn test_search_pattern_nested() {
     // Search for all text should find text at all levels
     let paths = Pattern::search(Pattern::any_text()).paths(&envelope);
 
-    // Should find:
-    // 0. "Alice" (root envelope matches)
-    // 1. "Alice" (subject)
-    // 2. "department" (predicate)
-    // 3. "Engineering" (object)
-    // 4. "knows" (predicate)
-    // 5. "Carol" envelope (object matches)
-    // 6. "Carol" (nested subject)
-    // 7. "title" (nested predicate)
-    // 8. "Engineer" (nested object)
     assert_eq!(paths.len(), 9);
-    // println!("{}", format_paths(&paths));
     #[rustfmt::skip]
     let expected = indoc! {r#"
         a69103e9 "Alice" [ "department": "Engineering", "knows": "Carol" [ "title": "Engineer" ] ]
