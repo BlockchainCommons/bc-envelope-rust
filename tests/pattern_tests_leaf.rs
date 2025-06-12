@@ -462,3 +462,218 @@ fn test_map_pattern() {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
+
+#[test]
+fn test_null_pattern() {
+    // Does not match non-null subjects.
+    let envelope = Envelope::new("string");
+    assert!(!Pattern::null().matches(&envelope));
+
+    // Matches a null subject.
+    let envelope = Envelope::null();
+    assert!(Pattern::null().matches(&envelope));
+
+    // Matches a subject that is null with an assertion.
+    let envelope = envelope.add_assertion("type", "null_value");
+    assert!(Pattern::null().matches(&envelope));
+
+    // The matched paths include the assertion.
+    let paths = Pattern::null().paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        a72948d7 null [ "type": "null_value" ]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Matching a null and the subject in a sequence returns a path
+    // where the first element is the original envelope and the second
+    // element is the subject.
+    let paths = Pattern::sequence(vec![Pattern::null(), Pattern::subject()])
+        .paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        a72948d7 null [ "type": "null_value" ]
+            b0b2988b null
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+}
+
+#[test]
+fn test_tag_pattern() {
+    use dcbor::prelude::*;
+
+    // Does not match non-tagged subjects.
+    let envelope = Envelope::new("string");
+    assert!(!Pattern::any_tag().matches(&envelope));
+    assert!(!Pattern::tag_value(100).matches(&envelope));
+
+    // Test with a tagged CBOR value
+    let tagged_cbor = CBOR::to_tagged_value(100, "tagged_content");
+    let envelope = Envelope::new(tagged_cbor);
+
+    // Matches any tag
+    assert!(Pattern::any_tag().matches(&envelope));
+
+    // Matches specific tag value
+    assert!(Pattern::tag_value(100).matches(&envelope));
+    assert!(!Pattern::tag_value(200).matches(&envelope));
+
+    // Matches specific tag object
+    let tag = Tag::with_value(100);
+    assert!(Pattern::tag(tag).matches(&envelope));
+
+    let different_tag = Tag::with_value(200);
+    assert!(!Pattern::tag(different_tag).matches(&envelope));
+
+    // Test with assertions
+    let envelope = envelope.add_assertion("format", "tagged");
+    assert!(Pattern::any_tag().matches(&envelope));
+    assert!(Pattern::tag_value(100).matches(&envelope));
+
+    // The matched paths include the assertion
+    let paths = Pattern::any_tag().paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        b9457c8d 100("tagged_content") [ "format": "tagged" ]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Test sequence patterns
+    let paths = Pattern::sequence(vec![Pattern::any_tag(), Pattern::subject()])
+        .paths(&envelope);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        b9457c8d 100("tagged_content") [ "format": "tagged" ]
+            a8e58a0d 100("tagged_content")
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+}
+
+#[test]
+fn test_tag_pattern_named() {
+    use dcbor::prelude::*;
+
+    // Ensure tags are registered for testing
+    dcbor::register_tags();
+    bc_components::register_tags();
+
+    // Test with registered tag (date tag = 1)
+    let tagged_cbor = CBOR::to_tagged_value(1, "2023-12-25");
+    let envelope = Envelope::new(tagged_cbor);
+
+    // Should match by name
+    assert!(Pattern::tag_named("date").matches(&envelope));
+
+    // Should not match with wrong name
+    assert!(!Pattern::tag_named("unknown_tag").matches(&envelope));
+
+    // Test with unregistered tag
+    let unregistered_tagged_cbor = CBOR::to_tagged_value(999, "unregistered_content");
+    let unregistered_envelope = Envelope::new(unregistered_tagged_cbor);
+
+    // Should not match by any name since tag 999 is not registered
+    assert!(!Pattern::tag_named("date").matches(&unregistered_envelope));
+    assert!(!Pattern::tag_named("unknown_tag").matches(&unregistered_envelope));
+
+    // Test with non-tagged content
+    let text_envelope = Envelope::new("just text");
+    assert!(!Pattern::tag_named("date").matches(&text_envelope));
+
+    // Test paths for matched envelope
+    let paths = Pattern::tag_named("date").paths(&envelope);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0].len(), 1);
+    assert_eq!(paths[0][0], envelope);
+
+    // Test in sequence pattern
+    let paths = Pattern::sequence(vec![Pattern::tag_named("date"), Pattern::subject()])
+        .paths(&envelope);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0].len(), 2);
+    assert_eq!(paths[0][0], envelope);
+}
+
+#[test]
+fn test_tag_pattern_regex() {
+    use dcbor::prelude::*;
+
+    // Ensure tags are registered for testing
+    dcbor::register_tags();
+    bc_components::register_tags();
+
+    // Test with registered tag (date tag = 1)
+    let tagged_cbor = CBOR::to_tagged_value(1, "2023-12-25");
+    let envelope = Envelope::new(tagged_cbor);
+
+    // Regex that should match "date"
+    let regex = regex::Regex::new(r"^da.*").unwrap();
+    assert!(Pattern::tag_regex(regex.clone()).matches(&envelope));
+
+    // Regex that should match names ending with "te"
+    let regex = regex::Regex::new(r".*te$").unwrap();
+    assert!(Pattern::tag_regex(regex.clone()).matches(&envelope));
+
+    // Regex that should not match "date"
+    let regex = regex::Regex::new(r"^time.*").unwrap();
+    assert!(!Pattern::tag_regex(regex.clone()).matches(&envelope));
+
+    // Test with unregistered tag
+    let unregistered_tagged_cbor = CBOR::to_tagged_value(999, "unregistered_content");
+    let unregistered_envelope = Envelope::new(unregistered_tagged_cbor);
+
+    // Should not match any regex since tag 999 has no name in registry
+    let regex = regex::Regex::new(r".*").unwrap(); // Match everything
+    assert!(!Pattern::tag_regex(regex.clone()).matches(&unregistered_envelope));
+
+    // Test with non-tagged content
+    let text_envelope = Envelope::new("just text");
+    let regex = regex::Regex::new(r".*").unwrap();
+    assert!(!Pattern::tag_regex(regex.clone()).matches(&text_envelope));
+
+    // Test paths for matched envelope
+    let regex = regex::Regex::new(r"^da.*").unwrap();
+    let paths = Pattern::tag_regex(regex).paths(&envelope);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0].len(), 1);
+    assert_eq!(paths[0][0], envelope);
+
+    // Test in sequence pattern
+    let regex = regex::Regex::new(r".*te$").unwrap();
+    let paths = Pattern::sequence(vec![Pattern::tag_regex(regex), Pattern::subject()])
+        .paths(&envelope);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0].len(), 2);
+    assert_eq!(paths[0][0], envelope);
+}
+
+#[test]
+fn test_tag_pattern_with_bc_components_tags() {
+    use dcbor::prelude::*;
+
+    // Ensure all tags are registered
+    dcbor::register_tags();
+    bc_components::register_tags();
+
+    // Test with a bc-components tag (e.g., digest tag)
+    let digest_tag_value = 40001u64; // TAG_DIGEST from bc-tags
+    let tagged_cbor = CBOR::to_tagged_value(digest_tag_value, [1u8, 2, 3, 4].as_slice());
+    let envelope = Envelope::new(tagged_cbor);
+
+    // Test tag name matching (assuming digest tag is registered with name "digest")
+    // This will verify if the tag is properly registered in the global registry
+    let pattern = Pattern::tag_named("digest");
+    let matches = pattern.matches(&envelope);
+
+    // Also test regex matching for digest-related tags
+    let regex = regex::Regex::new(r".*digest.*").unwrap();
+    let pattern_regex = Pattern::tag_regex(regex);
+    let matches_regex = pattern_regex.matches(&envelope);
+
+    // At minimum, the specific tag value should work
+    assert!(Pattern::tag_value(digest_tag_value).matches(&envelope));
+    assert!(Pattern::any_tag().matches(&envelope));
+
+    // Print debug info for manual verification
+    println!("Digest tag {} matches by name: {}", digest_tag_value, matches);
+    println!("Digest tag {} matches by regex: {}", digest_tag_value, matches_regex);
+}

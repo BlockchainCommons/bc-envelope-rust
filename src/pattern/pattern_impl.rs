@@ -7,7 +7,7 @@ use super::{
     Matcher, Path,
     leaf::{
         ArrayPattern, BoolPattern, ByteStringPattern, LeafPattern, MapPattern,
-        NumberPattern, TextPattern,
+        NullPattern, NumberPattern, TagPattern, TextPattern,
     },
     meta::{
         AndPattern, MetaPattern, OrPattern, SearchPattern, SequencePattern,
@@ -310,6 +310,34 @@ impl Pattern {
 
     pub fn map_count_range(range: std::ops::RangeInclusive<usize>) -> Self {
         Pattern::Leaf(LeafPattern::Map(MapPattern::range_count(range)))
+    }
+}
+
+impl Pattern {
+    pub fn null() -> Self {
+        Pattern::Leaf(LeafPattern::Null(NullPattern::any()))
+    }
+}
+
+impl Pattern {
+    pub fn any_tag() -> Self {
+        Pattern::Leaf(LeafPattern::Tag(TagPattern::any()))
+    }
+
+    pub fn tag(tag: dcbor::Tag) -> Self {
+        Pattern::Leaf(LeafPattern::Tag(TagPattern::tag(tag)))
+    }
+
+    pub fn tag_value(value: u64) -> Self {
+        Pattern::Leaf(LeafPattern::Tag(TagPattern::tag_value(value)))
+    }
+
+    pub fn tag_named(name: impl Into<String>) -> Self {
+        Pattern::Leaf(LeafPattern::Tag(TagPattern::named(name)))
+    }
+
+    pub fn tag_regex(regex: regex::Regex) -> Self {
+        Pattern::Leaf(LeafPattern::Tag(TagPattern::regex(regex)))
     }
 }
 
