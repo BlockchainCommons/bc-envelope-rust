@@ -5,6 +5,10 @@
 - "Obscured" in Envelope parlance means "elided, encrypted, or compressed," which are all transformations of a branch of the envelope tree that still preserve its digest. Look in the `tests` module for examples of how these types of envelopes are constructed and tested.
 - Note that in `pattern_tests.rs`, `format_paths()` prefixes each path elements with the first 8 hex digits of the digest of the envelope. This can be used as a prefix `DigestPattern::HexPrefix`.
 - Study `envelope.rs` and `queries.rs` to understand the Envelope API.
+- Make sure to add tests for each new pattern in `pattern_tests.rs`.
+- Ensure all crate tests pass. You can skip doc tests for now, so use `cargo test --all-targets` when you want to test the whole crate.
+- Use `cargo test --package bc-envelope --test pattern_tests` to run the tests for the `pattern` module specifically.
+- Make sure all clippy lints are also resolved.
 
 ## The `pattern` Module
 
