@@ -7,7 +7,7 @@ use super::matcher::Matcher;
 pub enum DigestPattern {
     /// Matches the exact digest.
     Digest(Digest),
-    /// Matches the hexadecimal prefix of a digest.
+    /// Matches the hexadecimal prefix of a digest (case insensitive).
     HexPrefix(String),
     /// Matches the binary regular expression for a digest.
     BinaryRegex(regex::bytes::Regex),

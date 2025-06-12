@@ -1,12 +1,12 @@
-## Task: Organize the pattern module
+## Task: Implementation of remaining patterns in the `structure` submodule
 
-- Currently all the files in the `pattern` module are at the top level.
-- Reorganize them into subdirectories based on their functionality as categorized below.
-- The goal is to improve the structure and maintainability of the codebase.
-- A number of the files are empty or disabled for compilation. Keep them in this state for later implementation.
-- Make sure all tests in `tests/pattern_tests.rs` still pass after the reorganization.
+- Implement `DigestPattern`, `NodePattern`, and `ObscuredPattern` in the `structure/` submodule.
+- Their current implementations must be considered partial and were written and disabled before the rest of the currently-working API. They may still be considered good starting points.
+- "Obscured" in Envelope parlance means "elided, encrypted, or compressed," which are all transformations of a branch of the envelope tree that still preserve its digest. Look in the `tests` module for examples of how these types of envelopes are constructed and tested.
+- Note that in `pattern_tests.rs`, `format_paths()` prefixes each path elements with the first 8 hex digits of the digest of the envelope. This can be used as a prefix `DigestPattern::HexPrefix`.
+- Study `envelope.rs` and `queries.rs` to understand the Envelope API.
 
-## Top-level
+## The `pattern` Module
 
 pattern/
 
@@ -14,19 +14,6 @@ pattern/
   - The main entry point for the pattern module, aggregating all patterns.
 - matcher.rs
   - The `Matcher` trait, which all patterns implement to provide matching functionality.
-
-## Meta-Patterns
-
-meta/
-
-- [x] meta_pattern.rs
-  - Aggregates all meta patterns
-- [ ] not_pattern.rs
-- [ ] repeat_pattern.rs
-- [x] and_pattern.rs
-- [x] or_pattern.rs
-- [x] search_pattern.rs
-- [x] sequence_pattern.rs
 
 ## Patterns dealing with Envelope Structure
 
@@ -42,6 +29,19 @@ structure/
 - [x] predicate_pattern.rs
 - [x] subject_pattern.rs
 - [x] wrapped_pattern.rs
+
+## Meta-Patterns
+
+meta/
+
+- [x] meta_pattern.rs
+  - Aggregates all meta patterns
+- [ ] not_pattern.rs
+- [ ] repeat_pattern.rs
+- [x] and_pattern.rs
+- [x] or_pattern.rs
+- [x] search_pattern.rs
+- [x] sequence_pattern.rs
 
 ## Patterns dealing with Leaf Node (CBOR) values
 
@@ -59,20 +59,3 @@ leaf/
 - [x] bool_pattern.rs
 - [x] number_pattern.rs
 - [x] text_pattern.rs
-
-### Final Status
-
-- [x] All pattern tests (12) continue to pass
-- [x] Project builds successfully in debug and release modes
-- [x] Fixed visibility warnings by changing aggregator enum visibility from pub(crate) to pub
-- [x] Build warnings resolved - only expected "unused code" warnings for new aggregator patterns remain
-- [x] Reorganization complete: patterns organized into structure/, leaf/, and meta/ subdirectories
-- [x] Individual pattern types marked as pub(crate) for internal module use
-- [x] Only Pattern, Matcher, and Path types remain public in main module API
-- [x] **MAJOR FIX**: Refactored main Pattern enum to use aggregator patterns consistently
-  - Pattern now uses Meta(MetaPattern), Structure(StructurePattern), Leaf(LeafPattern)
-  - Eliminated inconsistent direct pattern type usage
-  - Fixed recursive type issue by using Box<Pattern> in SearchPattern
-  - All Pattern construction methods now use aggregator patterns
-- [x] Unimplemented pattern files remain disabled as requested
-- [x] Unimplemented pattern files remain disabled as requested
