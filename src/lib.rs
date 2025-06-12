@@ -386,9 +386,11 @@ pub use format::{
 };
 
 pub mod extension;
+pub mod pattern;
 pub mod prelude;
 pub mod seal;
-pub mod pattern;
+
+pub use pattern::{Matcher, Path, Pattern};
 
 mod string_utils;
 

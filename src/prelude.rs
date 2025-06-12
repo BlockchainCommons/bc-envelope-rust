@@ -7,8 +7,9 @@ pub use crate::SignatureMetadata;
 pub use crate::{Attachable, Attachments};
 pub use crate::{
     DigestDisplayFormat, Envelope, EnvelopeEncodable, Error as EnvelopeError,
-    FormatContext, FormatContextOpt, MermaidFormatOpts, MermaidOrientation,
-    MermaidTheme, Result as EnvelopeResult, TreeFormatOpts,
+    FormatContext, FormatContextOpt, Matcher, MermaidFormatOpts,
+    MermaidOrientation, MermaidTheme, Path, Pattern, Result as EnvelopeResult,
+    TreeFormatOpts,
     elide::{self, ObscureAction},
     register_tags, register_tags_in,
     walk::EdgeType,
@@ -22,5 +23,3 @@ pub use crate::{
 };
 #[cfg(feature = "known_value")]
 pub use crate::{KnownValue, KnownValuesStore, known_values};
-
-pub use crate::pattern::*;
