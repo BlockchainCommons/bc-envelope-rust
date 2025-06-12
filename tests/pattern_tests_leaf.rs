@@ -349,3 +349,106 @@ fn test_byte_string_pattern() {
     let regex = regex::bytes::Regex::new(r"(?s-u)[\x80-\xFF]").unwrap();
     assert!(Pattern::byte_string_binary_regex(regex).matches(&binary_envelope));
 }
+
+#[test]
+fn test_array_pattern() {
+    use dcbor::prelude::*;
+
+    // Does not match non-array subjects.
+    let envelope = Envelope::new("string");
+    assert!(!Pattern::any_array().matches(&envelope));
+    assert!(!Pattern::array_count(3).matches(&envelope));
+
+    // Test with a CBOR array
+    let array_data = vec![1, 2, 3].to_cbor();
+    let envelope = Envelope::new(array_data);
+
+    // Matches any array
+    assert!(Pattern::any_array().matches(&envelope));
+
+    // Matches exact count
+    assert!(Pattern::array_count(3).matches(&envelope));
+    assert!(!Pattern::array_count(5).matches(&envelope));
+
+    // Matches count range
+    assert!(Pattern::array_count_range(2..=4).matches(&envelope));
+    assert!(!Pattern::array_count_range(5..=10).matches(&envelope));
+
+    // Test with assertions
+    let envelope = envelope.add_assertion("type", "list");
+    assert!(Pattern::any_array().matches(&envelope));
+    assert!(Pattern::array_count(3).matches(&envelope));
+
+    // The matched paths include the assertion
+    let paths = Pattern::any_array().paths(&envelope);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0], vec![envelope.clone()]);
+
+    // Test with empty array
+    let empty_array = Vec::<i32>::new().to_cbor();
+    let empty_envelope = Envelope::new(empty_array);
+    assert!(Pattern::any_array().matches(&empty_envelope));
+    assert!(Pattern::array_count(0).matches(&empty_envelope));
+    assert!(!Pattern::array_count(1).matches(&empty_envelope));
+
+    // Test sequence patterns
+    let paths =
+        Pattern::sequence(vec![Pattern::any_array(), Pattern::subject()])
+            .paths(&envelope);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0].len(), 2);
+    assert_eq!(paths[0][0], envelope);
+    assert_eq!(paths[0][1], envelope.subject());
+}
+
+#[test]
+fn test_map_pattern() {
+    use dcbor::prelude::*;
+
+    // Does not match non-map subjects.
+    let envelope = Envelope::new("string");
+    assert!(!Pattern::any_map().matches(&envelope));
+    assert!(!Pattern::map_count(2).matches(&envelope));
+
+    // Test with a CBOR map
+    let mut map = Map::new();
+    map.insert("key1", "value1");
+    map.insert("key2", "value2");
+    let envelope = Envelope::new(map);
+
+    // Matches any map
+    assert!(Pattern::any_map().matches(&envelope));
+
+    // Matches exact count
+    assert!(Pattern::map_count(2).matches(&envelope));
+    assert!(!Pattern::map_count(3).matches(&envelope));
+
+    // Matches count range
+    assert!(Pattern::map_count_range(1..=3).matches(&envelope));
+    assert!(!Pattern::map_count_range(5..=10).matches(&envelope));
+
+    // Test with assertions
+    let envelope = envelope.add_assertion("type", "dictionary");
+    assert!(Pattern::any_map().matches(&envelope));
+    assert!(Pattern::map_count(2).matches(&envelope));
+
+    // The matched paths include the assertion
+    let paths = Pattern::any_map().paths(&envelope);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0], vec![envelope.clone()]);
+
+    // Test with empty map
+    let empty_map = Map::new();
+    let empty_envelope = Envelope::new(empty_map);
+    assert!(Pattern::any_map().matches(&empty_envelope));
+    assert!(Pattern::map_count(0).matches(&empty_envelope));
+    assert!(!Pattern::map_count(1).matches(&empty_envelope));
+
+    // Test sequence patterns
+    let paths = Pattern::sequence(vec![Pattern::any_map(), Pattern::subject()])
+        .paths(&envelope);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0].len(), 2);
+    assert_eq!(paths[0][0], envelope);
+    assert_eq!(paths[0][1], envelope.subject());
+}

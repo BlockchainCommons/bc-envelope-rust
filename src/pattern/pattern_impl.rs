@@ -6,7 +6,8 @@ use super::leaf::KnownValuePattern;
 use super::{
     Matcher, Path,
     leaf::{
-        BoolPattern, ByteStringPattern, LeafPattern, NumberPattern, TextPattern,
+        ArrayPattern, BoolPattern, ByteStringPattern, LeafPattern, MapPattern,
+        NumberPattern, TextPattern,
     },
     meta::{
         AndPattern, MetaPattern, OrPattern, SearchPattern, SequencePattern,
@@ -281,6 +282,34 @@ impl Pattern {
 impl Pattern {
     pub fn search(pattern: Pattern) -> Self {
         Pattern::Meta(MetaPattern::search(SearchPattern::new(pattern)))
+    }
+}
+
+impl Pattern {
+    pub fn any_array() -> Self {
+        Pattern::Leaf(LeafPattern::Array(ArrayPattern::any()))
+    }
+
+    pub fn array_count(count: usize) -> Self {
+        Pattern::Leaf(LeafPattern::Array(ArrayPattern::count(count)))
+    }
+
+    pub fn array_count_range(range: std::ops::RangeInclusive<usize>) -> Self {
+        Pattern::Leaf(LeafPattern::Array(ArrayPattern::range_count(range)))
+    }
+}
+
+impl Pattern {
+    pub fn any_map() -> Self {
+        Pattern::Leaf(LeafPattern::Map(MapPattern::any()))
+    }
+
+    pub fn map_count(count: usize) -> Self {
+        Pattern::Leaf(LeafPattern::Map(MapPattern::count(count)))
+    }
+
+    pub fn map_count_range(range: std::ops::RangeInclusive<usize>) -> Self {
+        Pattern::Leaf(LeafPattern::Map(MapPattern::range_count(range)))
     }
 }
 

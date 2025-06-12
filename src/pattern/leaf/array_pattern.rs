@@ -26,9 +26,7 @@ impl ArrayPattern {
 
     /// Creates a new `ArrayPattern` that matches arrays with exactly the
     /// specified count of elements.
-    pub fn count(count: usize) -> Self {
-        ArrayPattern::Count(count..=count)
-    }
+    pub fn count(count: usize) -> Self { ArrayPattern::Count(count..=count) }
 }
 
 impl Matcher for ArrayPattern {

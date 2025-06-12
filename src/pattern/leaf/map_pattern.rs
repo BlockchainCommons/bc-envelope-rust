@@ -26,9 +26,7 @@ impl MapPattern {
 
     /// Creates a new `MapPattern` that matches maps with exactly the specified
     /// count of entries.
-    pub fn count(count: usize) -> Self {
-        MapPattern::Count(count..=count)
-    }
+    pub fn count(count: usize) -> Self { MapPattern::Count(count..=count) }
 }
 
 impl Matcher for MapPattern {
