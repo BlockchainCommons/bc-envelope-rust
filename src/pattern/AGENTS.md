@@ -25,9 +25,9 @@ structure/
 
 - [x] structure_pattern.rs
   - Aggregates all structure patterns
-- [ ] digest_pattern.rs
-- [ ] node_pattern.rs
-- [ ] obscured_pattern.rs
+- [x] digest_pattern.rs
+- [x] node_pattern.rs
+- [x] obscured_pattern.rs
 - [x] assertions_pattern.rs
 - [x] object_pattern.rs
 - [x] predicate_pattern.rs
