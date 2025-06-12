@@ -15,39 +15,45 @@ use crate::{
 /// The main pattern type used for matching envelopes.
 #[derive(Debug, Clone)]
 pub enum Pattern {
+    //
+    // Meta Patterns
+    //
+
     /// Matches any element.
     Any,
     /// Never matches any element.
     None,
-    /// Matches elements with a specific digest.
-    // Digest(DigestPattern),
-    /// Matches a node with specific properties.
-    // Node(NodePattern),
-    /// Matches a leaf with specific properties.
-    Leaf(LeafPattern),
-    /// Matches a known value.
-    // KnownValue(KnownValuePattern),
-    /// Matches a wrapped element.
-    Wrapped(WrappedPattern),
-    /// Matches an assertion element.
-    // Assertion,
-    /// Matches an obscured element.
-    // Obscured(ObscuredPattern),
     /// Matches an element that matches all conditions.
     And(AndPattern),
     /// Matches an element that matches any condition.
     Or(OrPattern),
     /// Matches a sequence of elements.
-    Assertion(AssertionsPattern),
-    /// Matches a sequence of elements.
     Sequence(SequencePattern),
+    /// Searches the entire envelope tree for matches.
+    Search(Box<SearchPattern>),
+    /// Matches an element with a specific cardinality.
+    //Repeat(RepeatPattern),
+
+    //
+    // Structure Patterns
+    //
+
+    /// Matches elements with a specific digest.
+    // Digest(DigestPattern),
+    /// Matches a node with specific properties.
+    // Node(NodePattern),
+    /// Matches an obscured element.
+    // Obscured(ObscuredPattern),
+    /// Matches an assertion element.
+    Assertion(AssertionsPattern),
+    /// Matches a wrapped element.
+    Wrapped(WrappedPattern),
     Subject(SubjectPattern),
     Predicate(PredicatePattern),
     Object(ObjectPattern),
-    /// Searches the entire envelope tree for matches.
-    Search(Box<SearchPattern>),
-    ///// Matches an element with a specific cardinality.
-    //// Repeat(RepeatPattern),
+
+    /// Matches a leaf with specific properties.
+    Leaf(LeafPattern),
 }
 
 impl Pattern {

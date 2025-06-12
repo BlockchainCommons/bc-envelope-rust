@@ -1,18 +1,18 @@
 // Leaf patterns - patterns dealing with CBOR leaf node values
 
-pub(crate) mod bool_pattern;
-pub(crate) mod leaf_pattern;
-pub(crate) mod number_pattern;
-pub(crate) mod text_pattern;
+mod bool_pattern;
+mod leaf_pattern;
+mod number_pattern;
+mod text_pattern;
 
 // Uncommented modules are not yet implemented
-// pub(crate) mod array_pattern;
-// pub(crate) mod byte_string_pattern;
-// pub(crate) mod cbor_pattern;
-// pub(crate) mod known_value_pattern;
-// pub(crate) mod map_pattern;
-// pub(crate) mod null_pattern;
-// pub(crate) mod tag_pattern;
+// mod array_pattern;
+// mod byte_string_pattern;
+// mod cbor_pattern;
+// mod known_value_pattern;
+// mod map_pattern;
+// mod null_pattern;
+// mod tag_pattern;
 
 pub(crate) use bool_pattern::BoolPattern;
 pub(crate) use leaf_pattern::LeafPattern;

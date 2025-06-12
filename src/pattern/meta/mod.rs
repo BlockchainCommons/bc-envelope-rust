@@ -1,13 +1,13 @@
 // Meta patterns - patterns for combining and modifying other patterns
 
-pub(crate) mod and_pattern;
-pub(crate) mod or_pattern;
-pub(crate) mod search_pattern;
-pub(crate) mod sequence_pattern;
+mod and_pattern;
+mod or_pattern;
+mod search_pattern;
+mod sequence_pattern;
 
 // Uncommented modules are not yet implemented
-// pub(crate) mod not_pattern;
-// pub(crate) mod repeat_pattern;
+// mod not_pattern;
+// mod repeat_pattern;
 
 pub(crate) use and_pattern::AndPattern;
 pub(crate) use or_pattern::OrPattern;

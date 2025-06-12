@@ -1,15 +1,15 @@
 // Structure patterns - patterns dealing with envelope structure
 
-pub(crate) mod assertions_pattern;
-pub(crate) mod object_pattern;
-pub(crate) mod predicate_pattern;
-pub(crate) mod subject_pattern;
-pub(crate) mod wrapped_pattern;
+mod assertions_pattern;
+mod object_pattern;
+mod predicate_pattern;
+mod subject_pattern;
+mod wrapped_pattern;
 
 // Uncommented modules are not yet implemented
-// pub(crate) mod digest_pattern;
-// pub(crate) mod node_pattern;
-// pub(crate) mod obscured_pattern;
+// mod digest_pattern;
+// mod node_pattern;
+// mod obscured_pattern;
 
 pub(crate) use assertions_pattern::AssertionsPattern;
 pub(crate) use object_pattern::ObjectPattern;

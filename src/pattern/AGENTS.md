@@ -16,6 +16,17 @@ pattern/
 - matcher.rs
   - The `Matcher` trait, which all patterns implement to provide matching functionality.
 
+## Meta-Patterns
+
+meta/
+
+- [ ] not_pattern.rs
+- [ ] repeat_pattern.rs
+- [x] and_pattern.rs
+- [x] or_pattern.rs
+- [x] search_pattern.rs
+- [x] sequence_pattern.rs
+
 ## Patterns dealing with Envelope Structure
 
 structure/
@@ -45,14 +56,3 @@ leaf/
 - [x] bool_pattern.rs
 - [x] number_pattern.rs
 - [x] text_pattern.rs
-
-## Meta-Patterns
-
-meta/
-
-- [ ] not_pattern.rs
-- [ ] repeat_pattern.rs
-- [x] and_pattern.rs
-- [x] or_pattern.rs
-- [x] search_pattern.rs
-- [x] sequence_pattern.rs
