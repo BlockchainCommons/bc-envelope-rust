@@ -2,79 +2,84 @@ use thiserror::Error;
 
 /// Error types returned when operating on Gordian Envelopes.
 ///
-/// These errors capture various conditions that can occur when working with envelopes,
-/// including structure validation, operation constraints, and extension-specific errors.
+/// These errors capture various conditions that can occur when working with
+/// envelopes, including structure validation, operation constraints, and
+/// extension-specific errors.
 ///
-/// The errors are organized by category, reflecting the base envelope specification
-/// and various extensions defined in the Gordian Envelope Internet Draft and Blockchain
-/// Commons Research (BCR) documents.
+/// The errors are organized by category, reflecting the base envelope
+/// specification and various extensions defined in the Gordian Envelope
+/// Internet Draft and Blockchain Commons Research (BCR) documents.
 #[derive(Debug, Error)]
 pub enum Error {
     //
     // Base Specification
-    //
-
-    /// Returned when attempting to compress or encrypt an envelope that has already been elided.
+    /// Returned when attempting to compress or encrypt an envelope that has
+    /// already been elided.
     ///
-    /// This error occurs because an elided envelope only contains a digest reference and no longer
-    /// has a subject that can be compressed or encrypted.
+    /// This error occurs because an elided envelope only contains a digest
+    /// reference and no longer has a subject that can be compressed or
+    /// encrypted.
     #[error("envelope was elided, so it cannot be compressed or encrypted")]
     AlreadyElided,
 
-    /// Returned when attempting to retrieve an assertion by predicate, but multiple matching
-    /// assertions exist.
+    /// Returned when attempting to retrieve an assertion by predicate, but
+    /// multiple matching assertions exist.
     ///
-    /// For queries that expect a single result (like `object_for_predicate`), having multiple
-    /// matching assertions is ambiguous and requires more specific targeting.
+    /// For queries that expect a single result (like `object_for_predicate`),
+    /// having multiple matching assertions is ambiguous and requires more
+    /// specific targeting.
     #[error("more than one assertion matches the predicate")]
     AmbiguousPredicate,
 
     /// Returned when a digest validation fails.
     ///
-    /// This can occur when unwrapping an envelope, verifying signatures, or other operations
-    /// that rely on the integrity of envelope digests.
+    /// This can occur when unwrapping an envelope, verifying signatures, or
+    /// other operations that rely on the integrity of envelope digests.
     #[error("digest did not match")]
     InvalidDigest,
 
     /// Returned when an envelope's format is invalid.
     ///
-    /// This typically occurs during parsing or decoding of an envelope from CBOR.
+    /// This typically occurs during parsing or decoding of an envelope from
+    /// CBOR.
     #[error("invalid format")]
     InvalidFormat,
 
     /// Returned when a digest is expected but not found.
     ///
-    /// This can occur when working with envelope structures that require digest information,
-    /// such as when working with elided envelopes.
+    /// This can occur when working with envelope structures that require digest
+    /// information, such as when working with elided envelopes.
     #[error("a digest was expected but not found")]
     MissingDigest,
 
-    /// Returned when attempting to retrieve an assertion by predicate, but no matching
-    /// assertion exists.
+    /// Returned when attempting to retrieve an assertion by predicate, but no
+    /// matching assertion exists.
     ///
-    /// This error occurs with functions like `object_for_predicate` when the specified
-    /// predicate doesn't match any assertion in the envelope.
+    /// This error occurs with functions like `object_for_predicate` when the
+    /// specified predicate doesn't match any assertion in the envelope.
     #[error("no assertion matches the predicate")]
     NonexistentPredicate,
 
     /// Returned when attempting to unwrap an envelope that wasn't wrapped.
     ///
-    /// This error occurs when calling `Envelope::unwrap_envelope` on an envelope
-    /// that doesn't have the wrapped format.
+    /// This error occurs when calling `Envelope::unwrap_envelope` on an
+    /// envelope that doesn't have the wrapped format.
     #[error("cannot unwrap an envelope that was not wrapped")]
     NotWrapped,
 
-    /// Returned when expecting an envelope's subject to be a leaf, but it isn't.
+    /// Returned when expecting an envelope's subject to be a leaf, but it
+    /// isn't.
     ///
-    /// This error occurs when calling methods that require access to a leaf value
-    /// but the envelope's subject is an assertion, node, or elided.
+    /// This error occurs when calling methods that require access to a leaf
+    /// value but the envelope's subject is an assertion, node, or elided.
     #[error("the envelope's subject is not a leaf")]
     NotLeaf,
 
-    /// Returned when expecting an envelope's subject to be an assertion, but it isn't.
+    /// Returned when expecting an envelope's subject to be an assertion, but it
+    /// isn't.
     ///
-    /// This error occurs when calling methods that require an assertion structure
-    /// but the envelope's subject has a different format.
+    /// This error occurs when calling methods that require an assertion
+    /// structure but the envelope's subject has a different format.
     #[error("the envelope's subject is not an assertion")]
     NotAssertion,
 
@@ -84,12 +89,11 @@ pub enum Error {
 
     //
     // Attachments Extension
-    //
-
     /// Returned when an attachment's format is invalid.
     ///
-    /// This error occurs when an envelope contains an attachment with an invalid structure
-    /// according to the Envelope Attachment specification (BCR-2023-006).
+    /// This error occurs when an envelope contains an attachment with an
+    /// invalid structure according to the Envelope Attachment specification
+    /// (BCR-2023-006).
     #[cfg(feature = "attachment")]
     #[error("invalid attachment")]
     InvalidAttachment,
@@ -112,9 +116,8 @@ pub enum Error {
 
     //
     // Compression Extension
-    //
-
-    /// Returned when attempting to compress an envelope that is already compressed.
+    /// Returned when attempting to compress an envelope that is already
+    /// compressed.
     ///
     /// This error occurs when calling compression functions on an envelope that
     /// already has compressed content, as defined in BCR-2023-005.
@@ -122,24 +125,27 @@ pub enum Error {
     #[error("envelope was already compressed")]
     AlreadyCompressed,
 
-    /// Returned when attempting to uncompress an envelope that is not compressed.
+    /// Returned when attempting to uncompress an envelope that is not
+    /// compressed.
     ///
-    /// This error occurs when calling uncompression functions on an envelope that
-    /// doesn't contain compressed content.
+    /// This error occurs when calling uncompression functions on an envelope
+    /// that doesn't contain compressed content.
     #[cfg(feature = "compress")]
     #[error("cannot uncompress an envelope that was not compressed")]
     NotCompressed,
 
     //
     // Symmetric Encryption Extension
-    //
-
-    /// Returned when attempting to encrypt an envelope that is already encrypted or compressed.
+    /// Returned when attempting to encrypt an envelope that is already
+    /// encrypted or compressed.
     ///
-    /// This error occurs to prevent multiple layers of encryption or encryption of
-    /// compressed data, which could reduce security, as defined in BCR-2023-004.
+    /// This error occurs to prevent multiple layers of encryption or encryption
+    /// of compressed data, which could reduce security, as defined in
+    /// BCR-2023-004.
     #[cfg(feature = "encrypt")]
-    #[error("envelope was already encrypted or compressed, so it cannot be encrypted")]
+    #[error(
+        "envelope was already encrypted or compressed, so it cannot be encrypted"
+    )]
     AlreadyEncrypted,
 
     /// Returned when attempting to decrypt an envelope that is not encrypted.
@@ -152,32 +158,29 @@ pub enum Error {
 
     //
     // Known Values Extension
-    //
-
-    /// Returned when expecting an envelope's subject to be a known value, but it isn't.
+    /// Returned when expecting an envelope's subject to be a known value, but
+    /// it isn't.
     ///
-    /// This error occurs when calling methods that require a known value (as defined in
-    /// BCR-2023-003) but the envelope's subject is a different type.
+    /// This error occurs when calling methods that require a known value (as
+    /// defined in BCR-2023-003) but the envelope's subject is a different
+    /// type.
     #[cfg(feature = "known_value")]
     #[error("the envelope's subject is not a known value")]
     NotKnownValue,
 
     //
     // Public Key Encryption Extension
-    //
-
-    /// Returned when attempting to decrypt an envelope with a recipient that doesn't match.
+    /// Returned when attempting to decrypt an envelope with a recipient that
+    /// doesn't match.
     ///
-    /// This error occurs when trying to use a private key to decrypt an envelope that
-    /// wasn't encrypted for the corresponding public key.
+    /// This error occurs when trying to use a private key to decrypt an
+    /// envelope that wasn't encrypted for the corresponding public key.
     #[cfg(feature = "recipient")]
     #[error("unknown recipient")]
     UnknownRecipient,
 
     //
     // Encrypted Key Extension
-    //
-
     /// Returned when attempting to decrypt an envelope with a secret that
     /// doesn't match.
     ///
@@ -189,12 +192,10 @@ pub enum Error {
 
     //
     // Public Key Signing Extension
-    //
-
     /// Returned when a signature verification fails.
     ///
-    /// This error occurs when a signature does not validate against its purported
-    /// public key.
+    /// This error occurs when a signature does not validate against its
+    /// purported public key.
     #[cfg(feature = "signature")]
     #[error("could not verify a signature")]
     UnverifiedSignature,
@@ -209,7 +210,8 @@ pub enum Error {
     #[error("unexpected inner signature object type")]
     InvalidInnerSignatureType,
 
-    /// Returned when the inner signature is not made with the same key as the outer signature.
+    /// Returned when the inner signature is not made with the same key as the
+    /// outer signature.
     #[cfg(feature = "signature")]
     #[error("inner signature not made with same key as outer signature")]
     UnverifiedInnerSignature,
@@ -221,20 +223,18 @@ pub enum Error {
 
     //
     // SSKR Extension
-    //
-
-    /// Returned when SSKR shares are invalid or insufficient for reconstruction.
+    /// Returned when SSKR shares are invalid or insufficient for
+    /// reconstruction.
     ///
-    /// This error occurs when attempting to join SSKR shares that are malformed,
-    /// from different splits, or insufficient to meet the recovery threshold.
+    /// This error occurs when attempting to join SSKR shares that are
+    /// malformed, from different splits, or insufficient to meet the
+    /// recovery threshold.
     #[cfg(feature = "sskr")]
     #[error("invalid SSKR shares")]
     InvalidShares,
 
     //
     // Types Extension
-    //
-
     /// Returned when an envelope contains an invalid type.
     ///
     /// This error occurs when an envelope's type information doesn't match
@@ -253,8 +253,6 @@ pub enum Error {
 
     //
     // Expressions Extension
-    //
-
     /// Returned when a response envelope has an unexpected ID.
     ///
     /// This error occurs when processing a response envelope and the ID doesn't

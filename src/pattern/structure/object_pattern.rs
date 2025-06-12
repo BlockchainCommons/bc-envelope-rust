@@ -1,5 +1,7 @@
-use crate::pattern::{Matcher, Path, Pattern};
-use crate::Envelope;
+use crate::{
+    Envelope,
+    pattern::{Matcher, Path, Pattern},
+};
 
 #[derive(Debug, Clone)]
 pub enum ObjectPattern {
@@ -8,9 +10,7 @@ pub enum ObjectPattern {
 }
 
 impl ObjectPattern {
-    pub fn any() -> Self {
-        ObjectPattern::Any
-    }
+    pub fn any() -> Self { ObjectPattern::Any }
 
     pub fn pattern(pattern: Pattern) -> Self {
         ObjectPattern::Pattern(Box::new(pattern))
@@ -33,7 +33,7 @@ impl Matcher for ObjectPattern {
                 }
             }
         } else {
-            return vec![];
+            vec![]
         }
     }
 }

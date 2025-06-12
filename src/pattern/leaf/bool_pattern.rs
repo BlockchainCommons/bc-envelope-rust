@@ -1,5 +1,7 @@
-use crate::pattern::{Matcher, Path};
-use crate::Envelope;
+use crate::{
+    Envelope,
+    pattern::{Matcher, Path},
+};
 
 /// Pattern for matching boolean values.
 #[derive(Debug, Clone)]
@@ -24,7 +26,7 @@ impl Matcher for BoolPattern {
             envelope
                 .extract_subject::<bool>()
                 .ok()
-                .map_or(false, |value| match self {
+                .is_some_and(|value| match self {
                     BoolPattern::Any => true,
                     BoolPattern::Exact(want) => value == *want,
                 });

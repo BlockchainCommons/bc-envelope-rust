@@ -1,28 +1,24 @@
-use anyhow::{ bail, Result };
+use anyhow::{Result, bail};
 
 use crate::{
-    base::envelope::EnvelopeCase,
-    known_values,
-    Assertion,
-    Envelope,
-    EnvelopeEncodable,
-    Error,
+    Assertion, Envelope, EnvelopeEncodable, Error,
+    base::envelope::EnvelopeCase, known_values,
 };
 
 /// Support for adding vendor-specific attachments to Gordian Envelopes.
 ///
-/// This module extends Gordian Envelope with the ability to add vendor-specific attachments
-/// to an envelope. Attachments provide a standardized way for different applications to
-/// include their own data in an envelope without interfering with the main data structure
-/// or with other attachments.
+/// This module extends Gordian Envelope with the ability to add vendor-specific
+/// attachments to an envelope. Attachments provide a standardized way for
+/// different applications to include their own data in an envelope without
+/// interfering with the main data structure or with other attachments.
 ///
 /// Each attachment has:
 /// * A payload (arbitrary data)
 /// * A required vendor identifier (typically a reverse domain name)
 /// * An optional conformsTo URI that indicates the format of the attachment
 ///
-/// This allows for a common envelope format that can be extended by different vendors
-/// while maintaining interoperability.
+/// This allows for a common envelope format that can be extended by different
+/// vendors while maintaining interoperability.
 ///
 /// # Example
 ///
@@ -30,18 +26,21 @@ use crate::{
 /// use bc_envelope::prelude::*;
 ///
 /// // Create a base envelope
-/// let envelope = Envelope::new("Alice")
-///     .add_assertion("knows", "Bob");
+/// let envelope = Envelope::new("Alice").add_assertion("knows", "Bob");
 ///
 /// // Add a vendor-specific attachment
 /// let with_attachment = envelope.add_attachment(
 ///     "Custom data for this envelope",
 ///     "com.example",
-///     Some("https://example.com/attachment-format/v1")
+///     Some("https://example.com/attachment-format/v1"),
 /// );
 ///
 /// // The attachment is added as an assertion with the 'attachment' predicate
-/// assert!(!with_attachment.assertions_with_predicate(known_values::ATTACHMENT).is_empty());
+/// assert!(
+///     !with_attachment
+///         .assertions_with_predicate(known_values::ATTACHMENT)
+///         .is_empty()
+/// );
 ///
 /// // The attachment can be extracted later
 /// let attachment = with_attachment.attachments().unwrap()[0].clone();
@@ -51,7 +50,10 @@ use crate::{
 ///
 /// assert_eq!(payload.format_flat(), r#""Custom data for this envelope""#);
 /// assert_eq!(vendor, "com.example");
-/// assert_eq!(format, Some("https://example.com/attachment-format/v1".to_string()));
+/// assert_eq!(
+///     format,
+///     Some("https://example.com/attachment-format/v1".to_string())
+/// );
 /// ```
 /// Methods for creating and accessing attachments at the assertion level
 impl Assertion {
@@ -70,8 +72,10 @@ impl Assertion {
     /// # Parameters
     ///
     /// * `payload` - The content of the attachment
-    /// * `vendor` - A string that uniquely identifies the vendor (typically a reverse domain name)
-    /// * `conforms_to` - An optional URI that identifies the format of the attachment
+    /// * `vendor` - A string that uniquely identifies the vendor (typically a
+    ///   reverse domain name)
+    /// * `conforms_to` - An optional URI that identifies the format of the
+    ///   attachment
     ///
     /// # Returns
     ///
@@ -87,11 +91,10 @@ impl Assertion {
     /// The assertion will have a predicate of "attachment" and an object that's
     /// a wrapped envelope containing the payload with vendor and conformsTo
     /// assertions added to it.
-    ///
     pub fn new_attachment(
         payload: impl EnvelopeEncodable,
         vendor: &str,
-        conforms_to: Option<&str>
+        conforms_to: Option<&str>,
     ) -> Self {
         let conforms_to: Option<String> = conforms_to.map(|c| c.to_string());
         Self::new(
@@ -100,13 +103,14 @@ impl Assertion {
                 .into_envelope()
                 .wrap_envelope()
                 .add_assertion(known_values::VENDOR, vendor.to_string())
-                .add_optional_assertion(known_values::CONFORMS_TO, conforms_to)
+                .add_optional_assertion(known_values::CONFORMS_TO, conforms_to),
         )
     }
 
     /// Returns the payload of an attachment assertion.
     ///
-    /// This extracts the subject of the wrapped envelope that is the object of this attachment assertion.
+    /// This extracts the subject of the wrapped envelope that is the object of
+    /// this attachment assertion.
     ///
     /// # Returns
     ///
@@ -129,7 +133,8 @@ impl Assertion {
     ///
     /// Returns an error if the assertion is not a valid attachment assertion
     pub fn attachment_vendor(&self) -> Result<String> {
-        self.object().extract_object_for_predicate(known_values::VENDOR)
+        self.object()
+            .extract_object_for_predicate(known_values::VENDOR)
     }
 
     /// Returns the optional conformsTo URI of an attachment assertion.
@@ -142,7 +147,8 @@ impl Assertion {
     ///
     /// Returns an error if the assertion is not a valid attachment assertion
     pub fn attachment_conforms_to(&self) -> Result<Option<String>> {
-        self.object().extract_optional_object_for_predicate(known_values::CONFORMS_TO)
+        self.object()
+            .extract_optional_object_for_predicate(known_values::CONFORMS_TO)
     }
 
     /// Validates that an assertion is a proper attachment assertion.
@@ -151,7 +157,8 @@ impl Assertion {
     /// - The attachment assertion's predicate is `known_values::ATTACHMENT`
     /// - The attachment assertion's object is an envelope
     /// - The attachment assertion's object has a `'vendor': String` assertion
-    /// - The attachment assertion's object has an optional `'conformsTo': String` assertion
+    /// - The attachment assertion's object has an optional `'conformsTo':
+    ///   String` assertion
     ///
     /// # Returns
     ///
@@ -159,12 +166,17 @@ impl Assertion {
     ///
     /// # Errors
     ///
-    /// Returns `EnvelopeError::InvalidAttachment` if the assertion is not a valid attachment assertion
+    /// Returns `EnvelopeError::InvalidAttachment` if the assertion is not a
+    /// valid attachment assertion
     pub fn validate_attachment(&self) -> Result<()> {
         let payload = self.attachment_payload()?;
         let vendor = self.attachment_vendor()?;
         let conforms_to: Option<String> = self.attachment_conforms_to()?;
-        let assertion = Assertion::new_attachment(payload, vendor.as_str(), conforms_to.as_deref());
+        let assertion = Assertion::new_attachment(
+            payload,
+            vendor.as_str(),
+            conforms_to.as_deref(),
+        );
         let e: Envelope = assertion.to_envelope();
         if !e.is_equivalent_to(&self.clone().to_envelope()) {
             bail!(Error::InvalidAttachment);
@@ -177,14 +189,16 @@ impl Assertion {
 impl Envelope {
     /// Creates a new envelope with an attachment as its subject.
     ///
-    /// This creates an envelope whose subject is an attachment assertion, using the
-    /// provided payload, vendor, and optional conformsTo URI.
+    /// This creates an envelope whose subject is an attachment assertion, using
+    /// the provided payload, vendor, and optional conformsTo URI.
     ///
     /// # Parameters
     ///
     /// * `payload` - The content of the attachment
-    /// * `vendor` - A string that uniquely identifies the vendor (typically a reverse domain name)
-    /// * `conforms_to` - An optional URI that identifies the format of the attachment
+    /// * `vendor` - A string that uniquely identifies the vendor (typically a
+    ///   reverse domain name)
+    /// * `conforms_to` - An optional URI that identifies the format of the
+    ///   attachment
     ///
     /// # Returns
     ///
@@ -193,14 +207,13 @@ impl Envelope {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
-    /// use bc_envelope::base::envelope::EnvelopeCase;
+    /// use bc_envelope::{base::envelope::EnvelopeCase, prelude::*};
     ///
     /// // Create an attachment envelope
     /// let envelope = Envelope::new_attachment(
     ///     "Attachment data",
     ///     "com.example",
-    ///     Some("https://example.com/format/v1")
+    ///     Some("https://example.com/format/v1"),
     /// );
     ///
     /// // The envelope is an assertion
@@ -209,7 +222,7 @@ impl Envelope {
     pub fn new_attachment(
         payload: impl EnvelopeEncodable,
         vendor: &str,
-        conforms_to: Option<&str>
+        conforms_to: Option<&str>,
     ) -> Self {
         Assertion::new_attachment(payload, vendor, conforms_to).to_envelope()
     }
@@ -221,8 +234,10 @@ impl Envelope {
     /// # Parameters
     ///
     /// * `payload` - The content of the attachment
-    /// * `vendor` - A string that uniquely identifies the vendor (typically a reverse domain name)
-    /// * `conforms_to` - An optional URI that identifies the format of the attachment
+    /// * `vendor` - A string that uniquely identifies the vendor (typically a
+    ///   reverse domain name)
+    /// * `conforms_to` - An optional URI that identifies the format of the
+    ///   attachment
     ///
     /// # Returns
     ///
@@ -234,14 +249,13 @@ impl Envelope {
     /// use bc_envelope::prelude::*;
     ///
     /// // Create a base envelope
-    /// let envelope = Envelope::new("User data")
-    ///     .add_assertion("name", "Alice");
+    /// let envelope = Envelope::new("User data").add_assertion("name", "Alice");
     ///
     /// // Add an attachment
     /// let with_attachment = envelope.add_attachment(
     ///     "Vendor-specific metadata",
     ///     "com.example",
-    ///     Some("https://example.com/metadata/v1")
+    ///     Some("https://example.com/metadata/v1"),
     /// );
     ///
     /// // The original envelope is unchanged
@@ -249,17 +263,25 @@ impl Envelope {
     ///
     /// // The new envelope has an additional attachment assertion
     /// assert_eq!(with_attachment.assertions().len(), 2);
-    /// assert!(with_attachment.assertions_with_predicate(known_values::ATTACHMENT).len() > 0);
+    /// assert!(
+    ///     with_attachment
+    ///         .assertions_with_predicate(known_values::ATTACHMENT)
+    ///         .len()
+    ///         > 0
+    /// );
     /// ```
     pub fn add_attachment(
         &self,
         payload: impl EnvelopeEncodable,
         vendor: &str,
-        conforms_to: Option<&str>
+        conforms_to: Option<&str>,
     ) -> Self {
-        self.add_assertion_envelope(
-            Assertion::new_attachment(payload, vendor, conforms_to)
-        ).unwrap()
+        self.add_assertion_envelope(Assertion::new_attachment(
+            payload,
+            vendor,
+            conforms_to,
+        ))
+        .unwrap()
     }
 }
 
@@ -316,10 +338,11 @@ impl Envelope {
         }
     }
 
-    /// Searches the envelope's assertions for attachments that match the given vendor and conformsTo.
+    /// Searches the envelope's assertions for attachments that match the given
+    /// vendor and conformsTo.
     ///
-    /// This method finds all attachment assertions in the envelope that match the specified
-    /// criteria:
+    /// This method finds all attachment assertions in the envelope that match
+    /// the specified criteria:
     ///
     /// * If `vendor` is `None`, matches any vendor
     /// * If `conformsTo` is `None`, matches any conformsTo value
@@ -345,8 +368,16 @@ impl Envelope {
     ///
     /// // Create an envelope with two attachments from the same vendor
     /// let envelope = Envelope::new("Data")
-    ///     .add_attachment("Attachment 1", "com.example", Some("https://example.com/format/v1"))
-    ///     .add_attachment("Attachment 2", "com.example", Some("https://example.com/format/v2"));
+    ///     .add_attachment(
+    ///         "Attachment 1",
+    ///         "com.example",
+    ///         Some("https://example.com/format/v1"),
+    ///     )
+    ///     .add_attachment(
+    ///         "Attachment 2",
+    ///         "com.example",
+    ///         Some("https://example.com/format/v2"),
+    ///     );
     ///
     /// // Find all attachments
     /// let all_attachments = envelope.attachments().unwrap();
@@ -360,16 +391,20 @@ impl Envelope {
     ///
     /// // Find attachments by specific format
     /// let v1_attachments = envelope
-    ///     .attachments_with_vendor_and_conforms_to(None, Some("https://example.com/format/v1"))
+    ///     .attachments_with_vendor_and_conforms_to(
+    ///         None,
+    ///         Some("https://example.com/format/v1"),
+    ///     )
     ///     .unwrap();
     /// assert_eq!(v1_attachments.len(), 1);
     /// ```
     pub fn attachments_with_vendor_and_conforms_to(
         &self,
         vendor: Option<&str>,
-        conforms_to: Option<&str>
+        conforms_to: Option<&str>,
     ) -> Result<Vec<Self>> {
-        let assertions = self.assertions_with_predicate(known_values::ATTACHMENT);
+        let assertions =
+            self.assertions_with_predicate(known_values::ATTACHMENT);
         for assertion in &assertions {
             Self::validate_attachment(assertion)?;
         }
@@ -402,7 +437,8 @@ impl Envelope {
 
     /// Returns all attachments in the envelope.
     ///
-    /// This is equivalent to calling `attachments_with_vendor_and_conforms_to(None, None)`.
+    /// This is equivalent to calling
+    /// `attachments_with_vendor_and_conforms_to(None, None)`.
     ///
     /// # Returns
     ///
@@ -417,8 +453,8 @@ impl Envelope {
 
     /// Validates that an envelope is a proper attachment envelope.
     ///
-    /// This ensures the envelope is an assertion envelope with the predicate `attachment`
-    /// and the required structure for an attachment.
+    /// This ensures the envelope is an assertion envelope with the predicate
+    /// `attachment` and the required structure for an attachment.
     ///
     /// # Returns
     ///
@@ -426,7 +462,8 @@ impl Envelope {
     ///
     /// # Errors
     ///
-    /// Returns `EnvelopeError::InvalidAttachment` if the envelope is not a valid attachment envelope
+    /// Returns `EnvelopeError::InvalidAttachment` if the envelope is not a
+    /// valid attachment envelope
     pub fn validate_attachment(&self) -> Result<()> {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
             assertion.validate_attachment()?;
@@ -438,9 +475,9 @@ impl Envelope {
 
     /// Finds a single attachment matching the given vendor and conformsTo.
     ///
-    /// This works like `attachments_with_vendor_and_conforms_to` but returns a single
-    /// attachment envelope rather than a vector. It requires that exactly one attachment
-    /// matches the criteria.
+    /// This works like `attachments_with_vendor_and_conforms_to` but returns a
+    /// single attachment envelope rather than a vector. It requires that
+    /// exactly one attachment matches the criteria.
     ///
     /// # Parameters
     ///
@@ -454,7 +491,8 @@ impl Envelope {
     /// # Errors
     ///
     /// * Returns `EnvelopeError::NonexistentAttachment` if no attachments match
-    /// * Returns `EnvelopeError::AmbiguousAttachment` if more than one attachment matches
+    /// * Returns `EnvelopeError::AmbiguousAttachment` if more than one
+    ///   attachment matches
     /// * Returns an error if any of the envelope's attachments are invalid
     ///
     /// # Examples
@@ -463,18 +501,17 @@ impl Envelope {
     /// use bc_envelope::prelude::*;
     ///
     /// // Create an envelope with an attachment
-    /// let envelope = Envelope::new("Data")
-    ///     .add_attachment(
-    ///         "Metadata",
-    ///         "com.example",
-    ///         Some("https://example.com/format/v1")
-    ///     );
+    /// let envelope = Envelope::new("Data").add_attachment(
+    ///     "Metadata",
+    ///     "com.example",
+    ///     Some("https://example.com/format/v1"),
+    /// );
     ///
     /// // Find a specific attachment by vendor and format
     /// let attachment = envelope
     ///     .attachment_with_vendor_and_conforms_to(
     ///         Some("com.example"),
-    ///         Some("https://example.com/format/v1")
+    ///         Some("https://example.com/format/v1"),
     ///     )
     ///     .unwrap();
     ///
@@ -485,9 +522,10 @@ impl Envelope {
     pub fn attachment_with_vendor_and_conforms_to(
         &self,
         vendor: Option<&str>,
-        conforms_to: Option<&str>
+        conforms_to: Option<&str>,
     ) -> Result<Self> {
-        let attachments = self.attachments_with_vendor_and_conforms_to(vendor, conforms_to)?;
+        let attachments =
+            self.attachments_with_vendor_and_conforms_to(vendor, conforms_to)?;
         if attachments.is_empty() {
             bail!(Error::NonexistentAttachment);
         }

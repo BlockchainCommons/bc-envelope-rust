@@ -4,22 +4,22 @@ use super::Function;
 
 /// A store that maps functions to their assigned names.
 ///
-/// `FunctionsStore` maintains a registry of functions and their human-readable names,
-/// which is useful for displaying and debugging expression functions. The store
-/// allows for consistent name resolution of functions used in expressions.
+/// `FunctionsStore` maintains a registry of functions and their human-readable
+/// names, which is useful for displaying and debugging expression functions.
+/// The store allows for consistent name resolution of functions used in
+/// expressions.
 ///
 /// # Examples
 ///
 /// ```
-/// use bc_envelope::prelude::*;
-/// use bc_envelope::extension::expressions::{FunctionsStore, functions};
+/// use bc_envelope::{
+///     extension::expressions::{FunctionsStore, functions},
+///     prelude::*,
+/// };
 ///
 /// // Create a store with some known functions
-/// let store = FunctionsStore::new([
-///     functions::ADD,
-///     functions::SUB,
-///     functions::MUL
-/// ]);
+/// let store =
+///     FunctionsStore::new([functions::ADD, functions::SUB, functions::MUL]);
 ///
 /// // Look up the name of a function
 /// assert_eq!(store.name(&functions::ADD), "add");
@@ -43,15 +43,17 @@ impl FunctionsStore {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
-    /// use bc_envelope::extension::expressions::{FunctionsStore, functions};
+    /// use bc_envelope::{
+    ///     extension::expressions::{FunctionsStore, functions},
+    ///     prelude::*,
+    /// };
     ///
     /// // Create a store with standard arithmetic functions
     /// let store = FunctionsStore::new([
     ///     functions::ADD,
     ///     functions::SUB,
     ///     functions::MUL,
-    ///     functions::DIV
+    ///     functions::DIV,
     /// ]);
     /// ```
     pub fn new<T>(functions: T) -> Self
@@ -74,8 +76,10 @@ impl FunctionsStore {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
-    /// use bc_envelope::extension::expressions::{FunctionsStore, Function, functions};
+    /// use bc_envelope::{
+    ///     extension::expressions::{Function, FunctionsStore, functions},
+    ///     prelude::*,
+    /// };
     ///
     /// let mut store = FunctionsStore::default();
     /// store.insert(functions::ADD);
@@ -98,8 +102,10 @@ impl FunctionsStore {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
-    /// use bc_envelope::extension::expressions::{FunctionsStore, functions};
+    /// use bc_envelope::{
+    ///     extension::expressions::{FunctionsStore, functions},
+    ///     prelude::*,
+    /// };
     ///
     /// let store = FunctionsStore::new([functions::ADD]);
     /// assert_eq!(store.assigned_name(&functions::ADD), Some("add"));
@@ -109,7 +115,8 @@ impl FunctionsStore {
         self.dict.get(function).map(|name| name.as_str())
     }
 
-    /// Returns the name for a function, either from this store or from the function itself.
+    /// Returns the name for a function, either from this store or from the
+    /// function itself.
     ///
     /// If the function exists in the store, returns its assigned name.
     /// Otherwise, returns the function's own name.
@@ -125,8 +132,10 @@ impl FunctionsStore {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
-    /// use bc_envelope::extension::expressions::{FunctionsStore, functions};
+    /// use bc_envelope::{
+    ///     extension::expressions::{FunctionsStore, functions},
+    ///     prelude::*,
+    /// };
     ///
     /// let store = FunctionsStore::new([functions::ADD]);
     /// assert_eq!(store.name(&functions::ADD), "add");
@@ -139,10 +148,11 @@ impl FunctionsStore {
             .unwrap_or_else(|| function.name())
     }
 
-    /// A static method that returns the name of a function, using an optional store.
+    /// A static method that returns the name of a function, using an optional
+    /// store.
     ///
-    /// This utility method is useful when you have an optional store and want to
-    /// get a function name without additional unwrapping logic.
+    /// This utility method is useful when you have an optional store and want
+    /// to get a function name without additional unwrapping logic.
     ///
     /// # Parameters
     ///
@@ -156,11 +166,13 @@ impl FunctionsStore {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
-    /// use bc_envelope::extension::expressions::{FunctionsStore, functions};
+    /// use bc_envelope::{
+    ///     extension::expressions::{FunctionsStore, functions},
+    ///     prelude::*,
+    /// };
     ///
     /// let store = FunctionsStore::new([functions::ADD]);
-    /// 
+    ///
     /// // Using the store
     /// assert_eq!(
     ///     FunctionsStore::name_for_function(&functions::ADD, Some(&store)),
@@ -173,7 +185,10 @@ impl FunctionsStore {
     ///     "add"
     /// );
     /// ```
-    pub fn name_for_function(function: &Function, functions: Option<&Self>) -> String {
+    pub fn name_for_function(
+        function: &Function,
+        functions: Option<&Self>,
+    ) -> String {
         functions
             .and_then(|functions| functions.assigned_name(function))
             .map(|name| name.to_string())
@@ -196,7 +211,5 @@ impl FunctionsStore {
 
 /// Provides a default empty store.
 impl Default for FunctionsStore {
-    fn default() -> Self {
-        Self::new([])
-    }
+    fn default() -> Self { Self::new([]) }
 }

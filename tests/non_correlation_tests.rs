@@ -59,10 +59,12 @@ fn test_envelope_non_correlation() {
 fn test_predicate_correlation() {
     let e1 = Envelope::new("Foo")
         .add_assertion("note", "Bar")
-        .check_encoding().unwrap();
+        .check_encoding()
+        .unwrap();
     let e2 = Envelope::new("Baz")
         .add_assertion("note", "Quux")
-        .check_encoding().unwrap();
+        .check_encoding()
+        .unwrap();
 
     #[rustfmt::skip]
     let e1_expected_format = indoc! {r#"
@@ -73,8 +75,16 @@ fn test_predicate_correlation() {
     assert_actual_expected!(e1.format(), e1_expected_format);
 
     // e1 and e2 have the same predicate
-    assert!(e1.assertions().first().unwrap().as_predicate().unwrap()
-        .is_equivalent_to(&e2.assertions().first().unwrap().as_predicate().unwrap()));
+    assert!(
+        e1.assertions()
+            .first()
+            .unwrap()
+            .as_predicate()
+            .unwrap()
+            .is_equivalent_to(
+                &e2.assertions().first().unwrap().as_predicate().unwrap()
+            )
+    );
 
     // Redact the entire contents of e1 without
     // redacting the envelope itself.
@@ -93,12 +103,21 @@ fn test_predicate_correlation() {
 fn test_add_salt() {
     let source = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
     let e1 = Envelope::new("Alpha")
-        .add_salt().check_encoding().unwrap()
-        .wrap_envelope().check_encoding().unwrap()
+        .add_salt()
+        .check_encoding()
+        .unwrap()
+        .wrap_envelope()
+        .check_encoding()
+        .unwrap()
         .add_assertion(
-            Envelope::new(known_values::NOTE).add_salt().check_encoding().unwrap(),
-            Envelope::new(source).add_salt().check_encoding().unwrap()
-        ).check_encoding().unwrap();
+            Envelope::new(known_values::NOTE)
+                .add_salt()
+                .check_encoding()
+                .unwrap(),
+            Envelope::new(source).add_salt().check_encoding().unwrap(),
+        )
+        .check_encoding()
+        .unwrap();
     #[rustfmt::skip]
     let e1_expected_format = indoc! {r#"
         {

@@ -1,15 +1,15 @@
-use anyhow::{ bail, Result };
-
-use crate::{ Envelope, Error };
+use anyhow::{Result, bail};
 
 use super::envelope::EnvelopeCase;
+use crate::{Envelope, Error};
 
 /// Support for wrapping and unwrapping envelopes.
 impl Envelope {
     /// Returns a new envelope which wraps the current envelope.
     ///
-    /// Wrapping an envelope allows you to treat an envelope (including its assertions)
-    /// as a single unit, making it possible to add assertions about the envelope as a whole.
+    /// Wrapping an envelope allows you to treat an envelope (including its
+    /// assertions) as a single unit, making it possible to add assertions
+    /// about the envelope as a whole.
     ///
     /// # Examples
     ///
@@ -17,14 +17,16 @@ impl Envelope {
     /// # use bc_envelope::prelude::*;
     /// # use indoc::indoc;
     /// // Create an envelope with an assertion
-    /// let envelope = Envelope::new("Hello.")
-    ///     .add_assertion("language", "English");
+    /// let envelope = Envelope::new("Hello.").add_assertion("language", "English");
     ///
     /// // Wrap it to add an assertion about the envelope as a whole
-    /// let wrapped = envelope.wrap_envelope()
+    /// let wrapped = envelope
+    ///     .wrap_envelope()
     ///     .add_assertion("authenticated", true);
     ///
-    /// assert_eq!(wrapped.format(), indoc! {r#"
+    /// assert_eq!(
+    ///     wrapped.format(),
+    ///     indoc! {r#"
     /// {
     ///     "Hello." [
     ///         "language": "English"
@@ -32,11 +34,11 @@ impl Envelope {
     /// } [
     ///     "authenticated": true
     /// ]
-    /// "#}.trim());
+    /// "#}
+    ///     .trim()
+    /// );
     /// ```
-    pub fn wrap_envelope(&self) -> Self {
-        Self::new_wrapped(self.clone())
-    }
+    pub fn wrap_envelope(&self) -> Self { Self::new_wrapped(self.clone()) }
 
     /// Unwraps and returns the inner envelope.
     ///

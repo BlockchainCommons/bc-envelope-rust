@@ -1,6 +1,6 @@
 // Pattern module - provides pattern matching functionality for envelopes
 mod matcher;
-mod pattern;
+mod pattern_impl;
 
 // Subdirectory modules
 mod leaf;
@@ -9,7 +9,7 @@ mod structure;
 
 // Re-export all types
 pub use matcher::{Matcher, Path};
-pub use pattern::Pattern;
+pub use pattern_impl::Pattern;
 
 // Individual pattern types are pub(crate) - not re-exported
 // pub use leaf::{BoolPattern, LeafPattern, NumberPattern, TextPattern};

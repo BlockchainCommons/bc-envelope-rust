@@ -7,16 +7,13 @@ use crate::{
     EdgeType, Envelope, base::envelope::EnvelopeCase, with_format_context,
 };
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Default)]
 pub enum MermaidOrientation {
+    #[default]
     LeftToRight,
     TopToBottom,
     RightToLeft,
     BottomToTop,
-}
-
-impl Default for MermaidOrientation {
-    fn default() -> Self { MermaidOrientation::LeftToRight }
 }
 
 impl std::fmt::Display for MermaidOrientation {
@@ -30,17 +27,14 @@ impl std::fmt::Display for MermaidOrientation {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Default)]
 pub enum MermaidTheme {
+    #[default]
     Default,
     Neutral,
     Dark,
     Forest,
     Base,
-}
-
-impl Default for MermaidTheme {
-    fn default() -> Self { MermaidTheme::Default }
 }
 
 impl std::fmt::Display for MermaidTheme {
@@ -125,10 +119,7 @@ impl Envelope {
         self.mermaid_format_opt(&MermaidFormatOpts::default())
     }
 
-    pub fn mermaid_format_opt<'a>(
-        &self,
-        opts: &MermaidFormatOpts<'a>,
-    ) -> String {
+    pub fn mermaid_format_opt(&self, opts: &MermaidFormatOpts<'_>) -> String {
         let elements: RefCell<Vec<Rc<MermaidElement>>> =
             RefCell::new(Vec::new());
         let next_id = RefCell::new(0);
@@ -275,10 +266,10 @@ impl MermaidElement {
             element_ids.remove(&self.id);
             let mut lines: Vec<String> = Vec::new();
             let summary = with_format_context!(|ctx| {
-                format!(
-                    r#"{}"#,
-                    self.envelope.summary(20, ctx).replace('"', "&quot;")
-                )
+                self.envelope
+                    .summary(20, ctx)
+                    .replace('"', "&quot;")
+                    .to_string()
             });
             lines.push(summary);
             if self.show_id {

@@ -1,7 +1,9 @@
 use std::ops::RangeInclusive;
 
-use crate::pattern::{Matcher, Path};
-use crate::Envelope;
+use crate::{
+    Envelope,
+    pattern::{Matcher, Path},
+};
 
 /// Pattern for matching number values.
 #[derive(Debug, Clone)]
@@ -95,20 +97,20 @@ impl Matcher for NumberPattern {
             NumberPattern::Exact(want) => {
                 subject.extract_subject().ok() == Some(*want)
             }
-            NumberPattern::Range(want) => subject
-                .extract_subject()
-                .map_or(false, |n| want.contains(&n)),
+            NumberPattern::Range(want) => {
+                subject.extract_subject().is_ok_and(|n| want.contains(&n))
+            }
             NumberPattern::GreaterThan(want) => {
-                subject.extract_subject().map_or(false, |n: f64| n > *want)
+                subject.extract_subject().is_ok_and(|n: f64| n > *want)
             }
             NumberPattern::GreaterThanOrEqual(want) => {
-                subject.extract_subject().map_or(false, |n: f64| n >= *want)
+                subject.extract_subject().is_ok_and(|n: f64| n >= *want)
             }
             NumberPattern::LessThan(want) => {
-                subject.extract_subject().map_or(false, |n: f64| n < *want)
+                subject.extract_subject().is_ok_and(|n: f64| n < *want)
             }
             NumberPattern::LessThanOrEqual(want) => {
-                subject.extract_subject().map_or(false, |n: f64| n <= *want)
+                subject.extract_subject().is_ok_and(|n: f64| n <= *want)
             }
             NumberPattern::NaN => subject.is_nan(),
         };

@@ -44,23 +44,17 @@ use bc_components::{Digest, DigestProvider};
 use bc_ur::UREncodable;
 
 use super::FormatContextOpt;
-use crate::{
-    EdgeType, Envelope, FormatContext,
-    with_format_context,
-};
+use crate::{EdgeType, Envelope, FormatContext, with_format_context};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub enum DigestDisplayFormat {
     /// Default: Display a shortened version of the digest (first 8 characters).
+    #[default]
     Short,
     /// Display the full digest for each element in the tree.
     Full,
     /// Display a `ur:digest` UR for each element in the tree.
     UR,
-}
-
-impl Default for DigestDisplayFormat {
-    fn default() -> Self { DigestDisplayFormat::Short }
 }
 
 #[derive(Clone, Default)]
@@ -115,7 +109,7 @@ impl Envelope {
     ///   representation. Default is an empty set.
     /// * `context` - Formatting context. Default is
     ///   `TreeFormatContext::Global`.
-    pub fn tree_format_opt<'a>(&self, opts: &TreeFormatOpts<'a>) -> String {
+    pub fn tree_format_opt(&self, opts: &TreeFormatOpts<'_>) -> String {
         let elements: RefCell<Vec<TreeElement>> = RefCell::new(Vec::new());
         let visitor = |envelope: &Envelope,
                        level: usize,

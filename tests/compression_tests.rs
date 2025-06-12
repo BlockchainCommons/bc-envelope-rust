@@ -1,21 +1,19 @@
 #![cfg(feature = "compress")]
 use bc_components::DigestProvider;
-
-use dcbor::prelude::*;
 use bc_envelope::prelude::*;
+use dcbor::prelude::*;
 
 mod common;
-use crate::common::check_encoding::*;
-
-#[cfg(feature = "signature")]
-use crate::common::test_data::*;
 #[cfg(feature = "signature")]
 use bc_rand::make_fake_random_number_generator;
 #[cfg(feature = "signature")]
 use indoc::indoc;
 
-static SOURCE: &str =
-    "Lorem ipsum dolor sit amet consectetur adipiscing elit mi nibh ornare proin blandit diam ridiculus, faucibus mus dui eu vehicula nam donec dictumst sed vivamus bibendum aliquet efficitur. Felis imperdiet sodales dictum morbi vivamus augue dis duis aliquet velit ullamcorper porttitor, lobortis dapibus hac purus aliquam natoque iaculis blandit montes nunc pretium.";
+use crate::common::check_encoding::*;
+#[cfg(feature = "signature")]
+use crate::common::test_data::*;
+
+static SOURCE: &str = "Lorem ipsum dolor sit amet consectetur adipiscing elit mi nibh ornare proin blandit diam ridiculus, faucibus mus dui eu vehicula nam donec dictumst sed vivamus bibendum aliquet efficitur. Felis imperdiet sodales dictum morbi vivamus augue dis duis aliquet velit ullamcorper porttitor, lobortis dapibus hac purus aliquam natoque iaculis blandit montes nunc pretium.";
 
 #[test]
 fn test_compress() {
@@ -25,15 +23,19 @@ fn test_compress() {
     assert_eq!(compressed.to_cbor_data().len(), 283);
 
     assert_eq!(original.digest(), compressed.digest());
-    let uncompressed = compressed.uncompress().unwrap().check_encoding().unwrap();
+    let uncompressed =
+        compressed.uncompress().unwrap().check_encoding().unwrap();
     assert_eq!(uncompressed.digest(), original.digest());
-    assert_eq!(uncompressed.structural_digest(), original.structural_digest());
+    assert_eq!(
+        uncompressed.structural_digest(),
+        original.structural_digest()
+    );
 }
 
 #[cfg(feature = "signature")]
 #[test]
 fn test_compress_subject() {
-    use std::{ cell::RefCell, rc::Rc };
+    use std::{cell::RefCell, rc::Rc};
 
     use bc_components::SigningOptions;
     use bc_envelope::known_values;
@@ -60,7 +62,11 @@ fn test_compress_subject() {
                 d0e39e78 pred 'signed'
                 f0d3ce4c obj Signature
     "#}.trim());
-    let compressed = original.compress_subject().unwrap().check_encoding().unwrap();
+    let compressed = original
+        .compress_subject()
+        .unwrap()
+        .check_encoding()
+        .unwrap();
     assert_eq!(compressed.clone().to_cbor_data().len(), 374);
     let s = compressed.tree_format();
     // println!("{}", s);
@@ -93,7 +99,14 @@ fn test_compress_subject() {
         linkStyle 2 stroke:green,stroke-width:2px
         linkStyle 3 stroke:blue,stroke-width:2px
     "#}.trim());
-    let uncompressed = compressed.uncompress_subject().unwrap().check_encoding().unwrap();
+    let uncompressed = compressed
+        .uncompress_subject()
+        .unwrap()
+        .check_encoding()
+        .unwrap();
     assert_eq!(uncompressed.digest(), original.digest());
-    assert_eq!(uncompressed.structural_digest(), original.structural_digest());
+    assert_eq!(
+        uncompressed.structural_digest(),
+        original.structural_digest()
+    );
 }

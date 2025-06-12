@@ -19,15 +19,12 @@ use crate::extension::expressions::{
 #[cfg(any(feature = "expression", feature = "known_value"))]
 use crate::string_utils::StringUtils;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub enum FormatContextOpt<'a> {
     None,
+    #[default]
     Global,
     Custom(&'a FormatContext),
-}
-
-impl<'a> Default for FormatContextOpt<'a> {
-    fn default() -> Self { FormatContextOpt::Global }
 }
 
 impl<'a> From<FormatContextOpt<'a>> for dcbor::TagsStoreOpt<'a> {

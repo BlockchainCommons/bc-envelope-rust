@@ -80,7 +80,7 @@ fn test_multi_permit() -> anyhow::Result<()> {
     //
     let password = b"unicorns_dance_on_mars_while_eating_pizza";
     let locked_envelope = encrypted_envelope
-        .add_secret(KeyDerivationMethod::Argon2id, &password, &content_key)
+        .add_secret(KeyDerivationMethod::Argon2id, password, &content_key)
         .unwrap();
     // println!("{}", locked_envelope.format());
     #[rustfmt::skip]
@@ -170,7 +170,7 @@ fn test_multi_permit() -> anyhow::Result<()> {
     // Using the password and the Argon2id method.
     //
 
-    let unlocked_envelope = received_envelope.unlock(&password)?;
+    let unlocked_envelope = received_envelope.unlock(password)?;
     assert_eq!(unlocked_envelope, signed_envelope);
 
     //

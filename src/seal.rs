@@ -2,8 +2,9 @@
 
 //! # Envelope Sealing and Unsealing
 //!
-//! This module provides convenience functions for combining signing and encryption
-//! operations in a single step, creating secure, authenticated envelopes.
+//! This module provides convenience functions for combining signing and
+//! encryption operations in a single step, creating secure, authenticated
+//! envelopes.
 //!
 //! ## Sealing
 //!
@@ -22,15 +23,17 @@
 //! 1. Decrypts the envelope using the recipient's private key
 //! 2. Verifies the signature using the sender's public key
 
-use crate::Envelope;
 use anyhow::Result;
+use bc_components::{Decrypter, Encrypter, Signer, SigningOptions, Verifier};
 
-use bc_components::{Signer, Verifier, Encrypter, Decrypter, SigningOptions};
+use crate::Envelope;
 
 impl Envelope {
-    /// Seals an envelope by signing it with the sender's key and then encrypting it to the recipient.
+    /// Seals an envelope by signing it with the sender's key and then
+    /// encrypting it to the recipient.
     ///
-    /// This is a convenience method that combines signing and encryption in one step.
+    /// This is a convenience method that combines signing and encryption in one
+    /// step.
     ///
     /// # Arguments
     ///
@@ -46,8 +49,8 @@ impl Envelope {
     /// ```
     /// # #[cfg(all(feature = "signature", feature = "recipient"))]
     /// # {
+    /// use bc_components::{EncapsulationScheme, SignatureScheme};
     /// use bc_envelope::prelude::*;
-    /// use bc_components::{SignatureScheme, EncapsulationScheme};
     ///
     /// // Create an envelope
     /// let envelope = Envelope::new("Confidential message");
@@ -68,16 +71,18 @@ impl Envelope {
         self.sign(sender).encrypt_to_recipient(recipient)
     }
 
-    /// Seals an envelope by signing it with the sender's key and then encrypting it to the recipient,
-    /// with optional signing options.
+    /// Seals an envelope by signing it with the sender's key and then
+    /// encrypting it to the recipient, with optional signing options.
     ///
-    /// This is a convenience method that combines signing and encryption in one step.
+    /// This is a convenience method that combines signing and encryption in one
+    /// step.
     ///
     /// # Arguments
     ///
     /// * `sender` - The private key used to sign the envelope
     /// * `recipient` - The public key used to encrypt the envelope
-    /// * `options` - Optional signing options to control how the signature is created
+    /// * `options` - Optional signing options to control how the signature is
+    ///   created
     ///
     /// # Returns
     ///
@@ -88,8 +93,8 @@ impl Envelope {
     /// ```
     /// # #[cfg(all(feature = "signature", feature = "recipient"))]
     /// # fn main() -> Result<(), anyhow::Error> {
+    /// use bc_components::{EncapsulationScheme, SignatureScheme, SigningOptions};
     /// use bc_envelope::prelude::*;
-    /// use bc_components::{SignatureScheme, EncapsulationScheme, SigningOptions};
     ///
     /// // Create an envelope
     /// let envelope = Envelope::new("Confidential message");
@@ -105,7 +110,8 @@ impl Envelope {
     /// };
     ///
     /// // Seal the envelope with options
-    /// let sealed_envelope = envelope.seal_opt(&sender_private, &recipient_public, Some(options));
+    /// let sealed_envelope =
+    ///     envelope.seal_opt(&sender_private, &recipient_public, Some(options));
     /// # Ok(())
     /// # }
     /// ```
@@ -115,13 +121,15 @@ impl Envelope {
         recipient: &dyn Encrypter,
         options: Option<SigningOptions>,
     ) -> Envelope {
-        self.sign_opt(sender, options).encrypt_to_recipient(recipient)
+        self.sign_opt(sender, options)
+            .encrypt_to_recipient(recipient)
     }
 
-    /// Unseals an envelope by decrypting it with the recipient's private key and then verifying
-    /// the signature using the sender's public key.
+    /// Unseals an envelope by decrypting it with the recipient's private key
+    /// and then verifying the signature using the sender's public key.
     ///
-    /// This is a convenience method that combines decryption and signature verification in one step.
+    /// This is a convenience method that combines decryption and signature
+    /// verification in one step.
     ///
     /// # Arguments
     ///
@@ -130,29 +138,31 @@ impl Envelope {
     ///
     /// # Returns
     ///
-    /// A Result containing the unsealed envelope if successful, or an error if decryption
-    /// or signature verification fails
+    /// A Result containing the unsealed envelope if successful, or an error if
+    /// decryption or signature verification fails
     ///
     /// # Example
     ///
     /// ```
     /// # #[cfg(all(feature = "signature", feature = "recipient"))]
     /// # fn main() -> Result<(), anyhow::Error> {
+    /// use bc_components::{EncapsulationScheme, SignatureScheme};
     /// use bc_envelope::prelude::*;
-    /// use bc_components::{SignatureScheme, EncapsulationScheme};
     ///
     /// // Create an envelope
     /// let envelope = Envelope::new("Confidential message");
     ///
     /// // Generate keys for sender and recipient using specific schemes
     /// let (sender_private, sender_public) = SignatureScheme::Ed25519.keypair();
-    /// let (recipient_private, recipient_public) = EncapsulationScheme::X25519.keypair();
+    /// let (recipient_private, recipient_public) =
+    ///     EncapsulationScheme::X25519.keypair();
     ///
     /// // Seal the envelope
     /// let sealed_envelope = envelope.seal(&sender_private, &recipient_public);
     ///
     /// // Unseal the envelope using the recipient's private key
-    /// let unsealed_envelope = sealed_envelope.unseal(&sender_public, &recipient_private)?;
+    /// let unsealed_envelope =
+    ///     sealed_envelope.unseal(&sender_public, &recipient_private)?;
     ///
     /// // Verify we got back the original message
     /// let message: String = unsealed_envelope.extract_subject()?;
@@ -171,13 +181,10 @@ impl Envelope {
 
 #[cfg(all(test, feature = "signature", feature = "recipient"))]
 mod tests {
-    use super::*;
-    use bc_components::{
-        EncapsulationScheme,
-        SignatureScheme,
-        SigningOptions
-    };
     use anyhow::Result;
+    use bc_components::{EncapsulationScheme, SignatureScheme, SigningOptions};
+
+    use super::*;
 
     #[test]
     fn test_seal_and_unseal() -> Result<()> {
@@ -187,17 +194,21 @@ mod tests {
         let original_envelope = Envelope::new(message);
 
         // Generate keys for sender and recipient using established schemes
-        let (sender_private, sender_public) = SignatureScheme::Ed25519.keypair();
-        let (recipient_private, recipient_public) = EncapsulationScheme::X25519.keypair();
+        let (sender_private, sender_public) =
+            SignatureScheme::Ed25519.keypair();
+        let (recipient_private, recipient_public) =
+            EncapsulationScheme::X25519.keypair();
 
         // Step 1: Seal the envelope
-        let sealed_envelope = original_envelope.seal(&sender_private, &recipient_public);
+        let sealed_envelope =
+            original_envelope.seal(&sender_private, &recipient_public);
 
         // Verify the envelope is encrypted
         assert!(sealed_envelope.is_subject_encrypted());
 
         // Step 2: Unseal the envelope
-        let unsealed_envelope = sealed_envelope.unseal(&sender_public, &recipient_private)?;
+        let unsealed_envelope =
+            sealed_envelope.unseal(&sender_public, &recipient_private)?;
 
         // Verify we got back the original message
         let extracted_message: String = unsealed_envelope.extract_subject()?;
@@ -214,8 +225,10 @@ mod tests {
         let original_envelope = Envelope::new(message);
 
         // Generate keys for sender and recipient
-        let (sender_private, sender_public) = SignatureScheme::Ed25519.keypair();
-        let (recipient_private, recipient_public) = EncapsulationScheme::X25519.keypair();
+        let (sender_private, sender_public) =
+            SignatureScheme::Ed25519.keypair();
+        let (recipient_private, recipient_public) =
+            EncapsulationScheme::X25519.keypair();
 
         // Create signing options
         let options = SigningOptions::Ssh {
@@ -227,14 +240,15 @@ mod tests {
         let sealed_envelope = original_envelope.seal_opt(
             &sender_private,
             &recipient_public,
-            Some(options)
+            Some(options),
         );
 
         // Verify the envelope is encrypted
         assert!(sealed_envelope.is_subject_encrypted());
 
         // Unseal the envelope
-        let unsealed_envelope = sealed_envelope.unseal(&sender_public, &recipient_private)?;
+        let unsealed_envelope =
+            sealed_envelope.unseal(&sender_public, &recipient_private)?;
 
         // Verify we got back the original message
         let extracted_message: String = unsealed_envelope.extract_subject()?;

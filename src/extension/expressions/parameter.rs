@@ -1,13 +1,15 @@
 use bc_components::tags;
 use dcbor::prelude::*;
-use crate::{string_utils::StringUtils, Envelope, EnvelopeEncodable};
 
 use super::ParametersStore;
+use crate::{Envelope, EnvelopeEncodable, string_utils::StringUtils};
 
-/// Internal representation of a parameter name, which can be either static or dynamic.
+/// Internal representation of a parameter name, which can be either static or
+/// dynamic.
 ///
-/// Static names are &'static str references, typically used for compile-time constants.
-/// Dynamic names are owned String instances, used for runtime-created parameters.
+/// Static names are &'static str references, typically used for compile-time
+/// constants. Dynamic names are owned String instances, used for
+/// runtime-created parameters.
 #[derive(Clone, Debug, Eq)]
 pub enum ParameterName {
     /// A parameter name represented as a static string reference.
@@ -28,9 +30,7 @@ impl ParameterName {
 
 /// Implementation of equality for ParameterName based on the string value.
 impl PartialEq for ParameterName {
-    fn eq(&self, other: &Self) -> bool {
-        self.value() == other.value()
-    }
+    fn eq(&self, other: &Self) -> bool { self.value() == other.value() }
 }
 
 /// Implementation of hashing for ParameterName based on the string value.
@@ -42,8 +42,9 @@ impl std::hash::Hash for ParameterName {
 
 /// A parameter identifier used in Gordian Envelope expressions.
 ///
-/// In Gordian Envelope, a parameter appears as a predicate in an assertion on an expression envelope.
-/// The parameter identifies the name of the argument, and the object of the assertion is the argument value.
+/// In Gordian Envelope, a parameter appears as a predicate in an assertion on
+/// an expression envelope. The parameter identifies the name of the argument,
+/// and the object of the assertion is the argument value.
 ///
 /// Parameters can be identified in two ways:
 /// 1. By a numeric ID (for well-known parameters)
@@ -81,7 +82,8 @@ impl std::hash::Hash for ParameterName {
 /// ```
 #[derive(Clone, Debug, Eq)]
 pub enum Parameter {
-    /// A well-known parameter identified by a numeric ID, with an optional name.
+    /// A well-known parameter identified by a numeric ID, with an optional
+    /// name.
     Known(u64, Option<ParameterName>),
     /// A parameter identified by a name.
     Named(ParameterName),
@@ -90,8 +92,8 @@ pub enum Parameter {
 impl Parameter {
     /// Creates a new parameter with a numeric ID and an optional string name.
     ///
-    /// This creates a "known" parameter, which is identified primarily by its numeric ID.
-    /// The optional name is used for display purposes.
+    /// This creates a "known" parameter, which is identified primarily by its
+    /// numeric ID. The optional name is used for display purposes.
     ///
     /// # Parameters
     ///
@@ -116,9 +118,9 @@ impl Parameter {
 
     /// Creates a new parameter identified by a string name.
     ///
-    /// This creates a "named" parameter, which is identified by its string name.
-    /// This method cannot be used to declare a parameter at compile-time, as it
-    /// creates a dynamic string.
+    /// This creates a "named" parameter, which is identified by its string
+    /// name. This method cannot be used to declare a parameter at
+    /// compile-time, as it creates a dynamic string.
     ///
     /// # Parameters
     ///
@@ -142,9 +144,10 @@ impl Parameter {
 
     /// Creates a new parameter with a numeric ID and a static string name.
     ///
-    /// This creates a "known" parameter, which is identified primarily by its numeric ID.
-    /// The static name is used for display purposes. This method can be used to declare
-    /// a parameter at compile-time, as it uses a static string reference.
+    /// This creates a "known" parameter, which is identified primarily by its
+    /// numeric ID. The static name is used for display purposes. This
+    /// method can be used to declare a parameter at compile-time, as it
+    /// uses a static string reference.
     ///
     /// # Parameters
     ///
@@ -169,9 +172,9 @@ impl Parameter {
 
     /// Creates a new parameter identified by a static string name.
     ///
-    /// This creates a "named" parameter, which is identified by its string name.
-    /// This method can be used to declare a parameter at compile-time, as it uses
-    /// a static string reference.
+    /// This creates a "named" parameter, which is identified by its string
+    /// name. This method can be used to declare a parameter at
+    /// compile-time, as it uses a static string reference.
     ///
     /// # Parameters
     ///
@@ -225,16 +228,18 @@ impl Parameter {
                 } else {
                     value.to_string()
                 }
-            },
-            Self::Named(name) => name.value().to_string().flanked_by("\"", "\""),
+            }
+            Self::Named(name) => {
+                name.value().to_string().flanked_by("\"", "\"")
+            }
         }
     }
 }
 
 /// Implementation of equality for Parameter.
 ///
-/// Known parameters are equal if they have the same numeric ID (names are ignored).
-/// Named parameters are equal if they have the same name.
+/// Known parameters are equal if they have the same numeric ID (names are
+/// ignored). Named parameters are equal if they have the same name.
 /// Known and named parameters are never equal to each other.
 impl PartialEq for Parameter {
     fn eq(&self, other: &Self) -> bool {
@@ -263,43 +268,33 @@ impl std::hash::Hash for Parameter {
 ///
 /// This creates a known parameter with the given numeric ID and no name.
 impl From<u64> for Parameter {
-    fn from(value: u64) -> Self {
-        Self::new_known(value, None)
-    }
+    fn from(value: u64) -> Self { Self::new_known(value, None) }
 }
 
 /// Allows creating a Parameter from a string reference.
 ///
 /// This creates a named parameter with the given name.
 impl From<&str> for Parameter {
-    fn from(name: &str) -> Self {
-        Self::new_named(name)
-    }
+    fn from(name: &str) -> Self { Self::new_named(name) }
 }
 
 /// Allows creating a Parameter from a reference to a Parameter.
 ///
 /// This clones the parameter.
 impl From<&Parameter> for Parameter {
-    fn from(parameter: &Parameter) -> Self {
-        parameter.clone()
-    }
+    fn from(parameter: &Parameter) -> Self { parameter.clone() }
 }
 
 /// Implementation of the CBORTagged trait for Parameter.
 ///
 /// Parameters are tagged with #6.40007 (TAG_PARAMETER).
 impl CBORTagged for Parameter {
-    fn cbor_tags() -> Vec<Tag> {
-        tags_for_values(&[tags::TAG_PARAMETER])
-    }
+    fn cbor_tags() -> Vec<Tag> { tags_for_values(&[tags::TAG_PARAMETER]) }
 }
 
 /// Allows creating a CBOR value from a Parameter.
 impl From<Parameter> for CBOR {
-    fn from(value: Parameter) -> Self {
-        value.tagged_cbor()
-    }
+    fn from(value: Parameter) -> Self { value.tagged_cbor() }
 }
 
 /// Implementation of the CBORTaggedEncodable trait for Parameter.
@@ -333,7 +328,7 @@ impl CBORTaggedDecodable for Parameter {
         match untagged_cbor.as_case() {
             CBORCase::Unsigned(value) => Ok(Self::new_known(*value, None)),
             CBORCase::Text(name) => Ok(Self::new_named(name)),
-            _ => return Err("invalid parameter".into()),
+            _ => Err("invalid parameter".into()),
         }
     }
 }
@@ -348,10 +343,10 @@ impl Parameter {
         match self {
             Parameter::Known(_, _) => {
                 ParametersStore::name_for_parameter(self, parameters)
-            },
+            }
             Parameter::Named(name) => {
                 format!("\"{}\"", name.value())
-            },
+            }
         }
     }
 }
@@ -369,7 +364,5 @@ impl std::fmt::Display for Parameter {
 ///
 /// This allows a Parameter to be directly converted to an Envelope.
 impl EnvelopeEncodable for Parameter {
-    fn into_envelope(self) -> Envelope {
-        Envelope::new_leaf(self)
-    }
+    fn into_envelope(self) -> Envelope { Envelope::new_leaf(self) }
 }

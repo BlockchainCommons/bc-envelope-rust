@@ -1,14 +1,16 @@
-use dcbor::prelude::*;
-use indoc::indoc;
 use bc_components::Digest;
 use bc_envelope::prelude::*;
+use dcbor::prelude::*;
+use indoc::indoc;
 
 mod common;
 use crate::common::check_encoding::*;
 
 #[test]
 fn test_digest() {
-    Envelope::new(Digest::from_image("Hello.".as_bytes())).check_encoding().unwrap();
+    Envelope::new(Digest::from_image("Hello.".as_bytes()))
+        .check_encoding()
+        .unwrap();
 }
 
 #[test]

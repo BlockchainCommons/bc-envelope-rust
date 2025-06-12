@@ -1,21 +1,19 @@
 #[cfg(feature = "encrypt")]
 use bc_components::SymmetricKey;
-
 use bc_envelope::prelude::*;
 
 mod common;
 use crate::common::test_data::*;
 
-/// This tests the transformation of different kinds of "obscured" envelopes into
-/// others. Some transformations are allowed, some are idempotent (return the same
-/// result), and some throw errors.
+/// This tests the transformation of different kinds of "obscured" envelopes
+/// into others. Some transformations are allowed, some are idempotent (return
+/// the same result), and some throw errors.
 ///
 /// | Operation > | Encrypt | Elide      | Compress   |
 /// |:------------|:--------|:-----------|:-----------|
 /// | Encrypted   | ERROR   | OK         | ERROR      |
 /// | Elided      | ERROR   | IDEMPOTENT | ERROR      |
 /// | Compressed  | OK      | OK         | IDEMPOTENT |
-///
 #[test]
 fn test_obscuring() {
     #[cfg(feature = "encrypt")]
@@ -43,9 +41,9 @@ fn test_obscuring() {
     // Cannot encrypt an encrypted envelope.
     //
     // If allowed, would result in an envelope with the same digest but
-    // double-encrypted, possibly with a different key, which is probably not what's
-    // intended. If you want to double-encrypt then wrap the encrypted envelope first,
-    // which will change its digest.
+    // double-encrypted, possibly with a different key, which is probably not
+    // what's intended. If you want to double-encrypt then wrap the
+    // encrypted envelope first, which will change its digest.
     #[cfg(feature = "encrypt")]
     {
         let encrypted = envelope.encrypt_subject(&key).unwrap();
@@ -67,7 +65,6 @@ fn test_obscuring() {
         let encrypted_compressed = compressed.encrypt_subject(&key).unwrap();
         assert!(encrypted_compressed.is_encrypted());
     }
-
 
     // ELISION
 
@@ -95,8 +92,8 @@ fn test_obscuring() {
 
     // Cannot compress an encrypted envelope.
     //
-    // Encrypted envelopes cannot become smaller because encrypted data looks random,
-    // and random data is not compressible.
+    // Encrypted envelopes cannot become smaller because encrypted data looks
+    // random, and random data is not compressible.
     #[cfg(all(feature = "compress", feature = "encrypt"))]
     {
         let encrypted = envelope.encrypt_subject(&key).unwrap();

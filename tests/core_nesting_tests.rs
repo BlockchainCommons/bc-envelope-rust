@@ -25,9 +25,12 @@ fn test_predicate_enclosures() {
         "A": "B"
     "#}.trim());
 
-    let knows_ab_bob = Envelope::new_assertion(knows.add_assertion_envelope(&ab).unwrap(), &bob)
-        .check_encoding()
-        .unwrap();
+    let knows_ab_bob = Envelope::new_assertion(
+        knows.add_assertion_envelope(&ab).unwrap(),
+        &bob,
+    )
+    .check_encoding()
+    .unwrap();
     #[rustfmt::skip]
     assert_actual_expected!(knows_ab_bob.format(), indoc! {r#"
         "knows" [
@@ -36,9 +39,12 @@ fn test_predicate_enclosures() {
         : "Bob"
     "#}.trim());
 
-    let knows_bob_ab = Envelope::new_assertion(&knows, bob.add_assertion_envelope(&ab).unwrap())
-        .check_encoding()
-        .unwrap();
+    let knows_bob_ab = Envelope::new_assertion(
+        &knows,
+        bob.add_assertion_envelope(&ab).unwrap(),
+    )
+    .check_encoding()
+    .unwrap();
     #[rustfmt::skip]
     assert_actual_expected!(knows_bob_ab.format(), indoc! {r#"
         "knows": "Bob" [
@@ -86,9 +92,10 @@ fn test_predicate_enclosures() {
     "#}.trim());
 
     let alice_knows_ab_bob = alice
-        .add_assertion_envelope(
-            Envelope::new_assertion(knows.add_assertion_envelope(&ab).unwrap(), &bob)
-        )
+        .add_assertion_envelope(Envelope::new_assertion(
+            knows.add_assertion_envelope(&ab).unwrap(),
+            &bob,
+        ))
         .unwrap()
         .check_encoding()
         .unwrap();
@@ -103,9 +110,10 @@ fn test_predicate_enclosures() {
     "#}.trim());
 
     let alice_knows_bob_ab = alice
-        .add_assertion_envelope(
-            Envelope::new_assertion(&knows, bob.add_assertion_envelope(&ab).unwrap())
-        )
+        .add_assertion_envelope(Envelope::new_assertion(
+            &knows,
+            bob.add_assertion_envelope(&ab).unwrap(),
+        ))
         .unwrap()
         .check_encoding()
         .unwrap();
@@ -119,12 +127,10 @@ fn test_predicate_enclosures() {
     "#}.trim());
 
     let alice_knows_ab_bob_ab = alice
-        .add_assertion_envelope(
-            Envelope::new_assertion(
-                knows.add_assertion_envelope(&ab).unwrap(),
-                bob.add_assertion_envelope(&ab).unwrap()
-            )
-        )
+        .add_assertion_envelope(Envelope::new_assertion(
+            knows.add_assertion_envelope(&ab).unwrap(),
+            bob.add_assertion_envelope(&ab).unwrap(),
+        ))
         .unwrap()
         .check_encoding()
         .unwrap();
@@ -143,12 +149,10 @@ fn test_predicate_enclosures() {
     let alice_ab_knows_ab_bob_ab = alice
         .add_assertion_envelope(&ab)
         .unwrap()
-        .add_assertion_envelope(
-            Envelope::new_assertion(
-                knows.add_assertion_envelope(&ab).unwrap(),
-                bob.add_assertion_envelope(&ab).unwrap()
-            )
-        )
+        .add_assertion_envelope(Envelope::new_assertion(
+            knows.add_assertion_envelope(&ab).unwrap(),
+            bob.add_assertion_envelope(&ab).unwrap(),
+        ))
         .unwrap()
         .check_encoding()
         .unwrap();
@@ -171,10 +175,10 @@ fn test_predicate_enclosures() {
         .add_assertion_envelope(
             Envelope::new_assertion(
                 knows.add_assertion_envelope(&ab).unwrap(),
-                bob.add_assertion_envelope(&ab).unwrap()
+                bob.add_assertion_envelope(&ab).unwrap(),
             )
-                .add_assertion_envelope(ab)
-                .unwrap()
+            .add_assertion_envelope(ab)
+            .unwrap(),
         )
         .unwrap()
         .check_encoding()
@@ -219,7 +223,10 @@ fn test_nesting_plaintext() {
 
 #[test]
 fn test_nesting_once() {
-    let envelope = Envelope::new("Hello.").wrap_envelope().check_encoding().unwrap();
+    let envelope = Envelope::new("Hello.")
+        .wrap_envelope()
+        .check_encoding()
+        .unwrap();
 
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
@@ -229,7 +236,11 @@ fn test_nesting_once() {
     "#}.trim();
     assert_actual_expected!(envelope.format(), expected_format);
 
-    let elided_envelope = Envelope::new("Hello.").elide().wrap_envelope().check_encoding().unwrap();
+    let elided_envelope = Envelope::new("Hello.")
+        .elide()
+        .wrap_envelope()
+        .check_encoding()
+        .unwrap();
 
     assert!(elided_envelope.is_equivalent_to(&envelope));
 
@@ -260,7 +271,11 @@ fn test_nesting_twice() {
     "#}.trim();
     assert_actual_expected!(envelope.format(), expected_format);
 
-    let target = envelope.unwrap_envelope().unwrap().unwrap_envelope().unwrap();
+    let target = envelope
+        .unwrap_envelope()
+        .unwrap()
+        .unwrap_envelope()
+        .unwrap();
     let elided_envelope = envelope.elide_removing_target(&target);
 
     #[rustfmt::skip]
@@ -278,11 +293,10 @@ fn test_nesting_twice() {
 
 #[test]
 fn test_assertions_on_all_parts_of_envelope() {
-    let predicate = Envelope::new("predicate").add_assertion(
-        "predicate-predicate",
-        "predicate-object"
-    );
-    let object = Envelope::new("object").add_assertion("object-predicate", "object-object");
+    let predicate = Envelope::new("predicate")
+        .add_assertion("predicate-predicate", "predicate-object");
+    let object = Envelope::new("object")
+        .add_assertion("object-predicate", "object-object");
     let envelope = Envelope::new("subject")
         .add_assertion(predicate, object)
         .check_encoding()
@@ -304,10 +318,8 @@ fn test_assertions_on_all_parts_of_envelope() {
 
 #[test]
 fn test_assertion_on_bare_assertion() {
-    let envelope = Envelope::new_assertion("predicate", "object").add_assertion(
-        "assertion-predicate",
-        "assertion-object"
-    );
+    let envelope = Envelope::new_assertion("predicate", "object")
+        .add_assertion("assertion-predicate", "assertion-object");
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         {

@@ -1,14 +1,15 @@
 use bc_components::tags;
 use dcbor::prelude::*;
 
-use crate::{string_utils::StringUtils, Envelope, EnvelopeEncodable};
-
 use super::FunctionsStore;
+use crate::{Envelope, EnvelopeEncodable, string_utils::StringUtils};
 
-/// Internal representation of a function name, which can be either static or dynamic.
+/// Internal representation of a function name, which can be either static or
+/// dynamic.
 ///
-/// Static names are &'static str references, typically used for compile-time constants.
-/// Dynamic names are owned String instances, used for runtime-created functions.
+/// Static names are &'static str references, typically used for compile-time
+/// constants. Dynamic names are owned String instances, used for
+/// runtime-created functions.
 #[derive(Clone, Debug, Eq)]
 pub enum FunctionName {
     /// A function name represented as a static string reference.
@@ -29,9 +30,7 @@ impl FunctionName {
 
 /// Implementation of equality for FunctionName based on the string value.
 impl PartialEq for FunctionName {
-    fn eq(&self, other: &Self) -> bool {
-        self.value() == other.value()
-    }
+    fn eq(&self, other: &Self) -> bool { self.value() == other.value() }
 }
 
 /// Implementation of hashing for FunctionName based on the string value.
@@ -43,8 +42,8 @@ impl std::hash::Hash for FunctionName {
 
 /// A function identifier used in Gordian Envelope expressions.
 ///
-/// In Gordian Envelope, a function appears as the subject of an expression envelope,
-/// with its parameters as assertions on that envelope.
+/// In Gordian Envelope, a function appears as the subject of an expression
+/// envelope, with its parameters as assertions on that envelope.
 ///
 /// Functions can be identified in two ways:
 /// 1. By a numeric ID (for well-known functions)
@@ -91,8 +90,8 @@ pub enum Function {
 impl Function {
     /// Creates a new function with a numeric ID and an optional string name.
     ///
-    /// This creates a "known" function, which is identified primarily by its numeric ID.
-    /// The optional name is used for display purposes.
+    /// This creates a "known" function, which is identified primarily by its
+    /// numeric ID. The optional name is used for display purposes.
     ///
     /// # Parameters
     ///
@@ -143,9 +142,10 @@ impl Function {
 
     /// Creates a new function with a numeric ID and a static string name.
     ///
-    /// This creates a "known" function, which is identified primarily by its numeric ID.
-    /// The static name is used for display purposes. This method can be used to declare
-    /// a function at compile-time, as it uses a static string reference.
+    /// This creates a "known" function, which is identified primarily by its
+    /// numeric ID. The static name is used for display purposes. This
+    /// method can be used to declare a function at compile-time, as it uses
+    /// a static string reference.
     ///
     /// # Parameters
     ///
@@ -171,8 +171,8 @@ impl Function {
     /// Creates a new function identified by a static string name.
     ///
     /// This creates a "named" function, which is identified by its string name.
-    /// This method can be used to declare a function at compile-time, as it uses
-    /// a static string reference.
+    /// This method can be used to declare a function at compile-time, as it
+    /// uses a static string reference.
     ///
     /// # Parameters
     ///
@@ -226,20 +226,22 @@ impl Function {
                 } else {
                     value.to_string()
                 }
-            },
-            Self::Named(name) => name.value().to_string().flanked_by("\"", "\""),
+            }
+            Self::Named(name) => {
+                name.value().to_string().flanked_by("\"", "\"")
+            }
         }
     }
 
     /// Returns the name of a named function, if available.
     ///
-    /// This method returns the raw string name for named functions, without quotes.
-    /// For known functions (numeric IDs), it returns None.
+    /// This method returns the raw string name for named functions, without
+    /// quotes. For known functions (numeric IDs), it returns None.
     ///
     /// # Returns
     ///
-    /// An Option containing the function name string if this is a named function,
-    /// or None if it's a known (numeric) function.
+    /// An Option containing the function name string if this is a named
+    /// function, or None if it's a known (numeric) function.
     ///
     /// # Examples
     ///
@@ -262,8 +264,8 @@ impl Function {
 
 /// Implementation of equality for Function.
 ///
-/// Known functions are equal if they have the same numeric ID (names are ignored).
-/// Named functions are equal if they have the same name.
+/// Known functions are equal if they have the same numeric ID (names are
+/// ignored). Named functions are equal if they have the same name.
 /// Known and named functions are never equal to each other.
 impl PartialEq for Function {
     fn eq(&self, other: &Self) -> bool {
@@ -292,43 +294,33 @@ impl std::hash::Hash for Function {
 ///
 /// This creates a known function with the given numeric ID and no name.
 impl From<u64> for Function {
-    fn from(value: u64) -> Self {
-        Self::new_known(value, None)
-    }
+    fn from(value: u64) -> Self { Self::new_known(value, None) }
 }
 
 /// Allows creating a Function from a string reference.
 ///
 /// This creates a named function with the given name.
 impl From<&str> for Function {
-    fn from(name: &str) -> Self {
-        Self::new_named(name)
-    }
+    fn from(name: &str) -> Self { Self::new_named(name) }
 }
 
 /// Allows creating a Function from a reference to a Function.
 ///
 /// This clones the function.
 impl From<&Function> for Function {
-    fn from(function: &Function) -> Self {
-        function.clone()
-    }
+    fn from(function: &Function) -> Self { function.clone() }
 }
 
 /// Implementation of the CBORTagged trait for Function.
 ///
 /// Functions are tagged with #6.40006 (TAG_FUNCTION).
 impl CBORTagged for Function {
-    fn cbor_tags() -> Vec<Tag> {
-        tags_for_values(&[tags::TAG_FUNCTION])
-    }
+    fn cbor_tags() -> Vec<Tag> { tags_for_values(&[tags::TAG_FUNCTION]) }
 }
 
 /// Allows creating a CBOR value from a Function.
 impl From<Function> for CBOR {
-    fn from(value: Function) -> Self {
-        value.tagged_cbor()
-    }
+    fn from(value: Function) -> Self { value.tagged_cbor() }
 }
 
 /// Implementation of the CBORTaggedEncodable trait for Function.
@@ -362,7 +354,7 @@ impl CBORTaggedDecodable for Function {
         match untagged_cbor.as_case() {
             CBORCase::Unsigned(value) => Ok(Self::new_known(*value, None)),
             CBORCase::Text(name) => Ok(Self::new_named(name)),
-            _ => return Err("invalid function".into()),
+            _ => Err("invalid function".into()),
         }
     }
 }
@@ -377,10 +369,10 @@ impl Function {
         match self {
             Function::Known(_, _) => {
                 FunctionsStore::name_for_function(self, functions)
-            },
+            }
             Function::Named(name) => {
                 format!("\"{}\"", name.value())
-            },
+            }
         }
     }
 }
@@ -398,9 +390,7 @@ impl std::fmt::Display for Function {
 ///
 /// This allows a Function to be directly converted to an Envelope.
 impl EnvelopeEncodable for Function {
-    fn into_envelope(self) -> Envelope {
-        Envelope::new_leaf(self)
-    }
+    fn into_envelope(self) -> Envelope { Envelope::new_leaf(self) }
 }
 
 /// Implements conversion from Envelope to Function.

@@ -1,5 +1,7 @@
-use crate::pattern::{Matcher, Path};
-use crate::Envelope;
+use crate::{
+    Envelope,
+    pattern::{Matcher, Path},
+};
 
 #[derive(Debug, Clone)]
 pub enum WrappedPattern {
@@ -13,7 +15,8 @@ impl WrappedPattern {
     /// Creates a new `WrappedPattern` that matches any wrapped envelope.
     pub fn any() -> Self { WrappedPattern::Any }
 
-    /// Creates a new `WrappedPattern` that matches a wrapped envelope and unwraps it.
+    /// Creates a new `WrappedPattern` that matches a wrapped envelope and
+    /// unwraps it.
     pub fn unwrap() -> Self { WrappedPattern::Unwrap }
 }
 
@@ -25,7 +28,8 @@ impl Matcher for WrappedPattern {
                     vec![vec![envelope.clone()]]
                 }
                 WrappedPattern::Unwrap => {
-                    if let Some(unwrapped) = envelope.subject().unwrap_envelope().ok() {
+                    if let Ok(unwrapped) = envelope.subject().unwrap_envelope()
+                    {
                         vec![vec![unwrapped]]
                     } else {
                         vec![]

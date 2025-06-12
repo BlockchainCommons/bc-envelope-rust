@@ -1,4 +1,7 @@
-use bc_components::{Digest, PrivateKeyBase, PrivateKeys, PublicKeys, Reference, SSKRShare, Salt, SealedMessage, Signature, ARID, URI, UUID, XID};
+use bc_components::{
+    ARID, Digest, PrivateKeyBase, PrivateKeys, PublicKeys, Reference,
+    SSKRShare, Salt, SealedMessage, Signature, URI, UUID, XID,
+};
 use dcbor::prelude::*;
 
 use crate::Envelope;
@@ -72,10 +75,9 @@ impl Envelope {
     ///
     /// # Errors
     ///
-    /// Returns an error if the CBOR does not represent a valid envelope structure.
-    pub fn try_from_cbor(cbor: CBOR) -> dcbor::Result<Self> {
-        cbor.try_into()
-    }
+    /// Returns an error if the CBOR does not represent a valid envelope
+    /// structure.
+    pub fn try_from_cbor(cbor: CBOR) -> dcbor::Result<Self> { cbor.try_into() }
 
     /// Creates an envelope from raw CBOR binary data.
     ///

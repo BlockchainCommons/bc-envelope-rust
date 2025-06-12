@@ -4,21 +4,24 @@ use super::Parameter;
 
 /// A store that maps parameters to their assigned names.
 ///
-/// `ParametersStore` maintains a registry of parameters and their human-readable names,
-/// which is useful for displaying and debugging expression parameters. The store
-/// allows for consistent name resolution of parameters used in expressions.
+/// `ParametersStore` maintains a registry of parameters and their
+/// human-readable names, which is useful for displaying and debugging
+/// expression parameters. The store allows for consistent name resolution of
+/// parameters used in expressions.
 ///
 /// # Examples
 ///
 /// ```
-/// use bc_envelope::prelude::*;
-/// use bc_envelope::extension::expressions::{ParametersStore, parameters};
+/// use bc_envelope::{
+///     extension::expressions::{ParametersStore, parameters},
+///     prelude::*,
+/// };
 ///
 /// // Create a store with common parameters
 /// let store = ParametersStore::new([
 ///     parameters::LHS,
 ///     parameters::RHS,
-///     parameters::BLANK
+///     parameters::BLANK,
 /// ]);
 ///
 /// // Look up the name of a parameter
@@ -43,14 +46,16 @@ impl ParametersStore {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
-    /// use bc_envelope::extension::expressions::{ParametersStore, parameters};
+    /// use bc_envelope::{
+    ///     extension::expressions::{ParametersStore, parameters},
+    ///     prelude::*,
+    /// };
     ///
     /// // Create a store with standard parameters
     /// let store = ParametersStore::new([
     ///     parameters::LHS,
     ///     parameters::RHS,
-    ///     parameters::BLANK
+    ///     parameters::BLANK,
     /// ]);
     /// ```
     pub fn new<T>(parameters: T) -> Self
@@ -73,8 +78,10 @@ impl ParametersStore {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
-    /// use bc_envelope::extension::expressions::{ParametersStore, Parameter, parameters};
+    /// use bc_envelope::{
+    ///     extension::expressions::{Parameter, ParametersStore, parameters},
+    ///     prelude::*,
+    /// };
     ///
     /// let mut store = ParametersStore::default();
     /// store.insert(parameters::LHS);
@@ -97,8 +104,10 @@ impl ParametersStore {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
-    /// use bc_envelope::extension::expressions::{ParametersStore, parameters};
+    /// use bc_envelope::{
+    ///     extension::expressions::{ParametersStore, parameters},
+    ///     prelude::*,
+    /// };
     ///
     /// let store = ParametersStore::new([parameters::LHS]);
     /// assert_eq!(store.assigned_name(&parameters::LHS), Some("lhs"));
@@ -108,7 +117,8 @@ impl ParametersStore {
         self.dict.get(parameter).map(|name| name.as_str())
     }
 
-    /// Returns the name for a parameter, either from this store or from the parameter itself.
+    /// Returns the name for a parameter, either from this store or from the
+    /// parameter itself.
     ///
     /// If the parameter exists in the store, returns its assigned name.
     /// Otherwise, returns the parameter's own name.
@@ -124,8 +134,10 @@ impl ParametersStore {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
-    /// use bc_envelope::extension::expressions::{ParametersStore, parameters};
+    /// use bc_envelope::{
+    ///     extension::expressions::{ParametersStore, parameters},
+    ///     prelude::*,
+    /// };
     ///
     /// let store = ParametersStore::new([parameters::LHS]);
     /// assert_eq!(store.name(&parameters::LHS), "lhs");
@@ -138,10 +150,11 @@ impl ParametersStore {
             .unwrap_or_else(|| parameter.name())
     }
 
-    /// A static method that returns the name of a parameter, using an optional store.
+    /// A static method that returns the name of a parameter, using an optional
+    /// store.
     ///
-    /// This utility method is useful when you have an optional store and want to
-    /// get a parameter name without additional unwrapping logic.
+    /// This utility method is useful when you have an optional store and want
+    /// to get a parameter name without additional unwrapping logic.
     ///
     /// # Parameters
     ///
@@ -155,11 +168,13 @@ impl ParametersStore {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
-    /// use bc_envelope::extension::expressions::{ParametersStore, parameters};
+    /// use bc_envelope::{
+    ///     extension::expressions::{ParametersStore, parameters},
+    ///     prelude::*,
+    /// };
     ///
     /// let store = ParametersStore::new([parameters::LHS]);
-    /// 
+    ///
     /// // Using the store
     /// assert_eq!(
     ///     ParametersStore::name_for_parameter(&parameters::LHS, Some(&store)),
@@ -172,7 +187,10 @@ impl ParametersStore {
     ///     "lhs"
     /// );
     /// ```
-    pub fn name_for_parameter(parameter: &Parameter, parameters: Option<&Self>) -> String {
+    pub fn name_for_parameter(
+        parameter: &Parameter,
+        parameters: Option<&Self>,
+    ) -> String {
         parameters
             .and_then(|parameters| parameters.assigned_name(parameter))
             .map(|name| name.to_string())
@@ -195,7 +213,5 @@ impl ParametersStore {
 
 /// Provides a default empty store.
 impl Default for ParametersStore {
-    fn default() -> Self {
-        Self::new([])
-    }
+    fn default() -> Self { Self::new([]) }
 }

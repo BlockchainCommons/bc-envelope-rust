@@ -1,27 +1,30 @@
 //! Public key encryption extension for Gordian Envelope.
 //!
-//! This module implements public key encryption for Gordian Envelope, allowing encrypted
-//! content to be selectively shared with one or more recipients. Each recipient needs
-//! their own public/private key pair, and only recipients with the corresponding private
-//! key can decrypt the envelope's content.
+//! This module implements public key encryption for Gordian Envelope, allowing
+//! encrypted content to be selectively shared with one or more recipients. Each
+//! recipient needs their own public/private key pair, and only recipients with
+//! the corresponding private key can decrypt the envelope's content.
 //!
-//! The recipient extension builds on the basic envelope encryption capabilities by adding:
+//! The recipient extension builds on the basic envelope encryption capabilities
+//! by adding:
 //!
-//! - **Multiple Recipients** - A single envelope can be encrypted to multiple recipients
-//! - **Content Key Distribution** - Uses public key cryptography to securely distribute the
-//!   symmetric key that encrypts the actual content
-//! - **Privacy** - Recipients can decrypt the envelope independently without revealing
-//!   their identity or access to other recipients
+//! - **Multiple Recipients** - A single envelope can be encrypted to multiple
+//!   recipients
+//! - **Content Key Distribution** - Uses public key cryptography to securely
+//!   distribute the symmetric key that encrypts the actual content
+//! - **Privacy** - Recipients can decrypt the envelope independently without
+//!   revealing their identity or access to other recipients
 //!
 //! # How It Works
 //!
-//! The envelope's subject is encrypted using a random symmetric key (the "content key"),
-//! and then this content key is encrypted to each recipient's public key using a `SealedMessage`.
-//! Each encrypted content key is attached to the envelope with a `hasRecipient` assertion.
+//! The envelope's subject is encrypted using a random symmetric key (the
+//! "content key"), and then this content key is encrypted to each recipient's
+//! public key using a `SealedMessage`. Each encrypted content key is attached
+//! to the envelope with a `hasRecipient` assertion.
 //!
-//! When recipients want to decrypt the envelope, they use their private key to decrypt
-//! the content key from the appropriate `SealedMessage`, and then use that content key to
-//! decrypt the envelope's subject.
+//! When recipients want to decrypt the envelope, they use their private key to
+//! decrypt the content key from the appropriate `SealedMessage`, and then use
+//! that content key to decrypt the envelope's subject.
 //!
 //! # Basic Usage
 //!
@@ -59,13 +62,14 @@
 //!
 //! # Multiple Recipients
 //!
-//! You can encrypt an envelope to multiple recipients, and each can independently decrypt it:
+//! You can encrypt an envelope to multiple recipients, and each can
+//! independently decrypt it:
 //!
 //! ```
 //! # #[cfg(feature = "recipient")]
 //! # {
+//! use bc_components::{PublicKeysProvider, SymmetricKey};
 //! use bc_envelope::prelude::*;
-//! use bc_components::{SymmetricKey, PublicKeysProvider};
 //!
 //! // Create keys for multiple recipients
 //! let alice_keys = bc_components::PrivateKeyBase::new();
@@ -74,37 +78,40 @@
 //!
 //! // Create and encrypt the envelope to both Bob and Carol
 //! let envelope = Envelope::new("Shared secret");
-//! let encrypted = envelope.encrypt_subject_to_recipients(
-//!     &[&bob_keys.public_keys(), &carol_keys.public_keys()]
-//! ).unwrap();
+//! let encrypted = envelope
+//!     .encrypt_subject_to_recipients(&[
+//!         &bob_keys.public_keys(),
+//!         &carol_keys.public_keys(),
+//!     ])
+//!     .unwrap();
 //!
 //! // Bob can decrypt it
-//! let bob_decrypted = encrypted.clone()
+//! let bob_decrypted = encrypted
+//!     .clone()
 //!     .decrypt_subject_to_recipient(&bob_keys)
 //!     .unwrap();
 //!
 //! // Carol can decrypt it
-//! let carol_decrypted = encrypted.clone()
+//! let carol_decrypted = encrypted
+//!     .clone()
 //!     .decrypt_subject_to_recipient(&carol_keys)
 //!     .unwrap();
 //!
 //! // Alice can't decrypt it
-//! assert!(encrypted
-//!     .decrypt_subject_to_recipient(&alice_keys)
-//!     .is_err());
+//! assert!(encrypted.decrypt_subject_to_recipient(&alice_keys).is_err());
 //! # }
 //! ```
 //!
 //! # Usage with Custom Keys
 //!
-//! If you need more control over the encryption process, you can use the lower-level methods
-//! to encrypt with a specific content key:
+//! If you need more control over the encryption process, you can use the
+//! lower-level methods to encrypt with a specific content key:
 //!
 //! ```
 //! # #[cfg(feature = "recipient")]
 //! # {
+//! use bc_components::{PublicKeysProvider, SymmetricKey};
 //! use bc_envelope::prelude::*;
-//! use bc_components::{SymmetricKey, PublicKeysProvider};
 //!
 //! // Create keys for the recipient
 //! let bob_keys = bc_components::PrivateKeyBase::new();
@@ -120,22 +127,20 @@
 //!     .add_recipient(&bob_keys.public_keys(), &content_key);
 //!
 //! // Bob can decrypt it
-//! let decrypted = encrypted
-//!     .decrypt_subject_to_recipient(&bob_keys)
-//!     .unwrap();
+//! let decrypted = encrypted.decrypt_subject_to_recipient(&bob_keys).unwrap();
 //! # }
 //! ```
 //!
 //! # Combining with Signatures
 //!
-//! Recipient encryption works well with envelope signatures, allowing you to create
-//! authenticated encrypted messages:
+//! Recipient encryption works well with envelope signatures, allowing you to
+//! create authenticated encrypted messages:
 //!
 //! ```
 //! # #[cfg(all(feature = "recipient", feature = "signature"))]
 //! # {
-//! use bc_envelope::prelude::*;
 //! use bc_components::PublicKeysProvider;
+//! use bc_envelope::prelude::*;
 //!
 //! // Create keys for sender and recipient
 //! let alice_keys = bc_components::PrivateKeyBase::new();
@@ -160,28 +165,30 @@
 //! # }
 //! ```
 
-use crate::{ Envelope, Error };
+use anyhow::{Result, bail};
+#[cfg(feature = "encrypt")]
+use bc_components::Decrypter;
+use bc_components::{Encrypter, Nonce, SealedMessage, SymmetricKey};
+use dcbor::prelude::*;
 #[cfg(feature = "known_value")]
 use known_values;
 
-#[cfg(feature = "encrypt")]
-use bc_components::Decrypter;
-
-use anyhow::{ bail, Result };
-use bc_components::{ SealedMessage, SymmetricKey, Nonce, Encrypter };
-use dcbor::prelude::*;
+use crate::{Envelope, Error};
 
 /// Support for public key encryption.
 impl Envelope {
-    /// Returns a new envelope with an added `hasRecipient: SealedMessage` assertion.
+    /// Returns a new envelope with an added `hasRecipient: SealedMessage`
+    /// assertion.
     ///
-    /// This method adds a recipient to an already-encrypted envelope. It creates a `hasRecipient`
-    /// assertion containing a `SealedMessage` that holds the content key encrypted to the
-    /// recipient's public key.
+    /// This method adds a recipient to an already-encrypted envelope. It
+    /// creates a `hasRecipient` assertion containing a `SealedMessage` that
+    /// holds the content key encrypted to the recipient's public key.
     ///
     /// # Parameters
-    /// * `recipient` - The public keys of the recipient that will be able to decrypt the envelope
-    /// * `content_key` - The symmetric key that was used to encrypt the envelope's subject
+    /// * `recipient` - The public keys of the recipient that will be able to
+    ///   decrypt the envelope
+    /// * `content_key` - The symmetric key that was used to encrypt the
+    ///   envelope's subject
     ///
     /// # Returns
     /// A new envelope with the recipient assertion added
@@ -191,8 +198,8 @@ impl Envelope {
     /// ```
     /// # #[cfg(feature = "recipient")]
     /// # {
+    /// use bc_components::{PublicKeysProvider, SymmetricKey};
     /// use bc_envelope::prelude::*;
-    /// use bc_components::{SymmetricKey, PublicKeysProvider};
     ///
     /// let bob_keys = bc_components::PrivateKeyBase::new();
     ///
@@ -207,45 +214,54 @@ impl Envelope {
     /// assert!(envelope.format().contains("hasRecipient"));
     /// # }
     /// ```
-    pub fn add_recipient(&self, recipient: &dyn Encrypter, content_key: &SymmetricKey) -> Self {
+    pub fn add_recipient(
+        &self,
+        recipient: &dyn Encrypter,
+        content_key: &SymmetricKey,
+    ) -> Self {
         self.add_recipient_opt(recipient, content_key, None::<&Nonce>)
     }
 
-    /// Version of `add_recipient` that accepts an optional test nonce for deterministic testing.
+    /// Version of `add_recipient` that accepts an optional test nonce for
+    /// deterministic testing.
     ///
-    /// This is an internal method primarily used for testing. In production code, use
-    /// `add_recipient` instead, which will generate a cryptographically secure random nonce.
+    /// This is an internal method primarily used for testing. In production
+    /// code, use `add_recipient` instead, which will generate a
+    /// cryptographically secure random nonce.
     #[doc(hidden)]
     pub fn add_recipient_opt(
         &self,
         recipient: &dyn Encrypter,
         content_key: &SymmetricKey,
-        test_nonce: Option<&Nonce>
+        test_nonce: Option<&Nonce>,
     ) -> Self {
-        let assertion = Self::make_has_recipient(recipient, content_key, test_nonce);
+        let assertion =
+            Self::make_has_recipient(recipient, content_key, test_nonce);
         self.add_assertion_envelope(assertion).unwrap()
     }
 
-    /// Returns all `SealedMessage`s from the envelope's `hasRecipient` assertions.
+    /// Returns all `SealedMessage`s from the envelope's `hasRecipient`
+    /// assertions.
     ///
-    /// This method extracts all the `SealedMessage` objects attached to the envelope
-    /// as `hasRecipient` assertions. Each `SealedMessage` contains the content key
-    /// encrypted to a particular recipient's public key.
+    /// This method extracts all the `SealedMessage` objects attached to the
+    /// envelope as `hasRecipient` assertions. Each `SealedMessage` contains
+    /// the content key encrypted to a particular recipient's public key.
     ///
     /// # Returns
     /// A vector of `SealedMessage` objects, one for each recipient
     ///
     /// # Errors
-    /// Returns an error if any `hasRecipient` assertion does not have a `SealedMessage`
-    /// as its object, or if the object is obscured (elided or encrypted).
+    /// Returns an error if any `hasRecipient` assertion does not have a
+    /// `SealedMessage` as its object, or if the object is obscured (elided
+    /// or encrypted).
     ///
     /// # Example
     ///
     /// ```
     /// # #[cfg(feature = "recipient")]
     /// # {
+    /// use bc_components::{PublicKeysProvider, SymmetricKey};
     /// use bc_envelope::prelude::*;
-    /// use bc_components::{SymmetricKey, PublicKeysProvider};
     ///
     /// let bob_keys = bc_components::PrivateKeyBase::new();
     /// let carol_keys = bc_components::PrivateKeyBase::new();
@@ -266,12 +282,18 @@ impl Envelope {
     pub fn recipients(&self) -> Result<Vec<SealedMessage>> {
         self.assertions_with_predicate(known_values::HAS_RECIPIENT)
             .into_iter()
-            .filter(|assertion| { !assertion.as_object().unwrap().is_obscured() })
-            .map(|assertion| { assertion.as_object().unwrap().extract_subject::<SealedMessage>() })
+            .filter(|assertion| !assertion.as_object().unwrap().is_obscured())
+            .map(|assertion| {
+                assertion
+                    .as_object()
+                    .unwrap()
+                    .extract_subject::<SealedMessage>()
+            })
             .collect()
     }
 
-    /// Encrypts the envelope's subject and adds recipient assertions for multiple recipients.
+    /// Encrypts the envelope's subject and adds recipient assertions for
+    /// multiple recipients.
     ///
     /// This is a convenience method that handles the complete process of:
     /// 1. Generating a random symmetric key (the content key)
@@ -280,14 +302,15 @@ impl Envelope {
     /// 4. Adding a `hasRecipient` assertion for each recipient
     ///
     /// # Parameters
-    /// * `recipients` - An array of public keys, one for each potential recipient
+    /// * `recipients` - An array of public keys, one for each potential
+    ///   recipient
     ///
     /// # Returns
     /// A new envelope with encrypted subject and recipient assertions
     ///
     /// # Errors
-    /// Returns an error if the envelope's subject is already encrypted or cannot
-    /// be encrypted for any other reason.
+    /// Returns an error if the envelope's subject is already encrypted or
+    /// cannot be encrypted for any other reason.
     ///
     /// # Example
     ///
@@ -311,21 +334,26 @@ impl Envelope {
     /// # }
     /// ```
     #[cfg(feature = "encrypt")]
-    pub fn encrypt_subject_to_recipients(&self, recipients: &[&dyn Encrypter]) -> Result<Self> {
+    pub fn encrypt_subject_to_recipients(
+        &self,
+        recipients: &[&dyn Encrypter],
+    ) -> Result<Self> {
         self.encrypt_subject_to_recipients_opt(recipients, None::<&Nonce>)
     }
 
-    /// Version of `encrypt_subject_to_recipients` that accepts an optional test nonce.
+    /// Version of `encrypt_subject_to_recipients` that accepts an optional test
+    /// nonce.
     ///
-    /// This is an internal method primarily used for testing. In production code, use
-    /// `encrypt_subject_to_recipients` instead, which will generate a cryptographically
-    /// secure random nonce for the content key encryption.
+    /// This is an internal method primarily used for testing. In production
+    /// code, use `encrypt_subject_to_recipients` instead, which will
+    /// generate a cryptographically secure random nonce for the content key
+    /// encryption.
     #[cfg(feature = "encrypt")]
     #[doc(hidden)]
     pub fn encrypt_subject_to_recipients_opt(
         &self,
         recipients: &[&dyn Encrypter],
-        test_nonce: Option<&Nonce>
+        test_nonce: Option<&Nonce>,
     ) -> Result<Self> {
         let content_key = SymmetricKey::new();
         let mut e = self.encrypt_subject(&content_key)?;
@@ -335,7 +363,8 @@ impl Envelope {
         Ok(e)
     }
 
-    /// Encrypts the envelope's subject and adds a recipient assertion for a single recipient.
+    /// Encrypts the envelope's subject and adds a recipient assertion for a
+    /// single recipient.
     ///
     /// This is a convenience method that handles the complete process of:
     /// 1. Generating a random symmetric key (the content key)
@@ -344,63 +373,72 @@ impl Envelope {
     /// 4. Adding a `hasRecipient` assertion for the recipient
     ///
     /// # Parameters
-    /// * `recipient` - The public keys of the recipient who will be able to decrypt the envelope
+    /// * `recipient` - The public keys of the recipient who will be able to
+    ///   decrypt the envelope
     ///
     /// # Returns
     /// A new envelope with encrypted subject and recipient assertion
     ///
     /// # Errors
-    /// Returns an error if the envelope's subject is already encrypted or cannot
-    /// be encrypted for any other reason.
+    /// Returns an error if the envelope's subject is already encrypted or
+    /// cannot be encrypted for any other reason.
     ///
     /// # Example
     ///
     /// ```
     /// # #[cfg(feature = "encrypt")]
     /// # {
-    /// use bc_envelope::prelude::*;
     /// use bc_components::PublicKeysProvider;
+    /// use bc_envelope::prelude::*;
     ///
     /// let bob_keys = bc_components::PrivateKeyBase::new();
     ///
     /// // Create and encrypt the envelope to Bob
     /// let envelope = Envelope::new("Secret message");
-    /// let encrypted = envelope.encrypt_subject_to_recipient(&bob_keys.public_keys()).unwrap();
+    /// let encrypted = envelope
+    ///     .encrypt_subject_to_recipient(&bob_keys.public_keys())
+    ///     .unwrap();
     ///
     /// // The envelope is now encrypted with a recipient
     /// assert!(encrypted.format().contains("hasRecipient"));
     /// # }
     /// ```
     #[cfg(feature = "encrypt")]
-    pub fn encrypt_subject_to_recipient(&self, recipient: &dyn Encrypter) -> Result<Self> {
+    pub fn encrypt_subject_to_recipient(
+        &self,
+        recipient: &dyn Encrypter,
+    ) -> Result<Self> {
         self.encrypt_subject_to_recipient_opt(recipient, None::<&Nonce>)
     }
 
-    /// Version of `encrypt_subject_to_recipient` that accepts an optional test nonce.
+    /// Version of `encrypt_subject_to_recipient` that accepts an optional test
+    /// nonce.
     ///
-    /// This is an internal method primarily used for testing. In production code, use
-    /// `encrypt_subject_to_recipient` instead, which will generate a cryptographically
-    /// secure random nonce for the content key encryption.
+    /// This is an internal method primarily used for testing. In production
+    /// code, use `encrypt_subject_to_recipient` instead, which will
+    /// generate a cryptographically secure random nonce for the content key
+    /// encryption.
     #[cfg(feature = "encrypt")]
     #[doc(hidden)]
     pub fn encrypt_subject_to_recipient_opt(
         &self,
         recipient: &dyn Encrypter,
-        test_nonce: Option<&Nonce>
+        test_nonce: Option<&Nonce>,
     ) -> Result<Self> {
         self.encrypt_subject_to_recipients_opt(&[recipient], test_nonce)
     }
 
-    /// Find and decrypt the first sealed message that can be decrypted with the given private key.
+    /// Find and decrypt the first sealed message that can be decrypted with the
+    /// given private key.
     ///
-    /// This internal helper method tries to decrypt each sealed message with the provided
-    /// private key, returning the first successful decryption. It's used during the
-    /// recipient decryption process to find the content key that was encrypted for
-    /// this particular recipient.
+    /// This internal helper method tries to decrypt each sealed message with
+    /// the provided private key, returning the first successful decryption.
+    /// It's used during the recipient decryption process to find the
+    /// content key that was encrypted for this particular recipient.
     #[cfg(feature = "encrypt")]
     fn first_plaintext_in_sealed_messages(
         sealed_messages: &[SealedMessage],
-        private_key: &dyn Decrypter
+        private_key: &dyn Decrypter,
     ) -> Result<Vec<u8>> {
         for sealed_message in sealed_messages {
             let a = sealed_message.decrypt(private_key).ok();
@@ -414,30 +452,36 @@ impl Envelope {
     /// Decrypts an envelope's subject using the recipient's private key.
     ///
     /// This method:
-    /// 1. Finds and extracts all `SealedMessage` objects from `hasRecipient` assertions
-    /// 2. Tries to decrypt each one with the provided private key until successful
+    /// 1. Finds and extracts all `SealedMessage` objects from `hasRecipient`
+    ///    assertions
+    /// 2. Tries to decrypt each one with the provided private key until
+    ///    successful
     /// 3. Extracts the content key from the decrypted message
     /// 4. Uses the content key to decrypt the envelope's subject
     ///
     /// # Parameters
-    /// * `recipient` - The private key of the recipient trying to decrypt the envelope
+    /// * `recipient` - The private key of the recipient trying to decrypt the
+    ///   envelope
     ///
     /// # Returns
     /// A new envelope with decrypted subject
     ///
     /// # Errors
     /// Returns an error if:
-    /// - No `hasRecipient` assertions containing `SealedMessage` objects are found
-    /// - None of the sealed messages can be decrypted with the provided private key
-    /// - The envelope's subject cannot be decrypted with the extracted content key
+    /// - No `hasRecipient` assertions containing `SealedMessage` objects are
+    ///   found
+    /// - None of the sealed messages can be decrypted with the provided private
+    ///   key
+    /// - The envelope's subject cannot be decrypted with the extracted content
+    ///   key
     ///
     /// # Example
     ///
     /// ```
     /// # #[cfg(feature = "encrypt")]
     /// # {
-    /// use bc_envelope::prelude::*;
     /// use bc_components::PublicKeysProvider;
+    /// use bc_envelope::prelude::*;
     ///
     /// let bob_keys = bc_components::PrivateKeyBase::new();
     ///
@@ -447,21 +491,26 @@ impl Envelope {
     ///     .unwrap();
     ///
     /// // Bob decrypts it with his private key
-    /// let decrypted = envelope
-    ///     .decrypt_subject_to_recipient(&bob_keys)
-    ///     .unwrap();
+    /// let decrypted = envelope.decrypt_subject_to_recipient(&bob_keys).unwrap();
     ///
-    /// assert_eq!(decrypted.extract_subject::<String>().unwrap(), "Secret message");
+    /// assert_eq!(
+    ///     decrypted.extract_subject::<String>().unwrap(),
+    ///     "Secret message"
+    /// );
     /// # }
     /// ```
     #[cfg(feature = "encrypt")]
-    pub fn decrypt_subject_to_recipient(&self, recipient: &dyn Decrypter) -> Result<Self> {
+    pub fn decrypt_subject_to_recipient(
+        &self,
+        recipient: &dyn Decrypter,
+    ) -> Result<Self> {
         let sealed_messages = self.clone().recipients()?;
         let content_key_data = Self::first_plaintext_in_sealed_messages(
             &sealed_messages,
-            recipient
+            recipient,
         )?;
-        let content_key = SymmetricKey::from_tagged_cbor_data(content_key_data)?;
+        let content_key =
+            SymmetricKey::from_tagged_cbor_data(content_key_data)?;
         self.decrypt_subject(&content_key)
     }
 
@@ -469,7 +518,8 @@ impl Envelope {
     ///
     /// This internal helper method creates an assertion envelope with:
     /// - The predicate set to the known value `hasRecipient`
-    /// - The object set to a `SealedMessage` containing the content key encrypted to the recipient's public key
+    /// - The object set to a `SealedMessage` containing the content key
+    ///   encrypted to the recipient's public key
     ///
     /// # Parameters
     /// * `recipient` - The public keys of the recipient
@@ -481,13 +531,13 @@ impl Envelope {
     fn make_has_recipient(
         recipient: &dyn Encrypter,
         content_key: &SymmetricKey,
-        test_nonce: Option<&Nonce>
+        test_nonce: Option<&Nonce>,
     ) -> Self {
         let sealed_message = SealedMessage::new_opt(
             content_key.to_cbor_data(),
             recipient,
             None::<Vec<u8>>,
-            test_nonce
+            test_nonce,
         );
         Self::new_assertion(known_values::HAS_RECIPIENT, sealed_message)
     }
@@ -495,8 +545,8 @@ impl Envelope {
 
 /// Convenience methods for recipient-based encryption and decryption.
 ///
-/// These methods provide simplified versions of the recipient encryption and decryption
-/// operations with a more intuitive API for common use cases.
+/// These methods provide simplified versions of the recipient encryption and
+/// decryption operations with a more intuitive API for common use cases.
 #[cfg(feature = "recipient")]
 impl Envelope {
     /// Wraps and encrypts an envelope to a single recipient.
@@ -506,21 +556,24 @@ impl Envelope {
     /// 2. Encrypts the resulting envelope to the recipient
     ///
     /// This method is simpler than calling `wrap_envelope()` and then
-    /// `encrypt_subject_to_recipient()` separately, and it handles error unwrapping.
+    /// `encrypt_subject_to_recipient()` separately, and it handles error
+    /// unwrapping.
     ///
     /// # Parameters
-    /// * `recipient` - The public keys of the recipient who will be able to decrypt the envelope
+    /// * `recipient` - The public keys of the recipient who will be able to
+    ///   decrypt the envelope
     ///
     /// # Returns
-    /// A new envelope that wraps and encrypts the original envelope to the recipient
+    /// A new envelope that wraps and encrypts the original envelope to the
+    /// recipient
     ///
     /// # Example
     ///
     /// ```
     /// # #[cfg(feature = "recipient")]
     /// # {
-    /// use bc_envelope::prelude::*;
     /// use bc_components::PublicKeysProvider;
+    /// use bc_envelope::prelude::*;
     ///
     /// let bob_keys = bc_components::PrivateKeyBase::new();
     ///
@@ -533,11 +586,16 @@ impl Envelope {
     /// let encrypted = envelope.encrypt_to_recipient(&bob_keys.public_keys());
     ///
     /// // The format shows it's encrypted but doesn't reveal the content
-    /// assert_eq!(encrypted.format(), "ENCRYPTED [\n    'hasRecipient': SealedMessage\n]");
+    /// assert_eq!(
+    ///     encrypted.format(),
+    ///     "ENCRYPTED [\n    'hasRecipient': SealedMessage\n]"
+    /// );
     /// # }
     /// ```
     pub fn encrypt_to_recipient(&self, recipient: &dyn Encrypter) -> Envelope {
-        self.wrap_envelope().encrypt_subject_to_recipient(recipient).unwrap()
+        self.wrap_envelope()
+            .encrypt_subject_to_recipient(recipient)
+            .unwrap()
     }
 
     /// Decrypts an envelope that was encrypted to a recipient and unwraps it.
@@ -546,11 +604,12 @@ impl Envelope {
     /// 1. Decrypts the envelope using the recipient's private key
     /// 2. Unwraps the resulting envelope to reveal the original content
     ///
-    /// This method is simpler than calling `decrypt_subject_to_recipient()` and then
-    /// `unwrap_envelope()` separately.
+    /// This method is simpler than calling `decrypt_subject_to_recipient()` and
+    /// then `unwrap_envelope()` separately.
     ///
     /// # Parameters
-    /// * `recipient` - The private key of the recipient trying to decrypt the envelope
+    /// * `recipient` - The private key of the recipient trying to decrypt the
+    ///   envelope
     ///
     /// # Returns
     /// The original, unwrapped envelope
@@ -565,8 +624,8 @@ impl Envelope {
     /// ```
     /// # #[cfg(feature = "recipient")]
     /// # {
-    /// use bc_envelope::prelude::*;
     /// use bc_components::PublicKeysProvider;
+    /// use bc_envelope::prelude::*;
     ///
     /// let bob_keys = bc_components::PrivateKeyBase::new();
     ///
@@ -578,15 +637,17 @@ impl Envelope {
     /// let encrypted = original.encrypt_to_recipient(&bob_keys.public_keys());
     ///
     /// // Bob decrypts it with his private key and unwraps it
-    /// let decrypted = encrypted
-    ///     .decrypt_to_recipient(&bob_keys)
-    ///     .unwrap();
+    /// let decrypted = encrypted.decrypt_to_recipient(&bob_keys).unwrap();
     ///
     /// // The decrypted envelope should match the original
     /// assert!(decrypted.is_identical_to(&original));
     /// # }
     /// ```
-    pub fn decrypt_to_recipient(&self, recipient: &dyn Decrypter) -> Result<Envelope> {
-        self.decrypt_subject_to_recipient(recipient)?.unwrap_envelope()
+    pub fn decrypt_to_recipient(
+        &self,
+        recipient: &dyn Decrypter,
+    ) -> Result<Envelope> {
+        self.decrypt_subject_to_recipient(recipient)?
+            .unwrap_envelope()
     }
 }

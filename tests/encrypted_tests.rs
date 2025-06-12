@@ -1,49 +1,37 @@
 #![cfg(feature = "encrypt")]
 
+use bc_components::{DigestProvider, EncryptedMessage, Nonce, SymmetricKey};
 use bc_envelope::prelude::*;
-use bc_components::{DigestProvider, SymmetricKey, Nonce, EncryptedMessage};
 use hex_literal::hex;
 
 mod common;
 use crate::common::check_encoding::*;
 
-fn basic_envelope() -> Envelope {
-    Envelope::new("Hello.")
-}
+fn basic_envelope() -> Envelope { Envelope::new("Hello.") }
 
-fn known_value_envelope() -> Envelope {
-    Envelope::new(known_values::NOTE)
-}
+fn known_value_envelope() -> Envelope { Envelope::new(known_values::NOTE) }
 
-fn assertion_envelope() -> Envelope {
-    Envelope::new_assertion("knows", "Bob")
-}
+fn assertion_envelope() -> Envelope { Envelope::new_assertion("knows", "Bob") }
 
 fn single_assertion_envelope() -> Envelope {
-    Envelope::new("Alice")
-        .add_assertion("knows", "Bob")
+    Envelope::new("Alice").add_assertion("knows", "Bob")
 }
 
 fn double_assertion_envelope() -> Envelope {
-    single_assertion_envelope()
-        .add_assertion("knows", "Carol")
+    single_assertion_envelope().add_assertion("knows", "Carol")
 }
 
-fn wrapped_envelope() -> Envelope {
-    basic_envelope().wrap_envelope()
-}
+fn wrapped_envelope() -> Envelope { basic_envelope().wrap_envelope() }
 
-fn double_wrapped_envelope() -> Envelope {
-    wrapped_envelope().wrap_envelope()
-}
+fn double_wrapped_envelope() -> Envelope { wrapped_envelope().wrap_envelope() }
 
 fn symmetric_key() -> SymmetricKey {
-    SymmetricKey::from_data(hex!("38900719dea655e9a1bc1682aaccf0bfcd79a7239db672d39216e4acdd660dc0"))
+    SymmetricKey::from_data(hex!(
+        "38900719dea655e9a1bc1682aaccf0bfcd79a7239db672d39216e4acdd660dc0"
+    ))
 }
 
-fn fake_nonce() -> Nonce {
-    Nonce::from_data(hex!("4d785658f36c22fb5aed3ac0"))
-}
+fn fake_nonce() -> Nonce { Nonce::from_data(hex!("4d785658f36c22fb5aed3ac0")) }
 
 fn encrypted_test(e1: Envelope) -> anyhow::Result<()> {
     let e2 = e1
@@ -56,8 +44,7 @@ fn encrypted_test(e1: Envelope) -> anyhow::Result<()> {
     let encrypted_message = e2.extract_subject::<EncryptedMessage>()?;
     assert_eq!(encrypted_message.digest(), e1.subject().digest());
 
-    let e3 = e2
-        .decrypt_subject(&symmetric_key())?;
+    let e3 = e2.decrypt_subject(&symmetric_key())?;
 
     assert!(e1.is_equivalent_to(&e3));
 

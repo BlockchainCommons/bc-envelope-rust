@@ -1,7 +1,9 @@
 use std::ops::RangeInclusive;
 
-use crate::Envelope;
-use super::matcher::Matcher;
+use crate::{
+    Envelope,
+    pattern::{Matcher, Path},
+};
 
 /// Pattern for matching maps.
 #[derive(Debug, Clone)]
@@ -12,15 +14,87 @@ pub enum MapPattern {
     Count(RangeInclusive<usize>),
 }
 
-impl MatchPattern for MapPattern {
-    fn matches(&self, envelope: &Envelope) -> bool {
+impl MapPattern {
+    /// Creates a new `MapPattern` that matches any map.
+    pub fn any() -> Self { MapPattern::Any }
+
+    /// Creates a new `MapPattern` that matches maps with a specific count of
+    /// entries.
+    pub fn count(range: RangeInclusive<usize>) -> Self {
+        MapPattern::Count(range)
+    }
+
+    /// Creates a new `MapPattern` that matches maps with exactly the specified
+    /// count of entries.
+    pub fn exact_count(count: usize) -> Self {
+        MapPattern::Count(count..=count)
+    }
+}
+
+impl Matcher for MapPattern {
+    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
         if let Some(map) = envelope.subject().as_map() {
             match self {
-                MapPattern::Any => true,
-                MapPattern::Count(range) => range.contains(&map.len()),
+                MapPattern::Any => vec![vec![envelope.clone()]],
+                MapPattern::Count(range) => {
+                    if range.contains(&map.len()) {
+                        vec![vec![envelope.clone()]]
+                    } else {
+                        vec![]
+                    }
+                }
             }
         } else {
-            false
+            vec![]
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Envelope;
+
+    #[test]
+    fn test_map_pattern_any() {
+        // Create a CBOR map directly
+        let mut cbor_map = dcbor::Map::new();
+        cbor_map.insert("key1", "value1");
+        cbor_map.insert("key2", "value2");
+        let envelope = Envelope::new(cbor_map);
+
+        let pattern = MapPattern::any();
+        let paths = pattern.paths(&envelope);
+        assert_eq!(paths.len(), 1);
+        assert_eq!(paths[0], vec![envelope.clone()]);
+
+        // Test with non-map envelope
+        let text_envelope = Envelope::new("test");
+        let paths = pattern.paths(&text_envelope);
+        assert!(paths.is_empty());
+    }
+
+    #[test]
+    fn test_map_pattern_count() {
+        // Create a CBOR map directly
+        let mut cbor_map = dcbor::Map::new();
+        cbor_map.insert("key1", "value1");
+        cbor_map.insert("key2", "value2");
+        let envelope = Envelope::new(cbor_map);
+
+        // Test exact count
+        let pattern = MapPattern::exact_count(2);
+        let paths = pattern.paths(&envelope);
+        assert_eq!(paths.len(), 1);
+
+        // Test count range
+        let pattern = MapPattern::count(1..=3);
+        let paths = pattern.paths(&envelope);
+        assert_eq!(paths.len(), 1);
+
+        // Test count mismatch
+        let pattern = MapPattern::exact_count(5);
+        let paths = pattern.paths(&envelope);
+        assert!(paths.is_empty());
     }
 }

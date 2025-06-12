@@ -1,11 +1,12 @@
 //! # Envelope Expressions
 //!
-//! This module provides functionality for creating, manipulating, and evaluating
-//! expressions encoded in Gordian Envelopes.
+//! This module provides functionality for creating, manipulating, and
+//! evaluating expressions encoded in Gordian Envelopes.
 //!
-//! Envelope Expressions are a method for encoding machine-evaluatable expressions
-//! using Gordian Envelope. Using expressions, envelope provides a cryptographically 
-//! strong foundation on which to build requests and responses for distributed function calls.
+//! Envelope Expressions are a method for encoding machine-evaluatable
+//! expressions using Gordian Envelope. Using expressions, envelope provides a
+//! cryptographically strong foundation on which to build requests and responses
+//! for distributed function calls.
 //!
 //! ## Overview
 //!
@@ -14,7 +15,8 @@
 //! 1. A function identifier (the subject of the envelope)
 //! 2. Zero or more parameters (assertions on the envelope)
 //!
-//! Functions and parameters are CBOR-tagged to distinguish them from regular envelope content:
+//! Functions and parameters are CBOR-tagged to distinguish them from regular
+//! envelope content:
 //! - Functions are tagged with #6.40006
 //! - Parameters are tagged with #6.40007
 //!
@@ -30,8 +32,9 @@
 //! ]
 //! ```
 //!
-//! When printed, function identifiers are enclosed in double angle brackets (`«` and `»`),
-//! and parameter identifiers are enclosed in heavy single angle brackets (`❰` and `❱`).
+//! When printed, function identifiers are enclosed in double angle brackets
+//! (`«` and `»`), and parameter identifiers are enclosed in heavy single angle
+//! brackets (`❰` and `❱`).
 //!
 //! ## Examples
 //!
@@ -62,7 +65,8 @@
 //!
 //! ## Composition
 //!
-//! Expressions can be composed, with one expression being a parameter to another:
+//! Expressions can be composed, with one expression being a parameter to
+//! another:
 //!
 //! ```text
 //! «"verifySignature"» [
@@ -97,26 +101,13 @@ pub use parameters::*;
 // mod expression_impl;
 
 pub mod expression;
-pub use expression::{
-    Expression,
-    ExpressionBehavior,
-    IntoExpression,
-};
+pub use expression::{Expression, ExpressionBehavior, IntoExpression};
 
 pub mod request;
-pub use request::{
-    Request,
-    RequestBehavior,
-};
+pub use request::{Request, RequestBehavior};
 
 pub mod response;
-pub use response::{
-    Response,
-    ResponseBehavior,
-};
+pub use response::{Response, ResponseBehavior};
 
 pub mod event;
-pub use event::{
-    Event,
-    EventBehavior,
-};
+pub use event::{Event, EventBehavior};

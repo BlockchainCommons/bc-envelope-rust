@@ -12,7 +12,7 @@ fn test_attachment() -> anyhow::Result<()> {
         hex::decode("82f32c855d3d542256180810797e0073").unwrap(),
         "Alice's Seed",
         "This is the note.",
-        None
+        None,
     );
     let seed_envelope = seed
         .clone()
@@ -20,12 +20,12 @@ fn test_attachment() -> anyhow::Result<()> {
         .add_attachment(
             "Attachment Data V1",
             "com.example",
-            Some("https://example.com/seed-attachment/v1")
+            Some("https://example.com/seed-attachment/v1"),
         )
         .add_attachment(
             "Attachment Data V2",
             "com.example",
-            Some("https://example.com/seed-attachment/v2")
+            Some("https://example.com/seed-attachment/v2"),
         );
 
     #[rustfmt::skip]
@@ -51,9 +51,16 @@ fn test_attachment() -> anyhow::Result<()> {
 
     assert_eq!(seed_envelope.attachments()?.len(), 2);
 
-    assert_eq!(seed_envelope.attachments_with_vendor_and_conforms_to(None, None)?.len(), 2);
     assert_eq!(
-        seed_envelope.attachments_with_vendor_and_conforms_to(Some("com.example"), None)?.len(),
+        seed_envelope
+            .attachments_with_vendor_and_conforms_to(None, None)?
+            .len(),
+        2
+    );
+    assert_eq!(
+        seed_envelope
+            .attachments_with_vendor_and_conforms_to(Some("com.example"), None)?
+            .len(),
         2
     );
     assert_eq!(
@@ -66,12 +73,22 @@ fn test_attachment() -> anyhow::Result<()> {
         1
     );
 
-    assert_eq!(seed_envelope.attachments_with_vendor_and_conforms_to(None, Some("foo"))?.len(), 0);
-    assert_eq!(seed_envelope.attachments_with_vendor_and_conforms_to(Some("bar"), None)?.len(), 0);
+    assert_eq!(
+        seed_envelope
+            .attachments_with_vendor_and_conforms_to(None, Some("foo"))?
+            .len(),
+        0
+    );
+    assert_eq!(
+        seed_envelope
+            .attachments_with_vendor_and_conforms_to(Some("bar"), None)?
+            .len(),
+        0
+    );
 
     let v1_attachment = seed_envelope.attachment_with_vendor_and_conforms_to(
         None,
-        Some("https://example.com/seed-attachment/v1")
+        Some("https://example.com/seed-attachment/v1"),
     )?;
     let payload = v1_attachment.attachment_payload()?;
     #[rustfmt::skip]

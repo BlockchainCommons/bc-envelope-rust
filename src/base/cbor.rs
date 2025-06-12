@@ -1,14 +1,14 @@
-use bc_components::{tags, Digest};
-#[cfg(feature = "encrypt")]
-use bc_components::EncryptedMessage;
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
+#[cfg(feature = "encrypt")]
+use bc_components::EncryptedMessage;
+use bc_components::{Digest, tags};
 use dcbor::prelude::*;
-use crate::{Assertion, Envelope};
-#[cfg(feature = "known_value")]
-use crate::extension::KnownValue;
 
 use super::envelope::EnvelopeCase;
+#[cfg(feature = "known_value")]
+use crate::extension::KnownValue;
+use crate::{Assertion, Envelope};
 
 /// Support for CBOR encoding and decoding of ``Envelope``.
 ///
@@ -16,7 +16,7 @@ use super::envelope::EnvelopeCase;
 /// the seven cases has a unique CBOR signature:
 ///
 /// * `.node` contains a CBOR array, the first element of which is the subject,
-///     followed by one or more assertions.
+///   followed by one or more assertions.
 /// * `.leaf` is tagged #6.24, which is the IANA tag for embedded CBOR.
 /// * `.wrapped` is tagged with the `envelope` tag.
 /// * `.assertion` is a single-element map `{predicate: object}`.
@@ -24,15 +24,11 @@ use super::envelope::EnvelopeCase;
 /// * `.encrypted` is tagged with the `crypto-msg` tag.
 /// * `.elided` is a byte string of length 32.
 impl CBORTagged for Envelope {
-    fn cbor_tags() -> Vec<Tag> {
-        tags_for_values(&[tags::TAG_ENVELOPE])
-    }
+    fn cbor_tags() -> Vec<Tag> { tags_for_values(&[tags::TAG_ENVELOPE]) }
 }
 
 impl From<Envelope> for CBOR {
-    fn from(value: Envelope) -> Self {
-        value.tagged_cbor()
-    }
+    fn from(value: Envelope) -> Self { value.tagged_cbor() }
 }
 
 impl TryFrom<CBOR> for Envelope {
@@ -53,14 +49,22 @@ impl CBORTaggedEncodable for Envelope {
                 }
                 CBORCase::Array(result).into()
             }
-            EnvelopeCase::Leaf { cbor, digest: _ } => CBOR::to_tagged_value(tags::TAG_LEAF, cbor.clone()),
-            EnvelopeCase::Wrapped { envelope, digest: _ } => envelope.tagged_cbor(),
+            EnvelopeCase::Leaf { cbor, digest: _ } => {
+                CBOR::to_tagged_value(tags::TAG_LEAF, cbor.clone())
+            }
+            EnvelopeCase::Wrapped { envelope, digest: _ } => {
+                envelope.tagged_cbor()
+            }
             EnvelopeCase::Assertion(assertion) => assertion.clone().into(),
             EnvelopeCase::Elided(digest) => digest.untagged_cbor(),
             #[cfg(feature = "known_value")]
-            EnvelopeCase::KnownValue { value, digest: _ } => value.untagged_cbor(),
+            EnvelopeCase::KnownValue { value, digest: _ } => {
+                value.untagged_cbor()
+            }
             #[cfg(feature = "encrypt")]
-            EnvelopeCase::Encrypted(encrypted_message) => encrypted_message.tagged_cbor(),
+            EnvelopeCase::Encrypted(encrypted_message) => {
+                encrypted_message.tagged_cbor()
+            }
             #[cfg(feature = "compress")]
             EnvelopeCase::Compressed(compressed) => compressed.tagged_cbor(),
         }
@@ -70,30 +74,32 @@ impl CBORTaggedEncodable for Envelope {
 impl CBORTaggedDecodable for Envelope {
     fn from_untagged_cbor(cbor: CBOR) -> dcbor::Result<Self> {
         match cbor.as_case() {
-            CBORCase::Tagged(tag, item) => {
-                match tag.value() {
-                    tags::TAG_LEAF | tags::TAG_ENCODED_CBOR => {
-                        Ok(Self::new_leaf(item.clone()))
-                    },
-                    tags::TAG_ENVELOPE => {
-                        let envelope = Envelope::try_from(cbor)?;
-                        Ok(Self::new_wrapped(envelope))
-                    },
-                    #[cfg(feature = "encrypt")]
-                    tags::TAG_ENCRYPTED => {
-                        let encrypted = EncryptedMessage::from_untagged_cbor(item.clone())?;
-                        let envelope = Self::new_with_encrypted(encrypted)?;
-                        Ok(envelope)
-                    },
-                    #[cfg(feature = "compress")]
-                    tags::TAG_COMPRESSED => {
-                        let compressed = Compressed::from_untagged_cbor(item.clone())?;
-                        let envelope = Self::new_with_compressed(compressed)?;
-                        Ok(envelope)
-                    },
-                    _ => return Err(format!("unknown envelope tag: {}", tag.value()).into()),
+            CBORCase::Tagged(tag, item) => match tag.value() {
+                tags::TAG_LEAF | tags::TAG_ENCODED_CBOR => {
+                    Ok(Self::new_leaf(item.clone()))
                 }
-            }
+                tags::TAG_ENVELOPE => {
+                    let envelope = Envelope::try_from(cbor)?;
+                    Ok(Self::new_wrapped(envelope))
+                }
+                #[cfg(feature = "encrypt")]
+                tags::TAG_ENCRYPTED => {
+                    let encrypted =
+                        EncryptedMessage::from_untagged_cbor(item.clone())?;
+                    let envelope = Self::new_with_encrypted(encrypted)?;
+                    Ok(envelope)
+                }
+                #[cfg(feature = "compress")]
+                tags::TAG_COMPRESSED => {
+                    let compressed =
+                        Compressed::from_untagged_cbor(item.clone())?;
+                    let envelope = Self::new_with_compressed(compressed)?;
+                    Ok(envelope)
+                }
+                _ => {
+                    Err(format!("unknown envelope tag: {}", tag.value()).into())
+                }
+            },
             CBORCase::ByteString(bytes) => {
                 Ok(Self::new_elided(Digest::from_data_ref(bytes)?))
             }
@@ -118,7 +124,7 @@ impl CBORTaggedDecodable for Envelope {
                 let known_value = KnownValue::new(*value);
                 Ok(Self::new_with_known_value(known_value))
             }
-            _ => return Err("invalid envelope".into()),
+            _ => Err("invalid envelope".into()),
         }
     }
 }

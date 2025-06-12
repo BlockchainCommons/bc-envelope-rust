@@ -1,12 +1,10 @@
 #![cfg(feature = "signature")]
 
-use bc_components::SignatureScheme;
-use bc_components::SigningOptions;
+use bc_components::{SignatureScheme, SigningOptions};
 use bc_envelope::prelude::*;
 
 mod common;
-use crate::common::check_encoding::*;
-use crate::common::test_data::*;
+use crate::common::{check_encoding::*, test_data::*};
 
 fn test_scheme(scheme: SignatureScheme, options: Option<SigningOptions>) {
     let (private_key, public_key) = scheme.keypair();

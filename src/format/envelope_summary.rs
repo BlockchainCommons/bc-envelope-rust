@@ -47,18 +47,18 @@ impl Envelope {
 }
 
 pub trait EnvelopeSummary {
-    fn envelope_summary<'a>(
+    fn envelope_summary(
         &self,
         max_length: usize,
-        context: &FormatContextOpt<'a>,
+        context: &FormatContextOpt<'_>,
     ) -> Result<String>;
 }
 
 impl EnvelopeSummary for CBOR {
-    fn envelope_summary<'a>(
+    fn envelope_summary(
         &self,
         max_length: usize,
-        context: &FormatContextOpt<'a>,
+        context: &FormatContextOpt<'_>,
     ) -> Result<String> {
         match self.as_case() {
             CBORCase::Unsigned(n) => Ok(n.to_string()),

@@ -18,10 +18,6 @@ pub fn format_path(path: &Path) -> String {
     lines.join("\n")
 }
 
-pub fn format_paths(paths: &Vec<Path>) -> String {
-    paths
-        .into_iter()
-        .map(format_path)
-        .collect::<Vec<_>>()
-        .join("\n")
+pub fn format_paths(paths: &[Path]) -> String {
+    paths.iter().map(format_path).collect::<Vec<_>>().join("\n")
 }

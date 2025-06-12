@@ -1,5 +1,7 @@
-use crate::pattern::{Matcher, Path, Pattern};
-use crate::Envelope;
+use crate::{
+    Envelope,
+    pattern::{Matcher, Path, Pattern},
+};
 
 #[derive(Debug, Clone)]
 pub enum AssertionsPattern {
@@ -39,18 +41,14 @@ impl Matcher for AssertionsPattern {
                 AssertionsPattern::WithPredicate(pattern) => {
                     if let Some(predicate) = assertion.as_predicate() {
                         if pattern.matches(&predicate) {
-                            result.push(vec![
-                                assertion.clone(),
-                            ]);
+                            result.push(vec![assertion.clone()]);
                         }
                     }
                 }
                 AssertionsPattern::WithObject(pattern) => {
                     if let Some(object) = assertion.as_object() {
                         if pattern.matches(&object) {
-                            result.push(vec![
-                                assertion.clone(),
-                            ]);
+                            result.push(vec![assertion.clone()]);
                         }
                     }
                 }

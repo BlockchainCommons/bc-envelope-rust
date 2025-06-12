@@ -143,9 +143,7 @@ fn test_digest_pattern() {
 
     // Test exact digest matching
     assert!(Pattern::digest(digest.clone()).matches(&envelope));
-    assert!(
-        !Pattern::digest(Digest::from_data([0; 32]).into()).matches(&envelope)
-    );
+    assert!(!Pattern::digest(Digest::from_data([0; 32])).matches(&envelope));
 
     // Test hex prefix matching
     assert!(Pattern::digest_hex_prefix(prefix).matches(&envelope));
@@ -175,8 +173,7 @@ fn test_digest_pattern() {
     assert_actual_expected!(format_paths(&paths), expected);
 
     // No match should return empty paths
-    let paths =
-        Pattern::digest(Digest::from_data([0; 32]).into()).paths(&envelope);
+    let paths = Pattern::digest(Digest::from_data([0; 32])).paths(&envelope);
     assert!(paths.is_empty());
 }
 

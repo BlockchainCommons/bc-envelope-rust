@@ -23,30 +23,32 @@ pub struct Attachments {
 }
 
 impl Default for Attachments {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 impl Attachments {
     /// Creates a new empty attachments container.
-    pub fn new() -> Self {
-        Self { envelopes: HashMap::new() }
-    }
+    pub fn new() -> Self { Self { envelopes: HashMap::new() } }
 
     /// Adds a new attachment with the specified payload and metadata.
     ///
     /// # Arguments
     /// * `payload` - The data to attach, which must be encodable in an envelope
-    /// * `vendor` - A string identifying the entity that defined the attachment format
-    /// * `conforms_to` - An optional string identifying the structure the payload conforms to
+    /// * `vendor` - A string identifying the entity that defined the attachment
+    ///   format
+    /// * `conforms_to` - An optional string identifying the structure the
+    ///   payload conforms to
     pub fn add(
         &mut self,
         payload: impl EnvelopeEncodable,
         vendor: impl AsRef<str>,
         conforms_to: Option<impl AsRef<str>>,
     ) {
-        let attachment = Envelope::new_attachment(payload, vendor.as_ref(), conforms_to.as_ref().map(|s| s.as_ref()));
+        let attachment = Envelope::new_attachment(
+            payload,
+            vendor.as_ref(),
+            conforms_to.as_ref().map(|s| s.as_ref()),
+        );
         self.envelopes
             .insert(attachment.digest().into_owned(), attachment);
     }
@@ -57,7 +59,8 @@ impl Attachments {
     /// * `digest` - The unique digest of the attachment to retrieve
     ///
     /// # Returns
-    /// A reference to the envelope if found, or None if no attachment exists with the given digest
+    /// A reference to the envelope if found, or None if no attachment exists
+    /// with the given digest
     pub fn get(&self, digest: &Digest) -> Option<&Envelope> {
         self.envelopes.get(digest)
     }
@@ -68,31 +71,26 @@ impl Attachments {
     /// * `digest` - The unique digest of the attachment to remove
     ///
     /// # Returns
-    /// The removed envelope if found, or None if no attachment exists with the given digest
+    /// The removed envelope if found, or None if no attachment exists with the
+    /// given digest
     pub fn remove(&mut self, digest: &Digest) -> Option<Envelope> {
         self.envelopes.remove(digest)
     }
 
     /// Removes all attachments from the container.
-    pub fn clear(&mut self) {
-        self.envelopes.clear();
-    }
+    pub fn clear(&mut self) { self.envelopes.clear(); }
 
     /// Returns whether the container has any attachments.
     ///
     /// # Returns
     /// `true` if there are no attachments, `false` otherwise
-    pub fn is_empty(&self) -> bool {
-        self.envelopes.is_empty()
-    }
+    pub fn is_empty(&self) -> bool { self.envelopes.is_empty() }
 
-    pub fn add_to_envelope(
-        &self,
-        envelope: Envelope,
-    ) -> Envelope {
+    pub fn add_to_envelope(&self, envelope: Envelope) -> Envelope {
         let mut new_envelope = envelope;
         for (_digest, envelope) in self.envelopes.iter() {
-            new_envelope = new_envelope.add_assertion_envelope(envelope).unwrap();
+            new_envelope =
+                new_envelope.add_assertion_envelope(envelope).unwrap();
         }
         new_envelope
     }
@@ -125,8 +123,10 @@ pub trait Attachable {
     ///
     /// # Arguments
     /// * `payload` - The data to attach, which must be encodable in an envelope
-    /// * `vendor` - A string identifying the entity that defined the attachment format
-    /// * `conforms_to` - An optional string identifying the structure the payload conforms to
+    /// * `vendor` - A string identifying the entity that defined the attachment
+    ///   format
+    /// * `conforms_to` - An optional string identifying the structure the
+    ///   payload conforms to
     fn add_attachment(
         &mut self,
         payload: impl EnvelopeEncodable,
@@ -142,7 +142,8 @@ pub trait Attachable {
     /// * `digest` - The unique digest of the attachment to retrieve
     ///
     /// # Returns
-    /// A reference to the envelope if found, or None if no attachment exists with the given digest
+    /// A reference to the envelope if found, or None if no attachment exists
+    /// with the given digest
     fn get_attachment(&self, digest: &Digest) -> Option<&Envelope> {
         self.attachments().get(digest)
     }
@@ -153,21 +154,18 @@ pub trait Attachable {
     /// * `digest` - The unique digest of the attachment to remove
     ///
     /// # Returns
-    /// The removed envelope if found, or None if no attachment exists with the given digest
+    /// The removed envelope if found, or None if no attachment exists with the
+    /// given digest
     fn remove_attachment(&mut self, digest: &Digest) -> Option<Envelope> {
         self.attachments_mut().remove(digest)
     }
 
     /// Removes all attachments from the object.
-    fn clear_attachments(&mut self) {
-        self.attachments_mut().clear();
-    }
+    fn clear_attachments(&mut self) { self.attachments_mut().clear(); }
 
     /// Returns whether the object has any attachments.
     ///
     /// # Returns
     /// `true` if there are attachments, `false` otherwise
-    fn has_attachments(&self) -> bool {
-        !self.attachments().is_empty()
-    }
+    fn has_attachments(&self) -> bool { !self.attachments().is_empty() }
 }

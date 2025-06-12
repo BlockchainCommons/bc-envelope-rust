@@ -1,8 +1,8 @@
+use anyhow::{anyhow, bail};
 use bc_components::DigestProvider;
 use dcbor::prelude::*;
 
 use crate::Envelope;
-use anyhow::{anyhow, bail};
 
 pub trait CheckEncoding {
     #[allow(dead_code)]

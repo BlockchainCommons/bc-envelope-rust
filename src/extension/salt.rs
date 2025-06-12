@@ -1,13 +1,14 @@
 //! Extension for adding salt to envelopes to prevent correlation.
 //!
-//! This module provides functionality for decorrelating envelopes by adding random salt.
-//! Salt is added as an assertion with the known value predicate 'salt' and a random value.
-//! When an envelope is elided, this salt ensures that the digest of the elided envelope
-//! cannot be correlated with other elided envelopes containing the same information.
+//! This module provides functionality for decorrelating envelopes by adding
+//! random salt. Salt is added as an assertion with the known value predicate
+//! 'salt' and a random value. When an envelope is elided, this salt ensures
+//! that the digest of the elided envelope cannot be correlated with other
+//! elided envelopes containing the same information.
 //!
-//! Decorrelation is an important privacy feature that prevents third parties from
-//! determining whether two elided envelopes originally contained the same information
-//! by comparing their digests.
+//! Decorrelation is an important privacy feature that prevents third parties
+//! from determining whether two elided envelopes originally contained the same
+//! information by comparing their digests.
 //!
 //! # Examples
 //!
@@ -29,27 +30,29 @@
 
 use std::ops::RangeInclusive;
 
-use crate::Envelope;
-#[cfg(feature = "known_value")]
-use known_values;
-
 use anyhow::Result;
 use bc_components::Salt;
 use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
 use dcbor::prelude::*;
+#[cfg(feature = "known_value")]
+use known_values;
+
+use crate::Envelope;
 
 /// Support for decorrelation of envelopes using salt.
 impl Envelope {
     /// Adds a proportionally-sized salt assertion to decorrelate the envelope.
     ///
-    /// This method adds random salt bytes as an assertion to the envelope. The size of the salt
-    /// is proportional to the size of the envelope being salted:
+    /// This method adds random salt bytes as an assertion to the envelope. The
+    /// size of the salt is proportional to the size of the envelope being
+    /// salted:
     /// - For small envelopes: 8-16 bytes
     /// - For larger envelopes: 5-25% of the envelope's size
     ///
-    /// Salt is added as an assertion with the predicate 'salt' (a known value) and an object
-    /// containing random bytes. This changes the digest of the envelope while preserving its
-    /// semantic content, making it impossible to correlate with other envelopes containing
+    /// Salt is added as an assertion with the predicate 'salt' (a known value)
+    /// and an object containing random bytes. This changes the digest of
+    /// the envelope while preserving its semantic content, making it
+    /// impossible to correlate with other envelopes containing
     /// the same information.
     ///
     /// # Returns
@@ -91,9 +94,10 @@ impl Envelope {
 
     /// Adds the given Salt as an assertion to the envelope.
     ///
-    /// This method attaches a pre-existing Salt object as an assertion to the envelope,
-    /// using the known value 'salt' as the predicate. This is useful when you need to
-    /// control the specific salt content being added.
+    /// This method attaches a pre-existing Salt object as an assertion to the
+    /// envelope, using the known value 'salt' as the predicate. This is
+    /// useful when you need to control the specific salt content being
+    /// added.
     ///
     /// # Parameters
     ///
@@ -106,8 +110,8 @@ impl Envelope {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
     /// use bc_components::Salt;
+    /// use bc_envelope::prelude::*;
     ///
     /// // Create a salt with specific bytes
     /// let salt = Salt::from_data(vec![1, 2, 3, 4, 5, 6, 7, 8]);
@@ -125,9 +129,9 @@ impl Envelope {
 
     /// Adds salt of a specific byte length to the envelope.
     ///
-    /// This method adds salt of a specified number of bytes to decorrelate the envelope.
-    /// It requires that the byte count be at least 8 bytes (64 bits) to ensure sufficient
-    /// entropy for effective decorrelation.
+    /// This method adds salt of a specified number of bytes to decorrelate the
+    /// envelope. It requires that the byte count be at least 8 bytes (64
+    /// bits) to ensure sufficient entropy for effective decorrelation.
     ///
     /// # Parameters
     ///
@@ -135,8 +139,8 @@ impl Envelope {
     ///
     /// # Returns
     ///
-    /// A Result containing the new envelope with salt added, or an error if the byte
-    /// count is less than the minimum (8 bytes).
+    /// A Result containing the new envelope with salt added, or an error if the
+    /// byte count is less than the minimum (8 bytes).
     ///
     /// # Errors
     ///
@@ -160,10 +164,12 @@ impl Envelope {
         self.add_salt_with_len_using(count, &mut rng)
     }
 
-    /// Adds salt of a specific byte length to the envelope using the provided random number generator.
+    /// Adds salt of a specific byte length to the envelope using the provided
+    /// random number generator.
     ///
-    /// This is an internal method that enables testing with deterministic random number generators.
-    /// It should not be used directly by most code.
+    /// This is an internal method that enables testing with deterministic
+    /// random number generators. It should not be used directly by most
+    /// code.
     ///
     /// # Parameters
     ///
@@ -172,19 +178,23 @@ impl Envelope {
     ///
     /// # Returns
     ///
-    /// A Result containing the new envelope with salt added, or an error if the byte
-    /// count is less than the minimum (8 bytes).
+    /// A Result containing the new envelope with salt added, or an error if the
+    /// byte count is less than the minimum (8 bytes).
     #[doc(hidden)]
-    pub fn add_salt_with_len_using(&self, count: usize, rng: &mut impl RandomNumberGenerator) -> Result<Self> {
+    pub fn add_salt_with_len_using(
+        &self,
+        count: usize,
+        rng: &mut impl RandomNumberGenerator,
+    ) -> Result<Self> {
         let salt = Salt::new_with_len_using(count, rng)?;
         Ok(self.add_salt_instance(salt))
     }
 
     /// Adds salt with a byte length randomly chosen from the given range.
     ///
-    /// This method adds salt with a length randomly selected from the specified range
-    /// to decorrelate the envelope. This approach provides additional decorrelation by
-    /// varying the size of the salt itself.
+    /// This method adds salt with a length randomly selected from the specified
+    /// range to decorrelate the envelope. This approach provides additional
+    /// decorrelation by varying the size of the salt itself.
     ///
     /// # Parameters
     ///
@@ -192,8 +202,8 @@ impl Envelope {
     ///
     /// # Returns
     ///
-    /// A Result containing the new envelope with salt added, or an error if the minimum
-    /// value of the range is less than 8 bytes.
+    /// A Result containing the new envelope with salt added, or an error if the
+    /// minimum value of the range is less than 8 bytes.
     ///
     /// # Errors
     ///
@@ -202,8 +212,9 @@ impl Envelope {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
     /// use std::ops::RangeInclusive;
+    ///
+    /// use bc_envelope::prelude::*;
     ///
     /// let envelope = Envelope::new("Hello");
     ///
@@ -213,15 +224,20 @@ impl Envelope {
     /// // Trying to use a range with minimum less than 8 will result in an error
     /// assert!(envelope.add_salt_in_range(4..=16).is_err());
     /// ```
-    pub fn add_salt_in_range(&self, range: RangeInclusive<usize>) -> Result<Self> {
+    pub fn add_salt_in_range(
+        &self,
+        range: RangeInclusive<usize>,
+    ) -> Result<Self> {
         let mut rng = SecureRandomNumberGenerator;
         self.add_salt_in_range_using(&range, &mut rng)
     }
 
-    /// Adds salt with a byte length randomly chosen from the given range using the provided random number generator.
+    /// Adds salt with a byte length randomly chosen from the given range using
+    /// the provided random number generator.
     ///
-    /// This is an internal method that enables testing with deterministic random number generators.
-    /// It should not be used directly by most code.
+    /// This is an internal method that enables testing with deterministic
+    /// random number generators. It should not be used directly by most
+    /// code.
     ///
     /// # Parameters
     ///
@@ -230,17 +246,23 @@ impl Envelope {
     ///
     /// # Returns
     ///
-    /// A Result containing the new envelope with salt added, or an error if the minimum
-    /// value of the range is less than 8 bytes.
+    /// A Result containing the new envelope with salt added, or an error if the
+    /// minimum value of the range is less than 8 bytes.
     #[doc(hidden)]
-    pub fn add_salt_in_range_using(&self, range: &RangeInclusive<usize>, rng: &mut impl RandomNumberGenerator) -> Result<Self> {
+    pub fn add_salt_in_range_using(
+        &self,
+        range: &RangeInclusive<usize>,
+        rng: &mut impl RandomNumberGenerator,
+    ) -> Result<Self> {
         Ok(self.add_salt_instance(Salt::new_in_range_using(range, rng)?))
     }
 
-    /// Adds salt with a size proportional to the envelope's size using the provided random number generator.
+    /// Adds salt with a size proportional to the envelope's size using the
+    /// provided random number generator.
     ///
-    /// This method is primarily for testing and internal use. It creates salt with a size
-    /// proportional to the serialized size of the envelope and adds it as an assertion.
+    /// This method is primarily for testing and internal use. It creates salt
+    /// with a size proportional to the serialized size of the envelope and
+    /// adds it as an assertion.
     ///
     /// # Parameters
     ///
@@ -251,7 +273,10 @@ impl Envelope {
     /// A new envelope with the proportionally-sized salt assertion added.
     #[doc(hidden)]
     pub fn add_salt_using(&self, rng: &mut impl RandomNumberGenerator) -> Self {
-        let salt = Salt::new_for_size_using(self.tagged_cbor().to_cbor_data().len(), rng);
+        let salt = Salt::new_for_size_using(
+            self.tagged_cbor().to_cbor_data().len(),
+            rng,
+        );
         self.add_salt_instance(salt)
     }
 }

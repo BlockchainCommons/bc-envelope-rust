@@ -1,5 +1,7 @@
-use crate::pattern::{Matcher, Path};
-use crate::Envelope;
+use crate::{
+    Envelope,
+    pattern::{Matcher, Path},
+};
 
 /// Pattern for matching text values.
 #[derive(Debug, Clone)]
@@ -31,7 +33,7 @@ impl Matcher for TextPattern {
             envelope
                 .extract_subject::<String>()
                 .ok()
-                .map_or(false, |value| match self {
+                .is_some_and(|value| match self {
                     TextPattern::Any => true,
                     TextPattern::Exact(want) => value == *want,
                     TextPattern::Regex(regex) => regex.is_match(&value),

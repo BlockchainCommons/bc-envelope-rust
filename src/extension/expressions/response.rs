@@ -1,39 +1,42 @@
 use core::panic;
 
-use anyhow::{ bail, Error, Result };
-use bc_components::{ tags, ARID };
+use anyhow::{Error, Result, bail};
+use bc_components::{ARID, tags};
 use dcbor::prelude::*;
 
-use crate::{ known_values, Envelope, EnvelopeEncodable, KnownValue };
+use crate::{Envelope, EnvelopeEncodable, KnownValue, known_values};
 
-/// A `Response` represents a reply to a `Request` containing either a successful result or an error.
+/// A `Response` represents a reply to a `Request` containing either a
+/// successful result or an error.
 ///
-/// Responses are part of the expression system that enables distributed function calls.
-/// Each response contains:
+/// Responses are part of the expression system that enables distributed
+/// function calls. Each response contains:
 /// - A reference to the original request's ID (ARID) for correlation
 /// - Either a successful result or an error message
 ///
-/// The `Response` type is implemented as a wrapper around `Result<(ARID, Envelope), (Option<ARID>, Envelope)>`,
-/// where the `Ok` variant represents a successful response and the `Err` variant represents an error response.
+/// The `Response` type is implemented as a wrapper around `Result<(ARID,
+/// Envelope), (Option<ARID>, Envelope)>`, where the `Ok` variant represents a
+/// successful response and the `Err` variant represents an error response.
 ///
-/// When serialized to an envelope, responses are tagged with `#6.40011` (TAG_RESPONSE).
+/// When serialized to an envelope, responses are tagged with `#6.40011`
+/// (TAG_RESPONSE).
 ///
 /// # Examples
 ///
 /// ```
-/// use bc_envelope::prelude::*;
 /// use bc_components::ARID;
+/// use bc_envelope::prelude::*;
 ///
 /// // Create a request ID (normally this would come from the original request)
 /// let request_id = ARID::new();
 ///
 /// // Create a successful response
-/// let success_response = Response::new_success(request_id)
-///     .with_result("Transaction completed");
+/// let success_response =
+///     Response::new_success(request_id).with_result("Transaction completed");
 ///
 /// // Create an error response
-/// let error_response = Response::new_failure(request_id)
-///     .with_error("Insufficient funds");
+/// let error_response =
+///     Response::new_failure(request_id).with_error("Insufficient funds");
 ///
 /// // Convert to envelopes
 /// let success_envelope = success_response.into_envelope();
@@ -53,11 +56,18 @@ impl Response {
     /// Returns a human-readable summary of the response.
     pub fn summary(&self) -> String {
         match &self.0 {
-            Ok((id, result)) =>
-                format!("id: {}, result: {}", id.short_description(), result.format_flat()),
+            Ok((id, result)) => format!(
+                "id: {}, result: {}",
+                id.short_description(),
+                result.format_flat()
+            ),
             Err((id, error)) => {
                 if let Some(id) = id {
-                    format!("id: {} error: {}", id.short_description(), error.format_flat())
+                    format!(
+                        "id: {} error: {}",
+                        id.short_description(),
+                        error.format_flat()
+                    )
                 } else {
                     format!("id: 'Unknown' error: {}", error.format_flat())
                 }
@@ -70,17 +80,13 @@ impl Envelope {
     /// Creates an envelope containing the 'Unknown' known value.
     ///
     /// This is used when representing an unknown error or value.
-    pub fn unknown() -> Self {
-        known_values::UNKNOWN_VALUE.into_envelope()
-    }
+    pub fn unknown() -> Self { known_values::UNKNOWN_VALUE.into_envelope() }
 
     /// Creates an envelope containing the 'OK' known value.
     ///
     /// This is used when a response doesn't need to return any specific value,
     /// just an acknowledgment that the request was successful.
-    pub fn ok() -> Self {
-        known_values::OK_VALUE.into_envelope()
-    }
+    pub fn ok() -> Self { known_values::OK_VALUE.into_envelope() }
 }
 
 impl Response {
@@ -100,15 +106,13 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
     /// use bc_components::ARID;
+    /// use bc_envelope::prelude::*;
     ///
     /// let request_id = ARID::new();
     /// let response = Response::new_success(request_id);
     /// ```
-    pub fn new_success(id: ARID) -> Self {
-        Self(Ok((id, Envelope::ok())))
-    }
+    pub fn new_success(id: ARID) -> Self { Self(Ok((id, Envelope::ok()))) }
 
     //
     // Failure Composition
@@ -116,8 +120,8 @@ impl Response {
 
     /// Creates a new failure response with the specified request ID.
     ///
-    /// By default, the error will be the 'Unknown' known value. Use `with_error`
-    /// to set a specific error message.
+    /// By default, the error will be the 'Unknown' known value. Use
+    /// `with_error` to set a specific error message.
     ///
     /// # Arguments
     ///
@@ -126,12 +130,12 @@ impl Response {
     /// # Examples
     ///
     /// ```
-    /// use bc_envelope::prelude::*;
     /// use bc_components::ARID;
+    /// use bc_envelope::prelude::*;
     ///
     /// let request_id = ARID::new();
-    /// let response = Response::new_failure(request_id)
-    ///     .with_error("Operation failed");
+    /// let response =
+    ///     Response::new_failure(request_id).with_error("Operation failed");
     /// ```
     pub fn new_failure(id: ARID) -> Self {
         Self(Err((Some(id), Envelope::unknown())))
@@ -147,8 +151,8 @@ impl Response {
     /// ```
     /// use bc_envelope::prelude::*;
     ///
-    /// let response = Response::new_early_failure()
-    ///     .with_error("Authentication failed");
+    /// let response =
+    ///     Response::new_early_failure().with_error("Authentication failed");
     /// ```
     pub fn new_early_failure() -> Self {
         Self(Err((None, Envelope::unknown())))
@@ -177,7 +181,10 @@ pub trait ResponseBehavior {
     /// # Panics
     ///
     /// This method will panic if called on a failure response.
-    fn with_optional_result(self, result: Option<impl EnvelopeEncodable>) -> Self;
+    fn with_optional_result(
+        self,
+        result: Option<impl EnvelopeEncodable>,
+    ) -> Self;
 
     //
     // Failure Composition
@@ -196,7 +203,8 @@ pub trait ResponseBehavior {
     /// # Panics
     ///
     /// This method will panic if called on a successful response.
-    fn with_optional_error(self, error: Option<impl EnvelopeEncodable>) -> Self;
+    fn with_optional_error(self, error: Option<impl EnvelopeEncodable>)
+    -> Self;
 
     //
     // Parsing
@@ -208,10 +216,12 @@ pub trait ResponseBehavior {
     /// Returns true if this is a failure response.
     fn is_err(&self) -> bool;
 
-    /// Returns a reference to the ID and result if this is a successful response.
+    /// Returns a reference to the ID and result if this is a successful
+    /// response.
     fn ok(&self) -> Option<&(ARID, Envelope)>;
 
-    /// Returns a reference to the ID (if known) and error if this is a failure response.
+    /// Returns a reference to the ID (if known) and error if this is a failure
+    /// response.
     fn err(&self) -> Option<&(Option<ARID>, Envelope)>;
 
     /// Returns the ID of the request this response corresponds to, if known.
@@ -222,11 +232,10 @@ pub trait ResponseBehavior {
     /// # Panics
     ///
     /// This method will panic if the ID is not known.
-    fn expect_id(&self) -> ARID {
-        self.id().expect("Expected an ID")
-    }
+    fn expect_id(&self) -> ARID { self.id().expect("Expected an ID") }
 
-    /// Returns a reference to the result value if this is a successful response.
+    /// Returns a reference to the result value if this is a successful
+    /// response.
     ///
     /// # Errors
     ///
@@ -243,7 +252,10 @@ pub trait ResponseBehavior {
     ///
     /// Returns an error if this is a failure response or if the result
     /// cannot be converted to the requested type.
-    fn extract_result<T>(&self) -> Result<T> where T: TryFrom<CBOR, Error = dcbor::Error> + 'static {
+    fn extract_result<T>(&self) -> Result<T>
+    where
+        T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
+    {
         self.result()?.extract_subject()
     }
 
@@ -253,9 +265,9 @@ pub trait ResponseBehavior {
     ///
     /// Returns an error if this is a successful response.
     fn error(&self) -> Result<&Envelope> {
-        self.err()
-            .map(|(_, error)| error)
-            .ok_or_else(|| Error::msg("Cannot get error from successful response"))
+        self.err().map(|(_, error)| error).ok_or_else(|| {
+            Error::msg("Cannot get error from successful response")
+        })
     }
 
     /// Extracts a typed error value from a failure response.
@@ -264,7 +276,10 @@ pub trait ResponseBehavior {
     ///
     /// Returns an error if this is a successful response or if the error
     /// cannot be converted to the requested type.
-    fn extract_error<T>(&self) -> Result<T> where T: TryFrom<CBOR, Error = dcbor::Error> + 'static {
+    fn extract_error<T>(&self) -> Result<T>
+    where
+        T: TryFrom<CBOR, Error = dcbor::Error> + 'static,
+    {
         self.error()?.extract_subject()
     }
 }
@@ -282,7 +297,10 @@ impl ResponseBehavior for Response {
         }
     }
 
-    fn with_optional_result(self, result: Option<impl EnvelopeEncodable>) -> Self {
+    fn with_optional_result(
+        self,
+        result: Option<impl EnvelopeEncodable>,
+    ) -> Self {
         if let Some(result) = result {
             return self.with_result(result);
         }
@@ -301,28 +319,23 @@ impl ResponseBehavior for Response {
         }
     }
 
-    fn with_optional_error(self, error: Option<impl EnvelopeEncodable>) -> Self {
+    fn with_optional_error(
+        self,
+        error: Option<impl EnvelopeEncodable>,
+    ) -> Self {
         if let Some(error) = error {
             return self.with_error(error);
         }
         self
     }
 
-    fn is_ok(&self) -> bool {
-        self.0.is_ok()
-    }
+    fn is_ok(&self) -> bool { self.0.is_ok() }
 
-    fn is_err(&self) -> bool {
-        self.0.is_err()
-    }
+    fn is_err(&self) -> bool { self.0.is_err() }
 
-    fn ok(&self) -> Option<&(ARID, Envelope)> {
-        self.0.as_ref().ok()
-    }
+    fn ok(&self) -> Option<&(ARID, Envelope)> { self.0.as_ref().ok() }
 
-    fn err(&self) -> Option<&(Option<ARID>, Envelope)> {
-        self.0.as_ref().err()
-    }
+    fn err(&self) -> Option<&(Option<ARID>, Envelope)> { self.0.as_ref().err() }
 
     fn id(&self) -> Option<ARID> {
         match self.0 {
@@ -334,26 +347,28 @@ impl ResponseBehavior for Response {
 
 /// Converts a `Response` to an `Envelope`.
 ///
-/// Successful responses have the request ID as the subject and a 'result' assertion.
-/// Failure responses have the request ID (or 'Unknown' if not known) as the subject
-/// and an 'error' assertion.
+/// Successful responses have the request ID as the subject and a 'result'
+/// assertion. Failure responses have the request ID (or 'Unknown' if not known)
+/// as the subject and an 'error' assertion.
 impl From<Response> for Envelope {
     fn from(value: Response) -> Self {
         match value.0 {
             Ok((id, result)) => {
-                Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, id)).add_assertion(
-                    known_values::RESULT,
-                    result
-                )
+                Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, id))
+                    .add_assertion(known_values::RESULT, result)
             }
             Err((id, error)) => {
                 let subject: Envelope;
                 if let Some(id) = id {
-                    subject = Envelope::new(CBOR::to_tagged_value(tags::TAG_RESPONSE, id));
+                    subject = Envelope::new(CBOR::to_tagged_value(
+                        tags::TAG_RESPONSE,
+                        id,
+                    ));
                 } else {
-                    subject = Envelope::new(
-                        CBOR::to_tagged_value(tags::TAG_RESPONSE, known_values::UNKNOWN_VALUE)
-                    );
+                    subject = Envelope::new(CBOR::to_tagged_value(
+                        tags::TAG_RESPONSE,
+                        known_values::UNKNOWN_VALUE,
+                    ));
                 }
                 subject.add_assertion(known_values::ERROR, error)
             }
@@ -412,12 +427,15 @@ impl TryFrom<Envelope> for Response {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use hex_literal::hex;
     use indoc::indoc;
 
+    use super::*;
+
     fn request_id() -> ARID {
-        ARID::from_data(hex!("c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc"))
+        ARID::from_data(hex!(
+            "c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc"
+        ))
     }
 
     #[test]
@@ -438,7 +456,10 @@ mod tests {
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_ok());
         assert_eq!(parsed_response.expect_id(), request_id());
-        assert_eq!(parsed_response.extract_result::<KnownValue>()?, known_values::OK_VALUE);
+        assert_eq!(
+            parsed_response.extract_result::<KnownValue>()?,
+            known_values::OK_VALUE
+        );
         assert_eq!(response, parsed_response);
 
         Ok(())
@@ -448,7 +469,8 @@ mod tests {
     fn test_success_result() -> Result<()> {
         crate::register_tags();
 
-        let response = Response::new_success(request_id()).with_result("It works!");
+        let response =
+            Response::new_success(request_id()).with_result("It works!");
         let envelope: Envelope = response.clone().into();
 
         //println!("{}", envelope.format());
@@ -486,7 +508,10 @@ mod tests {
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_err());
         assert_eq!(parsed_response.id(), None);
-        assert_eq!(parsed_response.extract_error::<KnownValue>()?, known_values::UNKNOWN_VALUE);
+        assert_eq!(
+            parsed_response.extract_error::<KnownValue>()?,
+            known_values::UNKNOWN_VALUE
+        );
         assert_eq!(response, parsed_response);
 
         Ok(())
@@ -496,7 +521,8 @@ mod tests {
     fn test_failure() -> Result<()> {
         crate::register_tags();
 
-        let response = Response::new_failure(request_id()).with_error("It doesn't work!");
+        let response =
+            Response::new_failure(request_id()).with_error("It doesn't work!");
         let envelope: Envelope = response.clone().into();
 
         // println!("{}", envelope.format());
@@ -510,7 +536,10 @@ mod tests {
         let parsed_response = Response::try_from(envelope)?;
         assert!(parsed_response.is_err());
         assert_eq!(parsed_response.id(), Some(request_id()));
-        assert_eq!(parsed_response.extract_error::<String>()?, "It doesn't work!");
+        assert_eq!(
+            parsed_response.extract_error::<String>()?,
+            "It doesn't work!"
+        );
         assert_eq!(response, parsed_response);
 
         Ok(())

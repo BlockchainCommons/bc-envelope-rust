@@ -1,5 +1,7 @@
-use crate::pattern::{Matcher, Path, Pattern};
-use crate::Envelope;
+use crate::{
+    Envelope,
+    pattern::{Matcher, Path, Pattern},
+};
 
 /// A pattern that matches if all contained patterns match.
 #[derive(Debug, Clone)]

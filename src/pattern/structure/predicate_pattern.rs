@@ -1,5 +1,7 @@
-use crate::pattern::{Matcher, Path, Pattern};
-use crate::Envelope;
+use crate::{
+    Envelope,
+    pattern::{Matcher, Path, Pattern},
+};
 
 #[derive(Debug, Clone)]
 pub enum PredicatePattern {

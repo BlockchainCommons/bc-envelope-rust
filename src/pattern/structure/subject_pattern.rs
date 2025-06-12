@@ -1,5 +1,7 @@
-use crate::pattern::{Matcher, Path};
-use crate::Envelope;
+use crate::{
+    Envelope,
+    pattern::{Matcher, Path},
+};
 
 #[derive(Debug, Clone)]
 pub enum SubjectPattern {
@@ -7,9 +9,7 @@ pub enum SubjectPattern {
 }
 
 impl SubjectPattern {
-    pub fn any() -> Self {
-        SubjectPattern::Any
-    }
+    pub fn any() -> Self { SubjectPattern::Any }
 }
 
 impl Matcher for SubjectPattern {
@@ -18,7 +18,7 @@ impl Matcher for SubjectPattern {
         match self {
             SubjectPattern::Any => {
                 vec![vec![subject.clone()]]
-            },
+            }
         }
     }
 }

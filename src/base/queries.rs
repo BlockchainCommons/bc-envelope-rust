@@ -342,7 +342,7 @@ impl Envelope {
                 let downcast = cloned.downcast::<T>().unwrap();
                 Ok(*downcast)
             } else {
-                return Err(Error::InvalidFormat.into());
+                Err(Error::InvalidFormat.into())
             }
         }
 

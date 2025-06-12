@@ -42,8 +42,8 @@ use dcbor::prelude::*;
 
 use super::EnvelopeSummary;
 use crate::{
-    Assertion, Envelope, FormatContextOpt,
-    base::envelope::EnvelopeCase, string_utils::StringUtils,
+    Assertion, Envelope, FormatContextOpt, base::envelope::EnvelopeCase,
+    string_utils::StringUtils,
 };
 #[cfg(feature = "known_value")]
 use crate::{KnownValue, known_values};
@@ -71,11 +71,8 @@ impl<'a> EnvelopeFormatOpts<'a> {
 /// Support for the various text output formats for ``Envelope``.
 impl Envelope {
     /// Returns the envelope notation for this envelope.
-    pub fn format_opt<'a>(&self, opts: &EnvelopeFormatOpts<'a>) -> String {
-        self.format_item(opts)
-            .format(opts)
-            .trim()
-            .to_string()
+    pub fn format_opt(&self, opts: &EnvelopeFormatOpts<'_>) -> String {
+        self.format_item(opts).format(opts).trim().to_string()
     }
 
     /// Returns the envelope notation for this envelope.
@@ -96,10 +93,7 @@ impl Envelope {
 /// Implementers of this trait define how to be formatted in when output in
 /// envelope notation.
 pub trait EnvelopeFormat {
-    fn format_item<'a>(
-        &self,
-        opts: &EnvelopeFormatOpts<'a>,
-    ) -> EnvelopeFormatItem;
+    fn format_item(&self, opts: &EnvelopeFormatOpts<'_>) -> EnvelopeFormatItem;
 }
 
 /// This type is returned by implementers of the [`EnvelopeFormat`] trait.
@@ -349,10 +343,7 @@ impl Ord for EnvelopeFormatItem {
 
 /// Implements formatting for CBOR values in envelope notation.
 impl EnvelopeFormat for CBOR {
-    fn format_item<'a>(
-        &self,
-        opts: &EnvelopeFormatOpts<'a>,
-    ) -> EnvelopeFormatItem {
+    fn format_item(&self, opts: &EnvelopeFormatOpts<'_>) -> EnvelopeFormatItem {
         match self.as_case() {
             CBORCase::Tagged(tag, cbor) if tag == &Envelope::cbor_tags()[0] => {
                 Envelope::from_untagged_cbor(cbor.clone())
@@ -369,10 +360,7 @@ impl EnvelopeFormat for CBOR {
 
 /// Implements formatting for Envelope in envelope notation.
 impl EnvelopeFormat for Envelope {
-    fn format_item<'a>(
-        &self,
-        opts: &EnvelopeFormatOpts<'a>,
-    ) -> EnvelopeFormatItem {
+    fn format_item(&self, opts: &EnvelopeFormatOpts<'_>) -> EnvelopeFormatItem {
         match self.case() {
             EnvelopeCase::Leaf { cbor, .. } => cbor.format_item(opts),
             EnvelopeCase::Wrapped { envelope, .. } => {
@@ -382,13 +370,9 @@ impl EnvelopeFormat for Envelope {
                     EnvelopeFormatItem::End("}".to_string()),
                 ])
             }
-            EnvelopeCase::Assertion(assertion) => {
-                assertion.format_item(opts)
-            }
+            EnvelopeCase::Assertion(assertion) => assertion.format_item(opts),
             #[cfg(feature = "known_value")]
-            EnvelopeCase::KnownValue { value, .. } => {
-                value.format_item(opts)
-            }
+            EnvelopeCase::KnownValue { value, .. } => value.format_item(opts),
             #[cfg(feature = "encrypt")]
             EnvelopeCase::Encrypted(_) => {
                 EnvelopeFormatItem::Item("ENCRYPTED".to_string())
@@ -427,8 +411,7 @@ impl EnvelopeFormat for Envelope {
                             compressed_count += 1;
                         }
                         _ => {
-                            let item =
-                                vec![assertion.format_item(opts)];
+                            let item = vec![assertion.format_item(opts)];
                             #[cfg(feature = "known_value")]
                             {
                                 let mut is_type_assertion = false;
@@ -517,10 +500,7 @@ impl EnvelopeFormat for Envelope {
 
 /// Implements formatting for Assertion in envelope notation.
 impl EnvelopeFormat for Assertion {
-    fn format_item<'a>(
-        &self,
-        opts: &EnvelopeFormatOpts<'a>,
-    ) -> EnvelopeFormatItem {
+    fn format_item(&self, opts: &EnvelopeFormatOpts<'_>) -> EnvelopeFormatItem {
         EnvelopeFormatItem::List(vec![
             self.predicate().format_item(opts),
             EnvelopeFormatItem::Item(": ".to_string()),
@@ -532,10 +512,7 @@ impl EnvelopeFormat for Assertion {
 #[cfg(feature = "known_value")]
 /// Implements formatting for KnownValue in envelope notation.
 impl EnvelopeFormat for KnownValue {
-    fn format_item<'a>(
-        &self,
-        opts: &EnvelopeFormatOpts<'a>,
-    ) -> EnvelopeFormatItem {
+    fn format_item(&self, opts: &EnvelopeFormatOpts<'_>) -> EnvelopeFormatItem {
         let name = match opts.context {
             FormatContextOpt::None => {
                 self.name().to_string().flanked_by("'", "'")
@@ -549,13 +526,11 @@ impl EnvelopeFormat for KnownValue {
                         .unwrap_or_else(|| self.name().to_string())
                 })
             }
-            FormatContextOpt::Custom(format_context) => {
-                    format_context
-                        .known_values()
-                        .assigned_name(self)
-                        .map(|s| s.to_string())
-                        .unwrap_or_else(|| self.name().to_string())
-            }
+            FormatContextOpt::Custom(format_context) => format_context
+                .known_values()
+                .assigned_name(self)
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| self.name().to_string()),
         };
         EnvelopeFormatItem::Item(name.flanked_by("'", "'"))
     }
@@ -563,16 +538,16 @@ impl EnvelopeFormat for KnownValue {
 
 /// Implements formatting for XID in envelope notation.
 impl EnvelopeFormat for XID {
-    fn format_item<'a>(
+    fn format_item(
         &self,
-        _opts: &EnvelopeFormatOpts<'a>,
+        _opts: &EnvelopeFormatOpts<'_>,
     ) -> EnvelopeFormatItem {
         EnvelopeFormatItem::Item(hex::encode(self.data()))
     }
 }
 
 impl Envelope {
-    fn description<'a>(&self, opts: &EnvelopeFormatOpts<'a>) -> String {
+    fn description(&self, opts: &EnvelopeFormatOpts<'_>) -> String {
         match self.case() {
             EnvelopeCase::Node { subject, assertions, .. } => {
                 let assertions = assertions
@@ -584,11 +559,8 @@ impl Envelope {
                 format!(".node({}, {})", subject, assertions)
             }
             EnvelopeCase::Leaf { cbor, .. } => {
-                format!(
-                            ".cbor({})",
-                            cbor.format_item(opts)
-                        )
-            },
+                format!(".cbor({})", cbor.format_item(opts))
+            }
             EnvelopeCase::Wrapped { envelope, .. } => {
                 format!(".wrapped({})", envelope)
             }

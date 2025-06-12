@@ -2,15 +2,15 @@ use crate::{Assertion, EnvelopeEncodable};
 
 /// Metadata associated with a signature in a Gordian Envelope.
 ///
-/// `SignatureMetadata` provides a way to attach additional information to signatures,
-/// such as the signer's identity, the signing date, or the purpose of the signature.
-/// When used with the signature extension, this metadata is included in a structured
-/// way that is also signed, ensuring the metadata cannot be tampered with without
-/// invalidating the signature.
+/// `SignatureMetadata` provides a way to attach additional information to
+/// signatures, such as the signer's identity, the signing date, or the purpose
+/// of the signature. When used with the signature extension, this metadata is
+/// included in a structured way that is also signed, ensuring the metadata
+/// cannot be tampered with without invalidating the signature.
 ///
-/// The metadata is represented as a collection of assertions that are attached to
-/// the signature envelope and then themselves signed with the same key that signed
-/// the payload.
+/// The metadata is represented as a collection of assertions that are attached
+/// to the signature envelope and then themselves signed with the same key that
+/// signed the payload.
 ///
 /// # Examples
 ///
@@ -21,7 +21,7 @@ use crate::{Assertion, EnvelopeEncodable};
 /// # fn main() -> anyhow::Result<()> {
 /// # // In a real application, you would use proper key generation
 /// # let alice_private_key = /* your private key */;
-/// 
+///
 /// // Create metadata with a note
 /// let metadata = SignatureMetadata::new()
 ///     .with_assertion(NOTE, "Alice signed this.")
@@ -46,11 +46,7 @@ impl SignatureMetadata {
     /// # Returns
     ///
     /// A new `SignatureMetadata` with no assertions.
-    pub fn new() -> Self {
-        Self {
-            assertions: Vec::new(),
-        }
-    }
+    pub fn new() -> Self { Self { assertions: Vec::new() } }
 
     /// Creates a new `SignatureMetadata` with the specified assertions.
     ///
@@ -62,9 +58,7 @@ impl SignatureMetadata {
     ///
     /// A new `SignatureMetadata` containing the provided assertions.
     pub fn new_with_assertions(assertions: Vec<Assertion>) -> Self {
-        Self {
-            assertions,
-        }
+        Self { assertions }
     }
 
     /// Returns a reference to the assertions contained in this metadata.
@@ -72,9 +66,7 @@ impl SignatureMetadata {
     /// # Returns
     ///
     /// A slice containing all assertions in this metadata.
-    pub fn assertions(&self) -> &[Assertion] {
-        &self.assertions
-    }
+    pub fn assertions(&self) -> &[Assertion] { &self.assertions }
 
     /// Adds an assertion to this metadata.
     ///
@@ -90,10 +82,11 @@ impl SignatureMetadata {
         self
     }
 
-    /// Adds a new assertion to this metadata using the provided predicate and object.
+    /// Adds a new assertion to this metadata using the provided predicate and
+    /// object.
     ///
-    /// This is a convenience method that creates an `Assertion` from the predicate
-    /// and object and adds it to the metadata.
+    /// This is a convenience method that creates an `Assertion` from the
+    /// predicate and object and adds it to the metadata.
     ///
     /// # Parameters
     ///
@@ -103,7 +96,11 @@ impl SignatureMetadata {
     /// # Returns
     ///
     /// A new `SignatureMetadata` with the assertion added.
-    pub fn with_assertion(self, predicate: impl EnvelopeEncodable, object: impl EnvelopeEncodable) -> Self {
+    pub fn with_assertion(
+        self,
+        predicate: impl EnvelopeEncodable,
+        object: impl EnvelopeEncodable,
+    ) -> Self {
         self.add_assertion(Assertion::new(predicate, object))
     }
 
@@ -111,17 +108,14 @@ impl SignatureMetadata {
     ///
     /// # Returns
     ///
-    /// `true` if this metadata contains at least one assertion, `false` otherwise.
-    pub fn has_assertions(&self) -> bool {
-        !self.assertions.is_empty()
-    }
+    /// `true` if this metadata contains at least one assertion, `false`
+    /// otherwise.
+    pub fn has_assertions(&self) -> bool { !self.assertions.is_empty() }
 }
 
 /// Default implementation for `SignatureMetadata`.
 ///
 /// Creates an empty `SignatureMetadata` with no assertions.
 impl Default for SignatureMetadata {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }

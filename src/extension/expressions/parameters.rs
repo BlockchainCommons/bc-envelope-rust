@@ -1,12 +1,14 @@
-use std::sync::{Once, Mutex};
+use std::sync::{Mutex, Once};
+
 use paste::paste;
 
 use super::{Parameter, ParametersStore};
 
 /// A macro that declares a parameter at compile time.
 ///
-/// This macro generates a constant `Parameter` with a given numeric value and name.
-/// It also creates a companion constant for the numeric value with a suffix `_VALUE`.
+/// This macro generates a constant `Parameter` with a given numeric value and
+/// name. It also creates a companion constant for the numeric value with a
+/// suffix `_VALUE`.
 ///
 /// # Examples
 ///
@@ -28,7 +30,8 @@ macro_rules! parameter_constant {
         paste! {
             pub const [<$const_name _VALUE>]: u64 = $value;
         }
-        pub const $const_name: Parameter = Parameter::new_with_static_name($value, $name);
+        pub const $const_name: Parameter =
+            Parameter::new_with_static_name($value, $name);
     };
 }
 
@@ -63,21 +66,18 @@ pub struct LazyParameters {
 }
 
 impl LazyParameters {
-    /// Gets a reference to the global parameters store, initializing it if necessary.
+    /// Gets a reference to the global parameters store, initializing it if
+    /// necessary.
     ///
-    /// This method ensures the global parameters store is initialized only once,
-    /// in a thread-safe manner.
+    /// This method ensures the global parameters store is initialized only
+    /// once, in a thread-safe manner.
     ///
     /// # Returns
     ///
     /// A mutex guard containing a reference to the parameters store
     pub fn get(&self) -> std::sync::MutexGuard<'_, Option<ParametersStore>> {
         self.init.call_once(|| {
-            let m = ParametersStore::new([
-                BLANK,
-                LHS,
-                RHS,
-            ]);
+            let m = ParametersStore::new([BLANK, LHS, RHS]);
             *self.data.lock().unwrap() = Some(m);
         });
         self.data.lock().unwrap()
@@ -87,13 +87,16 @@ impl LazyParameters {
 /// The global shared store of known parameters.
 ///
 /// This provides access to a global registry of standard parameters used
-/// in envelope expressions. It is lazily initialized the first time it's accessed.
+/// in envelope expressions. It is lazily initialized the first time it's
+/// accessed.
 ///
 /// # Examples
 ///
 /// ```
-/// use bc_envelope::prelude::*;
-/// use bc_envelope::extension::expressions::{parameters, GLOBAL_PARAMETERS};
+/// use bc_envelope::{
+///     extension::expressions::{GLOBAL_PARAMETERS, parameters},
+///     prelude::*,
+/// };
 ///
 /// // Access the global parameters store
 /// let parameters_store = GLOBAL_PARAMETERS.get();
@@ -102,7 +105,5 @@ impl LazyParameters {
 ///     assert_eq!(store.name(&parameters::LHS), "lhs");
 /// }
 /// ```
-pub static GLOBAL_PARAMETERS: LazyParameters = LazyParameters {
-    init: Once::new(),
-    data: Mutex::new(None),
-};
+pub static GLOBAL_PARAMETERS: LazyParameters =
+    LazyParameters { init: Once::new(), data: Mutex::new(None) };

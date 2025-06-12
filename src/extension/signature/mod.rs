@@ -1,7 +1,7 @@
 //! # Signature Extension
-//! 
-//! This module provides functionality for digitally signing Envelopes and verifying signatures,
-//! with optional metadata support.
+//!
+//! This module provides functionality for digitally signing Envelopes and
+//! verifying signatures, with optional metadata support.
 //!
 //! The signature extension allows:
 //! - Signing envelope subjects to validate their authenticity
@@ -11,16 +11,21 @@
 //!
 //! ## Core Concepts
 //!
-//! 1. **Basic Signatures**: Sign an envelope's subject to verify its authenticity, without modifying its content
-//! 2. **Signatures with Metadata**: Add metadata to a signature that is itself signed with the same key
-//! 3. **Multi-Signatures**: Support for multiple signatures on a single envelope, each potentially with its own metadata
+//! 1. **Basic Signatures**: Sign an envelope's subject to verify its
+//!    authenticity, without modifying its content
+//! 2. **Signatures with Metadata**: Add metadata to a signature that is itself
+//!    signed with the same key
+//! 3. **Multi-Signatures**: Support for multiple signatures on a single
+//!    envelope, each potentially with its own metadata
 //!
 //! ## Signature Approaches
 //!
 //! The signature module supports two main approaches:
 //!
-//! 1. **Subject-Only Signing**: When `add_signature()` is called on an envelope, only the subject is signed
-//! 2. **Wrapped Envelope Signing**: When `sign()` is called, the entire envelope (subject + assertions) is wrapped and then signed
+//! 1. **Subject-Only Signing**: When `add_signature()` is called on an
+//!    envelope, only the subject is signed
+//! 2. **Wrapped Envelope Signing**: When `sign()` is called, the entire
+//!    envelope (subject + assertions) is wrapped and then signed
 //!
 //! ## Usage Examples
 //!
@@ -28,20 +33,20 @@
 //!
 //! ```ignore
 //! use bc_envelope::prelude::*;
-//! 
+//!
 //! # fn main() -> anyhow::Result<()> {
 //! # // In a real application, you would use proper key generation
 //! # // The following would be your actual key variables from your application
 //! # let alice_private_key = /* your private key */;
 //! # let alice_public_key = /* your public key */;
 //! # let bob_public_key = /* another public key */;
-//! 
+//!
 //! // Create and sign an envelope
 //! let envelope = Envelope::new("Hello.")
 //!     .add_signature(&alice_private_key);
 //!
 //! // The structure is "Hello." ['signed': Signature]
-//! 
+//!
 //! // Verify the signature
 //! assert!(envelope.has_signature_from(&alice_public_key)?);
 //! assert!(!envelope.has_signature_from(&bob_public_key)?);
@@ -65,7 +70,7 @@
 //! # // The following would be your actual key variables from your application
 //! # let alice_private_key = /* your private key */;
 //! # let alice_public_key = /* your public key */;
-//! 
+//!
 //! // Create and sign an envelope with metadata
 //! let metadata = SignatureMetadata::new()
 //!     .with_assertion(NOTE, "Alice signed this.");
@@ -103,16 +108,19 @@
 //!
 //! ## Signature Verification Workflow
 //!
-//! 1. For a simple signature, verification checks if the signature matches the subject's digest
+//! 1. For a simple signature, verification checks if the signature matches the
+//!    subject's digest
 //! 2. For a signature with metadata:
-//!    - The outer signature is verified against the wrapped metadata envelope 
-//!    - The inner signature (subject of the metadata envelope) is verified against the original envelope's subject
+//!    - The outer signature is verified against the wrapped metadata envelope
+//!    - The inner signature (subject of the metadata envelope) is verified
+//!      against the original envelope's subject
 //!    - Both signatures must be made with the same key
 //!
 //! ## Implementation Details
 //!
-//! The signature system is implemented using cryptographic primitives from the `bc-components` crate. The signature
-//! extensions make use of the `Signer` and `Verifier` traits to provide a flexible interface for different
+//! The signature system is implemented using cryptographic primitives from the
+//! `bc-components` crate. The signature extensions make use of the `Signer` and
+//! `Verifier` traits to provide a flexible interface for different
 //! signature algorithms.
 
 pub mod signature_impl;

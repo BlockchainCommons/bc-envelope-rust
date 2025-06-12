@@ -7,7 +7,8 @@ use bc_components::Compressed;
 #[cfg(feature = "encrypt")]
 use bc_components::EncryptedMessage;
 use bc_components::{
-    Digest, EncryptedKey, PrivateKeyBase, PrivateKeys, PublicKeys, Reference, SSKRShare, Salt, SealedMessage, Signature, ARID, URI, UUID, XID
+    ARID, Digest, EncryptedKey, PrivateKeyBase, PrivateKeys, PublicKeys,
+    Reference, SSKRShare, Salt, SealedMessage, Signature, URI, UUID, XID,
 };
 use dcbor::prelude::*;
 
@@ -16,8 +17,8 @@ use crate::{Assertion, Envelope};
 /// A trait for types that can be encoded as a Gordian Envelope.
 ///
 /// This trait defines the interface for converting a value into an envelope.
-/// Types implementing this trait can be used directly with envelope construction
-/// functions without explicit conversion.
+/// Types implementing this trait can be used directly with envelope
+/// construction functions without explicit conversion.
 ///
 /// There are numerous built-in implementations for common types including:
 /// - Primitive types (numbers, strings, booleans)
@@ -79,21 +80,18 @@ impl<T> EnvelopeEncodable for T
 where
     T: Into<Envelope> + Clone,
 {
-    /// Converts the value into an envelope by using its `Into<Envelope>` implementation.
-    fn into_envelope(self) -> Envelope {
-        self.into()
-    }
+    /// Converts the value into an envelope by using its `Into<Envelope>`
+    /// implementation.
+    fn into_envelope(self) -> Envelope { self.into() }
 }
 
 /// Implementation of `EnvelopeEncodable` for `Assertion`.
 ///
-/// This implementation converts an assertion into an envelope with the assertion
-/// as its subject.
+/// This implementation converts an assertion into an envelope with the
+/// assertion as its subject.
 impl EnvelopeEncodable for Assertion {
     /// Creates an envelope with this assertion as its subject.
-    fn into_envelope(self) -> Envelope {
-        Envelope::new_with_assertion(self)
-    }
+    fn into_envelope(self) -> Envelope { Envelope::new_with_assertion(self) }
 }
 
 /// TryFrom implementation to convert an encrypted message into an envelope.
@@ -131,9 +129,7 @@ impl TryFrom<Compressed> for Envelope {
 /// This allows CBOR values to be directly encoded as envelope leaf nodes.
 impl EnvelopeEncodable for CBOR {
     /// Creates a leaf envelope containing this CBOR value.
-    fn into_envelope(self) -> Envelope {
-        Envelope::new_leaf(self)
-    }
+    fn into_envelope(self) -> Envelope { Envelope::new_leaf(self) }
 }
 
 /// Implementation of `EnvelopeEncodable` for `String`.
@@ -141,9 +137,7 @@ impl EnvelopeEncodable for CBOR {
 /// This allows Rust strings to be directly encoded as envelope leaf nodes.
 impl EnvelopeEncodable for String {
     /// Creates a leaf envelope containing this string.
-    fn into_envelope(self) -> Envelope {
-        Envelope::new_leaf(self)
-    }
+    fn into_envelope(self) -> Envelope { Envelope::new_leaf(self) }
 }
 
 /// Implementation of `EnvelopeEncodable` for `&str`.
@@ -151,18 +145,14 @@ impl EnvelopeEncodable for String {
 /// This allows string slices to be directly encoded as envelope leaf nodes.
 impl EnvelopeEncodable for &str {
     /// Creates a leaf envelope containing this string slice.
-    fn into_envelope(self) -> Envelope {
-        Envelope::new_leaf(self)
-    }
+    fn into_envelope(self) -> Envelope { Envelope::new_leaf(self) }
 }
 
 impl<T> EnvelopeEncodable for Vec<T>
 where
     T: CBOREncodable,
 {
-    fn into_envelope(self) -> Envelope {
-        Envelope::new(CBOR::from(self))
-    }
+    fn into_envelope(self) -> Envelope { Envelope::new(CBOR::from(self)) }
 }
 
 impl<K, V> EnvelopeEncodable for HashMap<K, V>
@@ -170,30 +160,22 @@ where
     K: CBOREncodable,
     V: CBOREncodable,
 {
-    fn into_envelope(self) -> Envelope {
-        Envelope::new(CBOR::from(self))
-    }
+    fn into_envelope(self) -> Envelope { Envelope::new(CBOR::from(self)) }
 }
 
 impl<T> EnvelopeEncodable for HashSet<T>
 where
     T: CBOREncodable,
 {
-    fn into_envelope(self) -> Envelope {
-        Envelope::new(CBOR::from(self))
-    }
+    fn into_envelope(self) -> Envelope { Envelope::new(CBOR::from(self)) }
 }
 
 impl EnvelopeEncodable for Map {
-    fn into_envelope(self) -> Envelope {
-        Envelope::new(CBOR::from(self))
-    }
+    fn into_envelope(self) -> Envelope { Envelope::new(CBOR::from(self)) }
 }
 
 impl EnvelopeEncodable for Set {
-    fn into_envelope(self) -> Envelope {
-        Envelope::new(CBOR::from(self))
-    }
+    fn into_envelope(self) -> Envelope { Envelope::new(CBOR::from(self)) }
 }
 
 /// Macro for implementing `EnvelopeEncodable` for a series of types.
@@ -205,9 +187,7 @@ macro_rules! impl_envelope_encodable {
     ($type:ty) => {
         impl From<$type> for Envelope {
             /// Converts this value into an envelope.
-            fn from(value: $type) -> Self {
-                Envelope::new_leaf(value)
-            }
+            fn from(value: $type) -> Self { Envelope::new_leaf(value) }
         }
     };
 }

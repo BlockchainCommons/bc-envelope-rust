@@ -1,16 +1,15 @@
-use bc_envelope::prelude::*;
 use bc_components::DigestProvider;
+use bc_envelope::prelude::*;
 use indoc::indoc;
 
 mod common;
-use crate::common::test_data::*;
-use crate::common::check_encoding::*;
+use crate::common::{check_encoding::*, test_data::*};
 
-// A previous version of the Envelope spec used tag #6.24 ("Encoded CBOR Item") as
-// the header for the Envelope `leaf` case. Unfortunately, this was not a correct
-// use of the tag, as the contents of #6.24 (RFC8949 §3.4.5.1) MUST always be a
-// byte string, while we were simply using it as a wrapper/header for any dCBOR
-// data item.
+// A previous version of the Envelope spec used tag #6.24 ("Encoded CBOR Item")
+// as the header for the Envelope `leaf` case. Unfortunately, this was not a
+// correct use of the tag, as the contents of #6.24 (RFC8949 §3.4.5.1) MUST
+// always be a byte string, while we were simply using it as a wrapper/header
+// for any dCBOR data item.
 //
 // https://www.rfc-editor.org/rfc/rfc8949.html#name-encoded-cbor-data-item
 //
@@ -21,9 +20,9 @@ use crate::common::check_encoding::*;
 // correctly decoded as `leaf` cases.
 #[test]
 fn test_read_legacy_leaf() {
-    let legacy_envelope = Envelope::from_tagged_cbor_data(
-        hex_literal::hex!("d8c8d818182a")
-    ).unwrap();
+    let legacy_envelope =
+        Envelope::from_tagged_cbor_data(hex_literal::hex!("d8c8d818182a"))
+            .unwrap();
     let e = Envelope::new(42);
     assert!(legacy_envelope.is_identical_to(&e));
     assert!(legacy_envelope.is_equivalent_to(&e));
@@ -121,7 +120,10 @@ fn test_known_value_subject() {
         'note'
     "#}.trim());
 
-    assert_eq!(e.extract_subject::<KnownValue>().unwrap(), known_values::NOTE);
+    assert_eq!(
+        e.extract_subject::<KnownValue>().unwrap(),
+        known_values::NOTE
+    );
 }
 
 #[test]
@@ -290,7 +292,9 @@ fn test_double_wrapped() {
 
 #[test]
 fn test_assertion_with_assertions() {
-    let a = Envelope::new_assertion(1, 2).add_assertion(3, 4).add_assertion(5, 6);
+    let a = Envelope::new_assertion(1, 2)
+        .add_assertion(3, 4)
+        .add_assertion(5, 6);
     let e = Envelope::new(7).add_assertion_envelope(a).unwrap();
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
@@ -335,7 +339,8 @@ fn test_digest_leaf() {
 fn test_unknown_leaf() {
     crate::register_tags();
 
-    let unknown_ur = "ur:envelope/tpsotaaodnoyadgdjlssmkcklgoskseodnyteofwwfylkiftaydpdsjz";
+    let unknown_ur =
+        "ur:envelope/tpsotaaodnoyadgdjlssmkcklgoskseodnyteofwwfylkiftaydpdsjz";
     let e = Envelope::from_ur_string(unknown_ur).unwrap();
     let expected = "555({1: h'6fc4981e8da778332bf93342f3f77d3a'})";
     assert_actual_expected!(e.format(), expected);

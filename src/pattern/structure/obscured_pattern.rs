@@ -1,4 +1,7 @@
-use crate::{Envelope, pattern::{Matcher, Path}};
+use crate::{
+    Envelope,
+    pattern::{Matcher, Path},
+};
 
 /// Pattern for matching obscured elements.
 #[derive(Debug, Clone)]
@@ -15,24 +18,16 @@ pub enum ObscuredPattern {
 
 impl ObscuredPattern {
     /// Creates a new `ObscuredPattern` that matches any obscured element.
-    pub fn any() -> Self {
-        ObscuredPattern::Any
-    }
+    pub fn any() -> Self { ObscuredPattern::Any }
 
     /// Creates a new `ObscuredPattern` that matches any elided element.
-    pub fn elided() -> Self {
-        ObscuredPattern::Elided
-    }
+    pub fn elided() -> Self { ObscuredPattern::Elided }
 
     /// Creates a new `ObscuredPattern` that matches any encrypted element.
-    pub fn encrypted() -> Self {
-        ObscuredPattern::Encrypted
-    }
+    pub fn encrypted() -> Self { ObscuredPattern::Encrypted }
 
     /// Creates a new `ObscuredPattern` that matches any compressed element.
-    pub fn compressed() -> Self {
-        ObscuredPattern::Compressed
-    }
+    pub fn compressed() -> Self { ObscuredPattern::Compressed }
 }
 
 impl Matcher for ObscuredPattern {
@@ -49,7 +44,7 @@ impl Matcher for ObscuredPattern {
                 {
                     false
                 }
-            },
+            }
             ObscuredPattern::Compressed => {
                 #[cfg(feature = "compress")]
                 {
@@ -59,7 +54,7 @@ impl Matcher for ObscuredPattern {
                 {
                     false
                 }
-            },
+            }
         };
 
         if is_hit {
