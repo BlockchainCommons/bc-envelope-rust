@@ -3,15 +3,15 @@
 - The task is to implement the remaining patterns in the `leaf` submodule of the `pattern` module.
 - See the list below for the patterns that need to be implemented.
 - Use patterns that are already implemented as a reference for your implementation.
-- Gordian Envelope is a tree structure whose leaves areal CBOR values. The `dcbor` crate in this workspace is used to handle these CBOR values.
 
 ## General Guidelines
 
-- Study `envelope.rs` and `queries.rs` to understand the Envelope API.
-- Note that envelope APIs that deal with extracting CBOR leaf values are usually prefixed with `extract_`.
-- There are also predicates like `is_*` that can be used to check the type of a leaf value, e.g., `is_text`, `is_number`, `is_bool`, etc.
+- Gordian Envelope is a tree structure whose leaves are dCBOR values. The `dcbor` crate in this workspace is used to handle these CBOR values, so you will probably want to familiarize yourself with it and its tests.
+- Study `envelope.rs`, `queries.rs`, and `leaf.rs` to understand the Envelope API.
+- Note that Envelope APIs that deal with extracting CBOR leaf values are usually prefixed with `extract_`.
+- There are also Envelope predicates like `is_*` that can be used to check the type of a leaf value, e.g., `is_text`, `is_number`, `is_bool`, etc.
 - Make sure to add or adjust tests for any new functionality you add or change.
-- Ensure all crate tests pass. You can skip doc tests for now, so use `cargo test --all-targets` when you want to test the whole crate.
+- Ensure all crate tests pass. You can skip doc tests initially, so use `cargo test --all-targets` when you want to test the whole crate but not the doc tests.
 - Use `cargo test --package bc-envelope --test 'pattern_tests*'` to run the tests for the `pattern` module specifically.
 - Make sure all clippy lints are also resolved.
 
