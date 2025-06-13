@@ -1,8 +1,8 @@
 #[cfg(feature = "known_value")]
 use super::KnownValuePattern;
 use super::{
-    ArrayPattern, BoolPattern, ByteStringPattern, CborPattern, DatePattern, MapPattern,
-    NullPattern, NumberPattern, TagPattern, TextPattern,
+    ArrayPattern, BoolPattern, ByteStringPattern, CborPattern, DatePattern,
+    MapPattern, NullPattern, NumberPattern, TaggedPattern, TextPattern,
 };
 use crate::{
     Envelope,
@@ -23,7 +23,7 @@ pub enum LeafPattern {
     /// Matches a byte string value.
     ByteString(ByteStringPattern),
     /// Matches a tag value.
-    Tag(TagPattern),
+    Tag(TaggedPattern),
     /// Matches an array.
     Array(ArrayPattern),
     /// Matches a map.
@@ -55,7 +55,7 @@ impl LeafPattern {
         LeafPattern::ByteString(pattern)
     }
 
-    pub fn tag(pattern: TagPattern) -> Self { LeafPattern::Tag(pattern) }
+    pub fn tag(pattern: TaggedPattern) -> Self { LeafPattern::Tag(pattern) }
 
     pub fn array(pattern: ArrayPattern) -> Self { LeafPattern::Array(pattern) }
 

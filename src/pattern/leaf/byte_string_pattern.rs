@@ -19,7 +19,9 @@ impl ByteStringPattern {
     pub fn any() -> Self { ByteStringPattern::Any }
 
     /// Creates a new `ByteStringPattern` that matches a specific byte string.
-    pub fn exact(value: Vec<u8>) -> Self { ByteStringPattern::Exact(value) }
+    pub fn exact(value: impl AsRef<[u8]>) -> Self {
+        ByteStringPattern::Exact(value.as_ref().to_vec())
+    }
 
     /// Creates a new `ByteStringPattern` that matches the binary regex for a
     /// byte string.

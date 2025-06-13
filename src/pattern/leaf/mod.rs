@@ -10,7 +10,7 @@ mod leaf_pattern;
 mod map_pattern;
 mod null_pattern;
 mod number_pattern;
-mod tag_pattern;
+mod tagged_pattern;
 mod text_pattern;
 
 pub(crate) use array_pattern::ArrayPattern;
@@ -24,5 +24,5 @@ pub(crate) use leaf_pattern::LeafPattern;
 pub(crate) use map_pattern::MapPattern;
 pub(crate) use null_pattern::NullPattern;
 pub(crate) use number_pattern::NumberPattern;
-pub(crate) use tag_pattern::TagPattern;
+pub(crate) use tagged_pattern::TaggedPattern;
 pub(crate) use text_pattern::TextPattern;

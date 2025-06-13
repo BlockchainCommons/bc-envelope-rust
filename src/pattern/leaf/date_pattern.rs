@@ -1,4 +1,5 @@
 use std::ops::RangeInclusive;
+
 use dcbor::{Date, prelude::*};
 
 use crate::{
@@ -15,6 +16,10 @@ pub enum DatePattern {
     Date(Date),
     /// Matches dates within a range (inclusive).
     Range(RangeInclusive<Date>),
+    /// Matches dates that are on or after the specified date.
+    Earliest(Date),
+    /// Matches dates that are on or before the specified date.
+    Latest(Date),
     /// Matches a date by its ISO-8601 string representation.
     Iso8601(String),
     /// Matches dates whose ISO-8601 string representation matches the given
@@ -33,6 +38,18 @@ impl DatePattern {
     /// (inclusive).
     pub fn range(range: RangeInclusive<Date>) -> Self {
         DatePattern::Range(range)
+    }
+
+    /// Creates a new `DatePattern` that matches dates that are on or after the
+    /// specified date.
+    pub fn earliest(date: Date) -> Self {
+        DatePattern::Earliest(date)
+    }
+
+    /// Creates a new `DatePattern` that matches dates that are on or before the
+    /// specified date.
+    pub fn latest(date: Date) -> Self {
+        DatePattern::Latest(date)
     }
 
     /// Creates a new `DatePattern` that matches a date by its ISO-8601 string
@@ -66,6 +83,20 @@ impl Matcher for DatePattern {
                             }
                             DatePattern::Range(range) => {
                                 if range.contains(&date) {
+                                    vec![vec![envelope.clone()]]
+                                } else {
+                                    vec![]
+                                }
+                            }
+                            DatePattern::Earliest(earliest) => {
+                                if date >= *earliest {
+                                    vec![vec![envelope.clone()]]
+                                } else {
+                                    vec![]
+                                }
+                            }
+                            DatePattern::Latest(latest) => {
+                                if date <= *latest {
                                     vec![vec![envelope.clone()]]
                                 } else {
                                     vec![]
