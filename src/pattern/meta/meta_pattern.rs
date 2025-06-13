@@ -1,4 +1,4 @@
-use super::{AndPattern, OrPattern, SearchPattern, SequencePattern};
+use super::{AndPattern, NotPattern, OrPattern, SearchPattern, SequencePattern};
 use crate::{
     Envelope,
     pattern::{Matcher, Path},
@@ -11,12 +11,12 @@ pub enum MetaPattern {
     And(AndPattern),
     /// Matches if any contained pattern matches.
     Or(OrPattern),
+    /// Matches if the inner pattern does not match.
+    Not(NotPattern),
     /// Searches the entire envelope tree for matches.
     Search(SearchPattern),
     /// Matches a sequence of patterns.
     Sequence(SequencePattern),
-    // Matches with negation.
-    // Not(NotPattern),
     // Matches with repetition.
     // Repeat(RepeatPattern),
 }
@@ -33,6 +33,10 @@ impl MetaPattern {
     pub fn sequence(pattern: SequencePattern) -> Self {
         MetaPattern::Sequence(pattern)
     }
+
+    pub fn not(pattern: NotPattern) -> Self {
+        MetaPattern::Not(pattern)
+    }
 }
 
 impl Matcher for MetaPattern {
@@ -40,6 +44,7 @@ impl Matcher for MetaPattern {
         match self {
             MetaPattern::And(pattern) => pattern.paths(envelope),
             MetaPattern::Or(pattern) => pattern.paths(envelope),
+            MetaPattern::Not(pattern) => pattern.paths(envelope),
             MetaPattern::Search(pattern) => pattern.paths(envelope),
             MetaPattern::Sequence(pattern) => pattern.paths(envelope),
         }

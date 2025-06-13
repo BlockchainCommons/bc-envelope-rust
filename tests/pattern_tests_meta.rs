@@ -293,3 +293,94 @@ fn test_search_pattern_credential() {
     .trim();
     assert_actual_expected!(format_paths(&number_paths), expected);
 }
+
+#[test]
+fn test_not_pattern() {
+    // Create a test envelope
+    let envelope = Envelope::new("test_subject")
+        .add_assertion("key1", "value1")
+        .add_assertion("key2", "value2")
+        .add_assertion("number", 42);
+
+    // Test not pattern with text pattern that doesn't match
+    let not_matches = Pattern::not_matching(Pattern::text("non_matching_text")).matches(&envelope);
+    assert!(not_matches, "Should match when the inner pattern doesn't match");
+
+    // Test not pattern with text pattern that does match
+    let not_matches = Pattern::not_matching(Pattern::text("test_subject")).matches(&envelope);
+    assert!(!not_matches, "Should not match when the inner pattern matches");
+
+    // Test not pattern with object pattern - this should find no matches because we have an assertion with object 42
+    let not_patterns = Pattern::search(Pattern::not_matching(Pattern::object(Pattern::number(42)))).paths(&envelope);
+    
+    // Should not match the assertion with object 42, but will match other elements
+    let found_objects = not_patterns.iter()
+        .filter(|path| path.last().unwrap().is_assertion())
+        .filter_map(|path| {
+            let assertion = path.last().unwrap();
+            if let Ok(obj) = assertion.extract_object::<i32>() {
+                Some(obj)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    
+    assert!(!found_objects.contains(&42), "Should not match assertions with object 42");
+
+    // Test combination of not pattern with other patterns
+    let complex_pattern = Pattern::and(vec![
+        Pattern::not_matching(Pattern::text("wrong_subject")),
+        Pattern::assertion_with_predicate(Pattern::text("key1"))
+    ]);
+    
+    let matches = complex_pattern.matches(&envelope);
+    assert!(matches, "Complex pattern with not should match");
+
+    // The path includes the assertion for a successful not pattern
+    let pattern = Pattern::not_matching(Pattern::text("wrong"));
+    let paths = pattern.paths(&envelope);
+    
+    // Instead of checking exact digest (which can change), check the content
+    assert_eq!(paths.len(), 1, "Should have one path");
+    let returned_envelope = paths[0][0].clone();
+    assert_eq!(returned_envelope.extract_subject::<String>().unwrap(), "test_subject");
+}
+
+#[test]
+fn test_not_pattern_with_search() {
+    // Create a nested envelope structure
+    let inner_envelope = Envelope::new("inner")
+        .add_assertion("inner_key", "inner_value");
+        
+    let outer_envelope = Envelope::new("outer")
+        .add_assertion("contains", inner_envelope);
+        
+    // Search for elements that are NOT obscured (everything in this case)
+    let not_obscured_paths = Pattern::search(
+        Pattern::not_matching(Pattern::obscured())
+    ).paths(&outer_envelope);
+    
+    // We should find multiple matches (everything, since nothing is obscured)
+    assert!(!not_obscured_paths.is_empty(), "Should find elements that are not obscured");
+    
+    // Create envelope with elided content
+    let envelope_with_elided = Envelope::new("test")
+        .add_assertion("visible", "data")
+        .add_assertion("hidden", Envelope::new("secret").elide());
+        
+    // Search for elements that are NOT elided
+    let not_elided_paths = Pattern::search(
+        Pattern::not_matching(Pattern::obscured())
+    ).paths(&envelope_with_elided);
+    
+    // Should find multiple elements that are not elided
+    assert!(!not_elided_paths.is_empty(), "Should find elements that are not elided");
+    
+    // Verify we didn't match the elided element
+    for path in &not_elided_paths {
+        if let Some(element) = path.last() {
+            assert!(!element.is_elided(), "Should not match elided elements");
+        }
+    }
+}

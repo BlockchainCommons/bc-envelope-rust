@@ -66,7 +66,7 @@ use super::{
         MapPattern, NullPattern, NumberPattern, TaggedPattern, TextPattern,
     },
     meta::{
-        AndPattern, MetaPattern, OrPattern, SearchPattern, SequencePattern,
+        AndPattern, MetaPattern, NotPattern, OrPattern, SearchPattern, SequencePattern,
     },
     structure::{
         AssertionsPattern, DigestPattern, NodePattern, ObjectPattern,
@@ -499,6 +499,13 @@ impl Pattern {
     /// of the envelope.
     pub fn search(pattern: Pattern) -> Self {
         Pattern::Meta(MetaPattern::search(SearchPattern::new(pattern)))
+    }
+}
+
+impl Pattern {
+    /// Creates a new `Pattern` that negates another pattern; matches if the specified pattern does not match.
+    pub fn not_matching(pattern: Pattern) -> Self {
+        Pattern::Meta(MetaPattern::not(NotPattern::new(pattern)))
     }
 }
 
