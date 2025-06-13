@@ -12,8 +12,13 @@ This crate is the Rust reference implementation of [Gordian Envelope](https://ww
 # Build the crate
 cargo build
 
-# Run tests
+# Run all tests
 cargo test
+
+# Run tests without doc tests
+cargo test --all-targets
+
+# Run specific tests with specific features
 cargo test --lib --all-features -- module::tests::test_name --exact --show-output
 
 # Run doctests
@@ -29,7 +34,7 @@ cargo doc --no-deps --target-dir cargo-docs
 
 ### Development Guidelines
 
-- **Production quality** - Write code as you would for a real-world implementation
+- **Production quality** - Write real-world production-quality code
 - **Proper error handling** - Use `Result<T>` with `anyhow::Context` for all functions that can fail
 - **Clean code** - Fix all compiler errors and Clippy lints
 - **Security focus** - Cryptographic operations must adhere to best practices and be thoroughly tested
@@ -41,9 +46,9 @@ cargo doc --no-deps --target-dir cargo-docs
 
 ## Important Dependencies
 
-### `bc-research` Repository
+### `docs` Directory
 
-🚨 **CRITICAL**: Many Gordian Envelope extensions are described in specifications found in the `bc-research` repository. Always consult the research repository for detailed documentation on extensions such as encryption, signatures, compression, known values, expressions, and more.
+🚨 Many Gordian Envelope extensions are described in specifications found in the `bc-research` repository, a subset of which is in `docs/bc-research`. The docs directory also includes the base Gordian Envelope and dCBOR specifications. Always consult the `docs` directory for detailed documentation on extensions such as encryption, signatures, compression, known values, expressions, and more.
 
 ### `dcbor` Repository
 
@@ -57,30 +62,31 @@ This repository uses cryptographic types and operations defined in the `bc-compo
 
 ### Key Data Types
 
-| Type | Description |
-| ---- | ----------- |
-| `Envelope` | The main container type representing a Gordian Envelope |
-| `Assertion` | A predicate-object relationship attached to an envelope subject |
+| Type            | Description                                                                 |
+| --------------- | --------------------------------------------------------------------------- |
+| `Envelope`      | The main container type representing a Gordian Envelope                     |
+| `Assertion`     | A predicate-object relationship attached to an envelope subject             |
 | `ObscureAction` | Enum specifying whether to elide, encrypt, or compress parts of an envelope |
 
 ### Reference Materials
 
-These documents are essential for understanding the Gordian Envelope format and its extensions.
+These documents are essential for understanding the Gordian Envelope format and its extensions. There are other documents in the `docs/bc-research` directory that may be useful.
 
 🚨 **NOTE**: The IETF Internet Draft is the primary specification for the base Gordian Envelope format. The `bc-research` repository contains specifications for various extensions.
 
-| Title | Description | Location |
-|-------|-------------|----------|
-| Gordian Envelope IETF Draft | Primary specification for the envelope format | [docs/draft-mcnally-envelope-09.txt](docs/draft-mcnally-envelope-09.txt) |
-| BCR-2024-003 | Envelope Known Value | [bc-research/papers/bcr-2023-003-envelope-known-value.md](../bc-research/papers/bcr-2023-003-envelope-known-value.md) |
-| BCR-2024-004 | Envelope Symmetric Encryption | [bc-research/papers/bcr-2023-004-envelope-symmetric-encryption.md](../bc-research/papers/bcr-2023-004-envelope-symmetric-encryption.md) |
-| BCR-2024-005 | Envelope Compression | [bc-research/papers/bcr-2023-005-envelope-compression.md](../bc-research/papers/bcr-2023-005-envelope-compression.md) |
-| BCR-2024-006 | Envelope Attachment | [bc-research/papers/bcr-2023-006-envelope-attachment.md](../bc-research/papers/bcr-2023-006-envelope-attachment.md) |
-| BCR-2024-012 | Envelope Expression | [bc-research/papers/bcr-2023-012-envelope-expression.md](../bc-research/papers/bcr-2023-012-envelope-expression.md) |
-| BCR-2024-013 | Envelope Crypto | [bc-research/papers/bcr-2023-013-envelope-crypto.md](../bc-research/papers/bcr-2023-013-envelope-crypto.md) |
-| BCR-2024-003 | Envelope (Full Specification) | [bc-research/papers/bcr-2024-003-envelope.md](../bc-research/papers/bcr-2024-003-envelope.md) |
-| BCR-2024-006 | Envelope Graph | [bc-research/papers/bcr-2024-006-envelope-graph.md](../bc-research/papers/bcr-2024-006-envelope-graph.md) |
-| BCR-2024-007 | Envelope Decorrelation | [bc-research/papers/bcr-2024-007-envelope-decorrelation.md](../bc-research/papers/bcr-2024-007-envelope-decorrelation.md) |
+| Title                         | Description                                   | Location                                                                                                                         |
+| ----------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Gordian Envelope IETF Draft   | Primary specification for the envelope format | [docs/draft-mcnally-envelope-09.txt](docs/draft-mcnally-envelope-09.txt)                                                         |
+| Determinist CBOR (dCBOR) Spec | Specification for deterministic CBOR encoding | [docs/draft-mcnally-deterministic-cbor-12.txt](docs/draft-mcnally-deterministic-cbor-12.txt)                                     |
+| BCR-2024-003                  | Envelope Known Value                          | [docs/bc-research/bcr-2023-003-envelope-known-value.md](docs/bc-research/bcr-2023-003-envelope-known-value.md)                   |
+| BCR-2024-004                  | Envelope Symmetric Encryption                 | [docs/bc-research/bcr-2023-004-envelope-symmetric-encryption.md](docs/bc-research/bcr-2023-004-envelope-symmetric-encryption.md) |
+| BCR-2024-005                  | Envelope Compression                          | [docs/bc-research/bcr-2023-005-envelope-compression.md](docs/bc-research/bcr-2023-005-envelope-compression.md)                   |
+| BCR-2024-006                  | Envelope Attachment                           | [docs/bc-research/bcr-2023-006-envelope-attachment.md](docs/bc-research/bcr-2023-006-envelope-attachment.md)                     |
+| BCR-2024-012                  | Envelope Expression                           | [docs/bc-research/bcr-2023-012-envelope-expression.md](docs/bc-research/bcr-2023-012-envelope-expression.md)                     |
+| BCR-2024-013                  | Envelope Crypto                               | [docs/bc-research/bcr-2023-013-envelope-crypto.md](docs/bc-research/bcr-2023-013-envelope-crypto.md)                             |
+| BCR-2024-003                  | Envelope (Full Specification)                 | [docs/bc-research/bcr-2024-003-envelope.md](docs/bc-research/bcr-2024-003-envelope.md)                                           |
+| BCR-2024-006                  | Envelope Graph                                | [docs/bc-research/bcr-2024-006-envelope-graph.md](docs/bc-research/bcr-2024-006-envelope-graph.md)                               |
+| BCR-2024-007                  | Envelope Decorrelation                        | [docs/bc-research/bcr-2024-007-envelope-decorrelation.md](docs/bc-research/bcr-2024-007-envelope-decorrelation.md)               |
 
 ## Current Status and Roadmap
 
@@ -129,66 +135,80 @@ These documents are essential for understanding the Gordian Envelope format and 
 
 🔴 **MANDATORY**: YOU MUST RUN THESE CHECKS YOURSELF after making changes, without waiting to be prompted. Documentation is not complete until all tests pass. NEVER mark a task as complete without running and passing these checks.
 
-### Public API Items Needing Documentation
-
-This section inventories all public API items that need documentation, ordered from simplest with least dependencies to most complex.
+### Public APIs
 
 #### Core Base Module
 
-1. **✅ `EnvelopeError`** (`base/error.rs`) - Error types for Envelope operations
-2. **✅ `FormatContext`** (`base/format_context.rs`) - Context for formatting Envelopes
-3. **✅ `Assertion`** (`base/assertion.rs`) - A predicate-object relationship
-4. **✅ `EnvelopeEncodable`**, **✅ `EnvelopeDecodable`** (`base/envelope_encodable.rs`, `base/envelope_decodable.rs`) - Traits for encoding/decoding Envelopes
-5. **✅ `ObscureAction`** (`base/elide.rs`) - Action to take when obscuring envelope parts
-6. **✅ `Envelope` and `EnvelopeCase`** (`base/envelope.rs`) - The main Gordian Envelope type and its variants
+1. **`EnvelopeError`** (`base/error.rs`) - Error types for Envelope operations
+2. **`FormatContext`** (`base/format_context.rs`) - Context for formatting Envelopes
+3. **`Assertion`** (`base/assertion.rs`) - A predicate-object relationship
+4. **`EnvelopeEncodable`**, **`EnvelopeDecodable`** (`base/envelope_encodable.rs`, `base/envelope_decodable.rs`) - Traits for encoding/decoding Envelopes
+5. **`ObscureAction`** (`base/elide.rs`) - Action to take when obscuring envelope parts
+6. **`Envelope` and `EnvelopeCase`** (`base/envelope.rs`) - The main Gordian Envelope type and its variants
 
 #### Core Functionality
 
-1. **✅ Functions in `base/wrap.rs`** - Functions for wrapping envelopes
-2. **✅ Functions in `base/elide.rs`** - Functions for eliding, encrypting, or compressing parts of envelopes
-3. **✅ Functions in `base/assertions.rs`** - Functions for working with multiple assertions
-4. **✅ Functions in `base/digest.rs`** - Functions for working with the digest tree
-5. **✅ Functions in `base/format.rs`** - Functions for formatting envelopes
-6. **✅ Functions in `base/tree_format.rs`** - Functions for tree-formatting envelopes
-7. **✅ Functions in `base/queries.rs`** - Functions for querying envelope contents
-8. **✅ Functions in `base/walk.rs`** - Functions for walking the envelope hierarchy
+1. `base/wrap.rs` - Functions for wrapping envelopes
+2. `base/elide.rs` - Functions for eliding, encrypting, or compressing parts of envelopes
+3. `base/assertions.rs` - Functions for working with multiple assertions
+4. `base/digest.rs` - Functions for working with the digest tree
+5. `base/tree_format.rs` - Functions for tree-formatting envelopes
+6. `base/queries.rs` - Functions for querying envelope contents
+7. `base/walk.rs` - Functions for walking the envelope hierarchy
+
+#### Formatting
+
+1. `format/diagnostic.rs` - Output in CBOR diagnostic format
+2. `format/hex.rs` - Output in CBOR hexadecimal format
+3. `format/mermaid.rs` - Output in Mermaid format
+4. `format/notation.rs` - Output in Envelope Notation format
+5. `format/tree.rs` - Output in tree format
 
 #### Extension Modules
 
-1. **✅ Types in `extension/salt.rs`** - Extension for adding salt to decorrelate envelopes
-2. **✅ Types in `extension/compress.rs`** - Extension for compressing envelopes
-3. **✅ Types in `extension/encrypt.rs`** - Extension for encrypting envelopes
-4. **✅ Types in `extension/sskr.rs`** - Extension for Sharded Secret Key Reconstruction
-5. **✅ Types in `extension/attachment.rs`** - Extension for envelope attachments
+1. `extension/salt.rs` - Extension for adding salt to decorrelate envelopes
+2. `extension/compress.rs` - Extension for compressing envelopes
+3. `extension/encrypt.rs` - Extension for encrypting envelopes
+4. `extension/sskr.rs` - Extension for Sharded Secret Key Reconstruction
+5. `extension/attachment.rs` - Extension for envelope attachments
+
+#### Pattern Matching
+
+1. `Pattern` (`pattern/pattern_impl.rs`) - Core pattern matching abstraction for envelope content
+2. `Matcher` (`pattern/matcher.rs`) - Envelope pattern matching trait
+3. `Path` (`pattern/matcher.rs`) - Represents hierarchical paths within envelope tree structures
+4. `pattern/leaf/` - Patterns for matching leaf values like booleans, numbers, text, and byte strings
+5. `pattern/structure/` - Patterns for matching structural elements like assertions, subjects, and predicates
+6. `pattern/meta/` - Meta-patterns for combining other patterns (AND, OR, NOT, etc.)
 
 #### Known Values
 
-1. **✅ `KnownValue`** (`extension/known_values/known_value.rs`) - Predefined known values
-2. **✅ `KnownValuesStore`** (`extension/known_values/known_values_store.rs`) - Store for known values
+1. `KnownValue` (`extension/known_values/known_value.rs`) - Predefined known values
+2. `KnownValuesStore` (`extension/known_values/known_values_store.rs`) - Store for known values
 
 #### Signature Extensions
 
-1. **✅ Types in `extension/signature/signature_impl.rs`** - Implementation of envelope signatures
-2. **✅ `SignatureMetadata`** (`extension/signature/signature_metadata.rs`) - Metadata for signatures
+1. `extension/signature/signature_impl.rs` - Implementation of envelope signatures
+2. `SignatureMetadata` (`extension/signature/signature_metadata.rs`) - Metadata for signatures
 
 #### Expressions Extensions
 
-1. **✅ `Function`** (`extension/expressions/function.rs`) - Function for expressions
-2. **✅ `Parameter`** (`extension/expressions/parameter.rs`) - Parameter for expressions
-3. **✅ `FunctionsStore`** (`extension/expressions/functions_store.rs`) - Store for functions
-4. **✅ `ParametersStore`** (`extension/expressions/parameters_store.rs`) - Store for parameters
-5. **✅ `parameters`** (`extension/expressions/parameters.rs`) - Parameter constants and globals
-6. **✅ `Expression`** (`extension/expressions/expression.rs`) - Expression envelope
-7. **✅ `Request`** (`extension/expressions/request.rs`) - Request envelope
-8. **✅ `Response`** (`extension/expressions/response.rs`) - Response envelope
-9. **✅ `Event`** (`extension/expressions/event.rs`) - Event envelope
+1. `Function` (`extension/expressions/function.rs`) - Function for expressions
+2. `Parameter` (`extension/expressions/parameter.rs`) - Parameter for expressions
+3. `FunctionsStore` (`extension/expressions/functions_store.rs`) - Store for functions
+4. `ParametersStore` (`extension/expressions/parameters_store.rs`) - Store for parameters
+5. `parameters` (`extension/expressions/parameters.rs`) - Parameter constants and globals
+6. `Expression` (`extension/expressions/expression.rs`) - Expression envelope
+7. `Request` (`extension/expressions/request.rs`) - Request envelope
+8. `Response` (`extension/expressions/response.rs`) - Response envelope
+9. `Event` (`extension/expressions/event.rs`) - Event envelope
 
 #### Other Extensions
 
-1. **✅ Types in `extension/recipient.rs`** - Public key encryption
-2. **✅ Types in `extension/proof.rs`** - Inclusion proofs
-3. **✅ Types in `extension/types.rs`** - Type assertions
-4. **✅ Functions in `seal.rs`** - Sealing and unsealing convenience functions
+1. `extension/recipient.rs` - Public key encryption
+2. `extension/proof.rs` - Inclusion proofs
+3. `extension/types.rs` - Type assertions
+4. `seal.rs` - Sealing and unsealing convenience functions
 
 ### API Design Insights
 
@@ -215,7 +235,7 @@ The following insights about the API design of this crate have been collected du
 
 6. **Digest Tree**: Every envelope element maintains a cryptographic digest, creating a Merkle-like tree that ensures integrity verification of the entire structure or specific parts.
 
-7. **Structural Variants**: The `EnvelopeCase` enum provides different structural variants (leaf, node, assertion, elided, etc.) that serve specific purposes while maintaining a consistent API.
+7. **Structural Variants**: The `EnvelopeCase` enum provides different structural variants (leaf, node, assertion, elided, etc.) that serve specific purposes while maintaining a consistent API. You do NOT need to use the `EnvelopeCase` enum directly in most cases, as the API provides higher-level abstractions for common operations.
 
 8. **Elision and Privacy**: A key feature is the ability to selectively elide, encrypt, or compress parts of an envelope using the `ObscureAction` enum, while maintaining the digest tree structure.
 
@@ -263,7 +283,7 @@ The following insights about the API design of this crate have been collected du
     - **Format Documentation** - Optional conformsTo URIs document the format of attachments
     - **Attachment Queries** - Dedicated methods for finding attachments by vendor and format
 
-19. **Expression System**: The crate provides a rich system for representing and evaluating expressions within envelopes:
+19. **Expression System**: The crate provides a rich system for representing and evaluating expressions within envelopes, which is used by the Gordian Sealed Transaction Protocol (GSTP):
     - **CBOR-Tagged Elements** - Functions and parameters use CBOR tags (#6.40006 and #6.40007) to distinguish them from regular envelope content
     - **Dual Identification System** - Both functions and parameters can be identified by either numeric IDs (for well-known/standardized items) or string names (for application-specific items)
     - **Static vs Dynamic Definitions** - Support for both compile-time (static) and runtime (dynamic) definition of functions and parameters
@@ -297,18 +317,3 @@ The following insights about the API design of this crate have been collected du
     - **Sealing and Unsealing** - The `seal` and `unseal` methods combine signing and encryption (or decryption and verification) into a single operation
     - **Symmetric and Asymmetric Cryptography** - Allows seamless combination of symmetric content key encryption with asymmetric public key encryption
     - **Fluent API Chaining** - All methods return new envelopes, allowing operations to be chained in a clear, readable manner
-
-### 🔵 FUTURE ENHANCEMENTS
-
-1. **README.md Update**: The README.md file has been completely overhauled to provide:
-   - Clear introduction to Gordian Envelope concepts
-   - Code examples for basic usage
-   - Table of available features
-   - Links to all extension specifications
-   - Updated Gordian Principles implementation
-   - Current project status
-   - Dependencies and other implementations
-
-Future enhancements to consider:
-- Update version history in README.md when new versions are released
-- Add benchmarks for common operations
