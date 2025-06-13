@@ -33,7 +33,7 @@
 //!
 //! ### Example
 //!
-//! Matching any byte string ending with h'010203':
+//! A binary regex matching any byte string ending with h'010203':
 //!
 //! ```
 //! (?s-u).*\x01\x02\x03$
