@@ -17,9 +17,9 @@ We compile the Pattern AST to a small Thompson-NFA-like byte-code (in `src/patte
 
 # Major tasks
 
-- PHASE-1: Introduce VM, Greediness enum, RepeatPattern & CapturePattern AST nodes, byte-code compiler, and runtime.
-- PHASE-2: Wire the compiler into Pattern::paths, adapt MetaPattern enum, and retrofit Sequence/And/Or/Not/Search.
-- PHASE-3: Provide helper constructors on Pattern, update unit/integration tests.
+- PHASE-1: Introduce VM, `Greediness` enum, `RepeatPattern` & `CapturePattern` AST nodes, byte-code compiler, and runtime.
+- PHASE-2: Wire the compiler into `Pattern::paths`, adapt `MetaPattern` enum, and retrofit `Sequence`/`And`/`Or`/`Not`/`Search`.
+- PHASE-3: Provide helper constructors on `Pattern`, update unit/integration tests.
 - PHASE-4: clippy + docs.
 
 Finish each phase so `cargo test --package bc-envelope --test 'pattern_tests*'` is green before proceeding.
@@ -28,7 +28,7 @@ Below you will find *reference code* for each new module and for modifications t
 
 1️⃣  NEW MODULES  ──────────────────────────
 
-File: src/pattern/greediness.rs
+File: `src/pattern/greediness.rs`
 
 ```rust
 /// Greediness (a.k.a. laziness / possessiveness) for quantifiers.
@@ -43,7 +43,7 @@ pub enum Greediness {
 }
 ```
 
-File: src/pattern/vm.rs
+File: `src/pattern/vm.rs`
 
 ```rust
 //! Tiny Thompson-style VM for walking Gordian Envelope trees.
@@ -163,7 +163,7 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
 }
 ```
 
-File: src/pattern/meta/repeat_pattern.rs
+File: `src/pattern/meta/repeat_pattern.rs`
 
 ```rust
 //! AST node + compiler for `{min,max}` quantifiers.
@@ -217,7 +217,7 @@ impl RepeatPattern {
 }
 ```
 
-File: src/pattern/meta/capture_pattern.rs
+File: `src/pattern/meta/capture_pattern.rs`
 
 ```rust
 //! Simple capture wrapper.  For now we only emit SAVE instructions;
@@ -244,7 +244,7 @@ impl CapturePattern {
 
 (Δ marks additions)
 
-1. src/pattern/meta/meta_pattern.rs
+1. `src/pattern/meta/meta_pattern.rs`
 
 ```rust
 use super::{AndPattern, NotPattern, OrPattern, SearchPattern,
@@ -263,7 +263,7 @@ pub enum MetaPattern {
 impl Matcher for MetaPattern { /* unchanged; add arms when compile() written */ }
 ```
 
-2. src/pattern/meta/mod.rs
+2. `src/pattern/meta/mod.rs`
 
 ```rust
 mod repeat_pattern;      // Δ
@@ -273,9 +273,9 @@ pub(crate) use repeat_pattern::RepeatPattern;      // Δ
 pub(crate) use capture_pattern::CapturePattern;    // Δ
 ```
 
-3. src/pattern/pattern_impl.rs   – add Greediness, compile support, and caching.
+3. `src/pattern/pattern_impl.rs`   – add Greediness, compile support, and caching.
 
-a. use crate::pattern::{vm, vm::Instr, Greediness};
+a. `use crate::pattern::{vm, vm::Instr, Greediness};`
 
 b. Add a new inherent method block:
 
@@ -320,7 +320,7 @@ impl Pattern {
 }
 ```
 
-4. Still in pattern_impl.rs – override paths():
+4. Still in `pattern_impl.rs` – override `paths()`:
 
 ```rust
 impl Matcher for Pattern {
@@ -353,14 +353,11 @@ impl Matcher for Pattern {
 }
 ```
 
-5. src/pattern/meta/sequence_pattern.rs
-add `compile()` exactly as in reference snippet.
+5. `src/pattern/meta/sequence_pattern.rs` add `compile()` exactly as in reference snippet.
 
-6. src/pattern/meta/and_pattern.rs and or_pattern.rs
-add `compile()` from the reference snippets.
+6. `src/pattern/meta/and_pattern.rs and or_pattern.rs` add `compile()` from the reference snippets.
 
-7. Anywhere convenient (e.g. pattern_impl.rs bottom) add public
-constructors for repeat & capture so tests can write:
+7. Anywhere convenient (e.g. `pattern_impl.rs` bottom) add public constructors for repeat & capture so tests can write:
 
 ```rust
 pub fn repeat(pattern: Pattern,
@@ -374,7 +371,7 @@ pub fn repeat_possessive(p: Pattern, range: RangeInclusive<usize>) -> Self
 
 3️⃣  TESTS  ──────────────────────────────
 
-Create tests/pattern_tests_repeat.rs:
+Create `tests/pattern_tests_repeat.rs`:
 
 ```rust
 mod common;
