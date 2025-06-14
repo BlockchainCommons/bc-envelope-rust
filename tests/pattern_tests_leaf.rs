@@ -679,7 +679,7 @@ fn test_tag_pattern_named() {
         Pattern::subject(),
     ])
     .paths(&envelope);
-    
+
     assert_eq!(paths.len(), 1);
     assert_eq!(paths[0].len(), 2);
     assert_eq!(paths[0][0], envelope);

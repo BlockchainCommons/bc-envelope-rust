@@ -2,7 +2,7 @@
 //!
 //! The VM runs byte-code produced by `Pattern::compile` (implemented later).
 
-use super::{Path, Pattern, atomic, Matcher};
+use super::{Matcher, Path, Pattern, atomic};
 use crate::{EdgeType, Envelope};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -44,7 +44,8 @@ impl Axis {
 #[derive(Debug, Clone)]
 pub enum Instr {
     MatchPredicate(usize),        // literals[idx].matches(env)
-    MatchStructure(usize),        // Use literals[idx].paths(env) for structure patterns
+    MatchStructure(usize),        /* Use literals[idx].paths(env) for
+                                   * structure patterns */
     Split { a: usize, b: usize }, // ε-split
     Jump(usize),                  // unconditional jump
     PushAxis(Axis),               // descend to children, one thread per child
@@ -52,10 +53,12 @@ pub enum Instr {
     Save,                         // emit current path
     Accept,                       // final accept
     Search { pat_idx: usize },    // NEW: search for pattern recursively
-    ExtendSequence,               // Extend saved path with current path and continue
-    CombineSequence,              // Combine saved path with current path for final result
-    NavigateSubject,              // Navigate to subject of current envelope
-    NotMatch { pat_idx: usize },  // Match only if pattern at pat_idx doesn't match
+    ExtendSequence,               /* Extend saved path with current path
+                                   * and continue */
+    CombineSequence, // Combine saved path with current path for final result
+    NavigateSubject, // Navigate to subject of current envelope
+    NotMatch { pat_idx: usize }, /* Match only if pattern at pat_idx
+                                  * doesn't match */
 }
 
 #[derive(Debug, Clone)]
@@ -78,8 +81,12 @@ struct Thread {
 pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
     use Instr::*;
     let mut out = Vec::<Path>::new();
-    let mut stack =
-        vec![Thread { pc: 0, env: root.clone(), path: vec![root.clone()], saved_path: None }];
+    let mut stack = vec![Thread {
+        pc: 0,
+        env: root.clone(),
+        path: vec![root.clone()],
+        saved_path: None,
+    }];
 
     while let Some(mut th) = stack.pop() {
         loop {
@@ -93,22 +100,31 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                     th.pc += 1;
                 }
                 MatchStructure(idx) => {
-                    // Use the structure pattern's direct matcher, not the compiled pattern
-                    let structure_paths = if let crate::pattern::Pattern::Structure(sp) = &prog.literals[idx] {
-                        // Call the structure pattern's direct paths method
-                        sp.paths(&th.env)
-                    } else {
-                        panic!("MatchStructure used with non-structure pattern");
-                    };
-                    
+                    // Use the structure pattern's direct matcher, not the
+                    // compiled pattern
+                    let structure_paths =
+                        if let crate::pattern::Pattern::Structure(sp) =
+                            &prog.literals[idx]
+                        {
+                            // Call the structure pattern's direct paths method
+                            sp.paths(&th.env)
+                        } else {
+                            panic!(
+                                "MatchStructure used with non-structure pattern"
+                            );
+                        };
+
                     if structure_paths.is_empty() {
                         break;
                     }
-                    
+
                     th.pc += 1; // Advance to next instruction
-                    
-                    // Spawn a new thread for each path found by the structure pattern
-                    for (i, structure_path) in structure_paths.into_iter().enumerate() {
+
+                    // Spawn a new thread for each path found by the structure
+                    // pattern
+                    for (i, structure_path) in
+                        structure_paths.into_iter().enumerate()
+                    {
                         if i == 0 {
                             // Use the first path for the current thread
                             th.path = structure_path.clone();
@@ -162,9 +178,9 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
 
                     // 1) check current node and get the actual paths it matches
                     let found_paths = match inner {
-                        crate::pattern::Pattern::Leaf(_) | 
-                        crate::pattern::Pattern::Any | 
-                        crate::pattern::Pattern::None => {
+                        crate::pattern::Pattern::Leaf(_)
+                        | crate::pattern::Pattern::Any
+                        | crate::pattern::Pattern::None => {
                             // Atomic pattern - use atomic_paths
                             atomic::atomic_paths(inner, &th.env)
                         }
@@ -177,13 +193,16 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                             inner.paths(&th.env)
                         }
                     };
-                    
-                    // If we found any paths, emit them by extending the current path
+
+                    // If we found any paths, emit them by extending the current
+                    // path
                     if !found_paths.is_empty() {
                         for found_path in found_paths {
-                            // Special case: if the found path is just the current envelope,
+                            // Special case: if the found path is just the
+                            // current envelope,
                             // emit the current path instead of extending it
-                            if found_path.len() == 1 && found_path[0] == th.env {
+                            if found_path.len() == 1 && found_path[0] == th.env
+                            {
                                 out.push(th.path.clone());
                             } else {
                                 // Extend current path with the found path
@@ -193,8 +212,9 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                             }
                         }
                     }
-                    
-                    // 2) always walk children (same traversal as Envelope::walk)
+
+                    // 2) always walk children (same traversal as
+                    //    Envelope::walk)
                     // Collect all children first, then push in reverse order to
                     // maintain the same traversal order as
                     // the original recursive implementation
@@ -211,20 +231,24 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                         }
                     }
 
-                    // Push child threads in reverse order so stack processes them in forward order
+                    // Push child threads in reverse order so stack processes
+                    // them in forward order
                     for child in all_children.into_iter().rev() {
                         let mut fork = th.clone();
                         fork.env = child.clone();
                         fork.path.push(child);
-                        // fork continues with same PC to re-execute Search at child
+                        // fork continues with same PC to re-execute Search at
+                        // child
                         stack.push(fork);
                     }
-                    
-                    // This thread is done - either it emitted results or it didn't
+
+                    // This thread is done - either it emitted results or it
+                    // didn't
                     break;
                 }
                 ExtendSequence => {
-                    // Save the current path and switch to the last envelope for the rest of the sequence
+                    // Save the current path and switch to the last envelope for
+                    // the rest of the sequence
                     if let Some(last_env) = th.path.last().cloned() {
                         th.saved_path = Some(th.path.clone());
                         th.env = last_env.clone();
@@ -233,25 +257,32 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                     th.pc += 1;
                 }
                 CombineSequence => {
-                    // Combine saved path with current path, extending the saved path
+                    // Combine saved path with current path, extending the saved
+                    // path
                     if let Some(saved_path) = &th.saved_path {
                         let mut combined = saved_path.clone();
-                        
-                        // If the current path starts with the same envelope as the saved path ends with,
-                        // skip the first element to avoid duplication. Otherwise, append the whole current path.
-                        if let (Some(saved_last), Some(current_first)) = (saved_path.last(), th.path.first()) {
+
+                        // If the current path starts with the same envelope as
+                        // the saved path ends with,
+                        // skip the first element to avoid duplication.
+                        // Otherwise, append the whole current path.
+                        if let (Some(saved_last), Some(current_first)) =
+                            (saved_path.last(), th.path.first())
+                        {
                             if saved_last == current_first {
                                 // Skip first element to avoid duplication
-                                combined.extend(th.path.iter().skip(1).cloned());
+                                combined
+                                    .extend(th.path.iter().skip(1).cloned());
                             } else {
                                 // Append whole current path
                                 combined.extend(th.path.iter().cloned());
                             }
                         } else {
-                            // Append whole current path if one of the paths is empty
+                            // Append whole current path if one of the paths is
+                            // empty
                             combined.extend(th.path.iter().cloned());
                         }
-                        
+
                         th.path = combined;
                         th.saved_path = None;
                     }
@@ -265,16 +296,17 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                     th.pc += 1;
                 }
                 NotMatch { pat_idx } => {
-                    // Check if the pattern matches. If it doesn't match, the NOT pattern succeeds.
-                    // If it does match, the NOT pattern fails and we kill this thread.
-                    
+                    // Check if the pattern matches. If it doesn't match, the
+                    // NOT pattern succeeds. If it does
+                    // match, the NOT pattern fails and we kill this thread.
+
                     // For atomic patterns, use atomic_paths for efficiency
                     let pattern = &prog.literals[pat_idx];
                     let pattern_matches = match pattern {
-                        crate::pattern::Pattern::Leaf(_) | 
-                        crate::pattern::Pattern::Structure(_) | 
-                        crate::pattern::Pattern::Any | 
-                        crate::pattern::Pattern::None => {
+                        crate::pattern::Pattern::Leaf(_)
+                        | crate::pattern::Pattern::Structure(_)
+                        | crate::pattern::Pattern::Any
+                        | crate::pattern::Pattern::None => {
                             // Atomic pattern - use atomic_paths
                             !atomic::atomic_paths(pattern, &th.env).is_empty()
                         }
@@ -283,12 +315,14 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                             pattern.matches(&th.env)
                         }
                     };
-                    
+
                     if pattern_matches {
-                        // Inner pattern matches, so NOT pattern fails - kill this thread
+                        // Inner pattern matches, so NOT pattern fails - kill
+                        // this thread
                         break;
                     } else {
-                        // Inner pattern doesn't match, so NOT pattern succeeds - continue
+                        // Inner pattern doesn't match, so NOT pattern succeeds
+                        // - continue
                         th.pc += 1;
                     }
                 }
