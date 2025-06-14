@@ -93,7 +93,8 @@ struct Thread {
     pc: usize,
     env: Envelope,
     path: Path,
-    saved_path: Option<Path>, // For sequence path combination
+    /// Stack of saved paths for nested sequence patterns
+    saved_paths: Vec<Path>,
 }
 
 /// Match atomic patterns without recursion into the VM.
@@ -139,7 +140,7 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
         pc: 0,
         env: root.clone(),
         path: vec![root.clone()],
-        saved_path: None,
+        saved_paths: Vec::new(),
     }];
 
     while let Some(mut th) = stack.pop() {
@@ -297,7 +298,7 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                     // Save the current path and switch to the last envelope for
                     // the rest of the sequence
                     if let Some(last_env) = th.path.last().cloned() {
-                        th.saved_path = Some(th.path.clone());
+                        th.saved_paths.push(th.path.clone());
                         th.env = last_env.clone();
                         th.path = vec![last_env]; // Start fresh path from the last envelope
                     }
@@ -306,7 +307,7 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                 CombineSequence => {
                     // Combine saved path with current path, extending the saved
                     // path
-                    if let Some(saved_path) = &th.saved_path {
+                    if let Some(saved_path) = th.saved_paths.pop() {
                         let mut combined = saved_path.clone();
 
                         // If the current path starts with the same envelope as
@@ -331,7 +332,6 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                         }
 
                         th.path = combined;
-                        th.saved_path = None;
                     }
                     th.pc += 1;
                 }
