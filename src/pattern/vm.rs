@@ -270,17 +270,26 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                     // Collect all children first, then push in reverse order to
                     // maintain the same traversal order as
                     // the original recursive implementation
+                    // Build child list following the same structure order as
+                    // `Envelope::walk_structure`. This ensures every envelope
+                    // is visited exactly once.
                     let mut all_children = Vec::new();
-                    for axis in [
-                        Axis::Subject,
-                        Axis::Assertion,
-                        Axis::Predicate,
-                        Axis::Object,
-                        Axis::Wrapped,
-                    ] {
-                        for (child, _) in axis.children(&th.env) {
-                            all_children.push(child);
+                    use crate::base::envelope::EnvelopeCase::*;
+                    match th.env.case() {
+                        Node { subject, assertions, .. } => {
+                            all_children.push(subject.clone());
+                            for assertion in assertions {
+                                all_children.push(assertion.clone());
+                            }
                         }
+                        Wrapped { envelope, .. } => {
+                            all_children.push(envelope.clone());
+                        }
+                        Assertion(assertion) => {
+                            all_children.push(assertion.predicate().clone());
+                            all_children.push(assertion.object().clone());
+                        }
+                        _ => {}
                     }
 
                     // Push child threads in reverse order so stack processes
