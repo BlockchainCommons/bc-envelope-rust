@@ -1,6 +1,9 @@
 use crate::{
     Envelope,
-    pattern::{Matcher, Path, Pattern},
+    pattern::{
+        Compilable, Matcher, Path, Pattern, structure::StructurePattern,
+        vm::Instr,
+    },
 };
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -35,5 +38,14 @@ impl Matcher for ObjectPattern {
         } else {
             vec![]
         }
+    }
+}
+
+impl Compilable for ObjectPattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        let idx = literals.len();
+        literals
+            .push(Pattern::Structure(StructurePattern::Object(self.clone())));
+        code.push(Instr::MatchStructure(idx));
     }
 }

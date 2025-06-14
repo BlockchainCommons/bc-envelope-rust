@@ -1,14 +1,15 @@
-#[cfg(feature = "known_value")]
 use known_values::{KNOWN_VALUES, KnownValue};
 
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    Envelope, Pattern,
+    pattern::{
+        Compilable, Matcher, Path, compile_as_atomic, leaf::LeafPattern,
+        vm::Instr,
+    },
 };
 
 /// Pattern for matching known values.
 #[derive(Debug, Clone)]
-#[cfg(feature = "known_value")]
 pub enum KnownValuePattern {
     /// Matches any known value.
     Any,
@@ -24,9 +25,16 @@ impl PartialEq for KnownValuePattern {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (KnownValuePattern::Any, KnownValuePattern::Any) => true,
-            (KnownValuePattern::KnownValue(a), KnownValuePattern::KnownValue(b)) => a == b,
-            (KnownValuePattern::Named(a), KnownValuePattern::Named(b)) => a == b,
-            (KnownValuePattern::Regex(a), KnownValuePattern::Regex(b)) => a.as_str() == b.as_str(),
+            (
+                KnownValuePattern::KnownValue(a),
+                KnownValuePattern::KnownValue(b),
+            ) => a == b,
+            (KnownValuePattern::Named(a), KnownValuePattern::Named(b)) => {
+                a == b
+            }
+            (KnownValuePattern::Regex(a), KnownValuePattern::Regex(b)) => {
+                a.as_str() == b.as_str()
+            }
             _ => false,
         }
     }
@@ -57,7 +65,6 @@ impl std::hash::Hash for KnownValuePattern {
     }
 }
 
-#[cfg(feature = "known_value")]
 impl KnownValuePattern {
     /// Creates a new `KnownValuePattern` that matches any known value.
     pub fn any() -> Self { KnownValuePattern::Any }
@@ -79,7 +86,6 @@ impl KnownValuePattern {
     }
 }
 
-#[cfg(feature = "known_value")]
 impl Matcher for KnownValuePattern {
     fn paths(&self, envelope: &Envelope) -> Vec<Path> {
         if let Ok(value) = envelope.extract_subject::<KnownValue>() {
@@ -128,13 +134,24 @@ impl Matcher for KnownValuePattern {
     }
 }
 
-#[cfg(all(test, feature = "known_value"))]
+impl Compilable for KnownValuePattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        compile_as_atomic(
+            &Pattern::Leaf(LeafPattern::KnownValue(self.clone())),
+            code,
+            literals,
+        );
+    }
+}
+
 mod tests {
-    use super::*;
-    use crate::Envelope;
 
     #[test]
     fn test_known_value_pattern_any() {
+        use known_values::KnownValue;
+
+        use crate::{Envelope, Matcher, pattern::leaf::KnownValuePattern};
+
         let value = KnownValue::new(1);
         let envelope = Envelope::new(value.clone());
         let pattern = KnownValuePattern::any();
@@ -150,6 +167,8 @@ mod tests {
 
     #[test]
     fn test_known_value_pattern_specific() {
+        use crate::{Envelope, Matcher, pattern::leaf::KnownValuePattern};
+
         let value = known_values::DATE;
         let envelope = Envelope::new(value.clone());
         let pattern = KnownValuePattern::known_value(value.clone());
@@ -166,6 +185,8 @@ mod tests {
 
     #[test]
     fn test_known_value_pattern_named() {
+        use crate::{Envelope, Matcher, pattern::leaf::KnownValuePattern};
+
         let value = known_values::DATE;
         let envelope = Envelope::new(value.clone());
 
@@ -194,6 +215,8 @@ mod tests {
 
     #[test]
     fn test_known_value_pattern_regex() {
+        use crate::{Envelope, Matcher, pattern::leaf::KnownValuePattern};
+
         // Test regex that matches "date"
         let value = known_values::DATE;
         let envelope = Envelope::new(value.clone());

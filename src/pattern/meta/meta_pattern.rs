@@ -1,8 +1,10 @@
-use super::{AndPattern, NotPattern, OrPattern, SearchPattern,
-            SequencePattern, RepeatPattern, CapturePattern};
+use super::{
+    AndPattern, CapturePattern, NotPattern, OrPattern, RepeatPattern,
+    SearchPattern, SequencePattern,
+};
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    Envelope, Pattern,
+    pattern::{Compilable, Matcher, Path, vm::Instr},
 };
 
 /// Pattern for combining and modifying other patterns.
@@ -37,9 +39,7 @@ impl MetaPattern {
         MetaPattern::Sequence(pattern)
     }
 
-    pub fn not(pattern: NotPattern) -> Self {
-        MetaPattern::Not(pattern)
-    }
+    pub fn not(pattern: NotPattern) -> Self { MetaPattern::Not(pattern) }
 }
 
 impl Matcher for MetaPattern {
@@ -52,6 +52,20 @@ impl Matcher for MetaPattern {
             MetaPattern::Sequence(pattern) => pattern.paths(envelope),
             MetaPattern::Repeat(pattern) => pattern.paths(envelope),
             MetaPattern::Capture(pattern) => pattern.paths(envelope),
+        }
+    }
+}
+
+impl Compilable for MetaPattern {
+    fn compile(&self, code: &mut Vec<Instr>, lits: &mut Vec<Pattern>) {
+        match self {
+            MetaPattern::And(pattern) => pattern.compile(code, lits),
+            MetaPattern::Or(pattern) => pattern.compile(code, lits),
+            MetaPattern::Not(pattern) => pattern.compile(code, lits),
+            MetaPattern::Search(pattern) => pattern.compile(code, lits),
+            MetaPattern::Sequence(pattern) => pattern.compile(code, lits),
+            MetaPattern::Repeat(pattern) => pattern.compile(code, lits),
+            MetaPattern::Capture(pattern) => pattern.compile(code, lits),
         }
     }
 }

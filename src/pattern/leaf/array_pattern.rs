@@ -1,8 +1,7 @@
 use std::ops::RangeInclusive;
 
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    pattern::{compile_as_atomic, leaf::LeafPattern, vm::Instr, Compilable, Matcher, Path}, Envelope, Pattern
 };
 
 /// Pattern for matching arrays.
@@ -45,6 +44,18 @@ impl Matcher for ArrayPattern {
         } else {
             vec![]
         }
+    }
+}
+
+impl Compilable for ArrayPattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        compile_as_atomic(
+            &Pattern::Leaf(LeafPattern::Array(
+                self.clone(),
+            )),
+            code,
+            literals,
+        );
     }
 }
 

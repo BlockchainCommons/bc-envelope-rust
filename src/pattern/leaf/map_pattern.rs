@@ -1,8 +1,11 @@
 use std::ops::RangeInclusive;
 
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    Envelope, Pattern,
+    pattern::{
+        Compilable, Matcher, Path, compile_as_atomic, leaf::LeafPattern,
+        vm::Instr,
+    },
 };
 
 /// Pattern for matching maps.
@@ -45,6 +48,16 @@ impl Matcher for MapPattern {
         } else {
             vec![]
         }
+    }
+}
+
+impl Compilable for MapPattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        compile_as_atomic(
+            &Pattern::Leaf(LeafPattern::Map(self.clone())),
+            code,
+            literals,
+        );
     }
 }
 

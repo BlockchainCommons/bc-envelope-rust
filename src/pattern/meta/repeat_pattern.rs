@@ -2,7 +2,7 @@
 
 use crate::{
     Envelope, Matcher, Path,
-    pattern::{Greediness, Pattern, vm::Instr},
+    pattern::{Compilable, Greediness, Pattern, vm::Instr},
 };
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -19,11 +19,11 @@ impl Matcher for RepeatPattern {
     }
 }
 
-impl RepeatPattern {
+impl Compilable for RepeatPattern {
     /// Compile into Thompson fragment.
     ///
     /// We assume caller patches control-flow; this appends code and returns.
-    pub fn compile(&self, code: &mut Vec<Instr>, lits: &mut Vec<Pattern>) {
+    fn compile(&self, code: &mut Vec<Instr>, lits: &mut Vec<Pattern>) {
         use Greediness::*;
         // 1. mandatory copies
         for _ in 0..self.min {

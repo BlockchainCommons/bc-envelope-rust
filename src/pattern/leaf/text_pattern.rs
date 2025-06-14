@@ -1,6 +1,5 @@
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    pattern::{compile_as_atomic, leaf::LeafPattern, vm::Instr, Compilable, Matcher, Path}, Envelope, Pattern
 };
 
 /// Pattern for matching text values.
@@ -19,7 +18,9 @@ impl PartialEq for TextPattern {
         match (self, other) {
             (TextPattern::Any, TextPattern::Any) => true,
             (TextPattern::Exact(a), TextPattern::Exact(b)) => a == b,
-            (TextPattern::Regex(a), TextPattern::Regex(b)) => a.as_str() == b.as_str(),
+            (TextPattern::Regex(a), TextPattern::Regex(b)) => {
+                a.as_str() == b.as_str()
+            }
             _ => false,
         }
     }
@@ -76,5 +77,15 @@ impl Matcher for TextPattern {
         } else {
             vec![]
         }
+    }
+}
+
+impl Compilable for TextPattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        compile_as_atomic(
+            &Pattern::Leaf(LeafPattern::Text(self.clone())),
+            code,
+            literals,
+        );
     }
 }

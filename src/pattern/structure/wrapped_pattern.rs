@@ -1,7 +1,7 @@
 use crate::{
     Envelope, Pattern,
     pattern::{
-        Matcher, Path,
+        Compilable, Matcher, Path,
         structure::StructurePattern,
         vm::{Axis, Instr},
     },
@@ -24,13 +24,9 @@ impl WrappedPattern {
     pub fn unwrap() -> Self { WrappedPattern::Unwrap }
 }
 
-impl WrappedPattern {
+impl Compilable for WrappedPattern {
     /// Emit predicate + descent so the VM makes progress.
-    pub(crate) fn compile(
-        &self,
-        code: &mut Vec<Instr>,
-        lits: &mut Vec<Pattern>,
-    ) {
+    fn compile(&self, code: &mut Vec<Instr>, lits: &mut Vec<Pattern>) {
         // 1) atomic predicate “is wrapped”
         let idx = lits.len();
         lits.push(Pattern::Structure(StructurePattern::wrapped(self.clone())));

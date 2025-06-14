@@ -1,6 +1,6 @@
 use crate::{
     Envelope,
-    pattern::{Matcher, Path, Pattern},
+    pattern::{Compilable, Matcher, Path, Pattern, vm::Instr},
 };
 
 /// A pattern that negates another pattern; matches when the inner pattern does
@@ -26,6 +26,16 @@ impl Matcher for NotPattern {
         } else {
             vec![]
         }
+    }
+}
+
+impl Compilable for NotPattern {
+    /// Compile into byte-code (NOT = negation of the inner pattern).
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        // NOT = check that pattern doesn't match
+        let idx = literals.len();
+        literals.push(self.pattern.as_ref().clone());
+        code.push(Instr::NotMatch { pat_idx: idx });
     }
 }
 

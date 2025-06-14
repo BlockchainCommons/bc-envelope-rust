@@ -76,7 +76,10 @@ use super::{
     },
     vm,
 };
-use crate::{Envelope, pattern::vm::Instr};
+use crate::{
+    Envelope,
+    pattern::{Compilable, vm::Instr},
+};
 
 /// The main pattern type used for matching envelopes.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -135,12 +138,12 @@ impl Matcher for Pattern {
 impl Pattern {
     /// Creates a new `Pattern` that matches any boolean value.
     pub fn any_bool() -> Self {
-        Pattern::Leaf(LeafPattern::Boolean(BoolPattern::any()))
+        Pattern::Leaf(LeafPattern::Bool(BoolPattern::any()))
     }
 
     /// Creates a new `Pattern` that matches a specific boolean value.
     pub fn bool(b: bool) -> Self {
-        Pattern::Leaf(LeafPattern::Boolean(BoolPattern::exact(b)))
+        Pattern::Leaf(LeafPattern::Bool(BoolPattern::exact(b)))
     }
 }
 
@@ -560,12 +563,7 @@ impl Pattern {
             Meta(meta) => match meta {
                 MetaPattern::And(a) => a.compile(code, lits),
                 MetaPattern::Or(o) => o.compile(code, lits),
-                MetaPattern::Not(n) => {
-                    // NOT = check that pattern doesn't match
-                    let idx = lits.len();
-                    lits.push(n.pattern.as_ref().clone());
-                    code.push(Instr::NotMatch { pat_idx: idx });
-                }
+                MetaPattern::Not(n) => n.compile(code, lits),
                 MetaPattern::Sequence(s) => s.compile(code, lits),
                 MetaPattern::Repeat(r) => r.compile(code, lits),
                 MetaPattern::Capture(c) => c.compile(code, lits),

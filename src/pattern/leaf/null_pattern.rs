@@ -1,6 +1,9 @@
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    Envelope, Pattern,
+    pattern::{
+        Compilable, Matcher, Path, compile_as_atomic, leaf::LeafPattern,
+        vm::Instr,
+    },
 };
 
 /// Pattern for matching null values.
@@ -26,6 +29,16 @@ impl Matcher for NullPattern {
                 }
             }
         }
+    }
+}
+
+impl Compilable for NullPattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        compile_as_atomic(
+            &Pattern::Leaf(LeafPattern::Null(self.clone())),
+            code,
+            literals,
+        );
     }
 }
 

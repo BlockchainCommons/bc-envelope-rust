@@ -5,6 +5,7 @@ mod bool_pattern;
 mod byte_string_pattern;
 mod cbor_pattern;
 mod date_pattern;
+#[cfg(feature = "known_value")]
 mod known_value_pattern;
 mod leaf_pattern;
 mod map_pattern;

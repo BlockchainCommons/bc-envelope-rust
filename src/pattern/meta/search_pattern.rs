@@ -3,8 +3,7 @@ use std::cell::RefCell;
 use bc_components::DigestProvider;
 
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path, Pattern, vm::Instr},
+    pattern::{vm::Instr, Compilable, Matcher, Path, Pattern}, EdgeType, Envelope
 };
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -14,16 +13,6 @@ impl SearchPattern {
     pub fn new(pattern: Pattern) -> Self { SearchPattern(Box::new(pattern)) }
 
     pub fn pattern(&self) -> &Pattern { &self.0 }
-
-    pub(crate) fn compile(
-        &self,
-        code: &mut Vec<Instr>,
-        lits: &mut Vec<Pattern>,
-    ) {
-        let idx = lits.len();
-        lits.push((*self.0).clone());
-        code.push(Instr::Search { pat_idx: idx });
-    }
 }
 
 impl Matcher for SearchPattern {
@@ -33,7 +22,7 @@ impl Matcher for SearchPattern {
         // State consists of the path from root to current node
         let visitor = |current_envelope: &Envelope,
                        _level: usize,
-                       _incoming_edge: crate::EdgeType,
+                       _incoming_edge: EdgeType,
                        path_to_current: Vec<Envelope>|
          -> (Vec<Envelope>, bool) {
             // Create the path to this node
@@ -69,5 +58,13 @@ impl Matcher for SearchPattern {
         envelope.walk(false, Vec::new(), &visitor);
 
         result_paths.into_inner()
+    }
+}
+
+impl Compilable for SearchPattern {
+    fn compile(&self, code: &mut Vec<Instr>, lits: &mut Vec<Pattern>) {
+        let idx = lits.len();
+        lits.push((*self.0).clone());
+        code.push(Instr::Search { pat_idx: idx });
     }
 }

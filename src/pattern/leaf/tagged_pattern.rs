@@ -1,8 +1,7 @@
 use dcbor::prelude::*;
 
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    pattern::{compile_as_atomic, leaf::LeafPattern, vm::Instr, Compilable, Matcher, Path}, Envelope, Pattern
 };
 
 /// Pattern for matching tag values.
@@ -25,7 +24,9 @@ impl PartialEq for TaggedPattern {
             (TaggedPattern::Any, TaggedPattern::Any) => true,
             (TaggedPattern::Tag(a), TaggedPattern::Tag(b)) => a == b,
             (TaggedPattern::Named(a), TaggedPattern::Named(b)) => a == b,
-            (TaggedPattern::Regex(a), TaggedPattern::Regex(b)) => a.as_str() == b.as_str(),
+            (TaggedPattern::Regex(a), TaggedPattern::Regex(b)) => {
+                a.as_str() == b.as_str()
+            }
             _ => false,
         }
     }
@@ -136,6 +137,16 @@ impl Matcher for TaggedPattern {
         } else {
             vec![]
         }
+    }
+}
+
+impl Compilable for TaggedPattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        compile_as_atomic(
+            &Pattern::Leaf(LeafPattern::Tag(self.clone())),
+            code,
+            literals,
+        );
     }
 }
 

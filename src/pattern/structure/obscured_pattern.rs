@@ -1,6 +1,9 @@
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    Envelope, Pattern,
+    pattern::{
+        Compilable, Matcher, Path, compile_as_atomic,
+        structure::StructurePattern, vm::Instr,
+    },
 };
 
 /// Pattern for matching obscured elements.
@@ -62,5 +65,15 @@ impl Matcher for ObscuredPattern {
         } else {
             vec![]
         }
+    }
+}
+
+impl Compilable for ObscuredPattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        compile_as_atomic(
+            &Pattern::Structure(StructurePattern::Obscured(self.clone())),
+            code,
+            literals,
+        );
     }
 }

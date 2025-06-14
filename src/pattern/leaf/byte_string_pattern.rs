@@ -1,6 +1,5 @@
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    pattern::{compile_as_atomic, leaf::LeafPattern, vm::Instr, Compilable, Matcher, Path}, Envelope, Pattern
 };
 
 /// Pattern for matching byte string values.
@@ -18,8 +17,13 @@ impl PartialEq for ByteStringPattern {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (ByteStringPattern::Any, ByteStringPattern::Any) => true,
-            (ByteStringPattern::Exact(a), ByteStringPattern::Exact(b)) => a == b,
-            (ByteStringPattern::BinaryRegex(a), ByteStringPattern::BinaryRegex(b)) => a.as_str() == b.as_str(),
+            (ByteStringPattern::Exact(a), ByteStringPattern::Exact(b)) => {
+                a == b
+            }
+            (
+                ByteStringPattern::BinaryRegex(a),
+                ByteStringPattern::BinaryRegex(b),
+            ) => a.as_str() == b.as_str(),
             _ => false,
         }
     }
@@ -85,6 +89,18 @@ impl Matcher for ByteStringPattern {
         } else {
             vec![]
         }
+    }
+}
+
+impl Compilable for ByteStringPattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        compile_as_atomic(
+            &Pattern::Leaf(LeafPattern::ByteString(
+                self.clone(),
+            )),
+            code,
+            literals,
+        );
     }
 }
 

@@ -1,8 +1,11 @@
 use bc_components::{Digest, DigestProvider};
 
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    Envelope, Pattern,
+    pattern::{
+        Compilable, Matcher, Path, compile_as_atomic,
+        structure::StructurePattern, vm::Instr,
+    },
 };
 
 /// Pattern for matching envelopes by their digest.
@@ -16,13 +19,16 @@ pub enum DigestPattern {
     BinaryRegex(regex::bytes::Regex),
 }
 
-
 impl PartialEq for DigestPattern {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (DigestPattern::Digest(a), DigestPattern::Digest(b)) => a == b,
-            (DigestPattern::HexPrefix(a), DigestPattern::HexPrefix(b)) => a.eq_ignore_ascii_case(b),
-            (DigestPattern::BinaryRegex(a), DigestPattern::BinaryRegex(b)) => a.as_str() == b.as_str(),
+            (DigestPattern::HexPrefix(a), DigestPattern::HexPrefix(b)) => {
+                a.eq_ignore_ascii_case(b)
+            }
+            (DigestPattern::BinaryRegex(a), DigestPattern::BinaryRegex(b)) => {
+                a.as_str() == b.as_str()
+            }
             _ => false,
         }
     }
@@ -49,7 +55,6 @@ impl std::hash::Hash for DigestPattern {
         }
     }
 }
-
 
 impl DigestPattern {
     /// Creates a new `DigestPattern` that matches the exact digest.
@@ -84,5 +89,15 @@ impl Matcher for DigestPattern {
         } else {
             vec![]
         }
+    }
+}
+
+impl Compilable for DigestPattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        compile_as_atomic(
+            &Pattern::Structure(StructurePattern::Digest(self.clone())),
+            code,
+            literals,
+        );
     }
 }

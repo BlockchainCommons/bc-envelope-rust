@@ -5,8 +5,7 @@ use super::{
     MapPattern, NullPattern, NumberPattern, TaggedPattern, TextPattern,
 };
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    pattern::{compile_as_atomic, vm::Instr, Compilable, Matcher, Path}, Envelope, Pattern
 };
 
 /// Pattern for matching leaf values.
@@ -29,7 +28,7 @@ pub enum LeafPattern {
     /// Matches a map.
     Map(MapPattern),
     /// Matches a boolean value.
-    Boolean(BoolPattern),
+    Bool(BoolPattern),
     /// Matches the null value.
     Null(NullPattern),
     /// Matches a date value.
@@ -61,9 +60,7 @@ impl LeafPattern {
 
     pub fn map(pattern: MapPattern) -> Self { LeafPattern::Map(pattern) }
 
-    pub fn boolean(pattern: BoolPattern) -> Self {
-        LeafPattern::Boolean(pattern)
-    }
+    pub fn boolean(pattern: BoolPattern) -> Self { LeafPattern::Bool(pattern) }
 
     pub fn null(pattern: NullPattern) -> Self { LeafPattern::Null(pattern) }
 
@@ -92,11 +89,59 @@ impl Matcher for LeafPattern {
             LeafPattern::Tag(pattern) => pattern.paths(envelope),
             LeafPattern::Array(pattern) => pattern.paths(envelope),
             LeafPattern::Map(pattern) => pattern.paths(envelope),
-            LeafPattern::Boolean(pattern) => pattern.paths(envelope),
+            LeafPattern::Bool(pattern) => pattern.paths(envelope),
             LeafPattern::Null(pattern) => pattern.paths(envelope),
             LeafPattern::Date(pattern) => pattern.paths(envelope),
             #[cfg(feature = "known_value")]
             LeafPattern::KnownValue(pattern) => pattern.paths(envelope),
+        }
+    }
+}
+
+impl Compilable for LeafPattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        match self {
+            LeafPattern::Any => {
+                compile_as_atomic(
+                    &Pattern::Leaf(LeafPattern::Any),
+                    code,
+                    literals,
+                );
+            }
+            LeafPattern::Cbor(pattern) => {
+                pattern.compile(code, literals);
+            }
+            LeafPattern::Number(pattern) => {
+                pattern.compile(code, literals);
+            }
+            LeafPattern::Text(pattern) => {
+                pattern.compile(code, literals);
+            }
+            LeafPattern::ByteString(pattern) => {
+                pattern.compile(code, literals);
+            }
+            LeafPattern::Tag(pattern) => {
+                pattern.compile(code, literals);
+            }
+            LeafPattern::Array(pattern) => {
+                pattern.compile(code, literals);
+            }
+            LeafPattern::Map(pattern) => {
+                pattern.compile(code, literals);
+            }
+            LeafPattern::Bool(pattern) => {
+                pattern.compile(code, literals);
+            }
+            LeafPattern::Null(pattern) => {
+                pattern.compile(code, literals);
+            }
+            LeafPattern::Date(pattern) => {
+                pattern.compile(code, literals);
+            }
+            #[cfg(feature = "known_value")]
+            LeafPattern::KnownValue(pattern) => {
+                pattern.compile(code, literals);
+            }
         }
     }
 }

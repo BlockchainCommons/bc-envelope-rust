@@ -3,8 +3,11 @@ use std::ops::RangeInclusive;
 use dcbor::{Date, prelude::*};
 
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    Envelope, Pattern,
+    pattern::{
+        Compilable, Matcher, Path, compile_as_atomic, leaf::LeafPattern,
+        vm::Instr,
+    },
 };
 
 /// Pattern for matching dates.
@@ -36,7 +39,9 @@ impl PartialEq for DatePattern {
             (DatePattern::Earliest(a), DatePattern::Earliest(b)) => a == b,
             (DatePattern::Latest(a), DatePattern::Latest(b)) => a == b,
             (DatePattern::Iso8601(a), DatePattern::Iso8601(b)) => a == b,
-            (DatePattern::Regex(a), DatePattern::Regex(b)) => a.as_str() == b.as_str(),
+            (DatePattern::Regex(a), DatePattern::Regex(b)) => {
+                a.as_str() == b.as_str()
+            }
             _ => false,
         }
     }
@@ -95,15 +100,11 @@ impl DatePattern {
 
     /// Creates a new `DatePattern` that matches dates that are on or after the
     /// specified date.
-    pub fn earliest(date: Date) -> Self {
-        DatePattern::Earliest(date)
-    }
+    pub fn earliest(date: Date) -> Self { DatePattern::Earliest(date) }
 
     /// Creates a new `DatePattern` that matches dates that are on or before the
     /// specified date.
-    pub fn latest(date: Date) -> Self {
-        DatePattern::Latest(date)
-    }
+    pub fn latest(date: Date) -> Self { DatePattern::Latest(date) }
 
     /// Creates a new `DatePattern` that matches a date by its ISO-8601 string
     /// representation.
@@ -188,6 +189,16 @@ impl Matcher for DatePattern {
             // Not a leaf CBOR value
             vec![]
         }
+    }
+}
+
+impl Compilable for DatePattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        compile_as_atomic(
+            &Pattern::Leaf(LeafPattern::Date(self.clone())),
+            code,
+            literals,
+        );
     }
 }
 

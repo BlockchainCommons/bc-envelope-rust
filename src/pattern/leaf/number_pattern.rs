@@ -1,8 +1,11 @@
 use std::ops::RangeInclusive;
 
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    Envelope, Pattern,
+    pattern::{
+        Compilable, Matcher, Path, compile_as_atomic, leaf::LeafPattern,
+        vm::Instr,
+    },
 };
 
 /// Pattern for matching number values.
@@ -66,10 +69,18 @@ impl PartialEq for NumberPattern {
             (NumberPattern::Any, NumberPattern::Any) => true,
             (NumberPattern::Exact(a), NumberPattern::Exact(b)) => a == b,
             (NumberPattern::Range(a), NumberPattern::Range(b)) => a == b,
-            (NumberPattern::GreaterThan(a), NumberPattern::GreaterThan(b)) => a == b,
-            (NumberPattern::GreaterThanOrEqual(a), NumberPattern::GreaterThanOrEqual(b)) => a == b,
+            (NumberPattern::GreaterThan(a), NumberPattern::GreaterThan(b)) => {
+                a == b
+            }
+            (
+                NumberPattern::GreaterThanOrEqual(a),
+                NumberPattern::GreaterThanOrEqual(b),
+            ) => a == b,
             (NumberPattern::LessThan(a), NumberPattern::LessThan(b)) => a == b,
-            (NumberPattern::LessThanOrEqual(a), NumberPattern::LessThanOrEqual(b)) => a == b,
+            (
+                NumberPattern::LessThanOrEqual(a),
+                NumberPattern::LessThanOrEqual(b),
+            ) => a == b,
             (NumberPattern::NaN, NumberPattern::NaN) => true,
             _ => false,
         }
@@ -172,5 +183,19 @@ impl Matcher for NumberPattern {
         } else {
             vec![]
         }
+    }
+}
+
+impl Compilable for NumberPattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        // A NumberPattern is a *leaf* predicate; it never changes
+        // the current envelope pointer, so the default atomic helper
+        // is perfect.  We must wrap `self` back into the outer
+        // `Pattern::Leaf` variant so it can be stored in `literals`.
+        compile_as_atomic(
+            &Pattern::Leaf(LeafPattern::Number(self.clone())),
+            code,
+            literals,
+        );
     }
 }

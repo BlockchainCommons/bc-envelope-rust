@@ -1,7 +1,10 @@
 //! Simple capture wrapper.  For now we only emit SAVE instructions;
 //! future work can attach names to paths.
 
-use crate::{pattern::{vm::Instr, Pattern}, Envelope, Matcher, Path};
+use crate::{
+    Envelope, Matcher, Path,
+    pattern::{Compilable, Pattern, vm::Instr},
+};
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct CapturePattern {
@@ -15,8 +18,8 @@ impl Matcher for CapturePattern {
     }
 }
 
-impl CapturePattern {
-    pub fn compile(&self, code: &mut Vec<Instr>, lits: &mut Vec<Pattern>) {
+impl Compilable for CapturePattern {
+    fn compile(&self, code: &mut Vec<Instr>, lits: &mut Vec<Pattern>) {
         code.push(Instr::Save); // start
         self.inner.compile(code, lits);
         code.push(Instr::Save); // end

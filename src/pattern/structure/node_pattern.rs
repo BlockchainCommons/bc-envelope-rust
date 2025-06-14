@@ -1,8 +1,7 @@
 use std::ops::RangeInclusive;
 
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    pattern::{compile_as_atomic, structure::StructurePattern, vm::Instr, Compilable, Matcher, Path}, Envelope, Pattern
 };
 
 /// Pattern for matching node envelopes.
@@ -49,5 +48,15 @@ impl Matcher for NodePattern {
         } else {
             vec![]
         }
+    }
+}
+
+impl Compilable for NodePattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        compile_as_atomic(
+            &Pattern::Structure(StructurePattern::Node(self.clone())),
+            code,
+            literals,
+        );
     }
 }

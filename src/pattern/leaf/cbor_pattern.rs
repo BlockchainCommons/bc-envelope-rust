@@ -1,8 +1,7 @@
 use dcbor::prelude::*;
 
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    pattern::{compile_as_atomic, leaf::LeafPattern, vm::Instr, Compilable, Matcher, Path}, Envelope, Pattern
 };
 
 /// Pattern for matching specific CBOR values.
@@ -35,6 +34,18 @@ impl Matcher for CborPattern {
                 }
             }
         }
+    }
+}
+
+impl Compilable for CborPattern {
+    fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
+        compile_as_atomic(
+            &Pattern::Leaf(LeafPattern::Cbor(
+                self.clone(),
+            )),
+            code,
+            literals,
+        );
     }
 }
 

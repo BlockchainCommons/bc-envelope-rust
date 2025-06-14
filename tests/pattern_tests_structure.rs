@@ -40,9 +40,8 @@ fn test_wrapped_pattern() {
     // Matching a wrapped envelope and the subject in a sequence returns a path
     // where the first element is the original wrapped envelope including
     // assertions, and the second element is the still-wrapped subject.
-    let paths =
-        Pattern::sequence(vec![Pattern::wrapped(), Pattern::subject()])
-            .paths(&envelope_with_assertion);
+    let paths = Pattern::sequence(vec![Pattern::wrapped(), Pattern::subject()])
+        .paths(&envelope_with_assertion);
     #[rustfmt::skip]
     let expected = indoc! {r#"
         169aba00 { 42 } [ "an": "assertion" ]

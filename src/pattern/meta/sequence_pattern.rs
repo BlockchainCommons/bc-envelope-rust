@@ -1,6 +1,6 @@
 use crate::{
     Envelope,
-    pattern::{Matcher, Path, Pattern},
+    pattern::{Compilable, Matcher, Path, Pattern, vm::Instr},
 };
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -22,25 +22,6 @@ impl SequencePattern {
             Some(Box::new(SequencePattern::new(rest_patterns)))
         };
         SequencePattern { first: Box::new(first_pat), rest }
-    }
-
-    /// Compile into byte-code (sequential).
-    pub fn compile(
-        &self,
-        code: &mut Vec<crate::pattern::vm::Instr>,
-        lits: &mut Vec<Pattern>,
-    ) {
-        // Compile the first pattern
-        self.first.compile(code, lits);
-
-        if let Some(rest) = &self.rest {
-            // Save the current path and switch to last envelope
-            code.push(crate::pattern::vm::Instr::ExtendSequence);
-            // Compile the rest of the sequence
-            rest.compile(code, lits);
-            // Combine the paths correctly
-            code.push(crate::pattern::vm::Instr::CombineSequence);
-        }
     }
 }
 
@@ -64,6 +45,23 @@ impl Matcher for SequencePattern {
             result
         } else {
             head_paths
+        }
+    }
+}
+
+impl Compilable for SequencePattern {
+    /// Compile into byte-code (sequential).
+    fn compile(&self, code: &mut Vec<Instr>, lits: &mut Vec<Pattern>) {
+        // Compile the first pattern
+        self.first.compile(code, lits);
+
+        if let Some(rest) = &self.rest {
+            // Save the current path and switch to last envelope
+            code.push(Instr::ExtendSequence);
+            // Compile the rest of the sequence
+            rest.compile(code, lits);
+            // Combine the paths correctly
+            code.push(Instr::CombineSequence);
         }
     }
 }
