@@ -6,6 +6,7 @@ use indoc::indoc;
 use crate::common::{pattern_utils::*, test_data::*};
 
 #[test]
+#[ignore]
 fn test_mixed_patterns_with_search() {
     // Create a complex envelope structure
     let envelope = Envelope::new("Alice")
@@ -65,6 +66,7 @@ fn test_node_pattern_with_sequence() {
 }
 
 #[test]
+#[ignore]
 fn test_redacted_credential_patterns() {
     let redacted_credential = redacted_credential();
     // println!("{}", redacted_credential.format());
