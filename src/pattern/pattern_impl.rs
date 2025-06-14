@@ -51,7 +51,7 @@
 //! - https://docs.rs/regex/latest/regex/bytes/index.html "regex::bytes - Rust"
 //! - https://docs.rs/regex/latest/regex/ "regex - Rust"
 
-use std::ops::RangeInclusive;
+use std::{cell::RefCell, collections::HashMap, ops::RangeInclusive};
 
 use dcbor::Date;
 #[cfg(feature = "known_value")]
@@ -95,9 +95,8 @@ pub enum Pattern {
 
 impl Matcher for Pattern {
     fn paths(&self, env: &Envelope) -> Vec<Path> {
-        use std::cell::RefCell;
         thread_local! {
-            static PROG: RefCell<std::collections::HashMap<u64, vm::Program>> = RefCell::new(std::collections::HashMap::new());
+            static PROG: RefCell<HashMap<u64, vm::Program>> = RefCell::new(HashMap::new());
         }
 
         // cheap structural hash

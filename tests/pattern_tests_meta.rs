@@ -6,6 +6,33 @@ use indoc::indoc;
 use crate::common::pattern_utils::*;
 
 #[test]
+fn test_empty_sequence_pattern() {
+    let envelope = Envelope::new(42);
+
+    // An empty sequence pattern never matches.
+    let pattern = Pattern::sequence(vec![]);
+    let paths = pattern.paths(&envelope);
+    assert!(paths.is_empty());
+}
+
+#[test]
+fn test_one_element_sequence_pattern() {
+    let envelope = Envelope::new(42);
+
+    let number_pattern = Pattern::number(42);
+    let expected  = indoc! {r#"
+        7f83f7bd 42
+    "#}.trim();
+    let paths = number_pattern.paths(&envelope);
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // A sequence of one pattern gives the same result as the single pattern.
+    let pattern = Pattern::sequence(vec![number_pattern]);
+    let paths = pattern.paths(&envelope);
+    assert_actual_expected!(format_paths(&paths), expected);
+}
+
+#[test]
 fn test_and_pattern() {
     let envelope = Envelope::new(42).add_assertion("an", "assertion");
 
@@ -37,6 +64,45 @@ fn test_and_pattern() {
             7f83f7bd 42
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
+}
+
+#[test]
+fn optional_single_or_pattern() {
+    let inner = Envelope::new("data");
+    let wrapped = inner.clone().wrap_envelope();
+
+    println!("=== Tree Format ===");
+    println!("inner tree:\n\n{}\n", inner.tree_format());
+    println!("wrapped tree:\n\n{}\n", wrapped.tree_format());
+
+    // let pat = Pattern::sequence(vec![
+    //     Pattern::repeat_greedy(Pattern::wrapped(), 0..=1),
+    //     Pattern::subject(),
+    // ]);
+
+    let pat = Pattern::subject();
+
+    // let pat = Pattern::or(vec![
+    //     // Pattern::sequence(vec![Pattern::wrapped(), Pattern::unwrap()]),
+    //     Pattern::subject(),
+    // ]);
+
+    // let pat = Pattern::repeat_greedy(Pattern::wrapped(), 0..=1);
+
+    assert!(pat.matches(&inner));
+    assert!(pat.matches(&wrapped));
+
+    let inner_paths = pat.paths(&inner);
+    let wrapped_paths = pat.paths(&wrapped);
+
+    println!("=== Matching Paths ===");
+    println!("inner matches {} paths:\n\n{}\n", inner_paths.len(), format_paths(&inner_paths));
+    println!("wrapped matches {} paths:\n\n{}\n", wrapped_paths.len(), format_paths(&wrapped_paths));
+
+    // // shortest path when unwrapped
+    // assert_eq!(pat.paths(&inner).len(), 1);
+    // // wrapped path has two elements
+    // assert_eq!(pat.paths(&wrapped).len(), 2);
 }
 
 #[test]

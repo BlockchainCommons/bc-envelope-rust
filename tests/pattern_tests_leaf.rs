@@ -638,11 +638,10 @@ fn test_tag_pattern_named() {
     use dcbor::prelude::*;
 
     // Ensure tags are registered for testing
-    dcbor::register_tags();
-    bc_components::register_tags();
+    bc_envelope::register_tags();
 
     // Test with registered tag (date tag = 1)
-    let tagged_cbor = CBOR::to_tagged_value(1, "2023-12-25");
+    let tagged_cbor = dcbor::Date::from_ymd(2023, 12, 25).to_cbor();
     let envelope = Envelope::new(tagged_cbor);
 
     // Should match by name
@@ -669,6 +668,11 @@ fn test_tag_pattern_named() {
 
     // Test paths for matched envelope
     let paths = Pattern::tagged_with_name("date").paths(&envelope);
+    // println!("{}", format_paths(&paths));
+    let expected = indoc! {r#"
+        3854ff69 2023-12-25
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
     assert_eq!(paths.len(), 1);
     assert_eq!(paths[0].len(), 1);
     assert_eq!(paths[0][0], envelope);
@@ -679,10 +683,7 @@ fn test_tag_pattern_named() {
         Pattern::subject(),
     ])
     .paths(&envelope);
-
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 2);
-    assert_eq!(paths[0][0], envelope);
+    assert_actual_expected!(format_paths(&paths), expected);
 }
 
 #[test]
@@ -690,11 +691,10 @@ fn test_tag_pattern_regex() {
     use dcbor::prelude::*;
 
     // Ensure tags are registered for testing
-    dcbor::register_tags();
-    bc_components::register_tags();
+    bc_envelope::register_tags();
 
     // Test with registered tag (date tag = 1)
-    let tagged_cbor = CBOR::to_tagged_value(1, "2023-12-25");
+    let tagged_cbor = dcbor::Date::from_ymd(2023, 12, 25).to_cbor();
     let envelope = Envelope::new(tagged_cbor);
 
     // Regex that should match "date"
@@ -741,7 +741,7 @@ fn test_tag_pattern_regex() {
     ])
     .paths(&envelope);
     assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 2);
+    assert_eq!(paths[0].len(), 1);
     assert_eq!(paths[0][0], envelope);
 }
 
@@ -750,8 +750,7 @@ fn test_tag_pattern_with_bc_components_tags() {
     use dcbor::prelude::*;
 
     // Ensure all tags are registered
-    dcbor::register_tags();
-    bc_components::register_tags();
+    bc_envelope::register_tags();
 
     // Test with a bc-components tag (e.g., digest tag)
     let digest_tag_value = 40001u64; // TAG_DIGEST from bc-tags

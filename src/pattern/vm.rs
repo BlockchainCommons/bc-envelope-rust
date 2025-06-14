@@ -18,6 +18,9 @@ impl Axis {
     /// Return `(child, EdgeType)` pairs reachable from `env` via this axis.
     pub fn children(&self, env: &Envelope) -> Vec<(Envelope, EdgeType)> {
         use crate::base::envelope::EnvelopeCase::*;
+        // println!("Axis::children called with axis: {:?}", self);
+        // println!("Case: {:?}", env.case());
+        // println!("Envelope: {}", env.format_flat());
         match (self, env.case()) {
             (Axis::Subject, Node { subject, .. }) => {
                 vec![(subject.clone(), EdgeType::Subject)]
@@ -32,6 +35,12 @@ impl Axis {
             }
             (Axis::Object, Assertion(a)) => {
                 vec![(a.object().clone(), EdgeType::Object)]
+            }
+            (Axis::Wrapped, Node { subject, .. }) => {
+                vec![
+                    // (subject.clone(), EdgeType::Subject),
+                    (subject.unwrap_envelope().unwrap(), EdgeType::Wrapped),
+                ]
             }
             (Axis::Wrapped, Wrapped { envelope, .. }) => {
                 vec![(envelope.clone(), EdgeType::Wrapped)]
@@ -325,10 +334,13 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                     th.pc += 1;
                 }
                 NavigateSubject => {
-                    // Navigate to the subject of the current envelope
-                    let subject = th.env.subject();
-                    th.env = subject.clone();
-                    th.path.push(subject);
+                    // If the current envelope is a node, navigate to its
+                    // subject and update the path.
+                    if th.env.is_node() {
+                        let subject = th.env.subject();
+                        th.env = subject.clone();
+                        th.path.push(subject);
+                    }
                     th.pc += 1;
                 }
                 NotMatch { pat_idx } => {
