@@ -1,5 +1,5 @@
 mod common;
-use bc_envelope::prelude::*;
+use bc_envelope::{pattern::Greediness, prelude::*};
 
 use crate::common::pattern_utils::format_paths;
 
@@ -13,7 +13,7 @@ fn optional_wrapper() {
     println!("wrapped tree:\n\n{}\n", wrapped.tree_format());
 
     let pat = Pattern::sequence(vec![
-        Pattern::repeat_greedy(Pattern::wrapped(), 0..=1),
+        Pattern::repeat(Pattern::wrapped(), 0..=1, Greediness::Greedy),
         Pattern::subject(),
     ]);
 
@@ -46,11 +46,11 @@ fn plus_lazy_vs_greedy() {
     let env = Envelope::new("x").wrap_envelope().wrap_envelope();
 
     let greedy = Pattern::sequence(vec![
-        Pattern::repeat_greedy(Pattern::wrapped(), 1..=10),
+        Pattern::repeat(Pattern::wrapped(), 1..=10, Greediness::Greedy),
         Pattern::subject(),
     ]);
     let lazy = Pattern::sequence(vec![
-        Pattern::repeat_lazy(Pattern::wrapped(), 1..=10),
+        Pattern::repeat(Pattern::wrapped(), 1..=10, Greediness::Lazy),
         Pattern::subject(),
     ]);
 

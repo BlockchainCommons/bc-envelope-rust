@@ -37,10 +37,14 @@ impl Axis {
                 vec![(a.object().clone(), EdgeType::Object)]
             }
             (Axis::Wrapped, Node { subject, .. }) => {
-                vec![
-                    // (subject.clone(), EdgeType::Subject),
-                    (subject.unwrap_envelope().unwrap(), EdgeType::Wrapped),
-                ]
+                if subject.is_wrapped() {
+                    vec![(
+                        subject.unwrap_envelope().unwrap(),
+                        EdgeType::Wrapped,
+                    )]
+                } else {
+                    vec![]
+                }
             }
             (Axis::Wrapped, Wrapped { envelope, .. }) => {
                 vec![(envelope.clone(), EdgeType::Wrapped)]

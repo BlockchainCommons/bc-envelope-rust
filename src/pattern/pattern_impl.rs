@@ -77,7 +77,12 @@ use super::{
     vm,
 };
 use crate::{
-    pattern::{meta::{AnyPattern, NonePattern}, vm::Instr, Compilable}, Envelope
+    Envelope,
+    pattern::{
+        Compilable,
+        meta::{AnyPattern, NonePattern},
+        vm::Instr,
+    },
 };
 
 /// The main pattern type used for matching envelopes.
@@ -154,8 +159,8 @@ impl Pattern {
 
     /// Creates a new `Pattern` that matches text values that match the given
     /// regular expression.
-    pub fn text_regex(regex: &regex::Regex) -> Self {
-        Pattern::Leaf(LeafPattern::Text(TextPattern::regex(regex.clone())))
+    pub fn text_regex(regex: regex::Regex) -> Self {
+        Pattern::Leaf(LeafPattern::Text(TextPattern::regex(regex)))
     }
 }
 
@@ -292,7 +297,9 @@ impl Pattern {
     }
 
     pub fn known_value_regex(regex: regex::Regex) -> Self {
-        Pattern::Leaf(LeafPattern::KnownValue(KnownValuePattern::regex(regex)))
+        Pattern::Leaf(LeafPattern::KnownValue(KnownValuePattern::regex(
+            regex,
+        )))
     }
 }
 
@@ -348,7 +355,9 @@ impl Pattern {
     }
 
     pub fn tagged_with_regex(regex: regex::Regex) -> Self {
-        Pattern::Leaf(LeafPattern::Tag(TaggedPattern::with_tag_regex(regex)))
+        Pattern::Leaf(LeafPattern::Tag(TaggedPattern::with_tag_regex(
+            regex,
+        )))
     }
 }
 
@@ -485,7 +494,9 @@ impl Pattern {
     pub fn any() -> Self { Pattern::Meta(MetaPattern::Any(AnyPattern::new())) }
 
     /// Creates a new `Pattern` that never matches any element.
-    pub fn none() -> Self { Pattern::Meta(MetaPattern::None(NonePattern::new())) }
+    pub fn none() -> Self {
+        Pattern::Meta(MetaPattern::None(NonePattern::new()))
+    }
 }
 
 impl Pattern {
@@ -562,33 +573,6 @@ impl Pattern {
             max,
             mode,
         }))
-    }
-
-    /// Creates a new `Pattern` that will match a pattern repeated a number of
-    /// times using greedy matching.
-    pub fn repeat_greedy(
-        pattern: Pattern,
-        range: std::ops::RangeInclusive<usize>,
-    ) -> Self {
-        Self::repeat(pattern, range, Greediness::Greedy)
-    }
-
-    /// Creates a new `Pattern` that will match a pattern repeated a number of
-    /// times using lazy matching.
-    pub fn repeat_lazy(
-        pattern: Pattern,
-        range: std::ops::RangeInclusive<usize>,
-    ) -> Self {
-        Self::repeat(pattern, range, Greediness::Lazy)
-    }
-
-    /// Creates a new `Pattern` that will match a pattern repeated a number of
-    /// times using possessive matching.
-    pub fn repeat_possessive(
-        pattern: Pattern,
-        range: std::ops::RangeInclusive<usize>,
-    ) -> Self {
-        Self::repeat(pattern, range, Greediness::Possessive)
     }
 
     /// Creates a new `Pattern` that will capture a pattern match with a name.

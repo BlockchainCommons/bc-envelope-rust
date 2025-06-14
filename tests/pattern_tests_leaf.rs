@@ -109,14 +109,14 @@ fn test_text_pattern() {
     assert!(Pattern::text("hello").matches(&envelope));
     assert!(!Pattern::text("world").matches(&envelope));
     let regex = regex::Regex::new(r"^h.*o$").unwrap();
-    assert!(Pattern::text_regex(&regex).matches(&envelope));
+    assert!(Pattern::text_regex(regex.clone()).matches(&envelope));
 
     // Matches a subject that is text with an assertion.
     let envelope = envelope.add_assertion("greeting", "world");
     assert!(Pattern::any_text().matches(&envelope));
     assert!(Pattern::text("hello").matches(&envelope));
     assert!(!Pattern::text("world").matches(&envelope));
-    assert!(Pattern::text_regex(&regex).matches(&envelope));
+    assert!(Pattern::text_regex(regex).matches(&envelope));
 
     // The matched paths include the assertion.
     let paths = Pattern::any_text().paths(&envelope);
