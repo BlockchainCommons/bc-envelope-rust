@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     Envelope,
-    pattern::{Matcher, Path},
+    pattern::{Matcher, Path, vm::Instr, Pattern},
 };
 
 /// Pattern for matching envelope structure elements.
@@ -59,6 +59,29 @@ impl StructurePattern {
 
     pub fn wrapped(pattern: WrappedPattern) -> Self {
         StructurePattern::Wrapped(pattern)
+    }
+
+    pub fn compile(&self, code: &mut Vec<Instr>, lits: &mut Vec<Pattern>) {
+        match self {
+            StructurePattern::Subject(s) => s.compile(code, lits),
+            // For structure patterns that have complex path logic, we need to use
+            // a different approach than atomic matching
+            StructurePattern::Assertions(_) | 
+            StructurePattern::Wrapped(_) |
+            StructurePattern::Object(_) => {
+                // Use MatchStructure instead of MatchPredicate for patterns
+                // that return specific paths
+                let idx = lits.len();
+                lits.push(crate::pattern::Pattern::Structure(self.clone()));
+                code.push(Instr::MatchStructure(idx));
+            }
+            // For other structure patterns, fall back to atomic matching for now
+            _ => {
+                let idx = lits.len();
+                lits.push(crate::pattern::Pattern::Structure(self.clone()));
+                code.push(Instr::MatchPredicate(idx));
+            }
+        }
     }
 }
 

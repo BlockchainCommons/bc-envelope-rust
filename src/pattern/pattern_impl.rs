@@ -537,23 +537,20 @@ impl Pattern {
                           lits: &mut Vec<Pattern>) {
         use Pattern::*;
         match self {
-            Leaf(_) | Structure(_) | Any | None => {
+            Leaf(_) | Any | None => {
                 let idx = lits.len();
                 lits.push(self.clone());
                 code.push(Instr::MatchPredicate(idx));
             }
+            Structure(s) => s.compile(code, lits),
             Meta(meta) => match meta {
                 MetaPattern::And(a)      => a.compile(code, lits),
                 MetaPattern::Or(o)       => o.compile(code, lits),
                 MetaPattern::Not(n)      => {
-                    // NOT = match inner, then fail branch
-                    n.pattern.compile(code, lits);
-                    // if predicate matched, fail; else succeed
-                    let s = code.len();
-                    code.push(Instr::Split { a: 0, b: 0 });
-                    code[s] = Instr::Split { a: s + 1, b: s + 2 };
-                    code.push(Instr::Jump(code.len() + 2)); // matched -> fail
-                    code.push(Instr::Accept);                // not matched
+                    // NOT = check that pattern doesn't match
+                    let idx = lits.len();
+                    lits.push(n.pattern.as_ref().clone());
+                    code.push(Instr::NotMatch { pat_idx: idx });
                 }
                 MetaPattern::Sequence(s) => s.compile(code, lits),
                 MetaPattern::Repeat(r)   => r.compile(code, lits),
