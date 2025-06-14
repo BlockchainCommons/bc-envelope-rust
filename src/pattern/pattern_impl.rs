@@ -77,8 +77,7 @@ use super::{
     vm,
 };
 use crate::{
-    Envelope,
-    pattern::{Compilable, vm::Instr},
+    pattern::{meta::{AnyPattern, NonePattern}, vm::Instr, Compilable}, Envelope
 };
 
 /// The main pattern type used for matching envelopes.
@@ -92,10 +91,6 @@ pub enum Pattern {
 
     /// Meta-patterns for combining and modifying other patterns.
     Meta(MetaPattern),
-    /// Matches any element.
-    Any,
-    /// Never matches any element.
-    None,
 }
 
 impl Matcher for Pattern {
@@ -492,10 +487,10 @@ impl Pattern {
 
 impl Pattern {
     /// Creates a new `Pattern` that matches any element.
-    pub fn any() -> Self { Pattern::Any }
+    pub fn any() -> Self { Pattern::Meta(MetaPattern::Any(AnyPattern::new())) }
 
     /// Creates a new `Pattern` that never matches any element.
-    pub fn none() -> Self { Pattern::None }
+    pub fn none() -> Self { Pattern::Meta(MetaPattern::None(NonePattern::new())) }
 }
 
 impl Pattern {
@@ -545,30 +540,9 @@ impl Pattern {
     ) {
         use Pattern::*;
         match self {
-            Leaf(_) | Any | None => {
-                let idx = lits.len();
-                lits.push(self.clone());
-                code.push(Instr::MatchPredicate(idx));
-            }
-            Structure(struct_pat) => match struct_pat {
-                StructurePattern::Wrapped(wp) => {
-                    wp.compile(code, lits);
-                }
-                _ => {
-                    let idx = lits.len();
-                    lits.push(self.clone());
-                    code.push(Instr::MatchPredicate(idx));
-                }
-            },
-            Meta(meta) => match meta {
-                MetaPattern::And(a) => a.compile(code, lits),
-                MetaPattern::Or(o) => o.compile(code, lits),
-                MetaPattern::Not(n) => n.compile(code, lits),
-                MetaPattern::Sequence(s) => s.compile(code, lits),
-                MetaPattern::Repeat(r) => r.compile(code, lits),
-                MetaPattern::Capture(c) => c.compile(code, lits),
-                MetaPattern::Search(s) => s.compile(code, lits),
-            },
+            Leaf(leaf_pattern) => leaf_pattern.compile(code, lits),
+            Structure(struct_pattern) => struct_pattern.compile(code, lits),
+            Meta(meta_pattern) => meta_pattern.compile(code, lits),
         }
     }
 }

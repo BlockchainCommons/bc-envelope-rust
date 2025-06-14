@@ -105,8 +105,6 @@ pub(crate) fn atomic_paths(
     match p {
         Leaf(l) => l.paths(env),
         Structure(s) => s.paths(env),
-        Any => vec![vec![env.clone()]],
-        None => vec![],
         Meta(meta) => match meta {
             crate::pattern::meta::MetaPattern::Search(_) => {
                 panic!(
@@ -221,18 +219,13 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
 
                     // 1) check current node and get the actual paths it matches
                     let found_paths = match inner {
-                        crate::pattern::Pattern::Leaf(_)
-                        | crate::pattern::Pattern::Any
-                        | crate::pattern::Pattern::None => {
-                            // Atomic pattern - use atomic_paths
-                            atomic_paths(inner, &th.env)
+                        crate::pattern::Pattern::Leaf(_) => {
+                            inner.paths(&th.env)
                         }
                         crate::pattern::Pattern::Structure(_) => {
-                            // Structure pattern - use atomic_paths
-                            atomic_paths(inner, &th.env)
+                            inner.paths(&th.env)
                         }
                         crate::pattern::Pattern::Meta(_) => {
-                            // Non-atomic pattern - use full pattern matching
                             inner.paths(&th.env)
                         }
                     };
@@ -346,15 +339,13 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                     // For atomic patterns, use atomic_paths for efficiency
                     let pattern = &prog.literals[pat_idx];
                     let pattern_matches = match pattern {
-                        crate::pattern::Pattern::Leaf(_)
-                        | crate::pattern::Pattern::Structure(_)
-                        | crate::pattern::Pattern::Any
-                        | crate::pattern::Pattern::None => {
-                            // Atomic pattern - use atomic_paths
-                            !atomic_paths(pattern, &th.env).is_empty()
+                        crate::pattern::Pattern::Leaf(_) => {
+                            pattern.matches(&th.env)
+                        }
+                        crate::pattern::Pattern::Structure(_) => {
+                            pattern.matches(&th.env)
                         }
                         crate::pattern::Pattern::Meta(_) => {
-                            // Non-atomic pattern - use full pattern matching
                             pattern.matches(&th.env)
                         }
                     };
