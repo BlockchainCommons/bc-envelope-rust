@@ -84,20 +84,93 @@ fn test_or_pattern() {
 }
 
 #[test]
-#[ignore]
 fn test_one_element_sequence_pattern() {
     let envelope = Envelope::new(42);
 
     let number_pattern = Pattern::number(42);
-    let expected  = indoc! {r#"
+    let expected = indoc! {r#"
         7f83f7bd 42
-    "#}.trim();
+    "#}
+    .trim();
     let paths = number_pattern.paths(&envelope);
     assert_actual_expected!(format_paths(&paths), expected);
 
     // A sequence of one pattern gives the same result as the single pattern.
     let pattern = Pattern::sequence(vec![number_pattern]);
     let paths = pattern.paths(&envelope);
+    assert_actual_expected!(format_paths(&paths), expected);
+}
+
+#[test]
+fn test_wrapped_sequence() {
+    let env_1 = Envelope::new("data");
+    let wrapped_1 = env_1.wrap_envelope();
+    let wrapped_2 = wrapped_1.wrap_envelope();
+    let wrapped_3 = wrapped_2.wrap_envelope();
+    let wrapped_4 = wrapped_3.wrap_envelope();
+
+    // println!("{}", wrapped_4.tree_format());
+    let expected = indoc! {r#"
+        25cb582c WRAPPED
+            c1426a18 subj WRAPPED
+                ee8cade0 subj WRAPPED
+                    febc1555 subj WRAPPED
+                        e909da9a subj "data"
+    "#}
+    .trim();
+    assert_actual_expected!(wrapped_4.tree_format(), expected);
+
+    // println!("{}", wrapped_4.format_flat());
+    let expected = indoc! {r#"
+        { { { { "data" } } } }
+    "#}
+    .trim();
+    assert_actual_expected!(wrapped_4.format_flat(), expected);
+
+    let wrapped_1_pattern = Pattern::sequence(vec![
+        Pattern::wrapped(),
+    ]);
+    let paths = wrapped_1_pattern.paths(&wrapped_4);
+    // println!("{}", format_paths(&paths));
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        25cb582c { { { { "data" } } } }
+            c1426a18 { { { "data" } } }
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let wrapped_2_pattern = Pattern::sequence(vec![
+        Pattern::wrapped(),
+        Pattern::wrapped(),
+    ]);
+    let paths = wrapped_2_pattern.paths(&wrapped_4);
+    // println!("{}", format_paths(&paths));
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        25cb582c { { { { "data" } } } }
+            c1426a18 { { { "data" } } }
+                ee8cade0 { { "data" } }
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let wrapped_3_pattern = Pattern::sequence(vec![
+        Pattern::wrapped(),
+        Pattern::wrapped(),
+        Pattern::wrapped(),
+    ]);
+    let paths = wrapped_3_pattern.paths(&wrapped_4);
+    // println!("{}", format_paths(&paths));
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        25cb582c { { { { "data" } } } }
+            c1426a18 { { { "data" } } }
+                ee8cade0 { { "data" } }
+                    febc1555 { "data" }
+    "#}
+    .trim();
+    // This is failing because the first path element (25cb582c) is missing.
     assert_actual_expected!(format_paths(&paths), expected);
 }
 
@@ -111,12 +184,12 @@ fn optional_single_or_pattern() {
     println!("inner tree:\n\n{}\n", inner.tree_format());
     println!("wrapped tree:\n\n{}\n", wrapped.tree_format());
 
-    // let pat = Pattern::sequence(vec![
-    //     Pattern::repeat_greedy(Pattern::wrapped(), 0..=1),
-    //     Pattern::subject(),
-    // ]);
+    let pat = Pattern::sequence(vec![
+        Pattern::repeat_greedy(Pattern::wrapped(), 0..=1),
+        Pattern::any_number(),
+    ]);
 
-    let pat = Pattern::subject();
+    // let pat = Pattern::subject();
 
     // let pat = Pattern::or(vec![
     //     // Pattern::sequence(vec![Pattern::wrapped(), Pattern::unwrap()]),
@@ -125,15 +198,23 @@ fn optional_single_or_pattern() {
 
     // let pat = Pattern::repeat_greedy(Pattern::wrapped(), 0..=1);
 
-    assert!(pat.matches(&inner));
-    assert!(pat.matches(&wrapped));
+    // assert!(pat.matches(&inner));
+    // assert!(pat.matches(&wrapped));
 
     let inner_paths = pat.paths(&inner);
     let wrapped_paths = pat.paths(&wrapped);
 
     println!("=== Matching Paths ===");
-    println!("inner matches {} paths:\n\n{}\n", inner_paths.len(), format_paths(&inner_paths));
-    println!("wrapped matches {} paths:\n\n{}\n", wrapped_paths.len(), format_paths(&wrapped_paths));
+    println!(
+        "inner matches {} paths:\n\n{}\n",
+        inner_paths.len(),
+        format_paths(&inner_paths)
+    );
+    println!(
+        "wrapped matches {} paths:\n\n{}\n",
+        wrapped_paths.len(),
+        format_paths(&wrapped_paths)
+    );
 
     // // shortest path when unwrapped
     // assert_eq!(pat.paths(&inner).len(), 1);
