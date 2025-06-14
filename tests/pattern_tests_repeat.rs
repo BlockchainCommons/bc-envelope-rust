@@ -12,7 +12,7 @@ fn optional_wrapper() {
     ]);
 
     assert!(pat.matches(&inner));
-    assert!(pat.matches(&wrapped));
+    assert!(pat.matches(&wrapped)); // HANGS HERE
 
     // shortest path when unwrapped
     assert_eq!(pat.paths(&inner)[0].len(), 1);
@@ -33,6 +33,6 @@ fn plus_lazy_vs_greedy() {
         Pattern::subject(),
     ]);
 
-    assert_eq!(greedy.paths(&env)[0].len(), 3); // two wrappers + subject
+    assert_eq!(greedy.paths(&env)[0].len(), 3); // two wrappers + subject  HANGS HERE
     assert_eq!(lazy.paths(&env)[0].len(), 2);   // one wrapper + subject
 }
