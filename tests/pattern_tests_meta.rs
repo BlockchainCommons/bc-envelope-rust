@@ -299,7 +299,6 @@ fn test_search_pattern() {
 }
 
 #[test]
-#[ignore]
 fn test_search_pattern_nested() {
     // A pattern that searches for any text in the envelope
     let text_search_pattern = Pattern::search(Pattern::any_text());
@@ -367,7 +366,6 @@ fn test_search_pattern_nested() {
 }
 
 #[test]
-#[ignore]
 fn test_search_pattern_with_wrapped() {
     // A pattern that searches for the text "secret" in the envelope
     let secret_text_search_pattern = Pattern::search(Pattern::text("secret"));
@@ -542,7 +540,6 @@ fn test_search_pattern_credential() {
 }
 
 #[test]
-#[ignore]
 fn test_not_pattern() {
     // Create a test envelope
     let envelope = Envelope::new("test_subject")
@@ -616,7 +613,6 @@ fn test_not_pattern() {
 }
 
 #[test]
-#[ignore]
 fn test_not_pattern_with_search() {
     // Create a nested envelope structure
     let inner_envelope =
