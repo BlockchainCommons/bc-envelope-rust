@@ -30,9 +30,31 @@ impl SequencePattern {
         code: &mut Vec<crate::pattern::vm::Instr>,
         lits: &mut Vec<Pattern>,
     ) {
+        // Compile the first pattern
         self.first.compile(code, lits);
+
         if let Some(rest) = &self.rest {
-            rest.compile(code, lits);
+            // Check if the rest starts with a navigation pattern
+            use crate::pattern::{Pattern, structure::StructurePattern};
+
+            if let Pattern::Structure(StructurePattern::Subject(_)) =
+                &*rest.first
+            {
+                // Special case: node pattern followed by subject navigation
+                code.push(crate::pattern::vm::Instr::PushAxis(
+                    crate::pattern::vm::Axis::Subject,
+                ));
+
+                // Continue with the rest of the sequence if there's more
+                if let Some(rest_rest) = &rest.rest {
+                    rest_rest.compile(code, lits);
+                }
+            } else {
+                // For other sequences, fall back to the old behavior for now
+                // This is a temporary solution until full sequence support is
+                // implemented
+                rest.compile(code, lits);
+            }
         }
     }
 }

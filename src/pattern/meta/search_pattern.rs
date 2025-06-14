@@ -4,7 +4,7 @@ use bc_components::DigestProvider;
 
 use crate::{
     Envelope,
-    pattern::{Matcher, Path, Pattern},
+    pattern::{Matcher, Path, Pattern, vm::Instr},
 };
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -14,6 +14,16 @@ impl SearchPattern {
     pub fn new(pattern: Pattern) -> Self { SearchPattern(Box::new(pattern)) }
 
     pub fn pattern(&self) -> &Pattern { &self.0 }
+
+    pub(crate) fn compile(
+        &self,
+        code: &mut Vec<Instr>,
+        lits: &mut Vec<Pattern>,
+    ) {
+        let idx = lits.len();
+        lits.push((*self.0).clone());
+        code.push(Instr::Search { pat_idx: idx });
+    }
 }
 
 impl Matcher for SearchPattern {

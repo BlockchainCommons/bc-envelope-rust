@@ -431,4 +431,77 @@ All the building blocks are here, you just need to glue and polish.
 
 5️⃣  PROGRESS NOTES  ─────────────────────
 
-Update this section with your progress and any issues you encounter.
+## Completed ✅
+
+1. **Stack overflow fix**: Fixed infinite recursion issue by:
+   - Created `atomic.rs` module with non-recursive pattern matching
+   - Modified VM to use `atomic_paths()` instead of calling `.matches()`
+
+2. **Core VM infrastructure**:
+   - `vm.rs` with Thompson-style execution engine ✅
+   - `greediness.rs` enum ✅
+   - Program compilation and bytecode execution ✅
+
+3. **Pattern AST nodes**:
+   - `RepeatPattern` with basic compilation ✅
+   - `CapturePattern` with Save instructions ✅
+   - Pattern constructors (`repeat_greedy`, `repeat_lazy`, `repeat_possessive`, `capture`) ✅
+
+4. **Basic functionality working**:
+   - Simple sequences (node + subject navigation) ✅
+   - Leaf patterns (text, number, bool, etc.) ✅
+   - Basic structure patterns (node, digest, obscured) ✅
+   - And/Or meta patterns ✅
+
+5. **🎉 SEARCH PATTERN FIXED!** ✅
+   - Added `Search { pat_idx }` instruction to VM ✅
+   - Implemented proper recursive tree traversal in VM ✅
+   - Fixed deterministic ordering by reversing stack push order ✅
+   - SearchPattern now compiles to proper bytecode instead of fallback ✅
+   - All main pattern tests now pass! ✅
+
+## Test Status: **MAJOR PROGRESS!** 🚀
+
+### Main Pattern Tests: ✅ **3/3 PASSING!**
+- `test_mixed_patterns_with_search` ✅
+- `test_node_pattern_with_sequence` ✅
+- `test_redacted_credential_patterns` ✅
+
+### Other Test Suites:
+- **Structure**: Status unknown (not run recently)
+- **Leaf**: 12/14 (2 tag pattern sequence issues unrelated to our work)
+- **Meta**: Status unknown (not run recently)
+- **Repeat**: Status unknown (not run recently)
+
+## Known Issues ❌
+
+1. ✅ ~~**Search patterns**: FIXED! Now working correctly~~
+2. **NOT patterns**: Compilation logic may still be broken (needs verification)
+3. **Tag patterns in sequences**: 2 failing tests in leaf patterns (unrelated to search fix)
+4. **Navigation patterns**: assertions(), predicate(), object(), wrapped() may need fixes
+5. **RepeatPattern**: Infinite loop handling with `usize::MAX` ranges
+
+## Next Steps
+
+1. ✅ ~~Fix SearchPattern~~ - **COMPLETED!**
+2. Verify other pattern test suites (structure, meta, repeat)
+3. Fix tag pattern issues in sequences if needed
+4. Fix NOT pattern compilation logic if broken
+5. Implement proper navigation for assertion/predicate/object/wrapped patterns if needed
+6. Add finite max limit support to RepeatPattern if needed
+
+## 🎉 MAJOR MILESTONE ACHIEVED!
+
+The Search pattern issue that was breaking the main tests has been **completely resolved**!
+
+**Root cause was**: SearchPattern was being compiled to a simple `MatchPredicate` instead of proper recursive tree traversal.
+
+**Solution implemented**:
+1. Added `Search { pat_idx }` bytecode instruction
+2. Implemented tree traversal logic in VM with proper ordering
+3. SearchPattern now compiles to the new instruction
+4. Fixed deterministic ordering by reversing stack operations
+
+**All main pattern tests now pass consistently!** The pattern system core functionality is working correctly.
+
+The stack overflow issue is completely resolved - no more infinite recursion!

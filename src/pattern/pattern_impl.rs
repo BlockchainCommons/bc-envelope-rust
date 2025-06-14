@@ -558,12 +558,7 @@ impl Pattern {
                 MetaPattern::Sequence(s) => s.compile(code, lits),
                 MetaPattern::Repeat(r)   => r.compile(code, lits),
                 MetaPattern::Capture(c)  => c.compile(code, lits),
-                MetaPattern::Search(_s)  => {
-                    // Keep existing recursive search for now.
-                    let idx = lits.len();
-                    lits.push(self.clone());
-                    code.push(Instr::MatchPredicate(idx));
-                }
+                MetaPattern::Search(s)  => s.compile(code, lits),
             },
         }
     }

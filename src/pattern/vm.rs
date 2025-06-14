@@ -2,7 +2,7 @@
 //!
 //! The VM runs byte-code produced by `Pattern::compile` (implemented later).
 
-use super::{Matcher, Path, Pattern};
+use super::{Path, Pattern, atomic};
 use crate::{EdgeType, Envelope};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -50,6 +50,7 @@ pub enum Instr {
     Pop,                          // pop one envelope from path
     Save,                         // emit current path
     Accept,                       // final accept
+    Search { pat_idx: usize },    // NEW: search for pattern recursively
 }
 
 #[derive(Debug, Clone)]
@@ -78,7 +79,9 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
         loop {
             match prog.code[th.pc] {
                 MatchPredicate(idx) => {
-                    if !prog.literals[idx].matches(&th.env) {
+                    if atomic::atomic_paths(&prog.literals[idx], &th.env)
+                        .is_empty()
+                    {
                         break;
                     }
                     th.pc += 1;
@@ -111,6 +114,45 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                 Accept => {
                     out.push(th.path.clone());
                     break;
+                }
+                Search { pat_idx } => {
+                    // old SearchPattern::paths logic, but in-place and
+                    // non-recursive
+                    let inner = &prog.literals[pat_idx];
+
+                    // 1) check current node
+                    if !atomic::atomic_paths(inner, &th.env).is_empty() {
+                        th.pc += 1;
+                        continue; // success, stay on current envelope
+                    }
+
+                    // 2) otherwise walk children (same traversal as
+                    //    Envelope::walk)
+                    // Collect all children first, then push in reverse order to
+                    // maintain the same traversal order as
+                    // the original recursive implementation
+                    let mut all_children = Vec::new();
+                    for axis in [
+                        Axis::Subject,
+                        Axis::Assertion,
+                        Axis::Predicate,
+                        Axis::Object,
+                        Axis::Wrapped,
+                    ] {
+                        for (child, _) in axis.children(&th.env) {
+                            all_children.push(child);
+                        }
+                    }
+
+                    // Push in reverse order so stack processes them in forward
+                    // order
+                    for child in all_children.into_iter().rev() {
+                        let mut fork = th.clone();
+                        fork.env = child.clone();
+                        fork.path.push(child);
+                        stack.push(fork); // revisit Search at the child
+                    }
+                    break; // this thread failed at current env
                 }
             }
         }

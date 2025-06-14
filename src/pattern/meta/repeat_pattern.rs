@@ -11,7 +11,7 @@ pub struct RepeatPattern {
 }
 
 impl Matcher for RepeatPattern {
-    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
+    fn paths(&self, _envelope: &Envelope) -> Vec<Path> {
         todo!();
     }
 }

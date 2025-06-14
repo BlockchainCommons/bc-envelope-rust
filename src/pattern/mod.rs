@@ -3,6 +3,7 @@ mod matcher;
 mod pattern_impl;
 mod greediness;
 mod vm;
+mod atomic;
 
 // Subdirectory modules
 mod leaf;

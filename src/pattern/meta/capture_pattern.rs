@@ -10,7 +10,7 @@ pub struct CapturePattern {
 }
 
 impl Matcher for CapturePattern {
-    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
+    fn paths(&self, _envelope: &Envelope) -> Vec<Path> {
         todo!();
     }
 }
