@@ -76,7 +76,7 @@ use super::{
     },
     vm,
 };
-use crate::{pattern::vm::Instr, Envelope};
+use crate::{Envelope, pattern::vm::Instr};
 
 /// The main pattern type used for matching envelopes.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -103,23 +103,26 @@ impl Matcher for Pattern {
         }
 
         // cheap structural hash
-        use std::hash::{Hash, Hasher};
-        use std::collections::hash_map::DefaultHasher;
+        use std::{
+            collections::hash_map::DefaultHasher,
+            hash::{Hash, Hasher},
+        };
         let mut h = DefaultHasher::new();
         self.hash(&mut h);
         let key = h.finish();
 
-        let prog = PROG.with(|cell| {
-            cell.borrow().get(&key).cloned()
-        }).unwrap_or_else(|| {
-            let mut p = vm::Program { code: Vec::new(), literals: Vec::new() };
-            self.compile(&mut p.code, &mut p.literals);
-            p.code.push(Instr::Accept);
-            PROG.with(|cell| {
-                cell.borrow_mut().insert(key, p.clone());
+        let prog = PROG
+            .with(|cell| cell.borrow().get(&key).cloned())
+            .unwrap_or_else(|| {
+                let mut p =
+                    vm::Program { code: Vec::new(), literals: Vec::new() };
+                self.compile(&mut p.code, &mut p.literals);
+                p.code.push(Instr::Accept);
+                PROG.with(|cell| {
+                    cell.borrow_mut().insert(key, p.clone());
+                });
+                p
             });
-            p
-        });
 
         vm::run(&prog, env)
     }
@@ -361,7 +364,7 @@ impl Pattern {
 //
 
 impl Pattern {
-    pub fn any_wrapped() -> Self {
+    pub fn wrapped() -> Self {
         Pattern::Structure(StructurePattern::wrapped(WrappedPattern::any()))
     }
 
@@ -532,9 +535,11 @@ impl Pattern {
 
 impl Pattern {
     /// Compile self to byte-code (recursive).
-    pub(crate) fn compile(&self,
-                          code: &mut Vec<Instr>,
-                          lits: &mut Vec<Pattern>) {
+    pub(crate) fn compile(
+        &self,
+        code: &mut Vec<Instr>,
+        lits: &mut Vec<Pattern>,
+    ) {
         use Pattern::*;
         match self {
             Leaf(_) | Any | None => {
@@ -542,20 +547,29 @@ impl Pattern {
                 lits.push(self.clone());
                 code.push(Instr::MatchPredicate(idx));
             }
-            Structure(s) => s.compile(code, lits),
+            Structure(struct_pat) => match struct_pat {
+                StructurePattern::Wrapped(wp) => {
+                    wp.compile(code, lits);
+                }
+                _ => {
+                    let idx = lits.len();
+                    lits.push(self.clone());
+                    code.push(Instr::MatchPredicate(idx));
+                }
+            },
             Meta(meta) => match meta {
-                MetaPattern::And(a)      => a.compile(code, lits),
-                MetaPattern::Or(o)       => o.compile(code, lits),
-                MetaPattern::Not(n)      => {
+                MetaPattern::And(a) => a.compile(code, lits),
+                MetaPattern::Or(o) => o.compile(code, lits),
+                MetaPattern::Not(n) => {
                     // NOT = check that pattern doesn't match
                     let idx = lits.len();
                     lits.push(n.pattern.as_ref().clone());
                     code.push(Instr::NotMatch { pat_idx: idx });
                 }
                 MetaPattern::Sequence(s) => s.compile(code, lits),
-                MetaPattern::Repeat(r)   => r.compile(code, lits),
-                MetaPattern::Capture(c)  => c.compile(code, lits),
-                MetaPattern::Search(s)  => s.compile(code, lits),
+                MetaPattern::Repeat(r) => r.compile(code, lits),
+                MetaPattern::Capture(c) => c.compile(code, lits),
+                MetaPattern::Search(s) => s.compile(code, lits),
             },
         }
     }

@@ -44,21 +44,18 @@ impl Axis {
 #[derive(Debug, Clone)]
 pub enum Instr {
     MatchPredicate(usize),        // literals[idx].matches(env)
-    MatchStructure(usize),        /* Use literals[idx].paths(env) for
-                                   * structure patterns */
+    MatchStructure(usize),        // Use literals[idx].paths(env) for structure patterns
     Split { a: usize, b: usize }, // ε-split
-    Jump(usize),                  // unconditional jump
-    PushAxis(Axis),               // descend to children, one thread per child
-    Pop,                          // pop one envelope from path
-    Save,                         // emit current path
-    Accept,                       // final accept
-    Search { pat_idx: usize },    // NEW: search for pattern recursively
-    ExtendSequence,               /* Extend saved path with current path
-                                   * and continue */
-    CombineSequence, // Combine saved path with current path for final result
-    NavigateSubject, // Navigate to subject of current envelope
-    NotMatch { pat_idx: usize }, /* Match only if pattern at pat_idx
-                                  * doesn't match */
+    Jump(usize),                  // Unconditional jump
+    PushAxis(Axis),               // Descend to children, one thread per child
+    Pop,                          // Pop one envelope from path
+    Save,                         // Emit current path
+    Accept,                       // Final accept
+    Search { pat_idx: usize },    // Search for pattern recursively
+    ExtendSequence,               // Extend saved path with current path and continue
+    CombineSequence,              // Combine saved path with current path for final result
+    NavigateSubject,              // Navigate to subject of current envelope
+    NotMatch { pat_idx: usize },  // Match only if pattern at pat_idx doesn't match
 }
 
 #[derive(Debug, Clone)]

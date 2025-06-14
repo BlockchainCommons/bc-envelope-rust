@@ -9,15 +9,15 @@ use crate::common::pattern_utils::*;
 fn test_wrapped_pattern() {
     // Does not match non-wrapped subjects.
     let envelope = Envelope::new(42);
-    assert!(!Pattern::any_wrapped().matches(&envelope));
+    assert!(!Pattern::wrapped().matches(&envelope));
 
     // Matches a wrapped envelope with any subject.
     let envelope = envelope.wrap_envelope();
-    assert!(Pattern::any_wrapped().matches(&envelope));
+    assert!(Pattern::wrapped().matches(&envelope));
 
     // The matched paths include the assertion.
     let envelope_with_assertion = envelope.add_assertion("an", "assertion");
-    let paths = Pattern::any_wrapped().paths(&envelope_with_assertion);
+    let paths = Pattern::wrapped().paths(&envelope_with_assertion);
     #[rustfmt::skip]
     let expected = indoc! {r#"
         169aba00 { 42 } [ "an": "assertion" ]
@@ -25,7 +25,7 @@ fn test_wrapped_pattern() {
     assert_actual_expected!(format_paths(&paths), expected);
 
     // A sequence of one pattern gives the same result as the single pattern.
-    let paths = Pattern::sequence(vec![Pattern::any_wrapped()])
+    let paths = Pattern::sequence(vec![Pattern::wrapped()])
         .paths(&envelope_with_assertion);
     #[rustfmt::skip]
     let expected = indoc! {r#"
@@ -41,7 +41,7 @@ fn test_wrapped_pattern() {
     // where the first element is the original wrapped envelope including
     // assertions, and the second element is the still-wrapped subject.
     let paths =
-        Pattern::sequence(vec![Pattern::any_wrapped(), Pattern::subject()])
+        Pattern::sequence(vec![Pattern::wrapped(), Pattern::subject()])
             .paths(&envelope_with_assertion);
     #[rustfmt::skip]
     let expected = indoc! {r#"
@@ -65,7 +65,7 @@ fn test_wrapped_pattern() {
     // including assertions, the second element is the still-wrapped subject,
     // and the third element is the unwrapped subject.
     let paths = Pattern::sequence(vec![
-        Pattern::any_wrapped(),
+        Pattern::wrapped(),
         Pattern::subject(),
         Pattern::unwrap(),
     ])

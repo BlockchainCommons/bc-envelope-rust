@@ -1,6 +1,10 @@
 use crate::{
-    Envelope,
-    pattern::{Matcher, Path},
+    Envelope, Pattern,
+    pattern::{
+        Matcher, Path,
+        structure::StructurePattern,
+        vm::{Axis, Instr},
+    },
 };
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -18,6 +22,23 @@ impl WrappedPattern {
     /// Creates a new `WrappedPattern` that matches a wrapped envelope and
     /// unwraps it.
     pub fn unwrap() -> Self { WrappedPattern::Unwrap }
+}
+
+impl WrappedPattern {
+    /// Emit predicate + descent so the VM makes progress.
+    pub(crate) fn compile(
+        &self,
+        code: &mut Vec<Instr>,
+        lits: &mut Vec<Pattern>,
+    ) {
+        // 1) atomic predicate “is wrapped”
+        let idx = lits.len();
+        lits.push(Pattern::Structure(StructurePattern::wrapped(self.clone())));
+        code.push(Instr::MatchPredicate(idx));
+
+        // 2) then move into inner envelope
+        code.push(Instr::PushAxis(Axis::Wrapped));
+    }
 }
 
 impl Matcher for WrappedPattern {
