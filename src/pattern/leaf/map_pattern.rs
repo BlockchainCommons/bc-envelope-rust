@@ -6,7 +6,7 @@ use crate::{
 };
 
 /// Pattern for matching maps.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub enum MapPattern {
     /// Matches any map.
     Any,

@@ -8,7 +8,7 @@ use crate::{
 };
 
 /// Pattern for matching envelope structure elements.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum StructurePattern {
     /// Matches assertions.
     Assertions(AssertionsPattern),

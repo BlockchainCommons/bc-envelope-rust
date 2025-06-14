@@ -1,11 +1,16 @@
 // Pattern module - provides pattern matching functionality for envelopes
 mod matcher;
 mod pattern_impl;
+mod greediness;
+mod vm;
 
 // Subdirectory modules
 mod leaf;
 mod meta;
 mod structure;
+
+// Re-export greediness
+pub use greediness::Greediness;
 
 // Re-export all types
 pub use matcher::{Matcher, Path};

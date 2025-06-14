@@ -6,7 +6,7 @@ use crate::{
 };
 
 /// Pattern for matching node envelopes.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum NodePattern {
     /// Matches any node.
     Any,

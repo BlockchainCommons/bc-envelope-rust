@@ -20,6 +20,43 @@ pub enum KnownValuePattern {
     Regex(regex::Regex),
 }
 
+impl PartialEq for KnownValuePattern {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (KnownValuePattern::Any, KnownValuePattern::Any) => true,
+            (KnownValuePattern::KnownValue(a), KnownValuePattern::KnownValue(b)) => a == b,
+            (KnownValuePattern::Named(a), KnownValuePattern::Named(b)) => a == b,
+            (KnownValuePattern::Regex(a), KnownValuePattern::Regex(b)) => a.as_str() == b.as_str(),
+            _ => false,
+        }
+    }
+}
+
+impl Eq for KnownValuePattern {}
+
+impl std::hash::Hash for KnownValuePattern {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            KnownValuePattern::Any => {
+                0u8.hash(state);
+            }
+            KnownValuePattern::KnownValue(s) => {
+                1u8.hash(state);
+                s.hash(state);
+            }
+            KnownValuePattern::Named(name) => {
+                2u8.hash(state);
+                name.hash(state);
+            }
+            KnownValuePattern::Regex(regex) => {
+                3u8.hash(state);
+                // Regex does not implement Hash, so we hash its pattern string.
+                regex.as_str().hash(state);
+            }
+        }
+    }
+}
+
 #[cfg(feature = "known_value")]
 impl KnownValuePattern {
     /// Creates a new `KnownValuePattern` that matches any known value.

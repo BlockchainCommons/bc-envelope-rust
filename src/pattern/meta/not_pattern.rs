@@ -4,7 +4,7 @@ use crate::{
 };
 
 /// A pattern that negates another pattern; matches when the inner pattern does not match.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct NotPattern {
     pub pattern: Box<Pattern>,
 }
@@ -46,7 +46,7 @@ mod tests {
         // Not pattern that negates the text pattern
         let not_pattern = NotPattern::new(text_pattern);
         assert!(!not_pattern.matches(&envelope));
-        
+
         // Using the Pattern::not_matching constructor
         assert!(!Pattern::not_matching(Pattern::text("test")).matches(&envelope));
 
@@ -56,7 +56,7 @@ mod tests {
 
         let double_not = NotPattern::new(not_matching_pattern);
         assert!(double_not.matches(&envelope));
-        
+
         // Using the Pattern::not_matching constructor
         assert!(Pattern::not_matching(Pattern::text("different")).matches(&envelope));
     }
@@ -65,11 +65,11 @@ mod tests {
     fn test_not_pattern_paths() {
         // Create a simple envelope
         let envelope = Envelope::new("test");
-        
+
         // Pattern that doesn't match
         let not_matching_pattern = Pattern::text("different");
         let not_pattern = NotPattern::new(not_matching_pattern);
-        
+
         let paths = not_pattern.paths(&envelope);
         assert_eq!(paths.len(), 1);
         assert_eq!(paths[0].len(), 1);
@@ -78,7 +78,7 @@ mod tests {
         // Pattern that does match
         let matching_pattern = Pattern::text("test");
         let not_pattern = NotPattern::new(matching_pattern);
-        
+
         let paths = not_pattern.paths(&envelope);
         assert_eq!(paths.len(), 0);
     }

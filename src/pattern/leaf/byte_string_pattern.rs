@@ -14,6 +14,38 @@ pub enum ByteStringPattern {
     BinaryRegex(regex::bytes::Regex),
 }
 
+impl PartialEq for ByteStringPattern {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (ByteStringPattern::Any, ByteStringPattern::Any) => true,
+            (ByteStringPattern::Exact(a), ByteStringPattern::Exact(b)) => a == b,
+            (ByteStringPattern::BinaryRegex(a), ByteStringPattern::BinaryRegex(b)) => a.as_str() == b.as_str(),
+            _ => false,
+        }
+    }
+}
+
+impl Eq for ByteStringPattern {}
+
+impl std::hash::Hash for ByteStringPattern {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            ByteStringPattern::Any => {
+                0u8.hash(state);
+            }
+            ByteStringPattern::Exact(s) => {
+                1u8.hash(state);
+                s.hash(state);
+            }
+            ByteStringPattern::BinaryRegex(regex) => {
+                2u8.hash(state);
+                // Regex does not implement Hash, so we hash its pattern string.
+                regex.as_str().hash(state);
+            }
+        }
+    }
+}
+
 impl ByteStringPattern {
     /// Creates a new `ByteStringPattern` that matches any byte string.
     pub fn any() -> Self { ByteStringPattern::Any }

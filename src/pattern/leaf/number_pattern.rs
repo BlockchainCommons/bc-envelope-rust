@@ -26,6 +26,58 @@ pub enum NumberPattern {
     NaN,
 }
 
+impl std::hash::Hash for NumberPattern {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            NumberPattern::Any => 0u8.hash(state),
+            NumberPattern::Exact(value) => {
+                1u8.hash(state);
+                value.to_bits().hash(state);
+            }
+            NumberPattern::Range(range) => {
+                2u8.hash(state);
+                range.start().to_bits().hash(state);
+                range.end().to_bits().hash(state);
+            }
+            NumberPattern::GreaterThan(value) => {
+                3u8.hash(state);
+                value.to_bits().hash(state);
+            }
+            NumberPattern::GreaterThanOrEqual(value) => {
+                4u8.hash(state);
+                value.to_bits().hash(state);
+            }
+            NumberPattern::LessThan(value) => {
+                5u8.hash(state);
+                value.to_bits().hash(state);
+            }
+            NumberPattern::LessThanOrEqual(value) => {
+                6u8.hash(state);
+                value.to_bits().hash(state);
+            }
+            NumberPattern::NaN => 7u8.hash(state),
+        }
+    }
+}
+
+impl PartialEq for NumberPattern {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (NumberPattern::Any, NumberPattern::Any) => true,
+            (NumberPattern::Exact(a), NumberPattern::Exact(b)) => a == b,
+            (NumberPattern::Range(a), NumberPattern::Range(b)) => a == b,
+            (NumberPattern::GreaterThan(a), NumberPattern::GreaterThan(b)) => a == b,
+            (NumberPattern::GreaterThanOrEqual(a), NumberPattern::GreaterThanOrEqual(b)) => a == b,
+            (NumberPattern::LessThan(a), NumberPattern::LessThan(b)) => a == b,
+            (NumberPattern::LessThanOrEqual(a), NumberPattern::LessThanOrEqual(b)) => a == b,
+            (NumberPattern::NaN, NumberPattern::NaN) => true,
+            _ => false,
+        }
+    }
+}
+
+impl Eq for NumberPattern {}
+
 impl NumberPattern {
     /// Creates a new `NumberPattern` that matches any number.
     pub fn any() -> Self { NumberPattern::Any }

@@ -6,7 +6,7 @@ use crate::{
 };
 
 /// Pattern for matching arrays.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub enum ArrayPattern {
     /// Matches any array.
     Any,

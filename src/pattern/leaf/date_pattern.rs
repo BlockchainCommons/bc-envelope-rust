@@ -27,6 +27,59 @@ pub enum DatePattern {
     Regex(regex::Regex),
 }
 
+impl PartialEq for DatePattern {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (DatePattern::Any, DatePattern::Any) => true,
+            (DatePattern::Date(a), DatePattern::Date(b)) => a == b,
+            (DatePattern::Range(a), DatePattern::Range(b)) => a == b,
+            (DatePattern::Earliest(a), DatePattern::Earliest(b)) => a == b,
+            (DatePattern::Latest(a), DatePattern::Latest(b)) => a == b,
+            (DatePattern::Iso8601(a), DatePattern::Iso8601(b)) => a == b,
+            (DatePattern::Regex(a), DatePattern::Regex(b)) => a.as_str() == b.as_str(),
+            _ => false,
+        }
+    }
+}
+
+impl Eq for DatePattern {}
+
+impl std::hash::Hash for DatePattern {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            DatePattern::Any => {
+                0u8.hash(state);
+            }
+            DatePattern::Date(date) => {
+                1u8.hash(state);
+                date.hash(state);
+            }
+            DatePattern::Range(range) => {
+                2u8.hash(state);
+                range.start().hash(state);
+                range.end().hash(state);
+            }
+            DatePattern::Earliest(date) => {
+                3u8.hash(state);
+                date.hash(state);
+            }
+            DatePattern::Latest(date) => {
+                4u8.hash(state);
+                date.hash(state);
+            }
+            DatePattern::Iso8601(iso_string) => {
+                5u8.hash(state);
+                iso_string.hash(state);
+            }
+            DatePattern::Regex(regex) => {
+                6u8.hash(state);
+                // Regex does not implement Hash, so we hash its pattern string.
+                regex.as_str().hash(state);
+            }
+        }
+    }
+}
+
 impl DatePattern {
     /// Creates a new `DatePattern` that matches any date.
     pub fn any() -> Self { DatePattern::Any }

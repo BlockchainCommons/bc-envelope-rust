@@ -4,7 +4,7 @@ use crate::{
 };
 
 /// Pattern for matching obscured elements.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum ObscuredPattern {
     /// Matches any obscured element.
     Any,

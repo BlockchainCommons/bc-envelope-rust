@@ -4,7 +4,7 @@ use crate::{
 };
 
 /// Pattern for matching null values.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub enum NullPattern {
     /// Matches any null value.
     Any,

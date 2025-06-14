@@ -6,7 +6,7 @@ use crate::{
 };
 
 /// Pattern for matching specific CBOR values.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub enum CborPattern {
     /// Matches any CBOR value.
     Any,

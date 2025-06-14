@@ -4,7 +4,7 @@ use crate::{
 };
 
 /// Pattern for matching boolean values.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub enum BoolPattern {
     /// Matches any boolean value.
     Any,

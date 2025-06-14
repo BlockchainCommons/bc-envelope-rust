@@ -7,7 +7,7 @@ use crate::{
     pattern::{Matcher, Path, Pattern},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct SearchPattern(Box<Pattern>);
 
 impl SearchPattern {

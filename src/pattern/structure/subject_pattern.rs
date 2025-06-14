@@ -3,7 +3,7 @@ use crate::{
     pattern::{Matcher, Path},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum SubjectPattern {
     Any,
 }

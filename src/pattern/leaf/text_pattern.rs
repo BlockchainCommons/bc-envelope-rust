@@ -14,6 +14,38 @@ pub enum TextPattern {
     Regex(regex::Regex),
 }
 
+impl PartialEq for TextPattern {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (TextPattern::Any, TextPattern::Any) => true,
+            (TextPattern::Exact(a), TextPattern::Exact(b)) => a == b,
+            (TextPattern::Regex(a), TextPattern::Regex(b)) => a.as_str() == b.as_str(),
+            _ => false,
+        }
+    }
+}
+
+impl Eq for TextPattern {}
+
+impl std::hash::Hash for TextPattern {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            TextPattern::Any => {
+                0u8.hash(state);
+            }
+            TextPattern::Exact(s) => {
+                1u8.hash(state);
+                s.hash(state);
+            }
+            TextPattern::Regex(regex) => {
+                2u8.hash(state);
+                // Regex does not implement Hash, so we hash its pattern string.
+                regex.as_str().hash(state);
+            }
+        }
+    }
+}
+
 impl TextPattern {
     /// Creates a new `TextPattern` that matches any text.
     pub fn any() -> Self { TextPattern::Any }

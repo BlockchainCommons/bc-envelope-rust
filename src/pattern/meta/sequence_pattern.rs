@@ -3,7 +3,7 @@ use crate::{
     pattern::{Matcher, Path, Pattern},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct SequencePattern {
     first: Box<Pattern>,
     rest: Option<Box<SequencePattern>>,
@@ -22,6 +22,18 @@ impl SequencePattern {
             Some(Box::new(SequencePattern::new(rest_patterns)))
         };
         SequencePattern { first: Box::new(first_pat), rest }
+    }
+
+    /// Compile into byte-code (sequential).
+    pub fn compile(
+        &self,
+        code: &mut Vec<crate::pattern::vm::Instr>,
+        lits: &mut Vec<Pattern>,
+    ) {
+        self.first.compile(code, lits);
+        if let Some(rest) = &self.rest {
+            rest.compile(code, lits);
+        }
     }
 }
 

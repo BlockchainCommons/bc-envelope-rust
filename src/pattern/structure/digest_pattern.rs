@@ -16,6 +16,41 @@ pub enum DigestPattern {
     BinaryRegex(regex::bytes::Regex),
 }
 
+
+impl PartialEq for DigestPattern {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (DigestPattern::Digest(a), DigestPattern::Digest(b)) => a == b,
+            (DigestPattern::HexPrefix(a), DigestPattern::HexPrefix(b)) => a.eq_ignore_ascii_case(b),
+            (DigestPattern::BinaryRegex(a), DigestPattern::BinaryRegex(b)) => a.as_str() == b.as_str(),
+            _ => false,
+        }
+    }
+}
+
+impl Eq for DigestPattern {}
+
+impl std::hash::Hash for DigestPattern {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            DigestPattern::Digest(a) => {
+                0u8.hash(state);
+                a.hash(state);
+            }
+            DigestPattern::HexPrefix(prefix) => {
+                1u8.hash(state);
+                prefix.to_lowercase().hash(state);
+            }
+            DigestPattern::BinaryRegex(regex) => {
+                2u8.hash(state);
+                // Regex does not implement Hash, so we hash its pattern string.
+                regex.as_str().hash(state);
+            }
+        }
+    }
+}
+
+
 impl DigestPattern {
     /// Creates a new `DigestPattern` that matches the exact digest.
     pub fn digest(digest: Digest) -> Self { DigestPattern::Digest(digest) }

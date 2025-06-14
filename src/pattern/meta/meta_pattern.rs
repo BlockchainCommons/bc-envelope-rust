@@ -1,11 +1,12 @@
-use super::{AndPattern, NotPattern, OrPattern, SearchPattern, SequencePattern};
+use super::{AndPattern, NotPattern, OrPattern, SearchPattern,
+            SequencePattern, RepeatPattern, CapturePattern};
 use crate::{
     Envelope,
     pattern::{Matcher, Path},
 };
 
 /// Pattern for combining and modifying other patterns.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum MetaPattern {
     /// Matches if all contained patterns match.
     And(AndPattern),
@@ -17,8 +18,10 @@ pub enum MetaPattern {
     Search(SearchPattern),
     /// Matches a sequence of patterns.
     Sequence(SequencePattern),
-    // Matches with repetition.
-    // Repeat(RepeatPattern),
+    /// Matches with repetition.
+    Repeat(RepeatPattern),
+    /// Captures a pattern match.
+    Capture(CapturePattern),
 }
 
 impl MetaPattern {
@@ -47,6 +50,8 @@ impl Matcher for MetaPattern {
             MetaPattern::Not(pattern) => pattern.paths(envelope),
             MetaPattern::Search(pattern) => pattern.paths(envelope),
             MetaPattern::Sequence(pattern) => pattern.paths(envelope),
+            MetaPattern::Repeat(pattern) => pattern.paths(envelope),
+            MetaPattern::Capture(pattern) => pattern.paths(envelope),
         }
     }
 }

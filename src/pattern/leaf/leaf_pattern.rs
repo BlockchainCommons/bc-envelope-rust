@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Pattern for matching leaf values.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub enum LeafPattern {
     /// Matches any leaf.
     Any,

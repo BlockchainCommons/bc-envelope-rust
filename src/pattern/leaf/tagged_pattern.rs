@@ -19,6 +19,43 @@ pub enum TaggedPattern {
     Regex(regex::Regex),
 }
 
+impl PartialEq for TaggedPattern {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (TaggedPattern::Any, TaggedPattern::Any) => true,
+            (TaggedPattern::Tag(a), TaggedPattern::Tag(b)) => a == b,
+            (TaggedPattern::Named(a), TaggedPattern::Named(b)) => a == b,
+            (TaggedPattern::Regex(a), TaggedPattern::Regex(b)) => a.as_str() == b.as_str(),
+            _ => false,
+        }
+    }
+}
+
+impl Eq for TaggedPattern {}
+
+impl std::hash::Hash for TaggedPattern {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            TaggedPattern::Any => {
+                0u8.hash(state);
+            }
+            TaggedPattern::Tag(tag) => {
+                1u8.hash(state);
+                tag.hash(state);
+            }
+            TaggedPattern::Named(name) => {
+                2u8.hash(state);
+                name.hash(state);
+            }
+            TaggedPattern::Regex(regex) => {
+                3u8.hash(state);
+                // Regex does not implement Hash, so we hash its pattern string.
+                regex.as_str().hash(state);
+            }
+        }
+    }
+}
+
 impl TaggedPattern {
     /// Creates a new `TaggedPattern` that matches any tag.
     pub fn any() -> Self { TaggedPattern::Any }

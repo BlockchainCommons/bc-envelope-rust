@@ -60,24 +60,26 @@ use known_values::KnownValue;
 #[cfg(feature = "known_value")]
 use super::leaf::KnownValuePattern;
 use super::{
-    Matcher, Path,
+    Greediness, Matcher, Path,
     leaf::{
         ArrayPattern, BoolPattern, ByteStringPattern, DatePattern, LeafPattern,
         MapPattern, NullPattern, NumberPattern, TaggedPattern, TextPattern,
     },
     meta::{
-        AndPattern, MetaPattern, NotPattern, OrPattern, SearchPattern, SequencePattern,
+        AndPattern, CapturePattern, MetaPattern, NotPattern, OrPattern,
+        RepeatPattern, SearchPattern, SequencePattern,
     },
     structure::{
         AssertionsPattern, DigestPattern, NodePattern, ObjectPattern,
         ObscuredPattern, PredicatePattern, StructurePattern, SubjectPattern,
         WrappedPattern,
     },
+    vm,
 };
-use crate::Envelope;
+use crate::{pattern::vm::Instr, Envelope};
 
 /// The main pattern type used for matching envelopes.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Pattern {
     /// Leaf patterns for matching CBOR values.
     Leaf(LeafPattern),
@@ -94,14 +96,32 @@ pub enum Pattern {
 }
 
 impl Matcher for Pattern {
-    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
-        match self {
-            Pattern::Leaf(pattern) => pattern.paths(envelope),
-            Pattern::Structure(pattern) => pattern.paths(envelope),
-            Pattern::Meta(pattern) => pattern.paths(envelope),
-            Pattern::Any => vec![vec![envelope.clone()]],
-            Pattern::None => vec![],
+    fn paths(&self, env: &Envelope) -> Vec<Path> {
+        use std::cell::RefCell;
+        thread_local! {
+            static PROG: RefCell<std::collections::HashMap<u64, vm::Program>> = RefCell::new(std::collections::HashMap::new());
         }
+
+        // cheap structural hash
+        use std::hash::{Hash, Hasher};
+        use std::collections::hash_map::DefaultHasher;
+        let mut h = DefaultHasher::new();
+        self.hash(&mut h);
+        let key = h.finish();
+
+        let prog = PROG.with(|cell| {
+            cell.borrow().get(&key).cloned()
+        }).unwrap_or_else(|| {
+            let mut p = vm::Program { code: Vec::new(), literals: Vec::new() };
+            self.compile(&mut p.code, &mut p.literals);
+            p.code.push(Instr::Accept);
+            PROG.with(|cell| {
+                cell.borrow_mut().insert(key, p.clone());
+            });
+            p
+        });
+
+        vm::run(&prog, env)
     }
 }
 
@@ -503,9 +523,107 @@ impl Pattern {
 }
 
 impl Pattern {
-    /// Creates a new `Pattern` that negates another pattern; matches if the specified pattern does not match.
+    /// Creates a new `Pattern` that negates another pattern; matches if the
+    /// specified pattern does not match.
     pub fn not_matching(pattern: Pattern) -> Self {
         Pattern::Meta(MetaPattern::not(NotPattern::new(pattern)))
+    }
+}
+
+impl Pattern {
+    /// Compile self to byte-code (recursive).
+    pub(crate) fn compile(&self,
+                          code: &mut Vec<Instr>,
+                          lits: &mut Vec<Pattern>) {
+        use Pattern::*;
+        match self {
+            Leaf(_) | Structure(_) | Any | None => {
+                let idx = lits.len();
+                lits.push(self.clone());
+                code.push(Instr::MatchPredicate(idx));
+            }
+            Meta(meta) => match meta {
+                MetaPattern::And(a)      => a.compile(code, lits),
+                MetaPattern::Or(o)       => o.compile(code, lits),
+                MetaPattern::Not(n)      => {
+                    // NOT = match inner, then fail branch
+                    n.pattern.compile(code, lits);
+                    // if predicate matched, fail; else succeed
+                    let s = code.len();
+                    code.push(Instr::Split { a: 0, b: 0 });
+                    code[s] = Instr::Split { a: s + 1, b: s + 2 };
+                    code.push(Instr::Jump(code.len() + 2)); // matched -> fail
+                    code.push(Instr::Accept);                // not matched
+                }
+                MetaPattern::Sequence(s) => s.compile(code, lits),
+                MetaPattern::Repeat(r)   => r.compile(code, lits),
+                MetaPattern::Capture(c)  => c.compile(code, lits),
+                MetaPattern::Search(_s)  => {
+                    // Keep existing recursive search for now.
+                    let idx = lits.len();
+                    lits.push(self.clone());
+                    code.push(Instr::MatchPredicate(idx));
+                }
+            },
+        }
+    }
+}
+
+impl Pattern {
+    /// Creates a new `Pattern` that will match a pattern repeated a number of
+    /// times according to the specified range and greediness.
+    pub fn repeat(
+        pattern: Pattern,
+        range: std::ops::RangeInclusive<usize>,
+        mode: Greediness,
+    ) -> Self {
+        let min = *range.start();
+        let max = if *range.end() == usize::MAX {
+            None
+        } else {
+            Some(*range.end())
+        };
+        Pattern::Meta(MetaPattern::Repeat(RepeatPattern {
+            sub: Box::new(pattern),
+            min,
+            max,
+            mode,
+        }))
+    }
+
+    /// Creates a new `Pattern` that will match a pattern repeated a number of
+    /// times using greedy matching.
+    pub fn repeat_greedy(
+        pattern: Pattern,
+        range: std::ops::RangeInclusive<usize>,
+    ) -> Self {
+        Self::repeat(pattern, range, Greediness::Greedy)
+    }
+
+    /// Creates a new `Pattern` that will match a pattern repeated a number of
+    /// times using lazy matching.
+    pub fn repeat_lazy(
+        pattern: Pattern,
+        range: std::ops::RangeInclusive<usize>,
+    ) -> Self {
+        Self::repeat(pattern, range, Greediness::Lazy)
+    }
+
+    /// Creates a new `Pattern` that will match a pattern repeated a number of
+    /// times using possessive matching.
+    pub fn repeat_possessive(
+        pattern: Pattern,
+        range: std::ops::RangeInclusive<usize>,
+    ) -> Self {
+        Self::repeat(pattern, range, Greediness::Possessive)
+    }
+
+    /// Creates a new `Pattern` that will capture a pattern match with a name.
+    pub fn capture(name: &str, pattern: Pattern) -> Self {
+        Pattern::Meta(MetaPattern::Capture(CapturePattern {
+            name: name.to_string(),
+            inner: Box::new(pattern),
+        }))
     }
 }
 
