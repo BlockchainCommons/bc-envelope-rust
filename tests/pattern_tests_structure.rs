@@ -43,7 +43,6 @@ fn test_wrapped_pattern() {
             7f83f7bd 42
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
-    // assert!(Pattern::wrapped().matches(&wrapped_envelope));
 
     // The matched paths include the assertion.
     let wrapped_envelope_with_assertion = wrapped_envelope.add_assertion("an", "assertion");
@@ -55,45 +54,30 @@ fn test_wrapped_pattern() {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
-    // // Matching a wrapped envelope and the subject in a sequence returns a path
-    // // where the first element is the original wrapped envelope including
-    // // assertions, and the second element is the still-wrapped subject.
-    // let paths = Pattern::sequence(vec![Pattern::wrapped(), Pattern::subject()])
-    //     .paths(&wrapped_envelope_with_assertion);
-    // #[rustfmt::skip]
-    // let expected = indoc! {r#"
-    //     169aba00 { 42 } [ "an": "assertion" ]
-    //         58b1ac6a { 42 }
-    // "#}.trim();
-    // assert_actual_expected!(format_paths(&paths), expected);
+    let wrapped_twice = wrapped_envelope_with_assertion.wrap_envelope();
+    // Matching a wrapped envelope with assertions returns a path where the first
+    // element is the original wrapped envelope including assertions, and the
+    // second element is the still-wrapped subject.
+    let paths = Pattern::wrapped().paths(&wrapped_twice);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        52d47c15 { { 42 } [ "an": "assertion" ] }
+            169aba00 { 42 } [ "an": "assertion" ]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
-    // // Unwrapping the envelope matches the original subject, and returns a path
-    // // where the first element is the original wrapped envelope and the second
-    // // element is the unwrapped subject.
-    // let paths = Pattern::unwrap().paths(&wrapped_envelope_with_assertion);
-    // #[rustfmt::skip]
-    // let expected = indoc! {r#"
-    //     7f83f7bd 42
-    // "#}.trim();
-    // assert_actual_expected!(format_paths(&paths), expected);
-
-    // // Matching a wrapped envelope, the subject, and unwrapping it in a sequence
-    // // returns a path where the first element is the original wrapped envelope
-    // // including assertions, the second element is the still-wrapped subject,
-    // // and the third element is the unwrapped subject.
-    // let paths = Pattern::sequence(vec![
-    //     Pattern::wrapped(),
-    //     Pattern::subject(),
-    //     Pattern::unwrap(),
-    // ])
-    // .paths(&wrapped_envelope_with_assertion);
-    // #[rustfmt::skip]
-    // let expected = indoc! {r#"
-    //     169aba00 { 42 } [ "an": "assertion" ]
-    //         58b1ac6a { 42 }
-    //             7f83f7bd 42
-    // "#}.trim();
-    // assert_actual_expected!(format_paths(&paths), expected);
+    let wrapped_twice_pattern = Pattern::sequence(vec![
+        Pattern::wrapped(),
+        Pattern::wrapped(),
+    ]);
+    let paths = wrapped_twice_pattern.paths(&wrapped_twice);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        52d47c15 { { 42 } [ "an": "assertion" ] }
+            169aba00 { 42 } [ "an": "assertion" ]
+                7f83f7bd 42
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 }
 
 #[test]

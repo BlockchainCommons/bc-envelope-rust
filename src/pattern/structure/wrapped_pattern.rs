@@ -11,17 +11,11 @@ use crate::{
 pub enum WrappedPattern {
     /// Matches any wrapped envelope.
     Any,
-    /// Matches a wrapped envelope, and adds the unwrapped envelope to the path.
-    Unwrap,
 }
 
 impl WrappedPattern {
     /// Creates a new `WrappedPattern` that matches any wrapped envelope.
     pub fn any() -> Self { WrappedPattern::Any }
-
-    /// Creates a new `WrappedPattern` that matches a wrapped envelope and
-    /// unwraps it.
-    pub fn unwrap() -> Self { WrappedPattern::Unwrap }
 }
 
 impl Compilable for WrappedPattern {
@@ -46,10 +40,6 @@ impl Matcher for WrappedPattern {
             match self {
                 WrappedPattern::Any => {
                     vec![vec![envelope.clone()]]
-                }
-                WrappedPattern::Unwrap => {
-                    let unwrapped = subject.unwrap_envelope().unwrap();
-                    vec![vec![unwrapped]]
                 }
             }
         } else {

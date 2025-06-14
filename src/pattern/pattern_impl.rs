@@ -364,10 +364,6 @@ impl Pattern {
     pub fn wrapped() -> Self {
         Pattern::Structure(StructurePattern::wrapped(WrappedPattern::any()))
     }
-
-    pub fn unwrap() -> Self {
-        Pattern::Structure(StructurePattern::wrapped(WrappedPattern::unwrap()))
-    }
 }
 
 impl Pattern {
