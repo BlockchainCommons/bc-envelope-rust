@@ -41,24 +41,35 @@ impl Axis {
     }
 }
 
+/// Bytecode instructions for the pattern VM.
 #[derive(Debug, Clone)]
 pub enum Instr {
-    MatchPredicate(usize), // literals[idx].matches(env)
-    MatchStructure(usize), /* Use literals[idx].paths(env) for
-                            * structure patterns */
-    Split { a: usize, b: usize }, // ε-split
-    Jump(usize),                  // Unconditional jump
-    PushAxis(Axis),               // Descend to children, one thread per child
-    Pop,                          // Pop one envelope from path
-    Save,                         // Emit current path
-    Accept,                       // Final accept
-    Search { pat_idx: usize },    // Search for pattern recursively
-    ExtendSequence,               /* Extend saved path with current path
-                                   * and continue */
-    CombineSequence, // Combine saved path with current path for final result
-    NavigateSubject, // Navigate to subject of current envelope
-    NotMatch { pat_idx: usize }, /* Match only if pattern at pat_idx
-                      * doesn't match */
+    /// Match predicate: `literals[idx].matches(env)`
+    MatchPredicate(usize),
+    /// Match structure: use `literals[idx].paths(env)` for structure patterns
+    MatchStructure(usize),
+    /// ε-split: fork execution to `a` and `b`
+    Split { a: usize, b: usize },
+    /// Unconditional jump to instruction at index
+    Jump(usize),
+    /// Descend to children via axis, one thread per child
+    PushAxis(Axis),
+    /// Pop one envelope from the path
+    Pop,
+    /// Emit current path
+    Save,
+    /// Final accept, emit current path and halt thread
+    Accept,
+    /// Recursively search for pattern at `pat_idx`
+    Search { pat_idx: usize },
+    /// Save current path and start new sequence from last envelope
+    ExtendSequence,
+    /// Combine saved path with current path for final result
+    CombineSequence,
+    /// Navigate to subject of current envelope
+    NavigateSubject,
+    /// Match only if pattern at `pat_idx` does not match
+    NotMatch { pat_idx: usize },
 }
 
 #[derive(Debug, Clone)]

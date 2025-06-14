@@ -23,12 +23,15 @@ impl Compilable for SubjectPattern {
 }
 
 impl Matcher for SubjectPattern {
-    fn paths(&self, envelope: &Envelope) -> Vec<Path> {
-        let subject = envelope.subject();
-        match self {
-            SubjectPattern::Any => {
-                vec![vec![subject.clone()]]
-            }
+    fn paths(&self, env: &Envelope) -> Vec<Path> {
+        // `Envelope::subject()` always returns an `Envelope`.
+        // If `env` is already that subject (i.e. not a NODE) the caller
+        // gets back an empty path, otherwise it gets the real subject.
+        let subj = env.subject();
+        if &subj == env {
+            vec![vec![]]           // identity case: no additional envelope
+        } else {
+            vec![vec![subj]]       // normal case: yield the subject envelope
         }
     }
 }
