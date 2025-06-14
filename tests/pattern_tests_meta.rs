@@ -512,81 +512,33 @@ fn test_search_pattern_credential() {
     .trim();
     assert_actual_expected!(format_paths(&found_elements), expected);
 
-    // The above pattern is returning some text elements more than once.
-    //
-    // Current actual output:
+    // A pattern that searches for the text "James" in the credential
+    let james_search_pattern = Pattern::search(Pattern::text("James"));
+    // Search for specific strings that should be in the credential
+    let james_paths = james_search_pattern.paths(&cred);
+    assert_eq!(james_paths.len(), 1);
 
-    /*
-        9e3bff3a "certificateNumber"
-        21c21808 "123-456-789"
-        6e5d379f "expirationDate"
-        5f82a16a "lastName"
-        fe4d5230 "Maxwell"
-        222afe69 "issueDate"
-        051beee6 "Certificate of Completion"
-        3976ef74 "photo"
-        231b8527 "This is James Maxwell's photo."
-        f13aa855 "professionalDevelopmentHours"
-        4395643b "firstName"
-        d6d0b768 "James"
-        e6bf4dd3 "topics"
-        2b191589 "continuingEducationUnits"
-        f8489ac1 "Example Electrical Engineering Board"
-        8e4e62eb "subject"
-        202c10ef "RF and Microwave Engineering"
-        f8489ac1 "Example Electrical Engineering Board"
-        f106bad1 "Signed by Example Electrical Engineering Board"
-        9e3bff3a "certificateNumber"
-        21c21808 "123-456-789"
-        6e5d379f "expirationDate"
-        5f82a16a "lastName"
-        fe4d5230 "Maxwell"
-        222afe69 "issueDate"
-        051beee6 "Certificate of Completion"
-        3976ef74 "photo"
-        231b8527 "This is James Maxwell's photo."
-        f13aa855 "professionalDevelopmentHours"
-        4395643b "firstName"
-        d6d0b768 "James"
-        e6bf4dd3 "topics"
-        2b191589 "continuingEducationUnits"
-        f8489ac1 "Example Electrical Engineering Board"
-        8e4e62eb "subject"
-        202c10ef "RF and Microwave Engineering"
-        f8489ac1 "Example Electrical Engineering Board"
-     */
-}
+    // A pattern that searches for the text "Maxwell" in the credential
+    let maxwell_search_pattern = Pattern::search(Pattern::text("Maxwell"));
+    let maxwell_paths = maxwell_search_pattern.paths(&cred);
+    assert_eq!(maxwell_paths.len(), 1);
 
-#[test]
-#[ignore]
-fn test_search_pattern_credential_2() {
-    // // A pattern that searches for the text "James" in the credential
-    // let james_search_pattern = Pattern::search(Pattern::text("James"));
-    // // Search for specific strings that should be in the credential
-    // let james_paths = james_search_pattern.paths(&cred);
-    // assert_eq!(james_paths.len(), 1);
-
-    // // A pattern that searches for the text "Maxwell" in the credential
-    // let maxwell_search_pattern = Pattern::search(Pattern::text("Maxwell"));
-    // let maxwell_paths = maxwell_search_pattern.paths(&cred);
-    // assert_eq!(maxwell_paths.len(), 1);
-
-    // // A pattern that searches for numbers in the credential
-    // let number_search_pattern =
-    //     Pattern::search(Pattern::assertion_with_object(Pattern::any_number()));
-    // // Should find education units and hours
-    // let number_paths = number_search_pattern.paths(&cred);
-    // // Get the last element of each path as a single-element path for output
-    // let number_paths: Vec<Path> = number_paths
-    //     .iter()
-    //     .map(|path| vec![(*path.last().unwrap()).clone()])
-    //     .collect();
-    // let expected = indoc! {r#"
-    //     54b3e1e7 "professionalDevelopmentHours": 15
-    //     8ec5e912 "continuingEducationUnits": 1
-    // "#}
-    // .trim();
-    // assert_actual_expected!(format_paths(&number_paths), expected);
+    // A pattern that searches for numbers in the credential
+    let number_search_pattern =
+        Pattern::search(Pattern::assertion_with_object(Pattern::any_number()));
+    // Should find education units and hours
+    let number_paths = number_search_pattern.paths(&cred);
+    // Get the last element of each path as a single-element path for output
+    let number_paths: Vec<Path> = number_paths
+        .iter()
+        .map(|path| vec![(*path.last().unwrap()).clone()])
+        .collect();
+    let expected = indoc! {r#"
+        54b3e1e7 "professionalDevelopmentHours": 15
+        8ec5e912 "continuingEducationUnits": 1
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&number_paths), expected);
 }
 
 #[test]
