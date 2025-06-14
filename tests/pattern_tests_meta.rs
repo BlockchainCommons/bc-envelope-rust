@@ -420,7 +420,6 @@ fn test_search_pattern_with_wrapped() {
 
 #[cfg(feature = "signature")]
 #[test]
-#[ignore]
 fn test_search_pattern_credential() {
     use crate::common::test_data::credential;
 
