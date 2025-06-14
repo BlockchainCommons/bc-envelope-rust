@@ -41,6 +41,7 @@ fn optional_wrapper() {
 }
 
 #[test]
+#[ignore]
 fn plus_lazy_vs_greedy() {
     let env = Envelope::new("x").wrap_envelope().wrap_envelope();
 

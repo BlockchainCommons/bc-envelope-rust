@@ -21,8 +21,8 @@ impl Default for NonePattern {
 
 impl Matcher for NonePattern {
     fn paths(&self, _envelope: &Envelope) -> Vec<Path> {
-        // Always return an empty path, indicating no matches.
-        vec![vec![]]
+        // Never matches any element.
+        Vec::new()
     }
 }
 

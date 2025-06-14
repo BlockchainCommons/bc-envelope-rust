@@ -30,7 +30,9 @@ use crate::{Envelope, EnvelopeEncodable, Error, KnownValue, known_values};
 /// The type system is commonly used in two ways:
 ///
 /// 1. **Type Tagging**: Adding type information to envelopes to indicate their
-///    semantic meaning ``` use bc_envelope::prelude::*;
+///    semantic meaning
+///    ```rust
+///    use bc_envelope::prelude::*;
 ///
 ///    // Create an envelope representing a person
 ///    let person = Envelope::new("Alice")
@@ -39,8 +41,10 @@ use crate::{Envelope, EnvelopeEncodable, Error, KnownValue, known_values};
 ///    ```
 ///
 /// 2. **Type Checking**: Verifying that an envelope has the expected type
-///    before processing ```no_run use bc_envelope::prelude::*; use
-///    anyhow::Result;
+///    before processing
+///    ```no_run
+///    use bc_envelope::prelude::*;
+///    use anyhow::Result;
 ///
 ///    fn process_person(envelope: &Envelope) -> Result<()> {
 ///        // Verify this is a person before processing

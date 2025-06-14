@@ -115,6 +115,8 @@ pub(crate) fn atomic_paths(
         Leaf(l) => l.paths(env),
         Structure(s) => s.paths(env),
         Meta(meta) => match meta {
+            crate::pattern::meta::MetaPattern::Any(a) => a.paths(env),
+            crate::pattern::meta::MetaPattern::None(n) => n.paths(env),
             crate::pattern::meta::MetaPattern::Search(_) => {
                 panic!(
                     "SearchPattern should be compiled to Search instruction, not MatchPredicate"

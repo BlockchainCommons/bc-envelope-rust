@@ -35,7 +35,7 @@
 //!
 //! A binary regex matching any byte string ending with h'010203':
 //!
-//! ```
+//! ```text
 //! (?s-u).*\x01\x02\x03$
 //! ```
 //!
