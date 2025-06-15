@@ -2,8 +2,9 @@
 //!
 //! The VM runs byte-code produced by `Pattern::compile` (implemented later).
 
-use super::{Matcher, Path, Pattern};
+use super::{Greediness, Matcher, Path, Pattern};
 use crate::{EdgeType, Envelope};
+use bc_components::DigestProvider;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Axis {
@@ -83,6 +84,13 @@ pub enum Instr {
     NavigateSubject,
     /// Match only if pattern at `pat_idx` does not match
     NotMatch { pat_idx: usize },
+    /// Repeat a sub pattern according to range and greediness
+    Repeat {
+        pat_idx: usize,
+        min: usize,
+        max: Option<usize>,
+        mode: Greediness,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -133,6 +141,61 @@ pub(crate) fn atomic_paths(
             ),
         },
     }
+}
+
+fn repeat_paths(
+    pat: &Pattern,
+    env: &Envelope,
+    path: &Path,
+    min: usize,
+    max: Option<usize>,
+    mode: Greediness,
+) -> Vec<(Envelope, Path)> {
+    let mut states: Vec<Vec<(Envelope, Path)>> = vec![vec![(env.clone(), path.clone())]];
+    let bound = max.unwrap_or(usize::MAX);
+    for _ in 0..bound {
+        let mut next = Vec::new();
+        for (e, pth) in states.last().unwrap().iter() {
+            for sub_path in pat.paths(e) {
+                if let Some(last) = sub_path.last() {
+                    if last.digest() == e.digest() {
+                        continue;
+                    }
+                    let mut combined = pth.clone();
+                    if sub_path.first() == Some(e) {
+                        combined.extend(sub_path.iter().skip(1).cloned());
+                    } else {
+                        combined.extend(sub_path.iter().cloned());
+                    }
+                    next.push((last.clone(), combined));
+                }
+            }
+        }
+        if next.is_empty() {
+            break;
+        }
+        states.push(next);
+    }
+
+    let max_possible = states.len() - 1;
+    let max_allowed = bound.min(max_possible);
+    if max_allowed < min {
+        return Vec::new();
+    }
+
+    let counts: Vec<usize> = match mode {
+        Greediness::Greedy => (min..=max_allowed).rev().collect(),
+        Greediness::Lazy => (min..=max_allowed).collect(),
+        Greediness::Possessive => vec![max_allowed],
+    };
+
+    let mut out = Vec::new();
+    for c in counts {
+        if let Some(list) = states.get(c) {
+            out.extend(list.clone());
+        }
+    }
+    out
 }
 
 /// Execute `prog` starting at `root`.  Every time `SAVE` or `ACCEPT` executes,
@@ -347,6 +410,22 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                         th.path = combined;
                     }
                     th.pc += 1;
+                }
+                Repeat { pat_idx, min, max, mode } => {
+                    let pat = &prog.literals[pat_idx];
+                    let results = repeat_paths(pat, &th.env, &th.path, min, max, mode);
+                    if results.is_empty() {
+                        break;
+                    }
+                    let next_pc = th.pc + 1;
+                    for (env_after, path_after) in results.into_iter().rev() {
+                        let mut fork = th.clone();
+                        fork.pc = next_pc;
+                        fork.env = env_after;
+                        fork.path = path_after;
+                        stack.push(fork);
+                    }
+                    break;
                 }
                 NavigateSubject => {
                     // If the current envelope is a node, navigate to its

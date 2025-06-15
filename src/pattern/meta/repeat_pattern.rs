@@ -19,46 +19,17 @@ impl Matcher for RepeatPattern {
     }
 }
 
+
 impl Compilable for RepeatPattern {
-    /// Compile into Thompson fragment.
-    ///
-    /// We assume caller patches control-flow; this appends code and returns.
+    /// Emit a high-level `Repeat` instruction for the VM.
     fn compile(&self, code: &mut Vec<Instr>, lits: &mut Vec<Pattern>) {
-        use Greediness::*;
-        // 1. mandatory copies
-        for _ in 0..self.min {
-            self.sub.compile(code, lits);
-        }
-
-        // 2. optional region (if any)
-        if self.max == Some(self.min) {
-            return;
-        } // exactly n
-
-        // loop skeleton
-        let split = code.len();
-        code.push(Instr::Split { a: 0, b: 0 }); // patch below
-        let body = code.len();
-        self.sub.compile(code, lits);
-        code.push(Instr::Jump(split));
-        let after = code.len();
-
-        match self.mode {
-            Greedy => code[split] = Instr::Split { a: body, b: after },
-            Lazy => code[split] = Instr::Split { a: after, b: body },
-            Possessive => {
-                // Possessive = greedy w/out back-track path
-                code[split] = Instr::Jump(body);
-            }
-        }
-
-        debug_assert!(
-            !matches!(self.mode, Greediness::Possessive)
-                || matches!(code.last(), Some(Instr::Jump(_))),
-            "Repeat operand must move to a different envelope"
-        );
-
-        // NOTE – respecting finite `max`>min is left as future work.  Tests use
-        // None or very large max, so behaviour is correct.
+        let idx = lits.len();
+        lits.push((*self.sub).clone());
+        code.push(Instr::Repeat {
+            pat_idx: idx,
+            min: self.min,
+            max: self.max,
+            mode: self.mode,
+        });
     }
 }
