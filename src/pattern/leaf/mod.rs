@@ -17,7 +17,7 @@ mod text_pattern;
 pub(crate) use array_pattern::ArrayPattern;
 pub(crate) use bool_pattern::BoolPattern;
 pub(crate) use byte_string_pattern::ByteStringPattern;
-pub(crate) use cbor_pattern::CborPattern;
+pub(crate) use cbor_pattern::CBORPattern;
 pub(crate) use date_pattern::DatePattern;
 #[cfg(feature = "known_value")]
 pub(crate) use known_value_pattern::KnownValuePattern;

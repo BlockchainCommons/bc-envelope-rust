@@ -1,32 +1,40 @@
 use dcbor::prelude::*;
 
 use crate::{
-    pattern::{compile_as_atomic, leaf::LeafPattern, vm::Instr, Compilable, Matcher, Path}, Envelope, Pattern
+    Envelope, Pattern,
+    pattern::{
+        Compilable, Matcher, Path, compile_as_atomic, leaf::LeafPattern,
+        vm::Instr,
+    },
 };
 
 /// Pattern for matching specific CBOR values.
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
-pub enum CborPattern {
+pub enum CBORPattern {
     /// Matches any CBOR value.
     Any,
     /// Matches the specific CBOR value.
     Exact(CBOR),
 }
 
-impl CborPattern {
+impl CBORPattern {
     /// Creates a new `CborPattern` that matches any CBOR value.
-    pub fn any() -> Self { CborPattern::Any }
+    pub fn any() -> Self { CBORPattern::Any }
 
     /// Creates a new `CborPattern` that matches a specific CBOR value.
-    pub fn exact(cbor: CBOR) -> Self { CborPattern::Exact(cbor) }
+    pub fn exact(cbor: CBOR) -> Self { CBORPattern::Exact(cbor) }
 }
 
-impl Matcher for CborPattern {
+impl Matcher for CBORPattern {
     fn paths(&self, envelope: &Envelope) -> Vec<Path> {
+        let subject = envelope.subject();
+        let subject_cbor = match subject.as_leaf() {
+            Some(cbor) => cbor,
+            None => return vec![],
+        };
         match self {
-            CborPattern::Any => vec![vec![envelope.clone()]],
-            CborPattern::Exact(expected_cbor) => {
-                let subject_cbor = envelope.subject().to_cbor();
+            CBORPattern::Any => vec![vec![envelope.clone()]],
+            CBORPattern::Exact(expected_cbor) => {
                 if subject_cbor == *expected_cbor {
                     vec![vec![envelope.clone()]]
                 } else {
@@ -37,12 +45,10 @@ impl Matcher for CborPattern {
     }
 }
 
-impl Compilable for CborPattern {
+impl Compilable for CBORPattern {
     fn compile(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pattern>) {
         compile_as_atomic(
-            &Pattern::Leaf(LeafPattern::Cbor(
-                self.clone(),
-            )),
+            &Pattern::Leaf(LeafPattern::Cbor(self.clone())),
             code,
             literals,
         );
@@ -57,7 +63,7 @@ mod tests {
     #[test]
     fn test_cbor_pattern_any() {
         let envelope = Envelope::new("test");
-        let pattern = CborPattern::any();
+        let pattern = CBORPattern::any();
         let paths = pattern.paths(&envelope);
         assert_eq!(paths.len(), 1);
         assert_eq!(paths[0], vec![envelope.clone()]);
@@ -68,7 +74,7 @@ mod tests {
         let value = "test_value";
         let envelope = Envelope::new(value);
         let cbor = envelope.subject().to_cbor(); // Use the same CBOR as the envelope
-        let pattern = CborPattern::exact(cbor);
+        let pattern = CBORPattern::exact(cbor);
         let paths = pattern.paths(&envelope);
         assert_eq!(paths.len(), 1);
         assert_eq!(paths[0], vec![envelope.clone()]);

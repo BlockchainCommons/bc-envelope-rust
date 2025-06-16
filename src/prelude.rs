@@ -8,7 +8,7 @@ pub use crate::{Attachable, Attachments};
 pub use crate::{
     DigestDisplayFormat, Envelope, EnvelopeEncodable, Error as EnvelopeError,
     FormatContext, FormatContextOpt, Matcher, MermaidFormatOpts,
-    MermaidOrientation, MermaidTheme, Path, Pattern, Result as EnvelopeResult,
+    MermaidOrientation, MermaidTheme, Path, Pattern, Greediness, Result as EnvelopeResult,
     TreeFormatOpts,
     elide::{self, ObscureAction},
     register_tags, register_tags_in,

@@ -1,11 +1,12 @@
 #[cfg(feature = "known_value")]
 use super::KnownValuePattern;
 use super::{
-    ArrayPattern, BoolPattern, ByteStringPattern, CborPattern, DatePattern,
+    ArrayPattern, BoolPattern, ByteStringPattern, CBORPattern, DatePattern,
     MapPattern, NullPattern, NumberPattern, TaggedPattern, TextPattern,
 };
 use crate::{
-    pattern::{compile_as_atomic, vm::Instr, Compilable, Matcher, Path}, Envelope, Pattern
+    Envelope, Pattern,
+    pattern::{Compilable, Matcher, Path, compile_as_atomic, vm::Instr},
 };
 
 /// Pattern for matching leaf values.
@@ -14,7 +15,7 @@ pub enum LeafPattern {
     /// Matches any leaf.
     Any,
     /// Matches the specific CBOR.
-    Cbor(CborPattern),
+    Cbor(CBORPattern),
     /// Matches a numeric value.
     Number(NumberPattern),
     /// Matches a text value.
@@ -42,7 +43,7 @@ impl LeafPattern {
     /// Creates a new `LeafPattern` that matches any leaf.
     pub fn any() -> Self { LeafPattern::Any }
 
-    pub fn cbor(pattern: CborPattern) -> Self { LeafPattern::Cbor(pattern) }
+    pub fn cbor(pattern: CBORPattern) -> Self { LeafPattern::Cbor(pattern) }
 
     pub fn number(pattern: NumberPattern) -> Self {
         LeafPattern::Number(pattern)

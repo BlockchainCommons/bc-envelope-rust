@@ -340,6 +340,10 @@ impl Envelope {
     }
 }
 
+impl AsRef<Envelope> for Envelope {
+    fn as_ref(&self) -> &Envelope { self }
+}
+
 #[cfg(test)]
 mod tests {
     #[cfg(feature = "compress")]

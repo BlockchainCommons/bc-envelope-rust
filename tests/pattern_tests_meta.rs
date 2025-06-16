@@ -476,7 +476,8 @@ fn test_search_pattern_credential() {
             e6d7fca0 ASSERTION
                 0fcd6a39 pred 'note'
                 f106bad1 obj "Signed by Example Electrical Engineering…"
-    "#}.trim();
+    "#}
+    .trim();
     assert_actual_expected!(cred.tree_format(), expected);
 
     // Search for all text in the credential

@@ -51,9 +51,13 @@
 //! - https://docs.rs/regex/latest/regex/bytes/index.html "regex::bytes - Rust"
 //! - https://docs.rs/regex/latest/regex/ "regex - Rust"
 
-use std::{cell::RefCell, collections::HashMap, ops::RangeInclusive};
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    ops::{Bound, RangeBounds, RangeInclusive},
+};
 
-use dcbor::Date;
+use dcbor::prelude::*;
 #[cfg(feature = "known_value")]
 use known_values::KnownValue;
 
@@ -80,6 +84,7 @@ use crate::{
     Envelope,
     pattern::{
         Compilable,
+        leaf::CBORPattern,
         meta::{AnyPattern, NonePattern},
         vm::Instr,
     },
@@ -135,6 +140,18 @@ impl Matcher for Pattern {
 //
 
 impl Pattern {
+    /// Creates a new `Pattern` that matches any CBOR value.
+    pub fn any_cbor() -> Self {
+        Pattern::Leaf(LeafPattern::Cbor(CBORPattern::any()))
+    }
+
+    /// Creates a new `Pattern` that matches a specific CBOR value.
+    pub fn cbor(cbor: CBOR) -> Self {
+        Pattern::Leaf(LeafPattern::Cbor(CBORPattern::exact(cbor)))
+    }
+}
+
+impl Pattern {
     /// Creates a new `Pattern` that matches any boolean value.
     pub fn any_bool() -> Self {
         Pattern::Leaf(LeafPattern::Bool(BoolPattern::any()))
@@ -171,25 +188,25 @@ impl Pattern {
     }
 
     /// Creates a new `Pattern` that matches a specific Date (CBOR tag 1) value.
-    pub fn date(date: Date) -> Self {
+    pub fn date(date: dcbor::Date) -> Self {
         Pattern::Leaf(LeafPattern::Date(DatePattern::date(date)))
     }
 
     /// Creates a new `Pattern` that matches Date (CBOR tag 1) values within a
     /// specified range (inclusive).
-    pub fn date_range(range: RangeInclusive<Date>) -> Self {
+    pub fn date_range(range: RangeInclusive<dcbor::Date>) -> Self {
         Pattern::Leaf(LeafPattern::Date(DatePattern::range(range)))
     }
 
     /// Creates a new `Pattern` that matches Date (CBOR tag 1) values that are
     /// on or after the specified date.
-    pub fn date_earliest(date: Date) -> Self {
+    pub fn date_earliest(date: dcbor::Date) -> Self {
         Pattern::Leaf(LeafPattern::Date(DatePattern::earliest(date)))
     }
 
     /// Creates a new `Pattern` that matches Date (CBOR tag 1) values that are
     /// on or before the specified date.
-    pub fn date_latest(date: Date) -> Self {
+    pub fn date_latest(date: dcbor::Date) -> Self {
         Pattern::Leaf(LeafPattern::Date(DatePattern::latest(date)))
     }
 
@@ -219,9 +236,7 @@ impl Pattern {
 
     /// Creates a new `Pattern` that matches number values within a specified
     /// range (inclusive).
-    pub fn number_range<A: Into<f64> + Copy>(
-        range: std::ops::RangeInclusive<A>,
-    ) -> Self {
+    pub fn number_range<A: Into<f64> + Copy>(range: RangeInclusive<A>) -> Self {
         Pattern::Leaf(LeafPattern::Number(NumberPattern::range(range)))
     }
 
@@ -297,10 +312,10 @@ impl Pattern {
     }
 
     pub fn known_value_regex(regex: regex::Regex) -> Self {
-        Pattern::Leaf(LeafPattern::KnownValue(KnownValuePattern::regex(
-            regex,
-        )))
+        Pattern::Leaf(LeafPattern::KnownValue(KnownValuePattern::regex(regex)))
     }
+
+    pub fn unit() -> Self { Self::known_value(known_values::UNIT) }
 }
 
 impl Pattern {
@@ -312,7 +327,7 @@ impl Pattern {
         Pattern::Leaf(LeafPattern::Array(ArrayPattern::count(count)))
     }
 
-    pub fn array_count_range(range: std::ops::RangeInclusive<usize>) -> Self {
+    pub fn array_count_range(range: RangeInclusive<usize>) -> Self {
         Pattern::Leaf(LeafPattern::Array(ArrayPattern::range_count(range)))
     }
 }
@@ -326,7 +341,7 @@ impl Pattern {
         Pattern::Leaf(LeafPattern::Map(MapPattern::count(count)))
     }
 
-    pub fn map_count_range(range: std::ops::RangeInclusive<usize>) -> Self {
+    pub fn map_count_range(range: RangeInclusive<usize>) -> Self {
         Pattern::Leaf(LeafPattern::Map(MapPattern::range_count(range)))
     }
 }
@@ -355,9 +370,7 @@ impl Pattern {
     }
 
     pub fn tagged_with_regex(regex: regex::Regex) -> Self {
-        Pattern::Leaf(LeafPattern::Tag(TaggedPattern::with_tag_regex(
-            regex,
-        )))
+        Pattern::Leaf(LeafPattern::Tag(TaggedPattern::with_tag_regex(regex)))
     }
 }
 
@@ -445,7 +458,7 @@ impl Pattern {
     }
 
     pub fn node_with_assertions_count_range(
-        range: std::ops::RangeInclusive<usize>,
+        range: RangeInclusive<usize>,
     ) -> Self {
         Pattern::Structure(StructurePattern::node(
             NodePattern::assertions_count_range(range),
@@ -556,17 +569,34 @@ impl Pattern {
 impl Pattern {
     /// Creates a new `Pattern` that will match a pattern repeated a number of
     /// times according to the specified range and greediness.
-    pub fn repeat(
-        pattern: Pattern,
-        range: std::ops::RangeInclusive<usize>,
-        mode: Greediness,
-    ) -> Self {
-        let min = *range.start();
-        let max = if *range.end() == usize::MAX {
-            None
-        } else {
-            Some(*range.end())
+    ///
+    /// In regex terms:
+    ///
+    /// | Range         | Quantifier   |
+    /// | :------------ | :----------- |
+    /// | `..`          | `*`          |
+    /// | `1..`         | `+`          |
+    /// | `0..=1`       | `?`          |
+    /// | `min..=max`   | `{min,max}`  |
+    /// | `min..`       | `{min,}`     |
+    /// | `..=max`      | `{0,max}`    |
+    /// | `n..=n`       | `{n}`        |
+    pub fn repeat<R>(pattern: Pattern, range: R, mode: Greediness) -> Self
+    where
+        R: RangeBounds<usize>,
+    {
+        let min = match range.start_bound() {
+            Bound::Included(&n) => n,
+            Bound::Excluded(&n) => n + 1,
+            Bound::Unbounded => 0,
         };
+
+        let max = match range.end_bound() {
+            Bound::Included(&n) => Some(n),
+            Bound::Excluded(&n) => Some(n - 1),
+            Bound::Unbounded => None,
+        };
+
         Pattern::Meta(MetaPattern::Repeat(RepeatPattern {
             sub: Box::new(pattern),
             min,
@@ -574,7 +604,9 @@ impl Pattern {
             mode,
         }))
     }
+}
 
+impl Pattern {
     /// Creates a new `Pattern` that will capture a pattern match with a name.
     pub fn capture(name: &str, pattern: Pattern) -> Self {
         Pattern::Meta(MetaPattern::Capture(CapturePattern {
