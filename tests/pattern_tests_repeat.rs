@@ -484,8 +484,6 @@ fn repeat_some_order() {
         06bb2465 { { "x" } }
             70b5f17d { "x" }
                 5e85370e "x"
-        06bb2465 { { "x" } }
-            70b5f17d { "x" }
     "#}.trim();
     assert_actual_expected!(format_paths(&greedy_paths), expected);
 
@@ -494,9 +492,6 @@ fn repeat_some_order() {
     let expected = indoc! {r#"
         06bb2465 { { "x" } }
             70b5f17d { "x" }
-        06bb2465 { { "x" } }
-            70b5f17d { "x" }
-                5e85370e "x"
     "#}.trim();
     assert_actual_expected!(format_paths(&lazy_paths), expected);
 
@@ -527,9 +522,6 @@ fn repeat_range_order() {
             79962374 { { { "x" } } }
                 06bb2465 { { "x" } }
                     70b5f17d { "x" }
-        88e28c8b { { { { "x" } } } }
-            79962374 { { { "x" } } }
-                06bb2465 { { "x" } }
     "#}
     .trim();
     assert_actual_expected!(format_paths(&greedy_paths), expected);
@@ -539,10 +531,6 @@ fn repeat_range_order() {
         88e28c8b { { { { "x" } } } }
             79962374 { { { "x" } } }
                 06bb2465 { { "x" } }
-        88e28c8b { { { { "x" } } } }
-            79962374 { { { "x" } } }
-                06bb2465 { { "x" } }
-                    70b5f17d { "x" }
     "#}
     .trim();
     assert_actual_expected!(format_paths(&lazy_paths), expected);

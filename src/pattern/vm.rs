@@ -200,15 +200,12 @@ fn repeat_paths(
 
 /// Execute `prog` starting at `root`.  Every time `SAVE` or `ACCEPT` executes,
 /// current `path` is pushed into result.
-pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
+/// Execute a single thread until it halts. Returns true if any paths were
+/// produced.
+fn run_thread(prog: &Program, start: Thread, out: &mut Vec<Path>) -> bool {
     use Instr::*;
-    let mut out = Vec::<Path>::new();
-    let mut stack = vec![Thread {
-        pc: 0,
-        env: root.clone(),
-        path: vec![root.clone()],
-        saved_paths: Vec::new(),
-    }];
+    let mut produced = false;
+    let mut stack = vec![start];
 
     while let Some(mut th) = stack.pop() {
         loop {
@@ -285,10 +282,12 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                 }
                 Save => {
                     out.push(th.path.clone());
+                    produced = true;
                     th.pc += 1;
                 }
                 Accept => {
                     out.push(th.path.clone());
+                    produced = true;
                     break;
                 }
                 Search { pat_idx } => {
@@ -312,6 +311,7 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                     // If we found any paths, emit them by extending the current
                     // path
                     if !found_paths.is_empty() {
+                        produced = true;
                         for found_path in found_paths {
                             // Special case: if the found path is just the
                             // current envelope,
@@ -417,13 +417,27 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
                     if results.is_empty() {
                         break;
                     }
+                    // Try each repetition count in order. `run_thread` fully
+                    // explores all branches for that count and returns `true`
+                    // if it yields any paths. Once one count succeeds we stop
+                    // trying further counts, emulating regex greedy/lazy
+                    // semantics while still returning all matching paths for
+                    // the chosen count.
                     let next_pc = th.pc + 1;
-                    for (env_after, path_after) in results.into_iter().rev() {
+                    let mut success = false;
+                    for (env_after, path_after) in results {
                         let mut fork = th.clone();
                         fork.pc = next_pc;
                         fork.env = env_after;
                         fork.path = path_after;
-                        stack.push(fork);
+                        if run_thread(prog, fork, out) {
+                            produced = true;
+                            success = true;
+                            break;
+                        }
+                    }
+                    if !success {
+                        // None of the repetition counts allowed the rest to match
                     }
                     break;
                 }
@@ -469,5 +483,19 @@ pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
             }
         }
     }
+    produced
+}
+
+/// Execute `prog` starting at `root`.  Every time `SAVE` or `ACCEPT` executes,
+/// the current `path` is pushed into the result.
+pub fn run(prog: &Program, root: &Envelope) -> Vec<Path> {
+    let mut out = Vec::new();
+    let start = Thread {
+        pc: 0,
+        env: root.clone(),
+        path: vec![root.clone()],
+        saved_paths: Vec::new(),
+    };
+    run_thread(prog, start, &mut out);
     out
 }

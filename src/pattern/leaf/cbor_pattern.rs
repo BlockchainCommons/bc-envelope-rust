@@ -73,7 +73,7 @@ mod tests {
     fn test_cbor_pattern_exact() {
         let value = "test_value";
         let envelope = Envelope::new(value);
-        let cbor = envelope.subject().to_cbor(); // Use the same CBOR as the envelope
+        let cbor = envelope.subject().as_leaf().unwrap().clone();
         let pattern = CBORPattern::exact(cbor);
         let paths = pattern.paths(&envelope);
         assert_eq!(paths.len(), 1);
