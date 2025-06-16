@@ -172,15 +172,6 @@ These documents are essential for understanding the Gordian Envelope format and 
 4. `extension/sskr.rs` - Extension for Sharded Secret Key Reconstruction
 5. `extension/attachment.rs` - Extension for envelope attachments
 
-#### Pattern Matching
-
-1. `Pattern` (`pattern/pattern_impl.rs`) - Core pattern matching abstraction for envelope content
-2. `Matcher` (`pattern/matcher.rs`) - Envelope pattern matching trait
-3. `Path` (`pattern/matcher.rs`) - Represents hierarchical paths within envelope tree structures
-4. `pattern/leaf/` - Patterns for matching leaf values like booleans, numbers, text, and byte strings
-5. `pattern/structure/` - Patterns for matching structural elements like assertions, subjects, and predicates
-6. `pattern/meta/` - Meta-patterns for combining other patterns (AND, OR, NOT, etc.)
-
 #### Known Values
 
 1. `KnownValue` (`extension/known_values/known_value.rs`) - Predefined known values

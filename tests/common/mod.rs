@@ -1,5 +1,4 @@
 pub mod check_encoding;
-pub mod pattern_utils;
 pub mod test_data;
 pub mod test_seed;
 
