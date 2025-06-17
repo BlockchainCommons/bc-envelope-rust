@@ -3,10 +3,14 @@
 
 use dcbor::prelude::*;
 
+#[cfg(feature = "known_value")]
 use super::envelope::EnvelopeCase;
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
-use crate::{Envelope, Error};
+#[cfg(feature = "known_value")]
+use crate::Error;
+
+use crate::Envelope;
 
 impl Envelope {
     pub fn r#false() -> Self { Self::new_leaf(false) }

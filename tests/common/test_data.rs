@@ -1,7 +1,5 @@
 #![allow(dead_code)]
 
-use std::collections::HashSet;
-
 use bc_components::{
     Nonce, PrivateKeyBase, PublicKeys, PublicKeysProvider, SymmetricKey,
 };
@@ -129,7 +127,10 @@ pub fn credential() -> Envelope {
     .unwrap()
 }
 
+#[cfg(feature = "signature")]
 pub fn redacted_credential() -> Envelope {
+    use std::collections::HashSet;
+
     let credential = credential();
     let mut target = HashSet::new();
     target.insert(credential.digest().into_owned());

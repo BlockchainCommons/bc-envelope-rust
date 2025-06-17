@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/bc-envelope/0.30.0")]
+#![doc(html_root_url = "https://docs.rs/bc-envelope/0.31.0")]
 #![warn(rust_2018_idioms)]
 
 //! # Gordian Envelope: A Flexible Container for Structured Data
@@ -20,7 +20,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bc-envelope = "0.30.0"
+//! bc-envelope = "0.31.0"
 //! ```
 //!
 //! ## Specification
@@ -392,11 +392,11 @@ pub mod seal;
 mod string_utils;
 
 #[cfg(feature = "recipient")]
-pub use bc_components::{EncapsulationPrivateKey, Encrypter, SigningOptions};
-#[cfg(feature = "recipient")]
-pub use bc_components::{PrivateKeyBase, PublicKeys};
+pub use bc_components::{
+    EncapsulationPrivateKey, Encrypter, PrivateKeyBase, PublicKeys,
+};
 #[cfg(feature = "signature")]
-pub use bc_components::{Signer, Verifier};
+pub use bc_components::{Signer, SigningOptions, Verifier};
 #[cfg(feature = "signature")]
 pub use extension::SignatureMetadata;
 #[cfg(feature = "known_value")]

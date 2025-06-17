@@ -24,7 +24,7 @@ test_additional_features() {
 }
 
 section "All Default Features"
-cargo test > /dev/null
+cargo test --all-targets > /dev/null
 
 section "No Default Features"
 cargo test --no-default-features > /dev/null
@@ -42,3 +42,6 @@ test_only_features "signature"
 test_only_features "ssh"
 test_only_features "sskr"
 test_only_features "types"
+
+section "Doc Tests"
+cargo test --doc > /dev/null
