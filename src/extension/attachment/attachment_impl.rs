@@ -101,7 +101,7 @@ impl Assertion {
             known_values::ATTACHMENT,
             payload
                 .into_envelope()
-                .wrap_envelope()
+                .wrap()
                 .add_assertion(known_values::VENDOR, vendor.to_string())
                 .add_optional_assertion(known_values::CONFORMS_TO, conforms_to),
         )
@@ -120,7 +120,7 @@ impl Assertion {
     ///
     /// Returns an error if the assertion is not a valid attachment assertion
     pub fn attachment_payload(&self) -> Result<Envelope> {
-        self.object().unwrap_envelope()
+        self.object().try_unwrap()
     }
 
     /// Returns the vendor identifier of an attachment assertion.

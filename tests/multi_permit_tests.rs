@@ -195,7 +195,7 @@ fn test_multi_permit() -> anyhow::Result<()> {
 
     let unlocked_envelope =
         Envelope::sskr_join(&[&sharded_envelopes[0], &sharded_envelopes[2]])?
-            .unwrap_envelope()?;
+            .try_unwrap()?;
     // println!("{}", unlocked_envelope.format());
     assert_eq!(unlocked_envelope, signed_envelope);
 

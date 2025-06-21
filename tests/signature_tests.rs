@@ -114,7 +114,7 @@ fn signed_with_metadata() {
         SignatureMetadata::new().with_assertion(NOTE, "Alice signed this.");
 
     let envelope = envelope
-        .wrap_envelope()
+        .wrap()
         .add_signature_opt(&alice_private_key(), None, Some(metadata))
         .check_encoding()
         .unwrap();

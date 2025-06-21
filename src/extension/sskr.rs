@@ -274,7 +274,7 @@ impl Envelope {
     /// // Wrap the envelope (so the whole envelope including its assertions
     /// // become the subject)
     /// let wrapped_original = original
-    ///     .wrap_envelope();
+    ///     .wrap();
     ///
     /// // Encrypt the wrapped envelope
     /// let encrypted = wrapped_original
@@ -297,7 +297,7 @@ impl Envelope {
     /// let recovered_wrapped = Envelope::sskr_join(&[share1, share2]).unwrap();
     ///
     /// // Unwrap the envelope to get the original envelope
-    /// let recovered = recovered_wrapped.unwrap_envelope().unwrap();
+    /// let recovered = recovered_wrapped.try_unwrap().unwrap();
     ///
     /// // Check that the recovered envelope matches the original
     /// assert!(recovered.is_identical_to(&original));
@@ -341,7 +341,7 @@ mod tests {
 
         // Wrap the envelope (so the whole envelope including its assertions
         // become the subject)
-        let wrapped_original = original.wrap_envelope();
+        let wrapped_original = original.wrap();
 
         // Encrypt the wrapped envelope
         let encrypted = wrapped_original.encrypt_subject(&content_key).unwrap();
@@ -364,7 +364,7 @@ mod tests {
         let recovered_wrapped = Envelope::sskr_join(&[share1, share2]).unwrap();
 
         // Unwrap the envelope to get the original envelope
-        let recovered = recovered_wrapped.unwrap_envelope().unwrap();
+        let recovered = recovered_wrapped.try_unwrap().unwrap();
 
         // Check that the recovered envelope matches the original
         assert!(recovered.is_identical_to(&original));

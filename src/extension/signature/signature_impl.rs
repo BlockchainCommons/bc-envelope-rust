@@ -59,8 +59,7 @@ impl Envelope {
                         .unwrap();
                 });
 
-                signature_with_metadata =
-                    signature_with_metadata.wrap_envelope();
+                signature_with_metadata = signature_with_metadata.wrap();
 
                 let outer_signature = Envelope::new(
                     private_key
@@ -379,7 +378,7 @@ impl Envelope {
                     }
 
                     let signature_metadata_envelope =
-                        signature_object_subject.unwrap_envelope().unwrap();
+                        signature_object_subject.try_unwrap().unwrap();
                     if let Ok(signature) = signature_metadata_envelope
                         .extract_subject::<Signature>()
                     {
@@ -460,8 +459,7 @@ impl Envelope {
         signer: &dyn Signer,
         options: Option<SigningOptions>,
     ) -> Envelope {
-        self.wrap_envelope()
-            .add_signature_opt(signer, options, None)
+        self.wrap().add_signature_opt(signer, options, None)
     }
 
     /// Verifies that the envelope has a valid signature from the specified
@@ -484,7 +482,7 @@ impl Envelope {
     /// Returns an error if the signature verification fails or if the envelope
     /// cannot be unwrapped.
     pub fn verify(&self, verifier: &dyn Verifier) -> Result<Envelope> {
-        self.verify_signature_from(verifier)?.unwrap_envelope()
+        self.verify_signature_from(verifier)?.try_unwrap()
     }
 
     /// Verifies the envelope's signature and returns both the unwrapped
@@ -513,6 +511,6 @@ impl Envelope {
     ) -> Result<(Envelope, Envelope)> {
         let metadata =
             self.verify_signature_from_returning_metadata(verifier)?;
-        Ok((self.unwrap_envelope()?, metadata))
+        Ok((self.try_unwrap()?, metadata))
     }
 }

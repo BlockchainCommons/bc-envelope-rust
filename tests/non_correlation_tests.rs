@@ -106,7 +106,7 @@ fn test_add_salt() {
         .add_salt()
         .check_encoding()
         .unwrap()
-        .wrap_envelope()
+        .wrap()
         .check_encoding()
         .unwrap()
         .add_assertion(

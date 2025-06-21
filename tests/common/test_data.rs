@@ -23,9 +23,9 @@ pub fn double_assertion_envelope() -> Envelope {
     single_assertion_envelope().add_assertion("knows", "Carol")
 }
 
-pub fn wrapped_envelope() -> Envelope { hello_envelope().wrap_envelope() }
+pub fn wrapped_envelope() -> Envelope { hello_envelope().wrap() }
 pub fn double_wrapped_envelope() -> Envelope {
-    wrapped_envelope().wrap_envelope()
+    wrapped_envelope().wrap()
 }
 
 pub fn alice_seed() -> Vec<u8> {
@@ -117,7 +117,7 @@ pub fn credential() -> Envelope {
     .add_assertion("continuingEducationUnits", 1)
     .add_assertion("professionalDevelopmentHours", 15)
     .add_assertion("topics", vec!["Subject 1", "Subject 2"].to_cbor())
-    .wrap_envelope()
+    .wrap()
     .add_signature_opt(&alice_private_key(), Some(options), None)
     .add_assertion(
         known_values::NOTE,
@@ -138,7 +138,7 @@ pub fn redacted_credential() -> Envelope {
         target.extend(assertion.deep_digests());
     }
     target.insert(credential.subject().digest().into_owned());
-    let content = credential.subject().unwrap_envelope().unwrap();
+    let content = credential.subject().try_unwrap().unwrap();
     target.insert(content.digest().into_owned());
     target.insert(content.subject().digest().into_owned());
 

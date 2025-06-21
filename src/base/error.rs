@@ -62,7 +62,7 @@ pub enum Error {
 
     /// Returned when attempting to unwrap an envelope that wasn't wrapped.
     ///
-    /// This error occurs when calling `Envelope::unwrap_envelope` on an
+    /// This error occurs when calling `Envelope::try_unwrap` on an
     /// envelope that doesn't have the wrapped format.
     #[error("cannot unwrap an envelope that was not wrapped")]
     NotWrapped,

@@ -76,7 +76,7 @@
 //!     .with_assertion(NOTE, "Alice signed this.");
 //!
 //! let envelope = Envelope::new("Hello.")
-//!     .wrap_envelope()
+//!     .wrap()
 //!     .add_signature_opt(&alice_private_key, None, Some(metadata));
 //!
 //! // The structure is:

@@ -181,8 +181,8 @@ fn test_encrypt_subject() {
         style 4 stroke:teal,stroke-width:4px
         linkStyle 0 stroke:red,stroke-width:2px
         linkStyle 1 stroke-width:2px
-        linkStyle 2 stroke:green,stroke-width:2px
-        linkStyle 3 stroke:blue,stroke-width:2px
+        linkStyle 2 stroke:cyan,stroke-width:2px
+        linkStyle 3 stroke:magenta,stroke-width:2px
     "#}
     .trim();
     assert_actual_expected!(actual, expected);
@@ -382,7 +382,7 @@ fn test_wrap_then_signed() {
     let envelope = Envelope::new("Alice")
         .add_assertion("knows", "Bob")
         .add_assertion("knows", "Carol")
-        .wrap_envelope()
+        .wrap()
         .add_signature_opt(&alice_private_key(), Some(options), None);
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
@@ -406,7 +406,7 @@ fn test_wrap_then_signed() {
     assert_actual_expected!(s, indoc! {r#"
         66c9d594 NODE
             9e3b0673 subj WRAPPED
-                b8d857f6 subj NODE
+                b8d857f6 cont NODE
                     13941b48 subj "Alice"
                     4012caf2 ASSERTION
                         db7dd21c pred "knows"
@@ -443,7 +443,7 @@ fn test_wrap_then_signed() {
     assert_actual_expected!(s, indoc! {r#"
         66c9d5944eaedc418d8acf52df7842f50c2aa2d0da2857ad1048412cd070c3e8 NODE
             9e3b06737407b10cac0b9353dd978c4a68537709554dabdd66a8b68b8bd36cf6 subj WRAPPED
-                b8d857f6e06a836fbc68ca0ce43e55ceb98eefd949119dab344e11c4ba5a0471 subj NODE
+                b8d857f6e06a836fbc68ca0ce43e55ceb98eefd949119dab344e11c4ba5a0471 cont NODE
                     13941b487c1ddebce827b6ec3f46d982938acdc7e3b6a140db36062d9519dd2f subj "Alice"
                     4012caf2d96bf3962514bcfdcf8dd70c351735dec72c856ec5cdcf2ee35d6a91 ASSERTION
                         db7dd21c5169b4848d2a1bcb0a651c9617cdd90bae29156baaefbb2a8abef5ba pred "knows"
@@ -463,7 +463,7 @@ fn test_wrap_then_signed() {
     assert_actual_expected!(s, indoc! {r#"
         ur:digest/hdcxiysotlmwglpluofplgletkgmurksfwykbndroetitndehgpmbefdfpdwtijosrvsbsdlsndm NODE
             ur:digest/hdcxnnframjkjyatpabnpsbdmuguutmslkgeisguktasgogtpyutiypdrplulutejzynmygrnlly subj WRAPPED
-                ur:digest/hdcxrotphgynvtimlsjlrfissgbnvefmgotorhmnwstagabyntpyeeglbyssrdhtaajsaetafrbw subj NODE
+                ur:digest/hdcxrotphgynvtimlsjlrfissgbnvefmgotorhmnwstagabyntpyeeglbyssrdhtaajsaetafrbw cont NODE
                     ur:digest/hdcxbwmwcwfdkecauerfvsdirpwpfhfgtalfmulesnstvlrpoyfzuyenamdpmdcfutdlstyaqzrk subj "Alice"
                     ur:digest/hdcxfzbgsgwztajewfmtdabbrfzctklgtsbnecchecuestdwlpjtsksntkdmvlhlimmetlcpiyms ASSERTION
                         ur:digest/hdcxuykitdcegyinqzlrlgdrcwsbbkihcemtchsntabdpldtbzjepkwsrkdrlernykrddpjtgdfh pred "knows"
@@ -809,7 +809,7 @@ fn test_credential() {
     assert_actual_expected!(s, indoc! {r#"
         0b721f78 NODE
             397a2d4c subj WRAPPED
-                8122ffa9 subj NODE
+                8122ffa9 cont NODE
                     10d3de01 subj ARID(4676635a)
                     1f9ff098 ASSERTION
                         9e3bff3a pred "certificateNumber"
@@ -922,13 +922,13 @@ fn test_redacted_credential() {
     let rng = Rc::new(RefCell::new(make_fake_random_number_generator()));
     let options = SigningOptions::Schnorr { rng };
     let warranty = redacted_credential
-        .wrap_envelope()
+        .wrap()
         .add_assertion(
             "employeeHiredDate",
             dcbor::Date::from_string("2022-01-01").unwrap(),
         )
         .add_assertion("employeeStatus", "active")
-        .wrap_envelope()
+        .wrap()
         .add_assertion(known_values::NOTE, "Signed by Employer Corp.")
         .add_signature_opt(&bob_private_key(), Some(options), None)
         .check_encoding()
@@ -973,11 +973,11 @@ fn test_redacted_credential() {
     assert_actual_expected!(s, indoc! {r#"
         7ab3e6b1 NODE
             3907ee6f subj WRAPPED
-                719d5955 subj NODE
+                719d5955 cont NODE
                     10fb2e18 subj WRAPPED
-                        0b721f78 subj NODE
+                        0b721f78 cont NODE
                             397a2d4c subj WRAPPED
-                                8122ffa9 subj NODE
+                                8122ffa9 cont NODE
                                     10d3de01 subj ARID(4676635a)
                                     1f9ff098 ELIDED
                                     36c254d0 ASSERTION
@@ -1093,11 +1093,11 @@ fn test_redacted_credential() {
         graph LR
         0(("NODE<br>7ab3e6b1"))
             0 -- subj --> 1[/"WRAPPED<br>3907ee6f"\]
-                1 -- subj --> 2(("NODE<br>719d5955"))
+                1 -- cont --> 2(("NODE<br>719d5955"))
                     2 -- subj --> 3[/"WRAPPED<br>10fb2e18"\]
-                        3 -- subj --> 4(("NODE<br>0b721f78"))
+                        3 -- cont --> 4(("NODE<br>0b721f78"))
                             4 -- subj --> 5[/"WRAPPED<br>397a2d4c"\]
-                                5 -- subj --> 6(("NODE<br>8122ffa9"))
+                                5 -- cont --> 6(("NODE<br>8122ffa9"))
                                     6 -- subj --> 7["ARID(4676635a)<br>10d3de01"]
                                     6 --> 8{{"ELIDED<br>1f9ff098"}}
                                     6 --> 9(["ASSERTION<br>36c254d0"])
@@ -1194,55 +1194,55 @@ fn test_redacted_credential() {
         style 49 stroke:goldenrod,stroke-width:4px
         style 50 stroke:teal,stroke-width:4px
         linkStyle 0 stroke:red,stroke-width:2px
-        linkStyle 1 stroke:red,stroke-width:2px
+        linkStyle 1 stroke:blue,stroke-width:2px
         linkStyle 2 stroke:red,stroke-width:2px
-        linkStyle 3 stroke:red,stroke-width:2px
+        linkStyle 3 stroke:blue,stroke-width:2px
         linkStyle 4 stroke:red,stroke-width:2px
-        linkStyle 5 stroke:red,stroke-width:2px
+        linkStyle 5 stroke:blue,stroke-width:2px
         linkStyle 6 stroke:red,stroke-width:2px
         linkStyle 7 stroke-width:2px
         linkStyle 8 stroke-width:2px
-        linkStyle 9 stroke:green,stroke-width:2px
-        linkStyle 10 stroke:blue,stroke-width:2px
+        linkStyle 9 stroke:cyan,stroke-width:2px
+        linkStyle 10 stroke:magenta,stroke-width:2px
         linkStyle 11 stroke-width:2px
-        linkStyle 12 stroke:green,stroke-width:2px
-        linkStyle 13 stroke:blue,stroke-width:2px
+        linkStyle 12 stroke:cyan,stroke-width:2px
+        linkStyle 13 stroke:magenta,stroke-width:2px
         linkStyle 14 stroke-width:2px
         linkStyle 15 stroke-width:2px
-        linkStyle 16 stroke:green,stroke-width:2px
-        linkStyle 17 stroke:blue,stroke-width:2px
+        linkStyle 16 stroke:cyan,stroke-width:2px
+        linkStyle 17 stroke:magenta,stroke-width:2px
         linkStyle 18 stroke-width:2px
         linkStyle 19 stroke-width:2px
         linkStyle 20 stroke-width:2px
-        linkStyle 21 stroke:green,stroke-width:2px
-        linkStyle 22 stroke:blue,stroke-width:2px
+        linkStyle 21 stroke:cyan,stroke-width:2px
+        linkStyle 22 stroke:magenta,stroke-width:2px
         linkStyle 23 stroke-width:2px
         linkStyle 24 stroke-width:2px
         linkStyle 25 stroke-width:2px
         linkStyle 26 stroke-width:2px
-        linkStyle 27 stroke:green,stroke-width:2px
-        linkStyle 28 stroke:blue,stroke-width:2px
+        linkStyle 27 stroke:cyan,stroke-width:2px
+        linkStyle 28 stroke:magenta,stroke-width:2px
         linkStyle 29 stroke-width:2px
-        linkStyle 30 stroke:green,stroke-width:2px
-        linkStyle 31 stroke:blue,stroke-width:2px
+        linkStyle 30 stroke:cyan,stroke-width:2px
+        linkStyle 31 stroke:magenta,stroke-width:2px
         linkStyle 32 stroke-width:2px
-        linkStyle 33 stroke:green,stroke-width:2px
-        linkStyle 34 stroke:blue,stroke-width:2px
+        linkStyle 33 stroke:cyan,stroke-width:2px
+        linkStyle 34 stroke:magenta,stroke-width:2px
         linkStyle 35 stroke-width:2px
-        linkStyle 36 stroke:green,stroke-width:2px
-        linkStyle 37 stroke:blue,stroke-width:2px
+        linkStyle 36 stroke:cyan,stroke-width:2px
+        linkStyle 37 stroke:magenta,stroke-width:2px
         linkStyle 38 stroke-width:2px
-        linkStyle 39 stroke:green,stroke-width:2px
-        linkStyle 40 stroke:blue,stroke-width:2px
+        linkStyle 39 stroke:cyan,stroke-width:2px
+        linkStyle 40 stroke:magenta,stroke-width:2px
         linkStyle 41 stroke-width:2px
-        linkStyle 42 stroke:green,stroke-width:2px
-        linkStyle 43 stroke:blue,stroke-width:2px
+        linkStyle 42 stroke:cyan,stroke-width:2px
+        linkStyle 43 stroke:magenta,stroke-width:2px
         linkStyle 44 stroke-width:2px
-        linkStyle 45 stroke:green,stroke-width:2px
-        linkStyle 46 stroke:blue,stroke-width:2px
+        linkStyle 45 stroke:cyan,stroke-width:2px
+        linkStyle 46 stroke:magenta,stroke-width:2px
         linkStyle 47 stroke-width:2px
-        linkStyle 48 stroke:green,stroke-width:2px
-        linkStyle 49 stroke:blue,stroke-width:2px
+        linkStyle 48 stroke:cyan,stroke-width:2px
+        linkStyle 49 stroke:magenta,stroke-width:2px
     "#}.trim();
     assert_actual_expected!(actual, expected);
 

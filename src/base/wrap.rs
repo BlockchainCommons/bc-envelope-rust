@@ -20,9 +20,7 @@ impl Envelope {
     /// let envelope = Envelope::new("Hello.").add_assertion("language", "English");
     ///
     /// // Wrap it to add an assertion about the envelope as a whole
-    /// let wrapped = envelope
-    ///     .wrap_envelope()
-    ///     .add_assertion("authenticated", true);
+    /// let wrapped = envelope.wrap().add_assertion("authenticated", true);
     ///
     /// assert_eq!(
     ///     wrapped.format(),
@@ -38,7 +36,7 @@ impl Envelope {
     ///     .trim()
     /// );
     /// ```
-    pub fn wrap_envelope(&self) -> Self { Self::new_wrapped(self.clone()) }
+    pub fn wrap(&self) -> Self { Self::new_wrapped(self.clone()) }
 
     /// Unwraps and returns the inner envelope.
     ///
@@ -54,13 +52,13 @@ impl Envelope {
     /// # use bc_envelope::prelude::*;
     /// // Create an envelope and wrap it
     /// let envelope = Envelope::new("Hello.");
-    /// let wrapped = envelope.wrap_envelope();
+    /// let wrapped = envelope.wrap();
     ///
     /// // Unwrap to get the original envelope
-    /// let unwrapped = wrapped.unwrap_envelope().unwrap();
+    /// let unwrapped = wrapped.try_unwrap().unwrap();
     /// assert_eq!(unwrapped.format_flat(), r#""Hello.""#);
     /// ```
-    pub fn unwrap_envelope(&self) -> Result<Self> {
+    pub fn try_unwrap(&self) -> Result<Self> {
         match self.subject().case() {
             EnvelopeCase::Wrapped { envelope, .. } => Ok(envelope.clone()),
             _ => bail!(Error::NotWrapped),

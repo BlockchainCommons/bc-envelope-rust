@@ -104,7 +104,7 @@ fn encrypt_decrypt() {
     round_trip_test(e);
 
     // wrapped
-    let e = Envelope::new("Alice").wrap_envelope();
+    let e = Envelope::new("Alice").wrap();
     round_trip_test(e);
 
     // known value
@@ -136,7 +136,7 @@ fn sign_then_encrypt() {
         .add_signature(&alice_private_key())
         .check_encoding()
         .unwrap()
-        .wrap_envelope()
+        .wrap()
         .check_encoding()
         .unwrap()
         .encrypt_subject(&key)
@@ -163,7 +163,7 @@ fn sign_then_encrypt() {
         .unwrap()
         .check_encoding()
         .unwrap()
-        .unwrap_envelope()
+        .try_unwrap()
         .unwrap()
         .check_encoding()
         .unwrap()
@@ -379,7 +379,7 @@ fn test_hidden_signature_multi_recipient() {
     let content_key = SymmetricKey::new();
     let envelope = hello_envelope()
         .add_signature(&alice_private_key())
-        .wrap_envelope()
+        .wrap()
         .encrypt_subject(&content_key)
         .unwrap()
         .add_recipient(&bob_public_key(), &content_key)
@@ -408,7 +408,7 @@ fn test_hidden_signature_multi_recipient() {
     let bob_received_plaintext = received_envelope
         .decrypt_subject_to_recipient(&bob_private_key())
         .unwrap()
-        .unwrap_envelope()
+        .try_unwrap()
         .unwrap()
         .check_encoding()
         .unwrap()
@@ -423,7 +423,7 @@ fn test_hidden_signature_multi_recipient() {
     let carol_received_plaintext = received_envelope
         .decrypt_subject_to_recipient(&carol_private_key())
         .unwrap()
-        .unwrap_envelope()
+        .try_unwrap()
         .unwrap()
         .check_encoding()
         .unwrap()

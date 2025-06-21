@@ -74,7 +74,7 @@ impl Envelope {
     ///
     /// Encrypts only the subject of the envelope, leaving assertions
     /// unencrypted. To encrypt an entire envelope including its assertions,
-    /// it must first be wrapped using the `wrap_envelope()` method, or you
+    /// it must first be wrapped using the `wrap()` method, or you
     /// can use the `encrypt()` convenience method.
     ///
     /// The encryption uses ChaCha20-Poly1305 and preserves the envelope's
@@ -275,7 +275,7 @@ impl Envelope {
     /// let encrypted = envelope.encrypt(&key);
     /// ```
     pub fn encrypt(&self, key: &SymmetricKey) -> Envelope {
-        self.wrap_envelope().encrypt_subject(key).unwrap()
+        self.wrap().encrypt_subject(key).unwrap()
     }
 
     /// Convenience method to decrypt an entire envelope that was encrypted
@@ -320,6 +320,6 @@ impl Envelope {
     /// assert!(envelope.is_equivalent_to(&decrypted));
     /// ```
     pub fn decrypt(&self, key: &SymmetricKey) -> Result<Envelope> {
-        self.decrypt_subject(key)?.unwrap_envelope()
+        self.decrypt_subject(key)?.try_unwrap()
     }
 }

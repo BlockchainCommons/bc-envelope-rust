@@ -555,7 +555,7 @@ impl Envelope {
     /// 1. Wraps the envelope (preserving its assertions in the wrap)
     /// 2. Encrypts the resulting envelope to the recipient
     ///
-    /// This method is simpler than calling `wrap_envelope()` and then
+    /// This method is simpler than calling `wrap()` and then
     /// `encrypt_subject_to_recipient()` separately, and it handles error
     /// unwrapping.
     ///
@@ -593,9 +593,7 @@ impl Envelope {
     /// # }
     /// ```
     pub fn encrypt_to_recipient(&self, recipient: &dyn Encrypter) -> Envelope {
-        self.wrap_envelope()
-            .encrypt_subject_to_recipient(recipient)
-            .unwrap()
+        self.wrap().encrypt_subject_to_recipient(recipient).unwrap()
     }
 
     /// Decrypts an envelope that was encrypted to a recipient and unwraps it.
@@ -605,7 +603,7 @@ impl Envelope {
     /// 2. Unwraps the resulting envelope to reveal the original content
     ///
     /// This method is simpler than calling `decrypt_subject_to_recipient()` and
-    /// then `unwrap_envelope()` separately.
+    /// then `try_unwrap()` separately.
     ///
     /// # Parameters
     /// * `recipient` - The private key of the recipient trying to decrypt the
@@ -647,7 +645,6 @@ impl Envelope {
         &self,
         recipient: &dyn Decrypter,
     ) -> Result<Envelope> {
-        self.decrypt_subject_to_recipient(recipient)?
-            .unwrap_envelope()
+        self.decrypt_subject_to_recipient(recipient)?.try_unwrap()
     }
 }

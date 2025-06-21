@@ -144,8 +144,8 @@
 //!
 //! # Wrapping and Unwrapping Envelopes
 //!
-//! * [`Envelope::wrap_envelope`] Wraps an envelope in a new envelope.
-//! * [`Envelope::unwrap_envelope`] Unwraps an envelope.
+//! * [`Envelope::wrap`] Wraps an envelope in a new envelope.
+//! * [`Envelope::try_unwrap`] Unwraps an envelope.
 //!
 //! # Formatting Envelopes
 //!

@@ -221,7 +221,7 @@ assert_eq!(unlocked_envelope, signed_envelope);
 let unlocked_envelope = Envelope::sskr_join(&[
     &sharded_envelopes[0],
     &sharded_envelopes[2]
-])?.unwrap_envelope()?;
+])?.try_unwrap()?;
 assert_eq!(unlocked_envelope, signed_envelope);
 
 //

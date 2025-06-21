@@ -30,7 +30,7 @@ use crate::{Assertion, EnvelopeEncodable};
 ///
 /// // Create and sign an envelope with the metadata
 /// let envelope = Envelope::new("Important document")
-///     .wrap_envelope()
+///     .wrap()
 ///     .add_signature_opt(&alice_private_key, None, Some(metadata));
 /// # Ok(())
 /// # }

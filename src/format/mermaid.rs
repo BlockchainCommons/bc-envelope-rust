@@ -340,9 +340,10 @@ impl Envelope {
 impl EdgeType {
     pub fn link_stroke_color(&self) -> Option<&'static str> {
         match self {
-            EdgeType::Subject | EdgeType::Wrapped => Some("red"),
-            EdgeType::Predicate => Some("green"),
-            EdgeType::Object => Some("blue"),
+            EdgeType::Subject  => Some("red"),
+            EdgeType::Content => Some("blue"),
+            EdgeType::Predicate => Some("cyan"),
+            EdgeType::Object => Some("magenta"),
             _ => None,
         }
     }

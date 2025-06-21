@@ -159,7 +159,7 @@ fn test_verifiable_credential() {
         .add_assertion_salted("motorocycleEndorsement", true, true)
         .add_assertion(known_values::ISSUER, "State of Example")
         .add_assertion(known_values::CONTROLLER, "State of Example")
-        .wrap_envelope()
+        .wrap()
         .add_signature(&alice_private_key)
         .add_assertion(known_values::NOTE, "Signed by the State of Example");
 

@@ -21,9 +21,9 @@ fn double_assertion_envelope() -> Envelope {
     single_assertion_envelope().add_assertion("knows", "Carol")
 }
 
-fn wrapped_envelope() -> Envelope { basic_envelope().wrap_envelope() }
+fn wrapped_envelope() -> Envelope { basic_envelope().wrap() }
 
-fn double_wrapped_envelope() -> Envelope { wrapped_envelope().wrap_envelope() }
+fn double_wrapped_envelope() -> Envelope { wrapped_envelope().wrap() }
 
 fn symmetric_key() -> SymmetricKey {
     SymmetricKey::from_data(hex!(

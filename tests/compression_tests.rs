@@ -43,7 +43,7 @@ fn test_compress_subject() {
     let options = SigningOptions::Schnorr { rng };
     let original = Envelope::new("Alice")
         .add_assertion(known_values::NOTE, SOURCE)
-        .wrap_envelope()
+        .wrap()
         .add_signature_opt(&alice_private_key(), Some(options), None);
     assert_eq!(original.to_cbor_data().len(), 458);
     let s = original.tree_format();
@@ -52,7 +52,7 @@ fn test_compress_subject() {
     assert_actual_expected!(s, indoc! {r#"
         ec608f27 NODE
             d7183f04 subj WRAPPED
-                7f35e345 subj NODE
+                7f35e345 cont NODE
                     13941b48 subj "Alice"
                     9fb69539 ASSERTION
                         0fcd6a39 pred 'note'
@@ -95,8 +95,8 @@ fn test_compress_subject() {
         style 4 stroke:teal,stroke-width:4px
         linkStyle 0 stroke:red,stroke-width:2px
         linkStyle 1 stroke-width:2px
-        linkStyle 2 stroke:green,stroke-width:2px
-        linkStyle 3 stroke:blue,stroke-width:2px
+        linkStyle 2 stroke:cyan,stroke-width:2px
+        linkStyle 3 stroke:magenta,stroke-width:2px
     "#}.trim());
     let uncompressed = compressed
         .uncompress_subject()

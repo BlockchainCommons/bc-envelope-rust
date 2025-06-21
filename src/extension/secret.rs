@@ -88,10 +88,10 @@ impl Envelope {
         method: KeyDerivationMethod,
         secret: impl AsRef<[u8]>,
     ) -> Result<Self> {
-        self.wrap_envelope().lock_subject(method, secret)
+        self.wrap().lock_subject(method, secret)
     }
 
     pub fn unlock(&self, secret: impl AsRef<[u8]>) -> Result<Self> {
-        self.unlock_subject(secret)?.unwrap_envelope()
+        self.unlock_subject(secret)?.try_unwrap()
     }
 }

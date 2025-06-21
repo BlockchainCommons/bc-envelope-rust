@@ -70,8 +70,8 @@ pub enum EdgeType {
     Predicate,
     /// Element is the object of an assertion
     Object,
-    /// Element is wrapped by another envelope
-    Wrapped,
+    /// Element is the content wrapped by another envelope
+    Content,
 }
 
 /// Provides a label for the edge type in tree formatting.
@@ -87,13 +87,15 @@ impl EdgeType {
     /// ```
     /// # use bc_envelope::prelude::*;
     /// assert_eq!(EdgeType::Subject.label(), Some("subj"));
+    /// assert_eq!(EdgeType::Content.label(), Some("cont"));
     /// assert_eq!(EdgeType::Predicate.label(), Some("pred"));
     /// assert_eq!(EdgeType::Object.label(), Some("obj"));
     /// assert_eq!(EdgeType::Assertion.label(), None);
     /// ```
     pub fn label(&self) -> Option<&'static str> {
         match self {
-            EdgeType::Subject | EdgeType::Wrapped => Some("subj"),
+            EdgeType::Subject => Some("subj"),
+            EdgeType::Content => Some("cont"),
             EdgeType::Predicate => Some("pred"),
             EdgeType::Object => Some("obj"),
             _ => None,
@@ -237,7 +239,7 @@ impl Envelope {
             EnvelopeCase::Wrapped { envelope, .. } => {
                 envelope._walk_structure(
                     next_level,
-                    EdgeType::Wrapped,
+                    EdgeType::Content,
                     state,
                     visit,
                 );
@@ -317,7 +319,7 @@ impl Envelope {
             EnvelopeCase::Wrapped { envelope, .. } => {
                 envelope._walk_tree(
                     subject_level,
-                    EdgeType::Wrapped,
+                    EdgeType::Content,
                     state.clone(),
                     visit,
                 );

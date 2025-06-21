@@ -224,7 +224,7 @@ fn test_nesting_plaintext() {
 #[test]
 fn test_nesting_once() {
     let envelope = Envelope::new("Hello.")
-        .wrap_envelope()
+        .wrap()
         .check_encoding()
         .unwrap();
 
@@ -238,7 +238,7 @@ fn test_nesting_once() {
 
     let elided_envelope = Envelope::new("Hello.")
         .elide()
-        .wrap_envelope()
+        .wrap()
         .check_encoding()
         .unwrap();
 
@@ -256,8 +256,8 @@ fn test_nesting_once() {
 #[test]
 fn test_nesting_twice() {
     let envelope = Envelope::new("Hello.")
-        .wrap_envelope()
-        .wrap_envelope()
+        .wrap()
+        .wrap()
         .check_encoding()
         .unwrap();
 
@@ -272,9 +272,9 @@ fn test_nesting_twice() {
     assert_actual_expected!(envelope.format(), expected_format);
 
     let target = envelope
-        .unwrap_envelope()
+        .try_unwrap()
         .unwrap()
-        .unwrap_envelope()
+        .try_unwrap()
         .unwrap();
     let elided_envelope = envelope.elide_removing_target(&target);
 

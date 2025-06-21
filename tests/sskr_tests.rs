@@ -28,7 +28,7 @@ fn test_sskr() -> anyhow::Result<()> {
     let content_key = SymmetricKey::new();
     let seed_envelope = dan_seed.clone().to_envelope();
     let encrypted_seed_envelope = seed_envelope
-        .wrap_envelope()
+        .wrap()
         .encrypt_subject(&content_key)?;
 
     let group = SSKRGroupSpec::new(2, 3)?;
@@ -62,7 +62,7 @@ fn test_sskr() -> anyhow::Result<()> {
     // recover his seed.
     let recovered_envelopes = [&bob_envelope, &carol_envelope];
     let recovered_seed_envelope =
-        Envelope::sskr_join(&recovered_envelopes)?.unwrap_envelope()?;
+        Envelope::sskr_join(&recovered_envelopes)?.try_unwrap()?;
 
     let recovered_seed = Seed::try_from(recovered_seed_envelope)?;
 
