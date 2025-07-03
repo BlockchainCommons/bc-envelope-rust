@@ -211,8 +211,8 @@ impl_envelope_encodable!(f64);
 impl_envelope_encodable!(f32);
 
 // CBOR types
-impl_envelope_encodable!(dcbor::ByteString);
-impl_envelope_encodable!(dcbor::Date);
+impl_envelope_encodable!(ByteString);
+impl_envelope_encodable!(Date);
 
 // Cryptographic types
 impl_envelope_encodable!(PublicKeys);

@@ -80,14 +80,18 @@ impl Envelope {
     ///
     /// A reference to the `EnvelopeCase` that defines this envelope's
     /// structure.
-    pub fn case(&self) -> &EnvelopeCase { &self.0 }
+    pub fn case(&self) -> &EnvelopeCase {
+        &self.0
+    }
 }
 
 /// Conversion from `EnvelopeCase` to `Envelope`.
 ///
 /// This allows creating an envelope directly from an envelope case variant.
 impl From<EnvelopeCase> for Envelope {
-    fn from(case: EnvelopeCase) -> Self { Self(RefCounted::new(case)) }
+    fn from(case: EnvelopeCase) -> Self {
+        Self(RefCounted::new(case))
+    }
 }
 
 /// Conversion from `&Envelope` to `Envelope`.
@@ -95,7 +99,9 @@ impl From<EnvelopeCase> for Envelope {
 /// This creates a clone of the envelope. Since envelopes use reference
 /// counting, this is a relatively inexpensive operation.
 impl From<&Envelope> for Envelope {
-    fn from(envelope: &Envelope) -> Self { envelope.clone() }
+    fn from(envelope: &Envelope) -> Self {
+        envelope.clone()
+    }
 }
 
 /// The core structural variants of a Gordian Envelope.
@@ -108,6 +114,9 @@ impl From<&Envelope> for Envelope {
 /// The `EnvelopeCase` is the internal representation of an envelope's
 /// structure. While each case has unique properties, they all maintain a digest
 /// that ensures the integrity of the envelope.
+///
+/// It is advised to use the other Envelop APIs for most uses. Please see the
+/// queries module for more information on how to interact with envelopes.
 #[derive(Debug)]
 pub enum EnvelopeCase {
     /// Represents an envelope with a subject and one or more assertions.
@@ -341,7 +350,9 @@ impl Envelope {
 }
 
 impl AsRef<Envelope> for Envelope {
-    fn as_ref(&self) -> &Envelope { self }
+    fn as_ref(&self) -> &Envelope {
+        self
+    }
 }
 
 #[cfg(test)]

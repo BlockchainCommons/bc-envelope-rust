@@ -8,8 +8,6 @@ mod common;
 #[cfg(feature = "types")]
 use bc_components::{ARID, PrivateKeyBase};
 #[cfg(feature = "types")]
-use dcbor::Date;
-#[cfg(feature = "types")]
 use hex_literal::hex;
 
 use crate::common::check_encoding::*;

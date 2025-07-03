@@ -37,8 +37,8 @@ impl_envelope_decodable!(i64);
 impl_envelope_decodable!(bool);
 
 // CBOR types
-impl_envelope_decodable!(dcbor::ByteString);
-impl_envelope_decodable!(dcbor::Date);
+impl_envelope_decodable!(ByteString);
+impl_envelope_decodable!(Date);
 
 // Floating point types
 impl_envelope_decodable!(f64);

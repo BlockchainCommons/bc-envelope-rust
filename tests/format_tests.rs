@@ -925,7 +925,7 @@ fn test_redacted_credential() {
         .wrap()
         .add_assertion(
             "employeeHiredDate",
-            dcbor::Date::from_string("2022-01-01").unwrap(),
+            Date::from_string("2022-01-01").unwrap(),
         )
         .add_assertion("employeeStatus", "active")
         .wrap()

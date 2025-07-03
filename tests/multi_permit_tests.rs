@@ -11,7 +11,6 @@ use bc_components::{
     KeyDerivationMethod, SSKRGroupSpec, SSKRSpec, SymmetricKey, keypair,
 };
 use bc_envelope::prelude::*;
-use dcbor::Date;
 use indoc::indoc;
 
 #[test]

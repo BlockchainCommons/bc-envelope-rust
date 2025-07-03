@@ -373,14 +373,14 @@
 
 pub mod base;
 pub use base::{
-    Assertion, Envelope, EnvelopeEncodable, Error, Result,
+    Assertion, Envelope, EnvelopeCase, EnvelopeEncodable, Error, Result,
     elide::{self, ObscureAction},
     walk::{self, EdgeType},
 };
 
 pub mod format;
 pub use format::{
-    DigestDisplayFormat, FormatContext, FormatContextOpt,
+    DigestDisplayFormat, EnvelopeSummary, FormatContext, FormatContextOpt,
     GLOBAL_FORMAT_CONTEXT, MermaidFormatOpts, MermaidOrientation, MermaidTheme,
     TreeFormatOpts, register_tags, register_tags_in,
 };
@@ -405,7 +405,9 @@ pub use known_values::{self, KNOWN_VALUES, KnownValue, KnownValuesStore};
 #[cfg(feature = "known_value")]
 /// Converts a KnownValue to an Envelope.
 impl EnvelopeEncodable for KnownValue {
-    fn into_envelope(self) -> Envelope { Envelope::new_with_known_value(self) }
+    fn into_envelope(self) -> Envelope {
+        Envelope::new_with_known_value(self)
+    }
 }
 
 #[cfg(feature = "attachment")]

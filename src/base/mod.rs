@@ -6,7 +6,7 @@ pub mod cbor;
 pub mod digest;
 
 pub mod envelope;
-pub use envelope::Envelope;
+pub use envelope::{Envelope, EnvelopeCase};
 
 /// Types dealing with elision.
 ///

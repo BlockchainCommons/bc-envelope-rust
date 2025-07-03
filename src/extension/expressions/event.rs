@@ -30,7 +30,6 @@ use crate::{Envelope, EnvelopeEncodable, known_values};
 /// ```
 /// use bc_components::ARID;
 /// use bc_envelope::prelude::*;
-/// use dcbor::Date;
 ///
 /// // Create a status update event
 /// let event_id = ARID::new();
