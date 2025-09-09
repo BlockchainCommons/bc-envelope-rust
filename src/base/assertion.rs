@@ -1,10 +1,9 @@
 use std::borrow::Cow;
 
-use anyhow::{Error, Result, bail};
 use bc_components::{Digest, DigestProvider};
 use dcbor::prelude::*;
 
-use crate::{Envelope, EnvelopeEncodable};
+use crate::{Envelope, EnvelopeEncodable, Error, Result};
 
 /// A predicate-object relationship representing an assertion about a subject.
 ///
@@ -162,7 +161,7 @@ impl TryFrom<CBOR> for Assertion {
         if let CBORCase::Map(map) = value.as_case() {
             return map.clone().try_into();
         }
-        bail!(crate::Error::InvalidAssertion)
+        Err(Error::InvalidAssertion)
     }
 }
 
@@ -176,7 +175,7 @@ impl TryFrom<Map> for Assertion {
 
     fn try_from(map: Map) -> Result<Self> {
         if map.len() != 1 {
-            bail!(crate::Error::InvalidAssertion);
+            return Err(Error::InvalidAssertion);
         }
         let elem = map.iter().next().unwrap();
         let predicate = Envelope::from_untagged_cbor(elem.0.clone())?;

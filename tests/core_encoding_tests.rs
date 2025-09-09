@@ -13,7 +13,7 @@ fn test_digest() {
 }
 
 #[test]
-fn test_1() -> anyhow::Result<()> {
+fn test_1() -> EnvelopeResult<()> {
     let e = Envelope::new("Hello.");
 
     #[rustfmt::skip]
@@ -27,7 +27,7 @@ fn test_1() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_2() -> anyhow::Result<()> {
+fn test_2() -> EnvelopeResult<()> {
     let array: Vec<u64> = vec![1, 2, 3];
     let e = Envelope::new(Into::<CBOR>::into(array));
 
@@ -44,7 +44,7 @@ fn test_2() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_3() -> anyhow::Result<()> {
+fn test_3() -> EnvelopeResult<()> {
     let e1 = Envelope::new_assertion("A", "B").check_encoding()?;
     let e2 = Envelope::new_assertion("C", "D").check_encoding()?;
     let e3 = Envelope::new_assertion("E", "F").check_encoding()?;

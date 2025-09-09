@@ -1,8 +1,7 @@
-use anyhow::{Result, bail};
 use bc_components::DigestProvider;
 
 use super::envelope::EnvelopeCase;
-use crate::{Envelope, EnvelopeEncodable, Error};
+use crate::{Envelope, EnvelopeEncodable, Result, Error};
 
 /// Support for adding assertions.
 ///
@@ -173,7 +172,7 @@ impl Envelope {
                 if !assertion.is_subject_assertion()
                     && !assertion.is_subject_obscured()
                 {
-                    bail!(Error::InvalidFormat);
+                    return Err(Error::InvalidFormat);
                 }
 
                 match self.case() {
@@ -483,7 +482,7 @@ impl Envelope {
                 if !assertion.is_subject_assertion()
                     && !assertion.is_subject_obscured()
                 {
-                    bail!(Error::InvalidFormat);
+                    return Err(Error::InvalidFormat);
                 }
                 let envelope2 = if salted {
                     assertion.add_salt()

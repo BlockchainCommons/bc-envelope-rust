@@ -1,7 +1,5 @@
-use anyhow::{Result, bail};
-
 use super::envelope::EnvelopeCase;
-use crate::{Envelope, Error};
+use crate::{Envelope, Error, Result};
 
 /// Support for wrapping and unwrapping envelopes.
 impl Envelope {
@@ -61,7 +59,7 @@ impl Envelope {
     pub fn try_unwrap(&self) -> Result<Self> {
         match self.subject().case() {
             EnvelopeCase::Wrapped { envelope, .. } => Ok(envelope.clone()),
-            _ => bail!(Error::NotWrapped),
+            _ => return Err(Error::NotWrapped),
         }
     }
 }

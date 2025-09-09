@@ -8,7 +8,7 @@ mod common;
 use crate::common::test_seed::*;
 
 #[test]
-fn test_sskr() -> anyhow::Result<()> {
+fn test_sskr() -> EnvelopeResult<()> {
     bc_components::register_tags();
 
     // Dan has a cryptographic seed he wants to backup using a social recovery

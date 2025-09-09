@@ -1,7 +1,8 @@
-use anyhow::{Result, bail};
 use bc_components::DigestProvider;
 
-use crate::{Envelope, EnvelopeEncodable, Error, KnownValue, known_values};
+use crate::{
+    Envelope, EnvelopeEncodable, Error, KnownValue, Result, known_values,
+};
 
 /// # Type System for Gordian Envelopes
 ///
@@ -44,9 +45,8 @@ use crate::{Envelope, EnvelopeEncodable, Error, KnownValue, known_values};
 ///    before processing
 ///    ```no_run
 ///    use bc_envelope::prelude::*;
-///    use anyhow::Result;
 ///
-///    fn process_person(envelope: &Envelope) -> Result<()> {
+///    fn process_person(envelope: &Envelope) -> EnvelopeResult<()> {
 ///        // Verify this is a person before processing
 ///        envelope.check_type_envelope("Person")?;
 ///
@@ -209,7 +209,7 @@ impl Envelope {
         if t.len() == 1 {
             Ok(t[0].clone())
         } else {
-            bail!(Error::AmbiguousType)
+            return Err(Error::AmbiguousType);
         }
     }
 
@@ -298,11 +298,10 @@ impl Envelope {
     /// # Examples
     ///
     /// ```
-    /// use anyhow::Result;
     /// use bc_envelope::prelude::*;
     ///
     /// // Function that processes a seed envelope
-    /// fn process_seed(envelope: &Envelope) -> Result<String> {
+    /// fn process_seed(envelope: &Envelope) -> EnvelopeResult<String> {
     ///     // Verify this is a seed
     ///     envelope.check_type(&known_values::SEED_TYPE)?;
     ///
@@ -332,7 +331,7 @@ impl Envelope {
         if self.has_type(t) {
             Ok(())
         } else {
-            bail!(Error::InvalidType)
+            return Err(Error::InvalidType);
         }
     }
 
@@ -354,11 +353,10 @@ impl Envelope {
     /// # Examples
     ///
     /// ```
-    /// use anyhow::Result;
     /// use bc_envelope::prelude::*;
     ///
     /// // Function that processes a person
-    /// fn process_person(envelope: &Envelope) -> Result<String> {
+    /// fn process_person(envelope: &Envelope) -> EnvelopeResult<String> {
     ///     // Verify this is a person
     ///     envelope.check_type_envelope("Person")?;
     ///
@@ -386,7 +384,7 @@ impl Envelope {
         if self.has_type_envelope(t) {
             Ok(())
         } else {
-            bail!(Error::InvalidType)
+            return Err(Error::InvalidType);
         }
     }
 }

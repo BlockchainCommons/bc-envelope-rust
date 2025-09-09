@@ -400,6 +400,6 @@ impl TryFrom<Envelope> for Function {
     type Error = dcbor::Error;
 
     fn try_from(envelope: Envelope) -> dcbor::Result<Self> {
-        Function::try_from(envelope.try_leaf()?)
+        Function::try_from(envelope.try_leaf().map_err(|e| e.to_string())?)
     }
 }

@@ -1,7 +1,5 @@
-use anyhow::{Result, bail};
-
 use crate::{
-    Assertion, Envelope, EnvelopeEncodable, Error,
+    Assertion, Envelope, EnvelopeEncodable, Error, Result,
     base::envelope::EnvelopeCase, known_values,
 };
 
@@ -179,7 +177,7 @@ impl Assertion {
         );
         let e: Envelope = assertion.to_envelope();
         if !e.is_equivalent_to(&self.clone().to_envelope()) {
-            bail!(Error::InvalidAttachment);
+            return Err(Error::InvalidAttachment);
         }
         Ok(())
     }
@@ -300,7 +298,7 @@ impl Envelope {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.attachment_payload()?)
         } else {
-            bail!(Error::InvalidAttachment)
+            return Err(Error::InvalidAttachment);
         }
     }
 
@@ -317,7 +315,7 @@ impl Envelope {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.attachment_vendor()?)
         } else {
-            bail!(Error::InvalidAttachment);
+            return Err(Error::InvalidAttachment);
         }
     }
 
@@ -334,7 +332,7 @@ impl Envelope {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.attachment_conforms_to()?)
         } else {
-            bail!(Error::InvalidAttachment);
+            return Err(Error::InvalidAttachment);
         }
     }
 
@@ -469,7 +467,7 @@ impl Envelope {
             assertion.validate_attachment()?;
             Ok(())
         } else {
-            bail!(Error::InvalidAttachment);
+            return Err(Error::InvalidAttachment);
         }
     }
 
@@ -527,10 +525,10 @@ impl Envelope {
         let attachments =
             self.attachments_with_vendor_and_conforms_to(vendor, conforms_to)?;
         if attachments.is_empty() {
-            bail!(Error::NonexistentAttachment);
+            return Err(Error::NonexistentAttachment);
         }
         if attachments.len() > 1 {
-            bail!(Error::AmbiguousAttachment);
+            return Err(Error::AmbiguousAttachment);
         }
         Ok(attachments.first().unwrap().clone())
     }

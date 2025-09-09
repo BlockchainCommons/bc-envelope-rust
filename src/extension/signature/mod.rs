@@ -34,7 +34,7 @@
 //! ```ignore
 //! use bc_envelope::prelude::*;
 //!
-//! # fn main() -> anyhow::Result<()> {
+//! # fn main() -> bc_envelope::Result<()> {
 //! # // In a real application, you would use proper key generation
 //! # // The following would be your actual key variables from your application
 //! # let alice_private_key = /* your private key */;
@@ -65,7 +65,7 @@
 //! use bc_envelope::prelude::*;
 //! use known_values::NOTE;
 //!
-//! # fn main() -> anyhow::Result<()> {
+//! # fn main() -> bc_envelope::Result<()> {
 //! # // In a real application, you would use proper key generation
 //! # // The following would be your actual key variables from your application
 //! # let alice_private_key = /* your private key */;

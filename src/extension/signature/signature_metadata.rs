@@ -18,7 +18,7 @@ use crate::{Assertion, EnvelopeEncodable};
 /// use bc_envelope::prelude::*;
 /// use known_values::NOTE;
 ///
-/// # fn main() -> anyhow::Result<()> {
+/// # fn main() -> bc_envelope::Result<()> {
 /// # // In a real application, you would use proper key generation
 /// # let alice_private_key = /* your private key */;
 ///

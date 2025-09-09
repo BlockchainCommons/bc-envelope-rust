@@ -165,7 +165,6 @@
 //! # }
 //! ```
 
-use anyhow::{Result, bail};
 #[cfg(feature = "encrypt")]
 use bc_components::Decrypter;
 use bc_components::{Encrypter, Nonce, SealedMessage, SymmetricKey};
@@ -173,7 +172,7 @@ use dcbor::prelude::*;
 #[cfg(feature = "known_value")]
 use known_values;
 
-use crate::{Envelope, Error};
+use crate::{Envelope, Error, Result};
 
 /// Support for public key encryption.
 impl Envelope {
@@ -446,7 +445,7 @@ impl Envelope {
                 return Ok(plaintext);
             }
         }
-        bail!(Error::UnknownRecipient)
+        return Err(Error::UnknownRecipient)
     }
 
     /// Decrypts an envelope's subject using the recipient's private key.

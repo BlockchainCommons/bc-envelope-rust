@@ -33,7 +33,7 @@ fn symmetric_key() -> SymmetricKey {
 
 fn fake_nonce() -> Nonce { Nonce::from_data(hex!("4d785658f36c22fb5aed3ac0")) }
 
-fn encrypted_test(e1: Envelope) -> anyhow::Result<()> {
+fn encrypted_test(e1: Envelope) -> EnvelopeResult<()> {
     let e2 = e1
         .encrypt_subject_opt(&symmetric_key(), Some(fake_nonce()))?
         .check_encoding()?;

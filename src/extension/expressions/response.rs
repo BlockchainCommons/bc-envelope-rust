@@ -1,10 +1,9 @@
 use core::panic;
 
-use anyhow::{Error, Result, bail};
 use bc_components::{ARID, tags};
 use dcbor::prelude::*;
 
-use crate::{Envelope, EnvelopeEncodable, KnownValue, known_values};
+use crate::{Envelope, EnvelopeEncodable, KnownValue, known_values, Error, Result};
 
 /// A `Response` represents a reply to a `Request` containing either a
 /// successful result or an error.
@@ -43,7 +42,7 @@ use crate::{Envelope, EnvelopeEncodable, KnownValue, known_values};
 /// let error_envelope = error_response.into_envelope();
 /// ```
 #[derive(Debug, Clone, PartialEq)]
-pub struct Response(Result<(ARID, Envelope), (Option<ARID>, Envelope)>);
+pub struct Response(std::result::Result<(ARID, Envelope), (Option<ARID>, Envelope)>);
 
 impl std::fmt::Display for Response {
     /// Formats the response for display, showing its ID and result or error.
@@ -388,7 +387,7 @@ impl TryFrom<Envelope> for Response {
         let error = envelope.assertion_with_predicate(known_values::ERROR);
 
         if result.is_ok() == error.is_ok() {
-            bail!(crate::Error::InvalidResponse);
+            return Err(Error::InvalidResponse);
         }
 
         if result.is_ok() {
@@ -412,7 +411,7 @@ impl TryFrom<Envelope> for Response {
                 if known_value == known_values::UNKNOWN_VALUE {
                     id = None;
                 } else {
-                    bail!(crate::Error::InvalidResponse);
+                    return Err(Error::InvalidResponse);
                 }
             } else {
                 id = Some(id_value.try_into()?);
@@ -421,7 +420,7 @@ impl TryFrom<Envelope> for Response {
             return Ok(Response(Err((id, error))));
         }
 
-        bail!(crate::Error::InvalidResponse)
+        Err(Error::InvalidResponse)
     }
 }
 

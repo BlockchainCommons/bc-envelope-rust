@@ -21,7 +21,7 @@ fn double_assertion_envelope() -> Envelope {
 }
 
 #[test]
-fn test_envelope_elision() -> anyhow::Result<()> {
+fn test_envelope_elision() -> EnvelopeResult<()> {
     let e1 = basic_envelope();
 
     let e2 = e1.elide();
@@ -51,7 +51,7 @@ fn test_envelope_elision() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_single_assertion_remove_elision() -> anyhow::Result<()> {
+fn test_single_assertion_remove_elision() -> EnvelopeResult<()> {
     // The original Envelope
     let e1 = single_assertion_envelope();
     #[rustfmt::skip]
@@ -116,7 +116,7 @@ fn test_single_assertion_remove_elision() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_double_assertion_remove_elision() -> anyhow::Result<()> {
+fn test_double_assertion_remove_elision() -> EnvelopeResult<()> {
     // The original Envelope
     let e1 = double_assertion_envelope();
     #[rustfmt::skip]
@@ -186,7 +186,7 @@ fn test_double_assertion_remove_elision() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_single_assertion_reveal_elision() -> anyhow::Result<()> {
+fn test_single_assertion_reveal_elision() -> EnvelopeResult<()> {
     // The original Envelope
     let e1 = single_assertion_envelope();
     #[rustfmt::skip]
@@ -268,7 +268,7 @@ fn test_single_assertion_reveal_elision() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_double_assertion_reveal_elision() -> anyhow::Result<()> {
+fn test_double_assertion_reveal_elision() -> EnvelopeResult<()> {
     // The original Envelope
     let e1 = double_assertion_envelope();
     #[rustfmt::skip]
@@ -354,7 +354,7 @@ fn test_double_assertion_reveal_elision() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_digests() -> anyhow::Result<()> {
+fn test_digests() -> EnvelopeResult<()> {
     let e1 = double_assertion_envelope();
     #[rustfmt::skip]
     assert_actual_expected!(e1.format(), indoc! {r#"
@@ -400,7 +400,7 @@ fn test_digests() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_target_reveal() -> anyhow::Result<()> {
+fn test_target_reveal() -> EnvelopeResult<()> {
     let e1 =
         double_assertion_envelope().add_assertion("livesAt", "123 Main St.");
     #[rustfmt::skip]
@@ -435,7 +435,7 @@ fn test_target_reveal() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_targeted_remove() -> anyhow::Result<()> {
+fn test_targeted_remove() -> EnvelopeResult<()> {
     let e1 =
         double_assertion_envelope().add_assertion("livesAt", "123 Main St.");
     #[rustfmt::skip]

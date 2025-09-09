@@ -1,8 +1,7 @@
-use anyhow::{Result, bail};
 use bc_components::{EncryptedKey, KeyDerivationMethod, SymmetricKey};
 use known_values;
 
-use crate::{Envelope, Error};
+use crate::{Envelope, Error, Result};
 
 impl Envelope {
     pub fn lock_subject(
@@ -34,7 +33,7 @@ impl Envelope {
             }
         }
         // No matching secret unlock succeeded
-        bail!(Error::UnknownSecret)
+        Err(Error::UnknownSecret)
     }
 
     pub fn is_locked_with_password(&self) -> bool {

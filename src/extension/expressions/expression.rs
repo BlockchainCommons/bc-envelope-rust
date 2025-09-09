@@ -1,7 +1,6 @@
-use anyhow::Result;
 use dcbor::prelude::*;
 
-use crate::{Envelope, EnvelopeEncodable, Function, Parameter};
+use crate::{Envelope, EnvelopeEncodable, Function, Parameter, Result};
 
 /// An expression in a Gordian Envelope.
 ///
@@ -196,7 +195,7 @@ pub trait ExpressionBehavior {
     fn object_for_parameter(
         &self,
         param: impl Into<Parameter>,
-    ) -> anyhow::Result<Envelope>;
+    ) -> Result<Envelope>;
 
     /// Returns all arguments (objects) for the given parameter.
     ///
@@ -323,7 +322,7 @@ impl ExpressionBehavior for Expression {
     fn object_for_parameter(
         &self,
         param: impl Into<Parameter>,
-    ) -> anyhow::Result<Envelope> {
+    ) -> Result<Envelope> {
         self.envelope.object_for_predicate(param.into())
     }
 
@@ -391,7 +390,7 @@ impl TryFrom<Envelope> for Expression {
     type Error = dcbor::Error;
 
     fn try_from(envelope: Envelope) -> dcbor::Result<Self> {
-        let function = envelope.extract_subject()?;
+        let function = envelope.extract_subject().map_err(|e| e.to_string())?;
         Ok(Self { function, envelope })
     }
 }
@@ -461,7 +460,7 @@ mod tests {
     use crate::{functions, parameters};
 
     #[test]
-    fn test_expression_1() -> anyhow::Result<()> {
+    fn test_expression_1() -> Result<()> {
         crate::register_tags();
 
         let expression = Expression::new(functions::ADD)
@@ -503,7 +502,7 @@ mod tests {
     }
 
     #[test]
-    fn test_expression_2() -> anyhow::Result<()> {
+    fn test_expression_2() -> Result<()> {
         crate::register_tags();
 
         let expression = Expression::new("foo")

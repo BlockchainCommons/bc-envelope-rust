@@ -14,7 +14,7 @@ use bc_envelope::prelude::*;
 use indoc::indoc;
 
 #[test]
-fn test_multi_permit() -> anyhow::Result<()> {
+fn test_multi_permit() -> EnvelopeResult<()> {
     bc_components::register_tags();
 
     //

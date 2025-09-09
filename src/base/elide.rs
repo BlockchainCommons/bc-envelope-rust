@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 
-use anyhow::{Result, bail};
 use bc_components::{Digest, DigestProvider};
 #[cfg(feature = "encrypt")]
 use bc_components::{Nonce, SymmetricKey};
@@ -8,7 +7,7 @@ use bc_components::{Nonce, SymmetricKey};
 use dcbor::prelude::*;
 
 use super::envelope::EnvelopeCase;
-use crate::{Assertion, Envelope, Error};
+use crate::{Assertion, Envelope, Result, Error};
 
 /// Actions that can be performed on parts of an envelope to obscure them.
 ///
@@ -568,7 +567,7 @@ impl Envelope {
         if self.digest() == envelope.digest() {
             Ok(envelope)
         } else {
-            bail!(Error::InvalidDigest)
+            Err(Error::InvalidDigest)
         }
     }
 }

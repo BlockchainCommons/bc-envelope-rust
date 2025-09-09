@@ -1,10 +1,9 @@
-use anyhow::{Error, Result};
 use bc_components::{ARID, tags};
 use dcbor::{Date, prelude::*};
 
 use crate::{
     Envelope, EnvelopeEncodable, Expression, ExpressionBehavior, Function,
-    Parameter, known_values,
+    Parameter, known_values, Error, Result,
 };
 
 /// A `Request` represents a message requesting execution of a function with

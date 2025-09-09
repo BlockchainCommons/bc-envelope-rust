@@ -4,15 +4,15 @@ use bc_components::{
 };
 use dcbor::prelude::*;
 
-use crate::Envelope;
+use crate::{Envelope, Error, Result};
 
 #[macro_export]
 macro_rules! impl_envelope_decodable {
     ($type:ty) => {
         impl TryFrom<Envelope> for $type {
-            type Error = anyhow::Error;
+            type Error = Error;
 
-            fn try_from(envelope: Envelope) -> anyhow::Result<Self> {
+            fn try_from(envelope: Envelope) -> Result<Self> {
                 let cbor = envelope.try_leaf()?;
                 Ok(cbor.try_into()?)
             }

@@ -50,7 +50,6 @@
 
 use std::any::{Any, TypeId};
 
-use anyhow::{Result, bail};
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 #[cfg(feature = "encrypt")]
@@ -61,7 +60,7 @@ use dcbor::prelude::*;
 use super::envelope::EnvelopeCase;
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
-use crate::{Assertion, Envelope, EnvelopeEncodable, Error};
+use crate::{Assertion, Envelope, EnvelopeEncodable, Error, Result};
 
 impl Envelope {
     /// The envelope's subject.
@@ -100,7 +99,7 @@ impl Envelope {
 
     /// If the envelope's subject is an assertion return it, else return an
     /// error.
-    pub fn try_assertion(&self) -> anyhow::Result<Self> {
+    pub fn try_assertion(&self) -> Result<Self> {
         self.as_assertion().ok_or(Error::NotAssertion.into())
     }
 
@@ -116,7 +115,7 @@ impl Envelope {
 
     /// The envelope's predicate, or an error if the envelope is not an
     /// assertion.
-    pub fn try_predicate(&self) -> anyhow::Result<Self> {
+    pub fn try_predicate(&self) -> Result<Self> {
         self.as_predicate().ok_or(Error::NotAssertion.into())
     }
 
@@ -131,7 +130,7 @@ impl Envelope {
     }
 
     /// The envelope's object, or an error if the envelope is not an assertion.
-    pub fn try_object(&self) -> anyhow::Result<Self> {
+    pub fn try_object(&self) -> Result<Self> {
         self.as_object().ok_or(Error::NotAssertion.into())
     }
 
@@ -146,7 +145,7 @@ impl Envelope {
 
     /// The envelope's leaf CBOR object, or an error if the envelope is not a
     /// leaf.
-    pub fn try_leaf(&self) -> anyhow::Result<CBOR> {
+    pub fn try_leaf(&self) -> Result<CBOR> {
         self.as_leaf().ok_or(Error::NotLeaf.into())
     }
 
@@ -441,14 +440,14 @@ impl Envelope {
     pub fn assertion_with_predicate(
         &self,
         predicate: impl EnvelopeEncodable,
-    ) -> anyhow::Result<Self> {
+    ) -> Result<Self> {
         let a = self.assertions_with_predicate(predicate);
         if a.is_empty() {
-            bail!(Error::NonexistentPredicate);
+            return Err(Error::NonexistentPredicate);
         } else if a.len() == 1 {
             Ok(a[0].clone())
         } else {
-            bail!(Error::AmbiguousPredicate);
+            return Err(Error::AmbiguousPredicate);
         }
     }
 
@@ -459,14 +458,14 @@ impl Envelope {
     pub fn optional_assertion_with_predicate(
         &self,
         predicate: impl EnvelopeEncodable,
-    ) -> anyhow::Result<Option<Self>> {
+    ) -> Result<Option<Self>> {
         let a = self.assertions_with_predicate(predicate);
         if a.is_empty() {
             Ok(None)
         } else if a.len() == 1 {
             Ok(Some(a[0].clone()))
         } else {
-            bail!(Error::AmbiguousPredicate);
+            return Err(Error::AmbiguousPredicate);
         }
     }
 
@@ -511,7 +510,7 @@ impl Envelope {
     pub fn object_for_predicate(
         &self,
         predicate: impl EnvelopeEncodable,
-    ) -> anyhow::Result<Self> {
+    ) -> Result<Self> {
         Ok(self
             .assertion_with_predicate(predicate)?
             .as_object()
@@ -523,9 +522,9 @@ impl Envelope {
     /// This method attempts to convert the envelope into the requested type
     /// `T`. The conversion will succeed if the envelope can be properly decoded
     /// as the specified type.
-    pub fn try_as<T>(&self) -> anyhow::Result<T>
+    pub fn try_as<T>(&self) -> Result<T>
     where
-        T: TryFrom<Envelope, Error = anyhow::Error>,
+        T: TryFrom<Envelope, Error = Error>,
     {
         self.clone().try_into()
     }
@@ -538,9 +537,9 @@ impl Envelope {
     pub fn try_object_for_predicate<T>(
         &self,
         predicate: impl EnvelopeEncodable,
-    ) -> anyhow::Result<T>
+    ) -> Result<T>
     where
-        T: TryFrom<Envelope, Error = anyhow::Error>,
+        T: TryFrom<Envelope, Error = Error>,
     {
         self.object_for_predicate(predicate)?.try_into()
     }
@@ -552,14 +551,14 @@ impl Envelope {
     pub fn optional_object_for_predicate(
         &self,
         predicate: impl EnvelopeEncodable,
-    ) -> anyhow::Result<Option<Self>> {
+    ) -> Result<Option<Self>> {
         let a = self.assertions_with_predicate(predicate);
         if a.is_empty() {
             Ok(None)
         } else if a.len() == 1 {
             Ok(Some(a[0].subject().as_object().unwrap()))
         } else {
-            bail!(Error::AmbiguousPredicate);
+            return Err(Error::AmbiguousPredicate);
         }
     }
 
@@ -568,9 +567,9 @@ impl Envelope {
     pub fn try_optional_object_for_predicate<T>(
         &self,
         predicate: impl EnvelopeEncodable,
-    ) -> anyhow::Result<Option<T>>
+    ) -> Result<Option<T>>
     where
-        T: TryFrom<Envelope, Error = anyhow::Error>,
+        T: TryFrom<Envelope, Error = Error>,
     {
         self.optional_object_for_predicate(predicate)?
             .map(TryInto::try_into)
@@ -752,15 +751,15 @@ impl Envelope {
     ///
     /// Returns an error if the encoded type doesn't match the given type.
     pub fn try_objects_for_predicate<
-        T: TryFrom<Envelope, Error = anyhow::Error> + 'static,
+        T: TryFrom<Envelope, Error = Error> + 'static,
     >(
         &self,
         predicate: impl EnvelopeEncodable,
-    ) -> anyhow::Result<Vec<T>> {
+    ) -> Result<Vec<T>> {
         self.objects_for_predicate(predicate)
             .into_iter()
             .map(|a| a.try_as::<T>())
-            .collect::<anyhow::Result<Vec<T>>>()
+            .collect::<Result<Vec<T>>>()
     }
 
     /// Returns the number of structural elements in the envelope, including
@@ -818,7 +817,7 @@ impl Envelope {
         let position_assertions =
             self.assertions_with_predicate(known_values::POSITION);
         if position_assertions.len() > 1 {
-            bail!(Error::InvalidFormat);
+            return Err(Error::InvalidFormat);
         }
         // If there is a single known_values::POSITION assertion, remove it.
         let mut e =
@@ -870,7 +869,7 @@ impl Envelope {
         // If there is more than one known_values::POSITION assertion, return an
         // error.
         if position_assertions.len() > 1 {
-            bail!(Error::InvalidFormat);
+            return Err(Error::InvalidFormat);
         }
         // If there is a single known_values::POSITION assertion, remove it.
         if let Some(position_assertion) = position_assertions.first() {

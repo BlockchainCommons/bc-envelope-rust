@@ -1,4 +1,5 @@
 use thiserror::Error;
+use bc_components::Error as ComponentsError;
 
 /// Error types returned when operating on Gordian Envelopes.
 ///
@@ -266,9 +267,36 @@ pub enum Error {
     #[error("invalid response")]
     InvalidResponse,
 
+    #[cfg(feature = "sskr")]
+    #[error("sskr error: {0}")]
+    SSKR(#[from] bc_components::SSKRError),
+
     /// dcbor error
     #[error("dcbor error: {0}")]
     DCBOR(#[from] dcbor::Error),
+
+    /// Components error
+    #[error("components error: {0}")]
+    Components(#[from] ComponentsError),
+
+    /// General error
+    #[error("general error: {0}")]
+    General(String),
+}
+
+impl Error {
+    pub fn msg(msg: impl Into<String>) -> Self {
+        Error::General(msg.into())
+    }
+}
+
+impl From<Error> for dcbor::Error {
+    fn from(error: Error) -> dcbor::Error {
+        match error {
+            Error::DCBOR(err) => err,
+            _ => dcbor::Error::Custom(error.to_string()),
+        }
+    }
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

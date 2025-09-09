@@ -7,7 +7,7 @@ mod common;
 use common::test_seed::Seed;
 
 #[test]
-fn test_attachment() -> anyhow::Result<()> {
+fn test_attachment() -> Result<(), EnvelopeError> {
     let seed = Seed::new_opt(
         hex::decode("82f32c855d3d542256180810797e0073").unwrap(),
         "Alice's Seed",

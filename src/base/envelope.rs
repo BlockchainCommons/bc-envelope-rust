@@ -3,7 +3,6 @@ use std::rc::Rc as RefCounted;
 #[cfg(feature = "multithreaded")]
 use std::sync::Arc as RefCounted;
 
-use anyhow::{Result, bail};
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 #[cfg(feature = "encrypt")]
@@ -13,7 +12,7 @@ use dcbor::prelude::*;
 
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
-use crate::{EnvelopeEncodable, Error, base::Assertion};
+use crate::{EnvelopeEncodable, Result, Error, base::Assertion};
 
 /// A flexible container for structured data with built-in integrity
 /// verification.
@@ -300,7 +299,7 @@ impl Envelope {
             .iter()
             .all(|a| (a.is_subject_assertion() || a.is_subject_obscured()))
         {
-            bail!(Error::InvalidFormat);
+            return Err(Error::InvalidFormat);
         }
         Ok(Self::new_with_unchecked_assertions(subject, assertions))
     }
@@ -320,7 +319,7 @@ impl Envelope {
         encrypted_message: EncryptedMessage,
     ) -> Result<Self> {
         if !encrypted_message.has_digest() {
-            bail!(Error::MissingDigest);
+            return Err(Error::MissingDigest);
         }
         Ok(EnvelopeCase::Encrypted(encrypted_message).into())
     }
@@ -328,7 +327,7 @@ impl Envelope {
     #[cfg(feature = "compress")]
     pub(crate) fn new_with_compressed(compressed: Compressed) -> Result<Self> {
         if !compressed.has_digest() {
-            bail!(Error::MissingDigest);
+            return Err(Error::MissingDigest);
         }
         Ok(EnvelopeCase::Compressed(compressed).into())
     }

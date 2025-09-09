@@ -1,10 +1,9 @@
 use std::borrow::Cow;
 
-use anyhow::{Result, bail};
 use bc_components::{Digest, DigestProvider, Nonce, SymmetricKey, tags};
 use dcbor::prelude::*;
 
-use crate::{Envelope, Error, base::envelope::EnvelopeCase};
+use crate::{Envelope, Error, Result, base::envelope::EnvelopeCase};
 
 /// Support for encrypting and decrypting envelopes using symmetric encryption.
 ///
@@ -113,7 +112,7 @@ impl Envelope {
                 digest: envelope_digest,
             } => {
                 if subject.is_encrypted() {
-                    bail!(Error::AlreadyEncrypted);
+                    return Err(Error::AlreadyEncrypted);
                 }
                 let encoded_cbor = subject.tagged_cbor().to_cbor_data();
                 let digest = subject.digest();
@@ -169,7 +168,7 @@ impl Envelope {
                 original_digest = digest;
             }
             EnvelopeCase::Encrypted { .. } => {
-                bail!(Error::AlreadyEncrypted);
+                return Err(Error::AlreadyEncrypted);
             }
             #[cfg(feature = "compress")]
             EnvelopeCase::Compressed(compressed) => {
@@ -185,7 +184,7 @@ impl Envelope {
                 original_digest = digest;
             }
             EnvelopeCase::Elided { .. } => {
-                bail!(Error::AlreadyElided);
+                return Err(Error::AlreadyElided);
             }
         }
         assert_eq!(result.digest(), original_digest);
@@ -221,7 +220,7 @@ impl Envelope {
                 let cbor = CBOR::try_from_data(encoded_cbor)?;
                 let result_subject = Self::from_tagged_cbor(cbor)?;
                 if *result_subject.digest() != subject_digest {
-                    bail!(Error::InvalidDigest);
+                    return Err(Error::InvalidDigest);
                 }
                 match self.case() {
                     EnvelopeCase::Node { assertions, digest, .. } => {
@@ -230,14 +229,14 @@ impl Envelope {
                             assertions.clone(),
                         );
                         if *result.digest() != *digest {
-                            bail!(Error::InvalidDigest);
+                            return Err(Error::InvalidDigest);
                         }
                         Ok(result)
                     }
                     _ => Ok(result_subject),
                 }
             }
-            _ => bail!(Error::NotEncrypted),
+            _ => return Err(Error::NotEncrypted),
         }
     }
 }

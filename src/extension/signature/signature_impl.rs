@@ -1,4 +1,3 @@
-use anyhow::{Result, bail};
 use bc_components::{
     DigestProvider, Signature, Signer, SigningOptions, Verifier,
 };
@@ -6,7 +5,7 @@ use bc_components::{
 use known_values;
 
 use super::SignatureMetadata;
-use crate::{Envelope, EnvelopeEncodable, Error};
+use crate::{Envelope, EnvelopeEncodable, Result, Error};
 
 /// Support for signing envelopes and verifying signatures.
 ///
@@ -177,7 +176,7 @@ impl Envelope {
         public_key: &dyn Verifier,
     ) -> Result<Self> {
         if !self.is_signature_from_key(signature, public_key) {
-            bail!(Error::UnverifiedSignature);
+            return Err(Error::UnverifiedSignature);
         }
         Ok(self.clone())
     }
@@ -233,7 +232,7 @@ impl Envelope {
         public_key: &dyn Verifier,
     ) -> Result<Self> {
         if !self.has_some_signature_from_key(public_key)? {
-            bail!(Error::UnverifiedSignature);
+            return Err(Error::UnverifiedSignature);
         }
         Ok(self.clone())
     }
@@ -245,7 +244,7 @@ impl Envelope {
         let metadata =
             self.has_some_signature_from_key_returning_metadata(public_key)?;
         if metadata.is_none() {
-            bail!(Error::UnverifiedSignature);
+            return Err(Error::UnverifiedSignature);
         }
         Ok(metadata.unwrap())
     }
@@ -314,7 +313,7 @@ impl Envelope {
         threshold: Option<usize>,
     ) -> Result<Self> {
         if !self.has_signatures_from_threshold(public_keys, threshold)? {
-            bail!(Error::UnverifiedSignature);
+            return Err(Error::UnverifiedSignature);
         }
         Ok(self.clone())
     }
@@ -371,9 +370,8 @@ impl Envelope {
                                 return None;
                             }
                         } else {
-                            return Some(Err(anyhow::anyhow!(
-                                Error::InvalidOuterSignatureType
-                            )));
+                            return Some(Err(Error::InvalidOuterSignatureType
+                            ));
                         }
                     }
 
@@ -386,15 +384,11 @@ impl Envelope {
                         if !signing_target
                             .is_signature_from_key(&signature, key)
                         {
-                            return Some(Err(anyhow::anyhow!(
-                                Error::UnverifiedInnerSignature
-                            )));
+                            return Some(Err(Error::UnverifiedInnerSignature));
                         }
                         Some(Ok(Some(signature_metadata_envelope)))
                     } else {
-                        Some(Err(anyhow::anyhow!(
-                            Error::InvalidInnerSignatureType
-                        )))
+                        Some(Err(Error::InvalidInnerSignatureType))
                     }
                 } else if let Ok(signature) =
                     signature_object.extract_subject::<Signature>()
@@ -404,7 +398,7 @@ impl Envelope {
                     }
                     Some(Ok(Some(signature_object.clone())))
                 } else {
-                    Some(Err(anyhow::anyhow!(Error::InvalidSignatureType)))
+                    Some(Err(Error::InvalidSignatureType))
                 }
             });
 

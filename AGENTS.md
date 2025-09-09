@@ -35,7 +35,6 @@ cargo doc --no-deps --target-dir cargo-docs
 ### Development Guidelines
 
 - **Production quality** - Write real-world production-quality code
-- **Proper error handling** - Use `Result<T>` with `anyhow::Context` for all functions that can fail
 - **Clean code** - Fix all compiler errors and Clippy lints
 - **Security focus** - Cryptographic operations must adhere to best practices and be thoroughly tested
 

@@ -1,7 +1,6 @@
 #![cfg(feature = "signature")]
 
 use bc_components::{SignatureScheme, SigningOptions};
-use bc_envelope::prelude::*;
 
 mod common;
 use crate::common::{check_encoding::*, test_data::*};

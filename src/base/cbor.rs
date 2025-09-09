@@ -86,14 +86,14 @@ impl CBORTaggedDecodable for Envelope {
                 tags::TAG_ENCRYPTED => {
                     let encrypted =
                         EncryptedMessage::from_untagged_cbor(item.clone())?;
-                    let envelope = Self::new_with_encrypted(encrypted)?;
+                    let envelope = Self::new_with_encrypted(encrypted).map_err(|e| e.to_string())?;
                     Ok(envelope)
                 }
                 #[cfg(feature = "compress")]
                 tags::TAG_COMPRESSED => {
                     let compressed =
                         Compressed::from_untagged_cbor(item.clone())?;
-                    let envelope = Self::new_with_compressed(compressed)?;
+                    let envelope = Self::new_with_compressed(compressed).map_err(|e| e.to_string())?;
                     Ok(envelope)
                 }
                 _ => {
@@ -113,10 +113,10 @@ impl CBORTaggedDecodable for Envelope {
                     .cloned()
                     .map(Self::from_untagged_cbor)
                     .collect::<dcbor::Result<Vec<Self>>>()?;
-                Ok(Self::new_with_assertions(subject, assertions)?)
+                Ok(Self::new_with_assertions(subject, assertions).map_err(|e| e.to_string())?)
             }
             CBORCase::Map(_) => {
-                let assertion = Assertion::try_from(cbor)?;
+                let assertion = Assertion::try_from(cbor).map_err(|e| e.to_string())?;
                 Ok(Self::new_with_assertion(assertion))
             }
             #[cfg(feature = "known_value")]

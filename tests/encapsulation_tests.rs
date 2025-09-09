@@ -1,7 +1,6 @@
 #![cfg(feature = "recipient")]
 
 use bc_components::EncapsulationScheme;
-use bc_envelope::prelude::*;
 
 mod common;
 use crate::common::{check_encoding::*, test_data::*};

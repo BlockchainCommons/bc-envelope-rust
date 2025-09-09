@@ -7,10 +7,9 @@
 
 use std::collections::HashMap;
 
-use anyhow::Result;
 use bc_components::{Digest, DigestProvider};
 
-use crate::{Envelope, EnvelopeEncodable};
+use crate::{Envelope, EnvelopeEncodable, Result};
 
 /// A container for vendor-specific metadata attachments.
 ///

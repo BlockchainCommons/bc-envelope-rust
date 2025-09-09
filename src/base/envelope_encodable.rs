@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 #[cfg(any(feature = "encrypt", feature = "compress"))]
-use anyhow::{Error, Result};
+use crate::{Error, Result};
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 #[cfg(feature = "encrypt")]

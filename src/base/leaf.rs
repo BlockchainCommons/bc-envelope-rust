@@ -6,11 +6,9 @@ use dcbor::prelude::*;
 #[cfg(feature = "known_value")]
 use super::envelope::EnvelopeCase;
 #[cfg(feature = "known_value")]
-use crate::extension::KnownValue;
-#[cfg(feature = "known_value")]
-use crate::Error;
+use crate::{Error, extension::KnownValue};
 
-use crate::Envelope;
+use crate::{Envelope, Result};
 
 impl Envelope {
     pub fn r#false() -> Self { Self::new_leaf(false) }
@@ -63,7 +61,7 @@ impl Envelope {
 impl Envelope {
     /// The envelope's leaf CBOR object as a CBOR byte string, or an error if
     /// the envelope is not a leaf, or the leaf is not a byte string.
-    pub fn try_byte_string(&self) -> anyhow::Result<Vec<u8>> {
+    pub fn try_byte_string(&self) -> Result<Vec<u8>> {
         Ok(self.try_leaf()?.try_into_byte_string()?)
     }
 
@@ -99,7 +97,7 @@ impl Envelope {
 
     /// The envelope's `KnownValue`, or an error if the envelope is not case
     /// `::KnownValue`.
-    pub fn try_known_value(&self) -> anyhow::Result<&KnownValue> {
+    pub fn try_known_value(&self) -> Result<&KnownValue> {
         self.as_known_value().ok_or(Error::NotKnownValue.into())
     }
 

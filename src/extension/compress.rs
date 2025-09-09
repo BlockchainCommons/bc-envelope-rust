@@ -33,11 +33,10 @@
 //! assert_eq!(uncompressed.extract_subject::<String>().unwrap(), lorem);
 //! ```
 
-use anyhow::{Result, bail};
 use bc_components::{Compressed, DigestProvider};
 use dcbor::prelude::*;
 
-use crate::{Envelope, Error, base::envelope::EnvelopeCase};
+use crate::{Envelope, Error, Result, base::envelope::EnvelopeCase};
 
 /// Support for compressing and uncompressing envelopes.
 impl Envelope {
@@ -90,8 +89,8 @@ impl Envelope {
         match self.case() {
             EnvelopeCase::Compressed(_) => Ok(self.clone()),
             #[cfg(feature = "encrypt")]
-            EnvelopeCase::Encrypted(_) => bail!(Error::AlreadyEncrypted),
-            EnvelopeCase::Elided(_) => bail!(Error::AlreadyElided),
+            EnvelopeCase::Encrypted(_) => return Err(Error::AlreadyEncrypted),
+            EnvelopeCase::Elided(_) => return Err(Error::AlreadyElided),
             _ => {
                 let compressed = Compressed::from_uncompressed_data(
                     self.tagged_cbor().to_cbor_data(),
@@ -148,20 +147,20 @@ impl Envelope {
         if let EnvelopeCase::Compressed(compressed) = self.case() {
             if let Some(digest) = compressed.digest_ref_opt() {
                 if digest != self.digest().as_ref() {
-                    bail!(Error::InvalidDigest);
+                    return Err(Error::InvalidDigest);
                 }
                 let uncompressed_data = compressed.uncompress()?;
                 let envelope =
                     Envelope::from_tagged_cbor_data(uncompressed_data)?;
                 if envelope.digest().as_ref() != digest {
-                    bail!(Error::InvalidDigest);
+                    return Err(Error::InvalidDigest);
                 }
                 Ok(envelope)
             } else {
-                bail!(Error::MissingDigest)
+                return Err(Error::MissingDigest);
             }
         } else {
-            bail!(Error::NotCompressed)
+            return Err(Error::NotCompressed);
         }
     }
 

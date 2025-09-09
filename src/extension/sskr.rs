@@ -1,15 +1,14 @@
 use std::collections::HashMap;
 
-use anyhow::{Result, bail};
 pub use bc_components::{
-    SSKRError, SSKRGroupSpec, SSKRSecret, SSKRShare, SSKRSpec,
+    SSKRGroupSpec, SSKRSecret, SSKRShare, SSKRSpec,
 };
 use bc_components::{SymmetricKey, sskr_combine, sskr_generate_using};
 use bc_rand::RandomNumberGenerator;
 #[cfg(feature = "known_value")]
 use known_values;
 
-use crate::{Envelope, Error};
+use crate::{Envelope, Error, Result};
 
 /// Support for splitting and combining envelopes using SSKR (Shamir's Secret
 /// Sharing).
@@ -304,7 +303,7 @@ impl Envelope {
     /// ```
     pub fn sskr_join(envelopes: &[&Envelope]) -> Result<Envelope> {
         if envelopes.is_empty() {
-            bail!(Error::InvalidShares);
+            return Err(Error::InvalidShares);
         }
 
         let grouped_shares: Vec<_> =
@@ -320,7 +319,7 @@ impl Envelope {
                 }
             }
         }
-        bail!(Error::InvalidShares)
+        Err(Error::InvalidShares)
     }
 }
 

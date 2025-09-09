@@ -30,14 +30,13 @@
 
 use std::ops::RangeInclusive;
 
-use anyhow::Result;
 use bc_components::Salt;
 use bc_rand::{RandomNumberGenerator, SecureRandomNumberGenerator};
 use dcbor::prelude::*;
 #[cfg(feature = "known_value")]
 use known_values;
 
-use crate::Envelope;
+use crate::{Envelope, Result};
 
 /// Support for decorrelation of envelopes using salt.
 impl Envelope {

@@ -23,10 +23,9 @@
 //! 1. Decrypts the envelope using the recipient's private key
 //! 2. Verifies the signature using the sender's public key
 
-use anyhow::Result;
 use bc_components::{Decrypter, Encrypter, Signer, SigningOptions, Verifier};
 
-use crate::Envelope;
+use crate::{Envelope, Result};
 
 impl Envelope {
     /// Seals an envelope by signing it with the sender's key and then
@@ -92,7 +91,7 @@ impl Envelope {
     ///
     /// ```
     /// # #[cfg(all(feature = "signature", feature = "recipient"))]
-    /// # fn main() -> Result<(), anyhow::Error> {
+    /// # fn main() -> Result<(), bc_envelope::Error> {
     /// use bc_components::{EncapsulationScheme, SignatureScheme, SigningOptions};
     /// use bc_envelope::prelude::*;
     ///
@@ -145,7 +144,7 @@ impl Envelope {
     ///
     /// ```
     /// # #[cfg(all(feature = "signature", feature = "recipient"))]
-    /// # fn main() -> Result<(), anyhow::Error> {
+    /// # fn main() -> Result<(), bc_envelope::Error> {
     /// use bc_components::{EncapsulationScheme, SignatureScheme};
     /// use bc_envelope::prelude::*;
     ///
@@ -181,7 +180,7 @@ impl Envelope {
 
 #[cfg(all(test, feature = "signature", feature = "recipient"))]
 mod tests {
-    use anyhow::Result;
+    use crate::Result;
     use bc_components::{EncapsulationScheme, SignatureScheme, SigningOptions};
 
     use super::*;
