@@ -267,13 +267,14 @@ pub enum Error {
     #[error("invalid response")]
     InvalidResponse,
 
+    /// SSKR error
     #[cfg(feature = "sskr")]
     #[error("sskr error: {0}")]
     SSKR(#[from] bc_components::SSKRError),
 
     /// dcbor error
     #[error("dcbor error: {0}")]
-    DCBOR(#[from] dcbor::Error),
+    Cbor(#[from] dcbor::Error),
 
     /// Components error
     #[error("components error: {0}")]
@@ -293,7 +294,7 @@ impl Error {
 impl From<Error> for dcbor::Error {
     fn from(error: Error) -> dcbor::Error {
         match error {
-            Error::DCBOR(err) => err,
+            Error::Cbor(err) => err,
             _ => dcbor::Error::Custom(error.to_string()),
         }
     }
