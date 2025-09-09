@@ -236,7 +236,7 @@ impl Envelope {
                     _ => Ok(result_subject),
                 }
             }
-            _ => return Err(Error::NotEncrypted),
+            _ => Err(Error::NotEncrypted),
         }
     }
 }

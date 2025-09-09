@@ -1,5 +1,5 @@
-use thiserror::Error;
 use bc_components::Error as ComponentsError;
+use thiserror::Error;
 
 /// Error types returned when operating on Gordian Envelopes.
 ///
@@ -286,9 +286,7 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn msg(msg: impl Into<String>) -> Self {
-        Error::General(msg.into())
-    }
+    pub fn msg(msg: impl Into<String>) -> Self { Error::General(msg.into()) }
 }
 
 impl From<Error> for dcbor::Error {

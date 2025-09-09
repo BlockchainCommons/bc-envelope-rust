@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
-pub use bc_components::{
-    SSKRGroupSpec, SSKRSecret, SSKRShare, SSKRSpec,
-};
+pub use bc_components::{SSKRGroupSpec, SSKRSecret, SSKRShare, SSKRSpec};
 use bc_components::{SymmetricKey, sskr_combine, sskr_generate_using};
 use bc_rand::RandomNumberGenerator;
 #[cfg(feature = "known_value")]

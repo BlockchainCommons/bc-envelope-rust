@@ -1,7 +1,6 @@
 use bc_components::DigestProvider;
-use dcbor::prelude::*;
-
 use bc_envelope::{Envelope, Error, Result};
+use dcbor::prelude::*;
 
 pub trait CheckEncoding {
     #[allow(dead_code)]

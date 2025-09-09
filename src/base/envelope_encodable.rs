@@ -1,7 +1,5 @@
 use std::collections::{HashMap, HashSet};
 
-#[cfg(any(feature = "encrypt", feature = "compress"))]
-use crate::{Error, Result};
 #[cfg(feature = "compress")]
 use bc_components::Compressed;
 #[cfg(feature = "encrypt")]
@@ -13,6 +11,8 @@ use bc_components::{
 use dcbor::prelude::*;
 
 use crate::{Assertion, Envelope};
+#[cfg(any(feature = "encrypt", feature = "compress"))]
+use crate::{Error, Result};
 
 /// A trait for types that can be encoded as a Gordian Envelope.
 ///

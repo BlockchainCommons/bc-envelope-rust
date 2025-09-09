@@ -12,7 +12,7 @@ use dcbor::prelude::*;
 
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValue;
-use crate::{EnvelopeEncodable, Result, Error, base::Assertion};
+use crate::{EnvelopeEncodable, Error, Result, base::Assertion};
 
 /// A flexible container for structured data with built-in integrity
 /// verification.
@@ -79,18 +79,14 @@ impl Envelope {
     ///
     /// A reference to the `EnvelopeCase` that defines this envelope's
     /// structure.
-    pub fn case(&self) -> &EnvelopeCase {
-        &self.0
-    }
+    pub fn case(&self) -> &EnvelopeCase { &self.0 }
 }
 
 /// Conversion from `EnvelopeCase` to `Envelope`.
 ///
 /// This allows creating an envelope directly from an envelope case variant.
 impl From<EnvelopeCase> for Envelope {
-    fn from(case: EnvelopeCase) -> Self {
-        Self(RefCounted::new(case))
-    }
+    fn from(case: EnvelopeCase) -> Self { Self(RefCounted::new(case)) }
 }
 
 /// Conversion from `&Envelope` to `Envelope`.
@@ -98,9 +94,7 @@ impl From<EnvelopeCase> for Envelope {
 /// This creates a clone of the envelope. Since envelopes use reference
 /// counting, this is a relatively inexpensive operation.
 impl From<&Envelope> for Envelope {
-    fn from(envelope: &Envelope) -> Self {
-        envelope.clone()
-    }
+    fn from(envelope: &Envelope) -> Self { envelope.clone() }
 }
 
 /// The core structural variants of a Gordian Envelope.
@@ -349,9 +343,7 @@ impl Envelope {
 }
 
 impl AsRef<Envelope> for Envelope {
-    fn as_ref(&self) -> &Envelope {
-        self
-    }
+    fn as_ref(&self) -> &Envelope { self }
 }
 
 #[cfg(test)]

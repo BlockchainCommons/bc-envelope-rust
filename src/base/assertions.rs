@@ -1,7 +1,7 @@
 use bc_components::DigestProvider;
 
 use super::envelope::EnvelopeCase;
-use crate::{Envelope, EnvelopeEncodable, Result, Error};
+use crate::{Envelope, EnvelopeEncodable, Error, Result};
 
 /// Support for adding assertions.
 ///

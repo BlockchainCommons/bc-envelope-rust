@@ -59,7 +59,7 @@ impl Envelope {
     pub fn try_unwrap(&self) -> Result<Self> {
         match self.subject().case() {
             EnvelopeCase::Wrapped { envelope, .. } => Ok(envelope.clone()),
-            _ => return Err(Error::NotWrapped),
+            _ => Err(Error::NotWrapped),
         }
     }
 }

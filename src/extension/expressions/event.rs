@@ -1,7 +1,7 @@
 use bc_components::{ARID, tags};
 use dcbor::{Date, prelude::*};
 
-use crate::{Envelope, EnvelopeEncodable, known_values, Error, Result};
+use crate::{Envelope, EnvelopeEncodable, Error, Result, known_values};
 
 /// An `Event` represents a notification or message that doesn't expect a
 /// response.

@@ -3,8 +3,8 @@ use dcbor::prelude::*;
 #[cfg(feature = "known_value")]
 use crate::extension::KnownValuesStore;
 use crate::{
-    Envelope, FormatContext, FormatContextOpt, base::envelope::EnvelopeCase,
-    string_utils::StringUtils, Result
+    Envelope, FormatContext, FormatContextOpt, Result,
+    base::envelope::EnvelopeCase, string_utils::StringUtils,
 };
 
 impl Envelope {

@@ -5,10 +5,9 @@ use dcbor::prelude::*;
 
 #[cfg(feature = "known_value")]
 use super::envelope::EnvelopeCase;
+use crate::{Envelope, Result};
 #[cfg(feature = "known_value")]
 use crate::{Error, extension::KnownValue};
-
-use crate::{Envelope, Result};
 
 impl Envelope {
     pub fn r#false() -> Self { Self::new_leaf(false) }
@@ -98,7 +97,7 @@ impl Envelope {
     /// The envelope's `KnownValue`, or an error if the envelope is not case
     /// `::KnownValue`.
     pub fn try_known_value(&self) -> Result<&KnownValue> {
-        self.as_known_value().ok_or(Error::NotKnownValue.into())
+        self.as_known_value().ok_or(Error::NotKnownValue)
     }
 
     /// `true` if the envelope is case `::KnownValue`, `false` otherwise.

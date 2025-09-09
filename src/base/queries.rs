@@ -100,7 +100,7 @@ impl Envelope {
     /// If the envelope's subject is an assertion return it, else return an
     /// error.
     pub fn try_assertion(&self) -> Result<Self> {
-        self.as_assertion().ok_or(Error::NotAssertion.into())
+        self.as_assertion().ok_or(Error::NotAssertion)
     }
 
     /// The envelope's predicate, or `None` if the envelope is not an assertion.
@@ -116,7 +116,7 @@ impl Envelope {
     /// The envelope's predicate, or an error if the envelope is not an
     /// assertion.
     pub fn try_predicate(&self) -> Result<Self> {
-        self.as_predicate().ok_or(Error::NotAssertion.into())
+        self.as_predicate().ok_or(Error::NotAssertion)
     }
 
     /// The envelope's object, or `None` if the envelope is not an assertion.
@@ -131,7 +131,7 @@ impl Envelope {
 
     /// The envelope's object, or an error if the envelope is not an assertion.
     pub fn try_object(&self) -> Result<Self> {
-        self.as_object().ok_or(Error::NotAssertion.into())
+        self.as_object().ok_or(Error::NotAssertion)
     }
 
     /// The envelope's leaf CBOR object, or `None` if the envelope is not a
@@ -146,7 +146,7 @@ impl Envelope {
     /// The envelope's leaf CBOR object, or an error if the envelope is not a
     /// leaf.
     pub fn try_leaf(&self) -> Result<CBOR> {
-        self.as_leaf().ok_or(Error::NotLeaf.into())
+        self.as_leaf().ok_or(Error::NotLeaf)
     }
 
     /// `true` if the envelope is case `::Assertion`, `false` otherwise.
@@ -341,7 +341,7 @@ impl Envelope {
                 let downcast = cloned.downcast::<T>().unwrap();
                 Ok(*downcast)
             } else {
-                Err(Error::InvalidFormat.into())
+                Err(Error::InvalidFormat)
             }
         }
 
@@ -443,7 +443,7 @@ impl Envelope {
     ) -> Result<Self> {
         let a = self.assertions_with_predicate(predicate);
         if a.is_empty() {
-            return Err(Error::NonexistentPredicate);
+            Err(Error::NonexistentPredicate)
         } else if a.len() == 1 {
             Ok(a[0].clone())
         } else {

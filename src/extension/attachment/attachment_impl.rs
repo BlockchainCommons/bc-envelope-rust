@@ -298,7 +298,7 @@ impl Envelope {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.attachment_payload()?)
         } else {
-            return Err(Error::InvalidAttachment);
+            Err(Error::InvalidAttachment)
         }
     }
 
@@ -315,7 +315,7 @@ impl Envelope {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.attachment_vendor()?)
         } else {
-            return Err(Error::InvalidAttachment);
+            Err(Error::InvalidAttachment)
         }
     }
 
@@ -332,7 +332,7 @@ impl Envelope {
         if let EnvelopeCase::Assertion(assertion) = self.case() {
             Ok(assertion.attachment_conforms_to()?)
         } else {
-            return Err(Error::InvalidAttachment);
+            Err(Error::InvalidAttachment)
         }
     }
 
@@ -467,7 +467,7 @@ impl Envelope {
             assertion.validate_attachment()?;
             Ok(())
         } else {
-            return Err(Error::InvalidAttachment);
+            Err(Error::InvalidAttachment)
         }
     }
 

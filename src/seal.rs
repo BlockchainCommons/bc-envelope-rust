@@ -180,10 +180,10 @@ impl Envelope {
 
 #[cfg(all(test, feature = "signature", feature = "recipient"))]
 mod tests {
-    use crate::Result;
     use bc_components::{EncapsulationScheme, SignatureScheme, SigningOptions};
 
     use super::*;
+    use crate::Result;
 
     #[test]
     fn test_seal_and_unseal() -> Result<()> {

@@ -3,7 +3,9 @@ use core::panic;
 use bc_components::{ARID, tags};
 use dcbor::prelude::*;
 
-use crate::{Envelope, EnvelopeEncodable, KnownValue, known_values, Error, Result};
+use crate::{
+    Envelope, EnvelopeEncodable, Error, KnownValue, Result, known_values,
+};
 
 /// A `Response` represents a reply to a `Request` containing either a
 /// successful result or an error.
@@ -42,7 +44,9 @@ use crate::{Envelope, EnvelopeEncodable, KnownValue, known_values, Error, Result
 /// let error_envelope = error_response.into_envelope();
 /// ```
 #[derive(Debug, Clone, PartialEq)]
-pub struct Response(std::result::Result<(ARID, Envelope), (Option<ARID>, Envelope)>);
+pub struct Response(
+    std::result::Result<(ARID, Envelope), (Option<ARID>, Envelope)>,
+);
 
 impl std::fmt::Display for Response {
     /// Formats the response for display, showing its ID and result or error.

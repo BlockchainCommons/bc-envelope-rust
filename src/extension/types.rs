@@ -31,9 +31,7 @@ use crate::{
 /// The type system is commonly used in two ways:
 ///
 /// 1. **Type Tagging**: Adding type information to envelopes to indicate their
-///    semantic meaning
-///    ```rust
-///    use bc_envelope::prelude::*;
+///    semantic meaning ```rust use bc_envelope::prelude::*;
 ///
 ///    // Create an envelope representing a person
 ///    let person = Envelope::new("Alice")
@@ -42,9 +40,7 @@ use crate::{
 ///    ```
 ///
 /// 2. **Type Checking**: Verifying that an envelope has the expected type
-///    before processing
-///    ```no_run
-///    use bc_envelope::prelude::*;
+///    before processing ```no_run use bc_envelope::prelude::*;
 ///
 ///    fn process_person(envelope: &Envelope) -> EnvelopeResult<()> {
 ///        // Verify this is a person before processing
@@ -209,7 +205,7 @@ impl Envelope {
         if t.len() == 1 {
             Ok(t[0].clone())
         } else {
-            return Err(Error::AmbiguousType);
+            Err(Error::AmbiguousType)
         }
     }
 
@@ -331,7 +327,7 @@ impl Envelope {
         if self.has_type(t) {
             Ok(())
         } else {
-            return Err(Error::InvalidType);
+            Err(Error::InvalidType)
         }
     }
 
@@ -384,7 +380,7 @@ impl Envelope {
         if self.has_type_envelope(t) {
             Ok(())
         } else {
-            return Err(Error::InvalidType);
+            Err(Error::InvalidType)
         }
     }
 }

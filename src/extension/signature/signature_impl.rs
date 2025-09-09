@@ -5,7 +5,7 @@ use bc_components::{
 use known_values;
 
 use super::SignatureMetadata;
-use crate::{Envelope, EnvelopeEncodable, Result, Error};
+use crate::{Envelope, EnvelopeEncodable, Error, Result};
 
 /// Support for signing envelopes and verifying signatures.
 ///
@@ -370,8 +370,7 @@ impl Envelope {
                                 return None;
                             }
                         } else {
-                            return Some(Err(Error::InvalidOuterSignatureType
-                            ));
+                            return Some(Err(Error::InvalidOuterSignatureType));
                         }
                     }
 

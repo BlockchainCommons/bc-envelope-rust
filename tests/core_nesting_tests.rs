@@ -223,10 +223,7 @@ fn test_nesting_plaintext() {
 
 #[test]
 fn test_nesting_once() {
-    let envelope = Envelope::new("Hello.")
-        .wrap()
-        .check_encoding()
-        .unwrap();
+    let envelope = Envelope::new("Hello.").wrap().check_encoding().unwrap();
 
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
@@ -271,11 +268,7 @@ fn test_nesting_twice() {
     "#}.trim();
     assert_actual_expected!(envelope.format(), expected_format);
 
-    let target = envelope
-        .try_unwrap()
-        .unwrap()
-        .try_unwrap()
-        .unwrap();
+    let target = envelope.try_unwrap().unwrap().try_unwrap().unwrap();
     let elided_envelope = envelope.elide_removing_target(&target);
 
     #[rustfmt::skip]

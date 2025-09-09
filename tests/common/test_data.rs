@@ -24,9 +24,7 @@ pub fn double_assertion_envelope() -> Envelope {
 }
 
 pub fn wrapped_envelope() -> Envelope { hello_envelope().wrap() }
-pub fn double_wrapped_envelope() -> Envelope {
-    wrapped_envelope().wrap()
-}
+pub fn double_wrapped_envelope() -> Envelope { wrapped_envelope().wrap() }
 
 pub fn alice_seed() -> Vec<u8> {
     hex!("82f32c855d3d542256180810797e0073").into()
@@ -107,10 +105,7 @@ pub fn credential() -> Envelope {
     .add_assertion("firstName", "James")
     .add_assertion("lastName", "Maxwell")
     .add_assertion("issueDate", Date::from_string("2020-01-01").unwrap())
-    .add_assertion(
-        "expirationDate",
-        Date::from_string("2028-01-01").unwrap(),
-    )
+    .add_assertion("expirationDate", Date::from_string("2028-01-01").unwrap())
     .add_assertion("photo", "This is James Maxwell's photo.")
     .add_assertion("certificateNumber", "123-456-789")
     .add_assertion("subject", "RF and Microwave Engineering")

@@ -7,7 +7,7 @@ use bc_components::{Nonce, SymmetricKey};
 use dcbor::prelude::*;
 
 use super::envelope::EnvelopeCase;
-use crate::{Assertion, Envelope, Result, Error};
+use crate::{Assertion, Envelope, Error, Result};
 
 /// Actions that can be performed on parts of an envelope to obscure them.
 ///

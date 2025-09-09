@@ -445,7 +445,7 @@ impl Envelope {
                 return Ok(plaintext);
             }
         }
-        return Err(Error::UnknownRecipient)
+        Err(Error::UnknownRecipient)
     }
 
     /// Decrypts an envelope's subject using the recipient's private key.

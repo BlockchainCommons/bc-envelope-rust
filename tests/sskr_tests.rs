@@ -16,9 +16,7 @@ fn test_sskr() -> EnvelopeResult<()> {
     // it too large to fit into a basic SSKR share.
     let mut dan_seed = Seed::new(hex!("59f2293a5bce7d4de59e71b4207ac5d2"));
     dan_seed.set_name("Dark Purple Aqua Love");
-    dan_seed.set_creation_date(Some(
-        Date::from_string("2021-02-24").unwrap(),
-    ));
+    dan_seed.set_creation_date(Some(Date::from_string("2021-02-24").unwrap()));
     dan_seed.set_note("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.");
 
     // Dan encrypts the seed and then splits the content key into a single group
@@ -27,9 +25,8 @@ fn test_sskr() -> EnvelopeResult<()> {
     // encrypted seed and a single share.
     let content_key = SymmetricKey::new();
     let seed_envelope = dan_seed.clone().to_envelope();
-    let encrypted_seed_envelope = seed_envelope
-        .wrap()
-        .encrypt_subject(&content_key)?;
+    let encrypted_seed_envelope =
+        seed_envelope.wrap().encrypt_subject(&content_key)?;
 
     let group = SSKRGroupSpec::new(2, 3)?;
     let spec = SSKRSpec::new(1, vec![group])?;
