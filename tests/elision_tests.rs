@@ -6,9 +6,13 @@ use indoc::indoc;
 mod common;
 use crate::common::check_encoding::*;
 
-fn basic_envelope() -> Envelope { Envelope::new("Hello.") }
+fn basic_envelope() -> Envelope {
+    Envelope::new("Hello.")
+}
 
-fn assertion_envelope() -> Envelope { Envelope::new_assertion("knows", "Bob") }
+fn assertion_envelope() -> Envelope {
+    Envelope::new_assertion("knows", "Bob")
+}
 
 fn single_assertion_envelope() -> Envelope {
     Envelope::new("Alice").add_assertion("knows", "Bob")
@@ -478,6 +482,278 @@ fn test_targeted_remove() -> EnvelopeResult<()> {
 
     // Structurally different
     assert!(!e1.is_identical_to(&e3));
+
+    Ok(())
+}
+
+#[test]
+fn test_walk_replace_basic() -> EnvelopeResult<()> {
+    // Create envelopes
+    let alice = Envelope::new("Alice");
+    let bob = Envelope::new("Bob");
+    let charlie = Envelope::new("Charlie");
+
+    // Create an envelope with Bob referenced multiple times
+    let envelope = alice
+        .clone()
+        .add_assertion("knows", bob.clone())
+        .add_assertion("likes", bob.clone());
+
+    #[rustfmt::skip]
+    assert_actual_expected!(envelope.format(), indoc! {r#"
+        "Alice" [
+            "knows": "Bob"
+            "likes": "Bob"
+        ]
+    "#}.trim());
+
+    // Replace all instances of Bob with Charlie
+    let mut target = HashSet::new();
+    target.insert(bob.digest().into_owned());
+
+    let modified = envelope.walk_replace(&target, &charlie);
+
+    #[rustfmt::skip]
+    assert_actual_expected!(modified.format(), indoc! {r#"
+        "Alice" [
+            "knows": "Charlie"
+            "likes": "Charlie"
+        ]
+    "#}.trim());
+
+    // The structure is different (different content)
+    assert!(!modified.is_equivalent_to(&envelope));
+
+    Ok(())
+}
+
+#[test]
+fn test_walk_replace_subject() -> EnvelopeResult<()> {
+    let alice = Envelope::new("Alice");
+    let bob = Envelope::new("Bob");
+    let carol = Envelope::new("Carol");
+
+    let envelope = alice.clone().add_assertion("knows", bob.clone());
+
+    #[rustfmt::skip]
+    assert_actual_expected!(envelope.format(), indoc! {r#"
+        "Alice" [
+            "knows": "Bob"
+        ]
+    "#}.trim());
+
+    // Replace the subject (Alice) with Carol
+    let mut target = HashSet::new();
+    target.insert(alice.digest().into_owned());
+
+    let modified = envelope.walk_replace(&target, &carol);
+
+    #[rustfmt::skip]
+    assert_actual_expected!(modified.format(), indoc! {r#"
+        "Carol" [
+            "knows": "Bob"
+        ]
+    "#}.trim());
+
+    Ok(())
+}
+
+#[test]
+fn test_walk_replace_nested() -> EnvelopeResult<()> {
+    let alice = Envelope::new("Alice");
+    let bob = Envelope::new("Bob");
+    let charlie = Envelope::new("Charlie");
+
+    // Create a nested structure with Bob appearing at multiple levels
+    let inner = bob.clone().add_assertion("friend", bob.clone());
+    let envelope = alice.clone().add_assertion("knows", inner);
+
+    #[rustfmt::skip]
+    assert_actual_expected!(envelope.format(), indoc! {r#"
+        "Alice" [
+            "knows": "Bob" [
+                "friend": "Bob"
+            ]
+        ]
+    "#}.trim());
+
+    // Replace all instances of Bob with Charlie
+    let mut target = HashSet::new();
+    target.insert(bob.digest().into_owned());
+
+    let modified = envelope.walk_replace(&target, &charlie);
+
+    #[rustfmt::skip]
+    assert_actual_expected!(modified.format(), indoc! {r#"
+        "Alice" [
+            "knows": "Charlie" [
+                "friend": "Charlie"
+            ]
+        ]
+    "#}.trim());
+
+    Ok(())
+}
+
+#[test]
+fn test_walk_replace_wrapped() -> EnvelopeResult<()> {
+    let alice = Envelope::new("Alice");
+    let bob = Envelope::new("Bob");
+    let charlie = Envelope::new("Charlie");
+
+    // Create a wrapped envelope containing Bob
+    let wrapped = bob.clone().wrap();
+    let envelope = alice.clone().add_assertion("data", wrapped);
+
+    #[rustfmt::skip]
+    assert_actual_expected!(envelope.format(), indoc! {r#"
+        "Alice" [
+            "data": {
+                "Bob"
+            }
+        ]
+    "#}.trim());
+
+    // Replace Bob with Charlie
+    let mut target = HashSet::new();
+    target.insert(bob.digest().into_owned());
+
+    let modified = envelope.walk_replace(&target, &charlie);
+
+    #[rustfmt::skip]
+    assert_actual_expected!(modified.format(), indoc! {r#"
+        "Alice" [
+            "data": {
+                "Charlie"
+            }
+        ]
+    "#}.trim());
+
+    Ok(())
+}
+
+#[test]
+fn test_walk_replace_no_match() -> EnvelopeResult<()> {
+    let alice = Envelope::new("Alice");
+    let bob = Envelope::new("Bob");
+    let charlie = Envelope::new("Charlie");
+    let dave = Envelope::new("Dave");
+
+    let envelope = alice.clone().add_assertion("knows", bob.clone());
+
+    #[rustfmt::skip]
+    assert_actual_expected!(envelope.format(), indoc! {r#"
+        "Alice" [
+            "knows": "Bob"
+        ]
+    "#}.trim());
+
+    // Try to replace Dave (who doesn't exist in the envelope)
+    let mut target = HashSet::new();
+    target.insert(dave.digest().into_owned());
+
+    let modified = envelope.walk_replace(&target, &charlie);
+
+    // Should be identical since nothing matched
+    #[rustfmt::skip]
+    assert_actual_expected!(modified.format(), indoc! {r#"
+        "Alice" [
+            "knows": "Bob"
+        ]
+    "#}.trim());
+
+    assert!(modified.is_identical_to(&envelope));
+
+    Ok(())
+}
+
+#[test]
+fn test_walk_replace_multiple_targets() -> EnvelopeResult<()> {
+    let alice = Envelope::new("Alice");
+    let bob = Envelope::new("Bob");
+    let carol = Envelope::new("Carol");
+    let replacement = Envelope::new("REDACTED");
+
+    let envelope = alice
+        .clone()
+        .add_assertion("knows", bob.clone())
+        .add_assertion("likes", carol.clone());
+
+    #[rustfmt::skip]
+    assert_actual_expected!(envelope.format(), indoc! {r#"
+        "Alice" [
+            "knows": "Bob"
+            "likes": "Carol"
+        ]
+    "#}.trim());
+
+    // Replace both Bob and Carol with REDACTED
+    let mut target = HashSet::new();
+    target.insert(bob.digest().into_owned());
+    target.insert(carol.digest().into_owned());
+
+    let modified = envelope.walk_replace(&target, &replacement);
+
+    #[rustfmt::skip]
+    assert_actual_expected!(modified.format(), indoc! {r#"
+        "Alice" [
+            "knows": "REDACTED"
+            "likes": "REDACTED"
+        ]
+    "#}.trim());
+
+    Ok(())
+}
+
+#[test]
+fn test_walk_replace_elided() -> EnvelopeResult<()> {
+    let alice = Envelope::new("Alice");
+    let bob = Envelope::new("Bob");
+    let charlie = Envelope::new("Charlie");
+
+    // Create an envelope with Bob, then elide Bob
+    let envelope = alice
+        .clone()
+        .add_assertion("knows", bob.clone())
+        .add_assertion("likes", bob.clone());
+
+    #[rustfmt::skip]
+    assert_actual_expected!(envelope.format(), indoc! {r#"
+        "Alice" [
+            "knows": "Bob"
+            "likes": "Bob"
+        ]
+    "#}.trim());
+
+    // Elide Bob
+    let elided = envelope.elide_removing_target(&bob);
+
+    #[rustfmt::skip]
+    assert_actual_expected!(elided.format(), indoc! {r#"
+        "Alice" [
+            "knows": ELIDED
+            "likes": ELIDED
+        ]
+    "#}.trim());
+
+    // Replace the elided Bob with Charlie
+    // This works because the elided node has Bob's digest
+    let mut target = HashSet::new();
+    target.insert(bob.digest().into_owned());
+
+    let modified = elided.walk_replace(&target, &charlie);
+
+    #[rustfmt::skip]
+    assert_actual_expected!(modified.format(), indoc! {r#"
+        "Alice" [
+            "knows": "Charlie"
+            "likes": "Charlie"
+        ]
+    "#}.trim());
+
+    // Verify that the elided nodes were replaced
+    assert!(!modified.is_equivalent_to(&envelope));
+    assert!(!modified.is_equivalent_to(&elided));
 
     Ok(())
 }

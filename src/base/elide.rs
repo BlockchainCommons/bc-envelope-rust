@@ -817,6 +817,108 @@ impl Envelope {
         }
     }
 
+    /// Returns a new envelope with nodes matching target digests replaced.
+    ///
+    /// This function walks the envelope hierarchy and replaces any nodes whose
+    /// digests match those in the provided target set with clones of the
+    /// replacement envelope. Unlike `walk_unelide`, the replacement envelope
+    /// does not need to have the same digest as the node being replaced.
+    ///
+    /// This enables transforming specific elements in an envelope structure
+    /// while preserving the overall hierarchy. The replacement is applied
+    /// recursively throughout the tree.
+    ///
+    /// # Parameters
+    ///
+    /// * `target` - Set of digests identifying nodes to replace
+    /// * `replacement` - The envelope to clone for each matching node
+    ///
+    /// # Returns
+    ///
+    /// A new envelope with matching nodes replaced.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use bc_envelope::prelude::*;
+    /// # use std::collections::HashSet;
+    /// let alice = Envelope::new("Alice");
+    /// let bob = Envelope::new("Bob");
+    /// let charlie = Envelope::new("Charlie");
+    ///
+    /// let envelope = Envelope::new("Alice")
+    ///     .add_assertion("knows", "Bob")
+    ///     .add_assertion("likes", "Bob");
+    ///
+    /// // Replace all instances of "Bob" with "Charlie"
+    /// let mut target = HashSet::new();
+    /// target.insert(bob.digest().into_owned());
+    ///
+    /// let modified = envelope.walk_replace(&target, &charlie);
+    ///
+    /// // Both assertions now reference Charlie instead of Bob
+    /// assert!(modified.format().contains("Charlie"));
+    /// assert!(!modified.format().contains("Bob"));
+    /// ```
+    pub fn walk_replace(
+        &self,
+        target: &HashSet<Digest>,
+        replacement: &Envelope,
+    ) -> Self {
+        // Check if this node matches the target
+        if target.contains(self.digest().as_ref()) {
+            return replacement.clone();
+        }
+
+        // Recursively process children
+        match self.case() {
+            EnvelopeCase::Node { subject, assertions, .. } => {
+                let new_subject = subject.walk_replace(target, replacement);
+                let new_assertions: Vec<_> = assertions
+                    .iter()
+                    .map(|a| a.walk_replace(target, replacement))
+                    .collect();
+
+                if new_subject.is_identical_to(subject)
+                    && new_assertions
+                        .iter()
+                        .zip(assertions.iter())
+                        .all(|(a, b)| a.is_identical_to(b))
+                {
+                    self.clone()
+                } else {
+                    Self::new_with_unchecked_assertions(
+                        new_subject,
+                        new_assertions,
+                    )
+                }
+            }
+            EnvelopeCase::Wrapped { envelope, .. } => {
+                let new_envelope = envelope.walk_replace(target, replacement);
+                if new_envelope.is_identical_to(envelope) {
+                    self.clone()
+                } else {
+                    new_envelope.wrap()
+                }
+            }
+            EnvelopeCase::Assertion(assertion) => {
+                let new_predicate =
+                    assertion.predicate().walk_replace(target, replacement);
+                let new_object =
+                    assertion.object().walk_replace(target, replacement);
+
+                if new_predicate.is_identical_to(&assertion.predicate())
+                    && new_object.is_identical_to(&assertion.object())
+                {
+                    self.clone()
+                } else {
+                    Envelope::new_assertion(new_predicate, new_object)
+                }
+            }
+            _ => self.clone(),
+        }
+    }
+
     /// Returns a new envelope with encrypted nodes decrypted using the
     /// provided keys.
     ///
