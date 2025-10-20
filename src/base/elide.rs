@@ -837,6 +837,14 @@ impl Envelope {
     ///
     /// A new envelope with matching nodes replaced.
     ///
+    /// # Errors
+    ///
+    /// Returns `Error::InvalidFormat` if attempting to replace an assertion with
+    /// a non-assertion that is also not obscured (elided, encrypted, or
+    /// compressed). Assertions in a node's assertions array must be either
+    /// assertions or obscured elements (which are presumed to be obscured
+    /// assertions).
+    ///
     /// # Examples
     ///
     /// ```
@@ -854,7 +862,7 @@ impl Envelope {
     /// let mut target = HashSet::new();
     /// target.insert(bob.digest().into_owned());
     ///
-    /// let modified = envelope.walk_replace(&target, &charlie);
+    /// let modified = envelope.walk_replace(&target, &charlie).unwrap();
     ///
     /// // Both assertions now reference Charlie instead of Bob
     /// assert!(modified.format().contains("Charlie"));
@@ -864,20 +872,20 @@ impl Envelope {
         &self,
         target: &HashSet<Digest>,
         replacement: &Envelope,
-    ) -> Self {
+    ) -> Result<Self> {
         // Check if this node matches the target
         if target.contains(self.digest().as_ref()) {
-            return replacement.clone();
+            return Ok(replacement.clone());
         }
 
         // Recursively process children
         match self.case() {
             EnvelopeCase::Node { subject, assertions, .. } => {
-                let new_subject = subject.walk_replace(target, replacement);
+                let new_subject = subject.walk_replace(target, replacement)?;
                 let new_assertions: Vec<_> = assertions
                     .iter()
                     .map(|a| a.walk_replace(target, replacement))
-                    .collect();
+                    .collect::<Result<Vec<_>>>()?;
 
                 if new_subject.is_identical_to(subject)
                     && new_assertions
@@ -885,37 +893,37 @@ impl Envelope {
                         .zip(assertions.iter())
                         .all(|(a, b)| a.is_identical_to(b))
                 {
-                    self.clone()
+                    Ok(self.clone())
                 } else {
-                    Self::new_with_unchecked_assertions(
-                        new_subject,
-                        new_assertions,
-                    )
+                    // Use new_with_assertions to validate that all assertions
+                    // are either assertions or obscured
+                    Self::new_with_assertions(new_subject, new_assertions)
                 }
             }
             EnvelopeCase::Wrapped { envelope, .. } => {
-                let new_envelope = envelope.walk_replace(target, replacement);
+                let new_envelope =
+                    envelope.walk_replace(target, replacement)?;
                 if new_envelope.is_identical_to(envelope) {
-                    self.clone()
+                    Ok(self.clone())
                 } else {
-                    new_envelope.wrap()
+                    Ok(new_envelope.wrap())
                 }
             }
             EnvelopeCase::Assertion(assertion) => {
                 let new_predicate =
-                    assertion.predicate().walk_replace(target, replacement);
+                    assertion.predicate().walk_replace(target, replacement)?;
                 let new_object =
-                    assertion.object().walk_replace(target, replacement);
+                    assertion.object().walk_replace(target, replacement)?;
 
                 if new_predicate.is_identical_to(&assertion.predicate())
                     && new_object.is_identical_to(&assertion.object())
                 {
-                    self.clone()
+                    Ok(self.clone())
                 } else {
-                    Envelope::new_assertion(new_predicate, new_object)
+                    Ok(Envelope::new_assertion(new_predicate, new_object))
                 }
             }
-            _ => self.clone(),
+            _ => Ok(self.clone()),
         }
     }
 

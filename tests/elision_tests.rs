@@ -511,7 +511,7 @@ fn test_walk_replace_basic() -> EnvelopeResult<()> {
     let mut target = HashSet::new();
     target.insert(bob.digest().into_owned());
 
-    let modified = envelope.walk_replace(&target, &charlie);
+    let modified = envelope.walk_replace(&target, &charlie)?;
 
     #[rustfmt::skip]
     assert_actual_expected!(modified.format(), indoc! {r#"
@@ -546,7 +546,7 @@ fn test_walk_replace_subject() -> EnvelopeResult<()> {
     let mut target = HashSet::new();
     target.insert(alice.digest().into_owned());
 
-    let modified = envelope.walk_replace(&target, &carol);
+    let modified = envelope.walk_replace(&target, &carol)?;
 
     #[rustfmt::skip]
     assert_actual_expected!(modified.format(), indoc! {r#"
@@ -581,7 +581,7 @@ fn test_walk_replace_nested() -> EnvelopeResult<()> {
     let mut target = HashSet::new();
     target.insert(bob.digest().into_owned());
 
-    let modified = envelope.walk_replace(&target, &charlie);
+    let modified = envelope.walk_replace(&target, &charlie)?;
 
     #[rustfmt::skip]
     assert_actual_expected!(modified.format(), indoc! {r#"
@@ -618,7 +618,7 @@ fn test_walk_replace_wrapped() -> EnvelopeResult<()> {
     let mut target = HashSet::new();
     target.insert(bob.digest().into_owned());
 
-    let modified = envelope.walk_replace(&target, &charlie);
+    let modified = envelope.walk_replace(&target, &charlie)?;
 
     #[rustfmt::skip]
     assert_actual_expected!(modified.format(), indoc! {r#"
@@ -652,7 +652,7 @@ fn test_walk_replace_no_match() -> EnvelopeResult<()> {
     let mut target = HashSet::new();
     target.insert(dave.digest().into_owned());
 
-    let modified = envelope.walk_replace(&target, &charlie);
+    let modified = envelope.walk_replace(&target, &charlie)?;
 
     // Should be identical since nothing matched
     #[rustfmt::skip]
@@ -692,7 +692,7 @@ fn test_walk_replace_multiple_targets() -> EnvelopeResult<()> {
     target.insert(bob.digest().into_owned());
     target.insert(carol.digest().into_owned());
 
-    let modified = envelope.walk_replace(&target, &replacement);
+    let modified = envelope.walk_replace(&target, &replacement)?;
 
     #[rustfmt::skip]
     assert_actual_expected!(modified.format(), indoc! {r#"
@@ -741,7 +741,7 @@ fn test_walk_replace_elided() -> EnvelopeResult<()> {
     let mut target = HashSet::new();
     target.insert(bob.digest().into_owned());
 
-    let modified = elided.walk_replace(&target, &charlie);
+    let modified = elided.walk_replace(&target, &charlie)?;
 
     #[rustfmt::skip]
     assert_actual_expected!(modified.format(), indoc! {r#"
@@ -754,6 +754,32 @@ fn test_walk_replace_elided() -> EnvelopeResult<()> {
     // Verify that the elided nodes were replaced
     assert!(!modified.is_equivalent_to(&envelope));
     assert!(!modified.is_equivalent_to(&elided));
+
+    Ok(())
+}
+
+#[test]
+fn test_walk_replace_assertion_with_non_assertion_fails() -> EnvelopeResult<()>
+{
+    let alice = Envelope::new("Alice");
+    let bob = Envelope::new("Bob");
+    let charlie = Envelope::new("Charlie");
+
+    let envelope = alice.clone().add_assertion("knows", bob.clone());
+
+    // Get the assertion's digest
+    let knows_assertion = envelope.assertion_with_predicate("knows")?;
+    let assertion_digest = knows_assertion.digest().into_owned();
+
+    // Try to replace the entire assertion with Charlie (a non-assertion)
+    let mut target = HashSet::new();
+    target.insert(assertion_digest);
+
+    let result = envelope.walk_replace(&target, &charlie);
+
+    // This should fail because we're replacing an assertion with a non-assertion
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err().to_string(), "invalid format");
 
     Ok(())
 }
