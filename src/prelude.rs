@@ -8,7 +8,7 @@ pub use crate::{
     EnvelopeSummary, Error as EnvelopeError, FormatContext, FormatContextOpt,
     MermaidFormatOpts, MermaidOrientation, MermaidTheme,
     Result as EnvelopeResult, TreeFormatOpts,
-    elide::{self, ObscureAction},
+    elide::{self, ObscureAction, ObscureType},
     register_tags, register_tags_in,
     walk::EdgeType,
     with_format_context,

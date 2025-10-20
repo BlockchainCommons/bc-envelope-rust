@@ -9,6 +9,30 @@ use dcbor::prelude::*;
 use super::envelope::EnvelopeCase;
 use crate::{Assertion, Envelope, Error, Result};
 
+/// Types of obscuration that can be applied to envelope elements.
+///
+/// This enum identifies the different ways an envelope element can be obscured.
+/// Unlike `ObscureAction` which is used to perform obscuration operations,
+/// `ObscureType` is used to identify and filter elements based on their
+/// obscuration state.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ObscureType {
+    /// The element has been elided, showing only its digest.
+    Elided,
+
+    /// The element has been encrypted using symmetric encryption.
+    ///
+    /// This variant is only available when the `encrypt` feature is enabled.
+    #[cfg(feature = "encrypt")]
+    Encrypted,
+
+    /// The element has been compressed to reduce its size.
+    ///
+    /// This variant is only available when the `compress` feature is enabled.
+    #[cfg(feature = "compress")]
+    Compressed,
+}
+
 /// Actions that can be performed on parts of an envelope to obscure them.
 ///
 /// Gordian Envelope supports several ways to obscure parts of an envelope while
@@ -568,6 +592,450 @@ impl Envelope {
             Ok(envelope)
         } else {
             Err(Error::InvalidDigest)
+        }
+    }
+
+    /// Returns the set of digests of nodes matching the specified criteria.
+    ///
+    /// This function walks the envelope hierarchy and returns digests of nodes
+    /// that match both:
+    /// - The optional target digest set (if provided; otherwise all nodes
+    ///   match)
+    /// - Any of the specified obscuration types
+    ///
+    /// If no obscuration types are provided, all nodes in the target set (or
+    /// all nodes if no target set) are returned.
+    ///
+    /// # Parameters
+    ///
+    /// * `target_digests` - Optional set of digests to filter by. If `None`,
+    ///   all nodes are considered for matching.
+    /// * `obscure_types` - Slice of `ObscureType` values to match against. Only
+    ///   nodes obscured in one of these ways will be included.
+    ///
+    /// # Returns
+    ///
+    /// A `HashSet` of digests for nodes matching the specified criteria.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use bc_envelope::prelude::*;
+    /// # use std::collections::HashSet;
+    /// let envelope = Envelope::new("Alice")
+    ///     .add_assertion("knows", "Bob")
+    ///     .add_assertion("age", 30);
+    ///
+    /// // Elide one assertion
+    /// let knows_digest = envelope
+    ///     .assertion_with_predicate("knows")
+    ///     .unwrap()
+    ///     .digest()
+    ///     .into_owned();
+    /// let mut target = HashSet::new();
+    /// target.insert(knows_digest.clone());
+    ///
+    /// let elided = envelope.elide_removing_set(&target);
+    ///
+    /// // Find all elided nodes
+    /// let elided_digests = elided.nodes_matching(None, &[ObscureType::Elided]);
+    /// assert!(elided_digests.contains(&knows_digest));
+    /// ```
+    pub fn nodes_matching(
+        &self,
+        target_digests: Option<&HashSet<Digest>>,
+        obscure_types: &[ObscureType],
+    ) -> HashSet<Digest> {
+        use std::cell::RefCell;
+
+        use super::walk::EdgeType;
+
+        let result = RefCell::new(HashSet::new());
+
+        let visitor = |envelope: &Envelope,
+                       _level: usize,
+                       _edge: EdgeType,
+                       _state: ()|
+         -> ((), bool) {
+            // Check if this node matches the target digests (or if no target
+            // specified)
+            let digest_matches = target_digests
+                .map(|targets| targets.contains(envelope.digest().as_ref()))
+                .unwrap_or(true);
+
+            if !digest_matches {
+                return ((), false);
+            }
+
+            // If no obscure types specified, include all nodes
+            if obscure_types.is_empty() {
+                result.borrow_mut().insert(envelope.digest().into_owned());
+                return ((), false);
+            }
+
+            // Check if this node matches any of the specified obscure types
+            let type_matches =
+                obscure_types.iter().any(|obscure_type| {
+                    match (obscure_type, envelope.case()) {
+                        (ObscureType::Elided, EnvelopeCase::Elided(_)) => true,
+                        #[cfg(feature = "encrypt")]
+                        (
+                            ObscureType::Encrypted,
+                            EnvelopeCase::Encrypted(_),
+                        ) => true,
+                        #[cfg(feature = "compress")]
+                        (
+                            ObscureType::Compressed,
+                            EnvelopeCase::Compressed(_),
+                        ) => true,
+                        _ => false,
+                    }
+                });
+
+            if type_matches {
+                result.borrow_mut().insert(envelope.digest().into_owned());
+            }
+
+            ((), false)
+        };
+
+        self.walk(false, (), &visitor);
+        result.into_inner()
+    }
+
+    /// Returns a new envelope with elided nodes restored from the provided set.
+    ///
+    /// This function walks the envelope hierarchy and attempts to restore any
+    /// elided nodes by matching their digests against the provided set of
+    /// envelopes. If a match is found, the elided node is replaced with the
+    /// matching envelope.
+    ///
+    /// If no matches are found, the original envelope is returned unchanged.
+    ///
+    /// # Parameters
+    ///
+    /// * `envelopes` - A slice of envelopes that may match elided nodes in
+    ///   `self`
+    ///
+    /// # Returns
+    ///
+    /// A new envelope with elided nodes restored where possible.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use bc_envelope::prelude::*;
+    /// let alice = Envelope::new("Alice");
+    /// let bob = Envelope::new("Bob");
+    /// let envelope = Envelope::new("Alice").add_assertion("knows", "Bob");
+    ///
+    /// // Elide both the subject and an assertion
+    /// let elided = envelope
+    ///     .elide_removing_target(&alice)
+    ///     .elide_removing_target(&bob);
+    ///
+    /// // Restore the elided nodes
+    /// let restored = elided.walk_unelide(&[alice, bob]);
+    ///
+    /// // The restored envelope should match the original
+    /// assert_eq!(restored.format(), envelope.format());
+    /// ```
+    pub fn walk_unelide(&self, envelopes: &[Envelope]) -> Self {
+        use std::collections::HashMap;
+
+        // Build a lookup map of digest -> envelope
+        let mut envelope_map = HashMap::new();
+        for envelope in envelopes {
+            envelope_map
+                .insert(envelope.digest().into_owned(), envelope.clone());
+        }
+
+        self.walk_unelide_with_map(&envelope_map)
+    }
+
+    fn walk_unelide_with_map(
+        &self,
+        envelope_map: &std::collections::HashMap<Digest, Envelope>,
+    ) -> Self {
+        match self.case() {
+            EnvelopeCase::Elided(_) => {
+                // Try to find a matching envelope to restore
+                if let Some(replacement) =
+                    envelope_map.get(self.digest().as_ref())
+                {
+                    replacement.clone()
+                } else {
+                    self.clone()
+                }
+            }
+            EnvelopeCase::Node { subject, assertions, .. } => {
+                // Recursively unelide subject and assertions
+                let new_subject = subject.walk_unelide_with_map(envelope_map);
+                let new_assertions: Vec<_> = assertions
+                    .iter()
+                    .map(|a| a.walk_unelide_with_map(envelope_map))
+                    .collect();
+
+                if new_subject.is_identical_to(subject)
+                    && new_assertions
+                        .iter()
+                        .zip(assertions.iter())
+                        .all(|(a, b)| a.is_identical_to(b))
+                {
+                    self.clone()
+                } else {
+                    Self::new_with_unchecked_assertions(
+                        new_subject,
+                        new_assertions,
+                    )
+                }
+            }
+            EnvelopeCase::Wrapped { envelope, .. } => {
+                let new_envelope = envelope.walk_unelide_with_map(envelope_map);
+                if new_envelope.is_identical_to(envelope) {
+                    self.clone()
+                } else {
+                    new_envelope.wrap()
+                }
+            }
+            EnvelopeCase::Assertion(assertion) => {
+                // Recursively unelide predicate and object
+                let new_predicate =
+                    assertion.predicate().walk_unelide_with_map(envelope_map);
+                let new_object =
+                    assertion.object().walk_unelide_with_map(envelope_map);
+
+                if new_predicate.is_identical_to(&assertion.predicate())
+                    && new_object.is_identical_to(&assertion.object())
+                {
+                    self.clone()
+                } else {
+                    Envelope::new_assertion(new_predicate, new_object)
+                }
+            }
+            _ => self.clone(),
+        }
+    }
+
+    /// Returns a new envelope with encrypted nodes decrypted using the
+    /// provided keys.
+    ///
+    /// This function walks the envelope hierarchy and attempts to decrypt any
+    /// encrypted nodes using the provided set of symmetric keys. Each key is
+    /// tried in sequence until one succeeds or all fail.
+    ///
+    /// If no nodes can be decrypted, the original envelope is returned
+    /// unchanged.
+    ///
+    /// This function is only available when the `encrypt` feature is enabled.
+    ///
+    /// # Parameters
+    ///
+    /// * `keys` - A slice of `SymmetricKey` values to use for decryption
+    ///
+    /// # Returns
+    ///
+    /// A new envelope with encrypted nodes decrypted where possible.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use bc_envelope::prelude::*;
+    /// # use bc_components::SymmetricKey;
+    /// let key1 = SymmetricKey::new();
+    /// let key2 = SymmetricKey::new();
+    ///
+    /// let envelope = Envelope::new("Alice")
+    ///     .add_assertion("knows", "Bob")
+    ///     .add_assertion("age", 30);
+    ///
+    /// // Encrypt different parts with different keys
+    /// let encrypted = envelope.elide_removing_set_with_action(
+    ///     &std::collections::HashSet::from([envelope
+    ///         .assertion_with_predicate("knows")
+    ///         .unwrap()
+    ///         .digest()
+    ///         .into_owned()]),
+    ///     &ObscureAction::Encrypt(key1.clone()),
+    /// );
+    ///
+    /// // Decrypt with a set of keys
+    /// let decrypted = encrypted.walk_decrypt(&[key1, key2]);
+    ///
+    /// // The decrypted envelope should match the original
+    /// assert!(decrypted.is_equivalent_to(&envelope));
+    /// ```
+    #[cfg(feature = "encrypt")]
+    pub fn walk_decrypt(&self, keys: &[SymmetricKey]) -> Self {
+        match self.case() {
+            EnvelopeCase::Encrypted(_) => {
+                // Try each key until one works
+                for key in keys {
+                    if let Ok(decrypted) = self.decrypt_subject(key) {
+                        return decrypted.walk_decrypt(keys);
+                    }
+                }
+                // No key worked, return unchanged
+                self.clone()
+            }
+            EnvelopeCase::Node { subject, assertions, .. } => {
+                // Recursively decrypt subject and assertions
+                let new_subject = subject.walk_decrypt(keys);
+                let new_assertions: Vec<_> =
+                    assertions.iter().map(|a| a.walk_decrypt(keys)).collect();
+
+                if new_subject.is_identical_to(subject)
+                    && new_assertions
+                        .iter()
+                        .zip(assertions.iter())
+                        .all(|(a, b)| a.is_identical_to(b))
+                {
+                    self.clone()
+                } else {
+                    Self::new_with_unchecked_assertions(
+                        new_subject,
+                        new_assertions,
+                    )
+                }
+            }
+            EnvelopeCase::Wrapped { envelope, .. } => {
+                let new_envelope = envelope.walk_decrypt(keys);
+                if new_envelope.is_identical_to(envelope) {
+                    self.clone()
+                } else {
+                    new_envelope.wrap()
+                }
+            }
+            EnvelopeCase::Assertion(assertion) => {
+                // Recursively decrypt predicate and object
+                let new_predicate = assertion.predicate().walk_decrypt(keys);
+                let new_object = assertion.object().walk_decrypt(keys);
+
+                if new_predicate.is_identical_to(&assertion.predicate())
+                    && new_object.is_identical_to(&assertion.object())
+                {
+                    self.clone()
+                } else {
+                    Envelope::new_assertion(new_predicate, new_object)
+                }
+            }
+            _ => self.clone(),
+        }
+    }
+
+    /// Returns a new envelope with compressed nodes uncompressed.
+    ///
+    /// This function walks the envelope hierarchy and uncompresses nodes that:
+    /// - Are compressed, AND
+    /// - Match the target digest set (if provided), OR all compressed nodes if
+    ///   no target set is provided
+    ///
+    /// If no nodes can be uncompressed, the original envelope is returned
+    /// unchanged.
+    ///
+    /// This function is only available when the `compress` feature is enabled.
+    ///
+    /// # Parameters
+    ///
+    /// * `target_digests` - Optional set of digests to filter by. If `None`,
+    ///   all compressed nodes will be uncompressed.
+    ///
+    /// # Returns
+    ///
+    /// A new envelope with compressed nodes uncompressed where they match the
+    /// criteria.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use bc_envelope::prelude::*;
+    /// # use std::collections::HashSet;
+    /// let envelope = Envelope::new("Alice")
+    ///     .add_assertion("knows", "Bob")
+    ///     .add_assertion("bio", "A".repeat(1000));
+    ///
+    /// // Compress one assertion
+    /// let bio_assertion = envelope.assertion_with_predicate("bio").unwrap();
+    /// let bio_digest = bio_assertion.digest().into_owned();
+    /// let mut target = HashSet::new();
+    /// target.insert(bio_digest);
+    ///
+    /// let compressed = envelope
+    ///     .elide_removing_set_with_action(&target, &ObscureAction::Compress);
+    ///
+    /// // Uncompress just the targeted node
+    /// let uncompressed = compressed.walk_uncompress(Some(&target));
+    ///
+    /// // The uncompressed envelope should match the original
+    /// assert!(uncompressed.is_equivalent_to(&envelope));
+    /// ```
+    #[cfg(feature = "compress")]
+    pub fn walk_uncompress(
+        &self,
+        target_digests: Option<&HashSet<Digest>>,
+    ) -> Self {
+        match self.case() {
+            EnvelopeCase::Compressed(_) => {
+                // Check if this node matches the target (if target specified)
+                let matches_target = target_digests
+                    .map(|targets| targets.contains(self.digest().as_ref()))
+                    .unwrap_or(true);
+
+                if matches_target {
+                    // Try to uncompress
+                    if let Ok(uncompressed) = self.uncompress() {
+                        return uncompressed.walk_uncompress(target_digests);
+                    }
+                }
+                // Either doesn't match target or uncompress failed
+                self.clone()
+            }
+            EnvelopeCase::Node { subject, assertions, .. } => {
+                // Recursively uncompress subject and assertions
+                let new_subject = subject.walk_uncompress(target_digests);
+                let new_assertions: Vec<_> = assertions
+                    .iter()
+                    .map(|a| a.walk_uncompress(target_digests))
+                    .collect();
+
+                if new_subject.is_identical_to(subject)
+                    && new_assertions
+                        .iter()
+                        .zip(assertions.iter())
+                        .all(|(a, b)| a.is_identical_to(b))
+                {
+                    self.clone()
+                } else {
+                    Self::new_with_unchecked_assertions(
+                        new_subject,
+                        new_assertions,
+                    )
+                }
+            }
+            EnvelopeCase::Wrapped { envelope, .. } => {
+                let new_envelope = envelope.walk_uncompress(target_digests);
+                if new_envelope.is_identical_to(envelope) {
+                    self.clone()
+                } else {
+                    new_envelope.wrap()
+                }
+            }
+            EnvelopeCase::Assertion(assertion) => {
+                // Recursively uncompress predicate and object
+                let new_predicate =
+                    assertion.predicate().walk_uncompress(target_digests);
+                let new_object =
+                    assertion.object().walk_uncompress(target_digests);
+
+                if new_predicate.is_identical_to(&assertion.predicate())
+                    && new_object.is_identical_to(&assertion.object())
+                {
+                    self.clone()
+                } else {
+                    Envelope::new_assertion(new_predicate, new_object)
+                }
+            }
+            _ => self.clone(),
         }
     }
 }
