@@ -22,11 +22,11 @@ fn test_compress() {
     assert_eq!(compressed.to_cbor_data().len(), 283);
 
     assert_eq!(original.digest(), compressed.digest());
-    let uncompressed =
-        compressed.uncompress().unwrap().check_encoding().unwrap();
-    assert_eq!(uncompressed.digest(), original.digest());
+    let decompressed =
+        compressed.decompress().unwrap().check_encoding().unwrap();
+    assert_eq!(decompressed.digest(), original.digest());
     assert_eq!(
-        uncompressed.structural_digest(),
+        decompressed.structural_digest(),
         original.structural_digest()
     );
 }
@@ -98,14 +98,14 @@ fn test_compress_subject() {
         linkStyle 2 stroke:cyan,stroke-width:2px
         linkStyle 3 stroke:magenta,stroke-width:2px
     "#}.trim());
-    let uncompressed = compressed
-        .uncompress_subject()
+    let decompressed = compressed
+        .decompress_subject()
         .unwrap()
         .check_encoding()
         .unwrap();
-    assert_eq!(uncompressed.digest(), original.digest());
+    assert_eq!(decompressed.digest(), original.digest());
     assert_eq!(
-        uncompressed.structural_digest(),
+        decompressed.structural_digest(),
         original.structural_digest()
     );
 }

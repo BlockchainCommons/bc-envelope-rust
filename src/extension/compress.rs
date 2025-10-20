@@ -1,4 +1,4 @@
-//! Extension for compressing and uncompressing envelopes.
+//! Extension for compressing and decompressing envelopes.
 //!
 //! This module provides functionality for compressing envelopes to reduce their
 //! size while maintaining their digests. Unlike elision, which removes content,
@@ -28,9 +28,9 @@
 //! // But it takes up less space when serialized
 //! assert!(compressed.to_cbor_data().len() < envelope.to_cbor_data().len());
 //!
-//! // The envelope can be uncompressed to recover the original content
-//! let uncompressed = compressed.uncompress().unwrap();
-//! assert_eq!(uncompressed.extract_subject::<String>().unwrap(), lorem);
+//! // The envelope can be decompressed to recover the original content
+//! let decompressed = compressed.decompress().unwrap();
+//! assert_eq!(decompressed.extract_subject::<String>().unwrap(), lorem);
 //! ```
 
 use bc_components::{Compressed, DigestProvider};
@@ -38,7 +38,7 @@ use dcbor::prelude::*;
 
 use crate::{Envelope, Error, Result, base::envelope::EnvelopeCase};
 
-/// Support for compressing and uncompressing envelopes.
+/// Support for compressing and decompressing envelopes.
 impl Envelope {
     /// Returns a compressed version of this envelope.
     ///
@@ -92,7 +92,7 @@ impl Envelope {
             EnvelopeCase::Encrypted(_) => Err(Error::AlreadyEncrypted),
             EnvelopeCase::Elided(_) => Err(Error::AlreadyElided),
             _ => {
-                let compressed = Compressed::from_uncompressed_data(
+                let compressed = Compressed::from_decompressed_data(
                     self.tagged_cbor().to_cbor_data(),
                     Some(self.digest().into_owned()),
                 );
@@ -101,15 +101,15 @@ impl Envelope {
         }
     }
 
-    /// Returns the uncompressed variant of this envelope.
+    /// Returns the decompressed variant of this envelope.
     ///
     /// This method reverses the compression process, restoring the envelope to
-    /// its original uncompressed form. The uncompressed envelope will have
+    /// its original decompressed form. The decompressed envelope will have
     /// the same digest as the compressed version.
     ///
     /// # Returns
     ///
-    /// A Result containing the uncompressed envelope or an error.
+    /// A Result containing the decompressed envelope or an error.
     ///
     /// # Errors
     ///
@@ -130,28 +130,28 @@ impl Envelope {
     /// let original = Envelope::new("Hello, world!");
     /// let compressed = original.compress().unwrap();
     ///
-    /// // Uncompress it
-    /// let uncompressed = compressed.uncompress().unwrap();
+    /// // Decompress it
+    /// let decompressed = compressed.decompress().unwrap();
     ///
-    /// // The uncompressed envelope should match the original
+    /// // The decompressed envelope should match the original
     /// assert_eq!(
-    ///     uncompressed.extract_subject::<String>().unwrap(),
+    ///     decompressed.extract_subject::<String>().unwrap(),
     ///     "Hello, world!"
     /// );
-    /// assert_eq!(uncompressed.digest(), original.digest());
+    /// assert_eq!(decompressed.digest(), original.digest());
     ///
-    /// // Trying to uncompress a non-compressed envelope fails
-    /// assert!(original.uncompress().is_err());
+    /// // Trying to decompress a non-compressed envelope fails
+    /// assert!(original.decompress().is_err());
     /// ```
-    pub fn uncompress(&self) -> Result<Self> {
+    pub fn decompress(&self) -> Result<Self> {
         if let EnvelopeCase::Compressed(compressed) = self.case() {
             if let Some(digest) = compressed.digest_ref_opt() {
                 if digest != self.digest().as_ref() {
                     return Err(Error::InvalidDigest);
                 }
-                let uncompressed_data = compressed.uncompress()?;
+                let decompressed_data = compressed.decompress()?;
                 let envelope =
-                    Envelope::from_tagged_cbor_data(uncompressed_data)?;
+                    Envelope::from_tagged_cbor_data(decompressed_data)?;
                 if envelope.digest().as_ref() != digest {
                     return Err(Error::InvalidDigest);
                 }
@@ -168,7 +168,7 @@ impl Envelope {
     ///
     /// Unlike `compress()` which compresses the entire envelope, this method
     /// only compresses the subject of the envelope, leaving the assertions
-    /// uncompressed. This is useful when you want to compress a large
+    /// decompressed. This is useful when you want to compress a large
     /// subject while keeping the assertions readable and accessible.
     ///
     /// # Returns
@@ -212,15 +212,15 @@ impl Envelope {
         }
     }
 
-    /// Returns this envelope with its subject uncompressed.
+    /// Returns this envelope with its subject decompressed.
     ///
-    /// This method reverses the effect of `compress_subject()`, uncompressing
+    /// This method reverses the effect of `compress_subject()`, decompressing
     /// the subject of the envelope while leaving the rest of the envelope
     /// unchanged.
     ///
     /// # Returns
     ///
-    /// A Result containing a new envelope with an uncompressed subject, or an
+    /// A Result containing a new envelope with an decompressed subject, or an
     /// error.
     ///
     /// # Errors
@@ -240,21 +240,21 @@ impl Envelope {
     /// // Verify the subject is compressed
     /// assert!(compressed.subject().is_compressed());
     ///
-    /// // Uncompress the subject
-    /// let uncompressed = compressed.uncompress_subject().unwrap();
+    /// // Decompress the subject
+    /// let decompressed = compressed.decompress_subject().unwrap();
     ///
-    /// // Verify the subject is now uncompressed
-    /// assert!(!uncompressed.subject().is_compressed());
+    /// // Verify the subject is now decompressed
+    /// assert!(!decompressed.subject().is_compressed());
     ///
     /// // The content should match the original
     /// assert_eq!(
-    ///     uncompressed.extract_subject::<String>().unwrap(),
+    ///     decompressed.extract_subject::<String>().unwrap(),
     ///     "Hello, world!"
     /// );
     /// ```
-    pub fn uncompress_subject(&self) -> Result<Self> {
+    pub fn decompress_subject(&self) -> Result<Self> {
         if self.subject().is_compressed() {
-            let subject = self.subject().uncompress()?;
+            let subject = self.subject().decompress()?;
             Ok(self.replace_subject(subject))
         } else {
             Ok(self.clone())

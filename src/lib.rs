@@ -270,12 +270,12 @@
 //! # Compression
 //!
 //! * [`Envelope::compress`] Returns the compressed variant of this envelope.
-//! * [`Envelope::uncompress`] Returns the uncompressed variant of this
+//! * [`Envelope::decompress`] Returns the decompressed variant of this
 //!   envelope.
 //! * [`Envelope::compress_subject`] Returns this envelope with its subject
 //!   compressed.
-//! * [`Envelope::uncompress_subject`] Returns this envelope with its subject
-//!   uncompressed.
+//! * [`Envelope::decompress_subject`] Returns this envelope with its subject
+//!   decompressed.
 //!
 //! # Eliding, Encrypting, or Compressing Parts of an Envelope
 //!

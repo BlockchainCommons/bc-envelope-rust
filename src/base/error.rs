@@ -126,13 +126,13 @@ pub enum Error {
     #[error("envelope was already compressed")]
     AlreadyCompressed,
 
-    /// Returned when attempting to uncompress an envelope that is not
+    /// Returned when attempting to decompress an envelope that is not
     /// compressed.
     ///
-    /// This error occurs when calling uncompression functions on an envelope
+    /// This error occurs when calling decompression functions on an envelope
     /// that doesn't contain compressed content.
     #[cfg(feature = "compress")]
-    #[error("cannot uncompress an envelope that was not compressed")]
+    #[error("cannot decompress an envelope that was not compressed")]
     NotCompressed,
 
     //

@@ -923,14 +923,14 @@ impl Envelope {
         }
     }
 
-    /// Returns a new envelope with compressed nodes uncompressed.
+    /// Returns a new envelope with compressed nodes decompressed.
     ///
-    /// This function walks the envelope hierarchy and uncompresses nodes that:
+    /// This function walks the envelope hierarchy and decompresses nodes that:
     /// - Are compressed, AND
     /// - Match the target digest set (if provided), OR all compressed nodes if
     ///   no target set is provided
     ///
-    /// If no nodes can be uncompressed, the original envelope is returned
+    /// If no nodes can be decompressed, the original envelope is returned
     /// unchanged.
     ///
     /// This function is only available when the `compress` feature is enabled.
@@ -938,11 +938,11 @@ impl Envelope {
     /// # Parameters
     ///
     /// * `target_digests` - Optional set of digests to filter by. If `None`,
-    ///   all compressed nodes will be uncompressed.
+    ///   all compressed nodes will be decompressed.
     ///
     /// # Returns
     ///
-    /// A new envelope with compressed nodes uncompressed where they match the
+    /// A new envelope with compressed nodes decompressed where they match the
     /// criteria.
     ///
     /// # Examples
@@ -963,14 +963,14 @@ impl Envelope {
     /// let compressed = envelope
     ///     .elide_removing_set_with_action(&target, &ObscureAction::Compress);
     ///
-    /// // Uncompress just the targeted node
-    /// let uncompressed = compressed.walk_uncompress(Some(&target));
+    /// // Decompress just the targeted node
+    /// let decompressed = compressed.walk_decompress(Some(&target));
     ///
-    /// // The uncompressed envelope should match the original
-    /// assert!(uncompressed.is_equivalent_to(&envelope));
+    /// // The decompressed envelope should match the original
+    /// assert!(decompressed.is_equivalent_to(&envelope));
     /// ```
     #[cfg(feature = "compress")]
-    pub fn walk_uncompress(
+    pub fn walk_decompress(
         &self,
         target_digests: Option<&HashSet<Digest>>,
     ) -> Self {
@@ -982,20 +982,20 @@ impl Envelope {
                     .unwrap_or(true);
 
                 if matches_target {
-                    // Try to uncompress
-                    if let Ok(uncompressed) = self.uncompress() {
-                        return uncompressed.walk_uncompress(target_digests);
+                    // Try to decompress
+                    if let Ok(decompressed) = self.decompress() {
+                        return decompressed.walk_decompress(target_digests);
                     }
                 }
-                // Either doesn't match target or uncompress failed
+                // Either doesn't match target or decompress failed
                 self.clone()
             }
             EnvelopeCase::Node { subject, assertions, .. } => {
-                // Recursively uncompress subject and assertions
-                let new_subject = subject.walk_uncompress(target_digests);
+                // Recursively decompress subject and assertions
+                let new_subject = subject.walk_decompress(target_digests);
                 let new_assertions: Vec<_> = assertions
                     .iter()
-                    .map(|a| a.walk_uncompress(target_digests))
+                    .map(|a| a.walk_decompress(target_digests))
                     .collect();
 
                 if new_subject.is_identical_to(subject)
@@ -1013,7 +1013,7 @@ impl Envelope {
                 }
             }
             EnvelopeCase::Wrapped { envelope, .. } => {
-                let new_envelope = envelope.walk_uncompress(target_digests);
+                let new_envelope = envelope.walk_decompress(target_digests);
                 if new_envelope.is_identical_to(envelope) {
                     self.clone()
                 } else {
@@ -1021,11 +1021,11 @@ impl Envelope {
                 }
             }
             EnvelopeCase::Assertion(assertion) => {
-                // Recursively uncompress predicate and object
+                // Recursively decompress predicate and object
                 let new_predicate =
-                    assertion.predicate().walk_uncompress(target_digests);
+                    assertion.predicate().walk_decompress(target_digests);
                 let new_object =
-                    assertion.object().walk_uncompress(target_digests);
+                    assertion.object().walk_decompress(target_digests);
 
                 if new_predicate.is_identical_to(&assertion.predicate())
                     && new_object.is_identical_to(&assertion.object())

@@ -341,7 +341,7 @@ fn test_walk_decrypt() {
 
 #[test]
 #[cfg(feature = "compress")]
-fn test_walk_uncompress() {
+fn test_walk_decompress() {
     use std::collections::HashSet;
 
     use indoc::indoc;
@@ -377,30 +377,30 @@ fn test_walk_uncompress() {
         ]
     "#}.trim());
 
-    // Uncompress all
-    let uncompressed = compressed.walk_uncompress(None);
-    assert!(uncompressed.is_equivalent_to(&envelope));
+    // decompress all
+    let decompressed = compressed.walk_decompress(None);
+    assert!(decompressed.is_equivalent_to(&envelope));
 
-    // Uncompress with target filter (only one node)
+    // Decompress with target filter (only one node)
     let mut target = HashSet::new();
     target.insert(bio_digest.clone());
 
-    let partial = compressed.walk_uncompress(Some(&target));
+    let partial = compressed.walk_decompress(Some(&target));
     assert!(!partial.is_identical_to(&compressed));
     // Note: partial is still equivalent because compressed nodes preserve
     // digests
     assert!(partial.is_equivalent_to(&envelope));
 
-    // Bio should be uncompressed but description still compressed
+    // Bio should be decompressed but description still compressed
     let still_compressed =
         partial.nodes_matching(None, &[ObscureType::Compressed]);
     assert!(still_compressed.contains(&desc_digest));
     assert!(!still_compressed.contains(&bio_digest));
 
-    // Uncompress with non-matching target (should be unchanged)
+    // Decompress with non-matching target (should be unchanged)
     let mut no_match = HashSet::new();
     no_match.insert(Digest::from_image("nonexistent"));
-    let unchanged = compressed.walk_uncompress(Some(&no_match));
+    let unchanged = compressed.walk_decompress(Some(&no_match));
     assert!(unchanged.is_identical_to(&compressed));
 }
 
@@ -460,7 +460,7 @@ fn test_mixed_obscuration_operations() {
     let restored = obscured
         .walk_unelide(&[knows_assertion.clone()])
         .walk_decrypt(&[key])
-        .walk_uncompress(None);
+        .walk_decompress(None);
 
     assert!(restored.is_equivalent_to(&envelope));
 }

@@ -393,7 +393,7 @@ mod tests {
     fn test_any_compressed() {
         let data = "Hello".as_bytes();
         let digest = data.digest().into_owned();
-        let compressed = Compressed::from_uncompressed_data(data, Some(digest));
+        let compressed = Compressed::from_decompressed_data(data, Some(digest));
         let e1 = Envelope::new_with_compressed(compressed.clone()).unwrap();
         let e2 = Envelope::try_from(compressed).unwrap();
         assert_eq!(e1.format(), e2.format());

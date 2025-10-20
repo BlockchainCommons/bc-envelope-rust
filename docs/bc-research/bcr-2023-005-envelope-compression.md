@@ -42,12 +42,12 @@ compressed-assertion = compressed     ; MUST represent an assertion
 The format for `compressed` corresponds to `tagged-compressed` as defined in [UR Type Definition for Compressed Messages](bcr-2023-001-compressed-message.md), including the CBOR tag `#6.40003`. In this specification, the optional fourth array element `tagged-digest` (defined in [BCR-2021-002](bcr-2021-002-digest.md)) is REQUIRED, and MUST contain the CBOR-encoded tagged digest of the envelope:
 
 ```
-compressed = #6.40003([checksum, uncompressed-size, compressed-data, tagged-digest])
+compressed = #6.40003([checksum, decompressed-size, compressed-data, tagged-digest])
 
 checksum = crc32
 crc32 = uint
 
-uncompressed-size = uint
+decompressed-size = uint
 compressed-data = bytes
 ```
 
@@ -57,11 +57,11 @@ The `compressed` case can be discriminated from other Envelope case arms by the 
 
 This section is normative.
 
-The `compressed` case directly declares the compressed envelope's digest as the fourth element of its array, `digest`. The `tagged-digest` encoded therein MUST match the actual digest of the Envelope that has been compressed. Decompressing an envelope MUST be validated by matching the uncompressed Envelope's actual computed digest to the one declared, and the decompression operation MUST reject the result if the digests do not match.
+The `compressed` case directly declares the compressed envelope's digest as the fourth element of its array, `digest`. The `tagged-digest` encoded therein MUST match the actual digest of the Envelope that has been compressed. Decompressing an envelope MUST be validated by matching the decompressed Envelope's actual computed digest to the one declared, and the decompression operation MUST reject the result if the digests do not match.
 
 **Example**
 
-In the following example, the test envelope is too small for effective compression by DEFLATE, so the uncompressed payload is used where the compressed payload would normally be. This is as is specified in [UR Type Definition for Compressed Messages](bcr-2023-001-compressed-message.md) and is only for example purposes.
+In the following example, the test envelope is too small for effective compression by DEFLATE, so the decompressed payload is used where the compressed payload would normally be. This is as is specified in [UR Type Definition for Compressed Messages](bcr-2023-001-compressed-message.md) and is only for example purposes.
 
 ```
 $ ENVELOPE=`envelope subject "Hello"`
@@ -97,7 +97,7 @@ $ envelope digest --hex $COMPRESSED_ENVELOPE
 4d303dac9eed63573f6190e9c4191be619e03a7b3c21e9bb3d27ac1a55971e6b
 ```
 
-Notice that the digest of the unencrypted and encrypted Envelopes both match. This is because the fourth array element of the encrypted Envelope declares the uncompressed envelope's digest.
+Notice that the digest of the unencrypted and encrypted Envelopes both match. This is because the fourth array element of the encrypted Envelope declares the decompressed envelope's digest.
 
 ## Reference Implementations
 

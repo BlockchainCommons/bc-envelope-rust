@@ -42,24 +42,24 @@ When used embedded in another CBOR structure, this structure MUST be tagged `#6.
 tagged-compressed = #6.40003(compressed)
 
 compressed = [
-    checksum,           ; CRC-32 checksum of the uncompressed data
-    uncompressed-size,
+    checksum,           ; CRC-32 checksum of the decompressed data
+    decompressed-size,
     compressed-data,
     ? tagged-digest    ; Optional user-defined SHA-256 digest
 ]
 
 checksum = crc32
-uncompressed-size = uint
+decompressed-size = uint
 compressed-data = bytes
 
 crc32 = uint
 ```
 
-The `checksum` field is a standard feature of most DEFLATE implementations, and MUST be validated by the decoder. The `digest` field is optional and is not validated by the decoder, but may be used by the application to validate the integrity of the uncompressed data in ways that are beyond the scope of this specification. It's format is as defined in "Digests for Digital Objects" [BCR-2021-002](bcr-2021-002-digest.md).
+The `checksum` field is a standard feature of most DEFLATE implementations, and MUST be validated by the decoder. The `digest` field is optional and is not validated by the decoder, but may be used by the application to validate the integrity of the decompressed data in ways that are beyond the scope of this specification. It's format is as defined in "Digests for Digital Objects" [BCR-2021-002](bcr-2021-002-digest.md).
 
-If the payload is too small to compress using DEFLATE, the uncompressed payload MUST be placed in the `compressedData` field and the length of that field MUST be the same as the `uncompressedSize` field.
+If the payload is too small to compress using DEFLATE, the decompressed payload MUST be placed in the `compressedData` field and the length of that field MUST be the same as the `decompressedSize` field.
 
-Due to fixed overhead, the compressed form of very small messages may be somewhat larger than their uncompressed form.
+Due to fixed overhead, the compressed form of very small messages may be somewhat larger than their decompressed form.
 
 ## Future Proofing
 
