@@ -27,6 +27,12 @@ use crate::{EnvelopeEncodable, Error, Result, base::Assertion};
 ///   "modify" an envelope actually create a new envelope. This immutability is
 ///   fundamental to maintaining the integrity of the envelope's digest tree.
 ///
+/// - **O(1) Cloning**: Envelopes use reference counting (`Rc` or `Arc` when the
+///   `multithreaded` feature is enabled) and structure sharing to enable
+///   efficient O(1) cloning of an `Envelope` or recursively, any `Envelope`s it
+///   contains. Cloning an `Envelope` simply increments the reference count,
+///   allowing multiple owners without duplicating the underlying data.
+///
 /// - **Semantic Structure**: Envelopes can represent various semantic
 ///   relationships through subjects, predicates, and objects (similar to RDF
 ///   triples).
