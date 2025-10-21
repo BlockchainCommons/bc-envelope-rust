@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/bc-envelope/0.35.0")]
+#![doc(html_root_url = "https://docs.rs/bc-envelope/0.35.1")]
 #![warn(rust_2018_idioms)]
 
 //! # Gordian Envelope: A Flexible Container for Structured Data
@@ -20,7 +20,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bc-envelope = "0.35.0"
+//! bc-envelope = "0.35.1"
 //! ```
 //!
 //! ## Specification
@@ -405,7 +405,9 @@ pub use known_values::{self, KNOWN_VALUES, KnownValue, KnownValuesStore};
 #[cfg(feature = "known_value")]
 /// Converts a KnownValue to an Envelope.
 impl EnvelopeEncodable for KnownValue {
-    fn into_envelope(self) -> Envelope { Envelope::new_with_known_value(self) }
+    fn into_envelope(self) -> Envelope {
+        Envelope::new_with_known_value(self)
+    }
 }
 
 #[cfg(feature = "attachment")]
