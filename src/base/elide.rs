@@ -839,11 +839,11 @@ impl Envelope {
     ///
     /// # Errors
     ///
-    /// Returns `Error::InvalidFormat` if attempting to replace an assertion with
-    /// a non-assertion that is also not obscured (elided, encrypted, or
-    /// compressed). Assertions in a node's assertions array must be either
-    /// assertions or obscured elements (which are presumed to be obscured
-    /// assertions).
+    /// Returns `Error::InvalidFormat` if attempting to replace an assertion
+    /// with a non-assertion that is also not obscured (elided, encrypted,
+    /// or compressed). Assertions in a node's assertions array must be
+    /// either assertions or obscured elements (which are presumed to be
+    /// obscured assertions).
     ///
     /// # Examples
     ///

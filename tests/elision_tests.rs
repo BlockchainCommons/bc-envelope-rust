@@ -6,13 +6,9 @@ use indoc::indoc;
 mod common;
 use crate::common::check_encoding::*;
 
-fn basic_envelope() -> Envelope {
-    Envelope::new("Hello.")
-}
+fn basic_envelope() -> Envelope { Envelope::new("Hello.") }
 
-fn assertion_envelope() -> Envelope {
-    Envelope::new_assertion("knows", "Bob")
-}
+fn assertion_envelope() -> Envelope { Envelope::new_assertion("knows", "Bob") }
 
 fn single_assertion_envelope() -> Envelope {
     Envelope::new("Alice").add_assertion("knows", "Bob")
@@ -777,7 +773,8 @@ fn test_walk_replace_assertion_with_non_assertion_fails() -> EnvelopeResult<()>
 
     let result = envelope.walk_replace(&target, &charlie);
 
-    // This should fail because we're replacing an assertion with a non-assertion
+    // This should fail because we're replacing an assertion with a
+    // non-assertion
     assert!(result.is_err());
     assert_eq!(result.unwrap_err().to_string(), "invalid format");
 

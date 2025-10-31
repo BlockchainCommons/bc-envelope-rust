@@ -1,10 +1,8 @@
 #![allow(dead_code)]
 
-use bc_components::{
-    Nonce, PrivateKeyBase, SymmetricKey,
-};
+use bc_components::{Nonce, PrivateKeyBase, SymmetricKey};
 #[cfg(feature = "secp256k1")]
-use bc_components::{ PublicKeys, PublicKeysProvider };
+use bc_components::{PublicKeys, PublicKeysProvider};
 use bc_envelope::prelude::*;
 use hex_literal::hex;
 
