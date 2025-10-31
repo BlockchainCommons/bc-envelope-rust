@@ -40,6 +40,7 @@ test_only_features "salt"
 test_only_features "secret"
 test_only_features "signature"
 test_only_features "ssh"
+test_only_features "ssh,ssh-agent"
 test_only_features "sskr"
 test_only_features "types"
 

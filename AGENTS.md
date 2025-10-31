@@ -1,3 +1,5 @@
+⚠️ NOTE: Reading this *entire* file is REQUIRED. Do a `wc -l <path>` to get the number of lines, then fetch the entire file.
+
 # Gordian Envelope Guidelines
 
 ## Project Overview
@@ -87,9 +89,7 @@ These documents are essential for understanding the Gordian Envelope format and 
 | BCR-2024-006                  | Envelope Graph                                | [docs/bc-research/bcr-2024-006-envelope-graph.md](docs/bc-research/bcr-2024-006-envelope-graph.md)                               |
 | BCR-2024-007                  | Envelope Decorrelation                        | [docs/bc-research/bcr-2024-007-envelope-decorrelation.md](docs/bc-research/bcr-2024-007-envelope-decorrelation.md)               |
 
-## Current Status and Roadmap
-
-#### Documentation Quality Criteria
+## Documentation Quality Criteria
 
 - **Comprehensive**: All public API elements have documentation
 - **Contextual**: Documentation explains both "what" and "why"
@@ -99,7 +99,7 @@ These documents are essential for understanding the Gordian Envelope format and 
 - **Searchable**: Proper cross-references and keyword usage
 - **Validated**: Examples compile and work correctly
 
-#### Documentation Testing Guidelines
+## Documentation Testing Guidelines
 
 - **Doc Example Best Practices:**
   - Use appropriate imports in examples, typically `use bc_envelope::prelude::*`
@@ -114,7 +114,7 @@ These documents are essential for understanding the Gordian Envelope format and 
   - For complex operations like encryption, signatures, and elision, include complete examples that demonstrate the full workflow
   - 🚨 **CRITICAL**: ALL trait implementations (`impl Trait for Type`) MUST have a single-line doc comment explaining the implementation's purpose
 
-#### Required Quality Checks
+## Required Quality Checks
 
 🚨 **CRITICAL**: Always perform these quality checks with EVERY documentation task BEFORE considering it complete:
 
@@ -134,9 +134,9 @@ These documents are essential for understanding the Gordian Envelope format and 
 
 🔴 **MANDATORY**: YOU MUST RUN THESE CHECKS YOURSELF after making changes, without waiting to be prompted. Documentation is not complete until all tests pass. NEVER mark a task as complete without running and passing these checks.
 
-### Public APIs
+## Public APIs
 
-#### Core Base Module
+### Core Base Module
 
 1. **`EnvelopeError`** (`base/error.rs`) - Error types for Envelope operations
 2. **`FormatContext`** (`base/format_context.rs`) - Context for formatting Envelopes
@@ -145,7 +145,7 @@ These documents are essential for understanding the Gordian Envelope format and 
 5. **`ObscureAction`** (`base/elide.rs`) - Action to take when obscuring envelope parts
 6. **`Envelope` and `EnvelopeCase`** (`base/envelope.rs`) - The main Gordian Envelope type and its variants
 
-#### Core Functionality
+### Core Functionality
 
 1. `base/wrap.rs` - Functions for wrapping envelopes
 2. `base/elide.rs` - Functions for eliding, encrypting, or compressing parts of envelopes
@@ -155,7 +155,7 @@ These documents are essential for understanding the Gordian Envelope format and 
 6. `base/queries.rs` - Functions for querying envelope contents
 7. `base/walk.rs` - Functions for walking the envelope hierarchy
 
-#### Formatting
+### Formatting
 
 1. `format/diagnostic.rs` - Output in CBOR diagnostic format
 2. `format/hex.rs` - Output in CBOR hexadecimal format
@@ -163,7 +163,7 @@ These documents are essential for understanding the Gordian Envelope format and 
 4. `format/notation.rs` - Output in Envelope Notation format
 5. `format/tree.rs` - Output in tree format
 
-#### Extension Modules
+### Extension Modules
 
 1. `extension/salt.rs` - Extension for adding salt to decorrelate envelopes
 2. `extension/compress.rs` - Extension for compressing envelopes
@@ -171,17 +171,17 @@ These documents are essential for understanding the Gordian Envelope format and 
 4. `extension/sskr.rs` - Extension for Sharded Secret Key Reconstruction
 5. `extension/attachment.rs` - Extension for envelope attachments
 
-#### Known Values
+### Known Values
 
 1. `KnownValue` (`extension/known_values/known_value.rs`) - Predefined known values
 2. `KnownValuesStore` (`extension/known_values/known_values_store.rs`) - Store for known values
 
-#### Signature Extensions
+### Signature Extensions
 
 1. `extension/signature/signature_impl.rs` - Implementation of envelope signatures
 2. `SignatureMetadata` (`extension/signature/signature_metadata.rs`) - Metadata for signatures
 
-#### Expressions Extensions
+### Expressions Extensions
 
 1. `Function` (`extension/expressions/function.rs`) - Function for expressions
 2. `Parameter` (`extension/expressions/parameter.rs`) - Parameter for expressions
@@ -193,14 +193,14 @@ These documents are essential for understanding the Gordian Envelope format and 
 8. `Response` (`extension/expressions/response.rs`) - Response envelope
 9. `Event` (`extension/expressions/event.rs`) - Event envelope
 
-#### Other Extensions
+### Other Extensions
 
 1. `extension/recipient.rs` - Public key encryption
 2. `extension/proof.rs` - Inclusion proofs
 3. `extension/types.rs` - Type assertions
 4. `seal.rs` - Sealing and unsealing convenience functions
 
-### API Design Insights
+## API Design Insights
 
 The following insights about the API design of this crate have been collected during documentation:
 
