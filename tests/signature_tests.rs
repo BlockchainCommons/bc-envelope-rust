@@ -1,4 +1,4 @@
-#![cfg(feature = "signature")]
+#![cfg(all(feature = "signature", feature = "secp256k1"))]
 
 use bc_envelope::prelude::*;
 use indoc::indoc;

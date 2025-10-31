@@ -130,7 +130,9 @@ fn test_nodes_matching() {
     let knows_assertion = envelope.assertion_with_predicate("knows").unwrap();
     let knows_digest = knows_assertion.digest().into_owned();
 
+    #[cfg(feature = "compress")]
     let age_assertion = envelope.assertion_with_predicate("age").unwrap();
+    #[cfg(feature = "compress")]
     let age_digest = age_assertion.digest().into_owned();
 
     // Elide one assertion, compress another
@@ -142,7 +144,10 @@ fn test_nodes_matching() {
     #[cfg(feature = "compress")]
     compress_target.insert(age_digest.clone());
 
+    #[cfg(feature = "compress")]
     let mut obscured = envelope.elide_removing_set(&elide_target);
+    #[cfg(not(feature = "compress"))]
+    let obscured = envelope.elide_removing_set(&elide_target);
 
     #[cfg(feature = "compress")]
     {

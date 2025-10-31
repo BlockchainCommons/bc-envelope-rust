@@ -482,7 +482,7 @@ fn test_wrap_then_signed() {
     );
 }
 
-#[cfg(feature = "recipient")]
+#[cfg(all(feature = "recipient", feature = "secp256k1"))]
 #[test]
 fn test_encrypt_to_recipients() {
     let envelope = Envelope::new(PLAINTEXT_HELLO)

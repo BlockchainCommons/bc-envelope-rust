@@ -29,6 +29,19 @@ cargo test --all-targets > /dev/null
 section "No Default Features"
 cargo test --no-default-features > /dev/null
 
+test_only_features "signature"
+test_only_features "ed25519"
+test_only_features "secp256k1"
+test_only_features "signature,pqcrypto"
+test_only_features "encrypt,pqcrypto"
+test_only_features "signature,encrypt,pqcrypto"
+test_only_features "signature,ssh"
+test_only_features "encrypt,ssh"
+test_only_features "signature,encrypt,ssh"
+
+test_only_features "ssh-agent"
+test_additional_features "ssh-agent"
+
 test_only_features "attachment"
 test_only_features "compress"
 test_only_features "encrypt"
@@ -38,9 +51,7 @@ test_only_features "proof"
 test_only_features "recipient"
 test_only_features "salt"
 test_only_features "secret"
-test_only_features "signature"
 test_only_features "ssh"
-test_only_features "ssh,ssh-agent"
 test_only_features "sskr"
 test_only_features "types"
 

@@ -123,7 +123,7 @@ fn encrypt_decrypt() {
     }
 }
 
-#[cfg(feature = "signature")]
+#[cfg(all(feature = "signature", feature = "secp256k1"))]
 #[test]
 fn sign_then_encrypt() {
     bc_components::register_tags();
@@ -177,7 +177,7 @@ fn sign_then_encrypt() {
     assert_eq!(received_plaintext, PLAINTEXT_HELLO);
 }
 
-#[cfg(feature = "signature")]
+#[cfg(all(feature = "signature", feature = "secp256k1"))]
 #[test]
 fn test_encrypt_then_sign() {
     bc_components::register_tags();
@@ -247,7 +247,7 @@ fn test_encrypt_then_sign() {
     assert_eq!(received_plaintext, PLAINTEXT_HELLO);
 }
 
-#[cfg(feature = "recipient")]
+#[cfg(all(feature = "recipient", feature = "secp256k1"))]
 #[test]
 fn test_multi_recipient() {
     // Alice encrypts a message so that it can only be decrypted by Bob or

@@ -52,16 +52,21 @@ fn test_ssh_signed_plaintext() {
     assert_eq!(received_plaintext, "Hello.");
 
     // Confirm that it wasn't signed by Carol.
+    let carol_ssh_public_key = carol_private_key()
+        .ssh_signing_private_key(SSHAlgorithm::Ed25519, "carol@example.com")
+        .unwrap()
+        .public_key()
+        .unwrap();
     assert!(
         received_envelope
-            .verify_signature_from(&carol_public_key())
+            .verify_signature_from(&carol_ssh_public_key)
             .is_err()
     );
 
     // Confirm that it was signed by Alice OR Carol.
     received_envelope
         .verify_signatures_from_threshold(
-            &[&alice_ssh_public_key, &carol_public_key()],
+            &[&alice_ssh_public_key, &carol_ssh_public_key],
             Some(1),
         )
         .unwrap();
@@ -70,7 +75,7 @@ fn test_ssh_signed_plaintext() {
     assert!(
         received_envelope
             .verify_signatures_from_threshold(
-                &[&alice_ssh_public_key, &carol_public_key()],
+                &[&alice_ssh_public_key, &carol_ssh_public_key],
                 Some(2)
             )
             .is_err()

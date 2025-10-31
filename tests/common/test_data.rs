@@ -1,8 +1,10 @@
 #![allow(dead_code)]
 
 use bc_components::{
-    Nonce, PrivateKeyBase, PublicKeys, PublicKeysProvider, SymmetricKey,
+    Nonce, PrivateKeyBase, SymmetricKey,
 };
+#[cfg(feature = "secp256k1")]
+use bc_components::{ PublicKeys, PublicKeysProvider };
 use bc_envelope::prelude::*;
 use hex_literal::hex;
 
@@ -32,6 +34,8 @@ pub fn alice_seed() -> Vec<u8> {
 pub fn alice_private_key() -> PrivateKeyBase {
     PrivateKeyBase::from_data(alice_seed())
 }
+
+#[cfg(feature = "secp256k1")]
 pub fn alice_public_key() -> PublicKeys { alice_private_key().public_keys() }
 
 // pub fn bob_identifier() -> ARID {
@@ -41,6 +45,7 @@ pub fn bob_seed() -> Vec<u8> { hex!("187a5973c64d359c836eba466a44db7b").into() }
 pub fn bob_private_key() -> PrivateKeyBase {
     PrivateKeyBase::from_data(bob_seed())
 }
+#[cfg(feature = "secp256k1")]
 pub fn bob_public_key() -> PublicKeys { bob_private_key().public_keys() }
 
 // pub fn carol_identifier() -> ARID {
@@ -52,6 +57,7 @@ pub fn carol_seed() -> Vec<u8> {
 pub fn carol_private_key() -> PrivateKeyBase {
     PrivateKeyBase::from_data(carol_seed())
 }
+#[cfg(feature = "secp256k1")]
 pub fn carol_public_key() -> PublicKeys { carol_private_key().public_keys() }
 
 // pub fn example_ledger_identifier() -> ARID {
