@@ -1,6 +1,6 @@
 [package]
 name = "bc-envelope"
-version = "0.35.1"
+version = "0.36.0"
 edition = "2024"
 description = "Gordian Envelope for Rust."
 authors = ["Blockchain Commons"]
