@@ -447,7 +447,7 @@ impl Envelope {
         } else if a.len() == 1 {
             Ok(a[0].clone())
         } else {
-            return Err(Error::AmbiguousPredicate);
+            Err(Error::AmbiguousPredicate)
         }
     }
 
@@ -465,7 +465,7 @@ impl Envelope {
         } else if a.len() == 1 {
             Ok(Some(a[0].clone()))
         } else {
-            return Err(Error::AmbiguousPredicate);
+            Err(Error::AmbiguousPredicate)
         }
     }
 
@@ -558,7 +558,7 @@ impl Envelope {
         } else if a.len() == 1 {
             Ok(Some(a[0].subject().as_object().unwrap()))
         } else {
-            return Err(Error::AmbiguousPredicate);
+            Err(Error::AmbiguousPredicate)
         }
     }
 

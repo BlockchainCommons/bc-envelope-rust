@@ -409,24 +409,23 @@ impl Envelope {
         let matching_assertions: Vec<_> = assertions
             .into_iter()
             .filter(|assertion| {
-                if let Some(vendor) = vendor {
-                    if let Ok(v) = assertion.attachment_vendor() {
-                        if v != vendor {
-                            return false;
-                        }
-                    }
+                if let Some(vendor) = vendor
+                    && let Ok(v) = assertion.attachment_vendor()
+                    && v != vendor
+                {
+                    return false;
                 }
+
                 if let Some(conforms_to) = conforms_to {
-                    if let Ok(c) = assertion.attachment_conforms_to() {
-                        if let Some(c) = c {
-                            if c != conforms_to {
-                                return false;
-                            }
-                        } else {
+                    if let Ok(Some(c)) = assertion.attachment_conforms_to() {
+                        if c != conforms_to {
                             return false;
                         }
+                    } else {
+                        return false;
                     }
                 }
+
                 true
             })
             .collect();

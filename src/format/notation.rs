@@ -417,15 +417,13 @@ impl EnvelopeFormat for Envelope {
                                 let mut is_type_assertion = false;
                                 if let Some(predicate) =
                                     assertion.as_predicate()
-                                {
-                                    if let Some(known_value) =
+                                    && let Some(known_value) =
                                         predicate.subject().as_known_value()
-                                    {
-                                        if *known_value == known_values::IS_A {
-                                            is_type_assertion = true;
-                                        }
-                                    }
+                                    && *known_value == known_values::IS_A
+                                {
+                                    is_type_assertion = true;
                                 }
+
                                 if is_type_assertion {
                                     type_assertion_items.push(item);
                                 } else {

@@ -297,7 +297,7 @@ impl Envelope {
     ) -> Result<Self> {
         if !assertions
             .iter()
-            .all(|a| (a.is_subject_assertion() || a.is_subject_obscured()))
+            .all(|a| a.is_subject_assertion() || a.is_subject_obscured())
         {
             return Err(Error::InvalidFormat);
         }

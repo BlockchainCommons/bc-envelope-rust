@@ -413,16 +413,17 @@ impl TryFrom<(Envelope, Option<&Function>)> for Expression {
         (envelope, expected_function): (Envelope, Option<&Function>),
     ) -> dcbor::Result<Self> {
         let expression = Expression::try_from(envelope)?;
-        if let Some(expected_function) = expected_function {
-            if expression.function() != expected_function {
-                return Err(format!(
-                    "Expected function {:?}, but found {:?}",
-                    expected_function,
-                    expression.function()
-                )
-                .into());
-            }
+        if let Some(expected_function) = expected_function
+            && expression.function() != expected_function
+        {
+            return Err(format!(
+                "Expected function {:?}, but found {:?}",
+                expected_function,
+                expression.function()
+            )
+            .into());
         }
+
         Ok(expression)
     }
 }

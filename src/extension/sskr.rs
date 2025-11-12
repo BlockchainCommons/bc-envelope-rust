@@ -307,16 +307,15 @@ impl Envelope {
         let grouped_shares: Vec<_> =
             Self::sskr_shares_in(envelopes)?.values().cloned().collect();
         for shares in grouped_shares {
-            if let Ok(secret) = sskr_combine(&shares) {
-                if let Ok(content_key) = SymmetricKey::from_data_ref(&secret) {
-                    if let Ok(envelope) =
-                        envelopes.first().unwrap().decrypt_subject(&content_key)
-                    {
-                        return Ok(envelope.subject());
-                    }
-                }
+            if let Ok(secret) = sskr_combine(&shares)
+                && let Ok(content_key) = SymmetricKey::from_data_ref(&secret)
+                && let Ok(envelope) =
+                    envelopes.first().unwrap().decrypt_subject(&content_key)
+            {
+                return Ok(envelope.subject());
             }
         }
+
         Err(Error::InvalidShares)
     }
 }

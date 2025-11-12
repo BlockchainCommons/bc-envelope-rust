@@ -48,29 +48,29 @@ impl Envelope {
                 .unwrap(),
         );
 
-        if let Some(metadata) = metadata {
-            if metadata.has_assertions() {
-                let mut signature_with_metadata = signature;
+        if let Some(metadata) = metadata
+            && metadata.has_assertions()
+        {
+            let mut signature_with_metadata = signature;
 
-                metadata.assertions().iter().for_each(|assertion| {
-                    signature_with_metadata = signature_with_metadata
-                        .add_assertion_envelope(assertion.to_envelope())
-                        .unwrap();
-                });
+            metadata.assertions().iter().for_each(|assertion| {
+                signature_with_metadata = signature_with_metadata
+                    .add_assertion_envelope(assertion.to_envelope())
+                    .unwrap();
+            });
 
-                signature_with_metadata = signature_with_metadata.wrap();
+            signature_with_metadata = signature_with_metadata.wrap();
 
-                let outer_signature = Envelope::new(
-                    private_key
-                        .sign_with_options(
-                            &signature_with_metadata.digest().as_ref(),
-                            options,
-                        )
-                        .unwrap(),
-                );
-                signature = signature_with_metadata
-                    .add_assertion(known_values::SIGNED, outer_signature);
-            }
+            let outer_signature = Envelope::new(
+                private_key
+                    .sign_with_options(
+                        &signature_with_metadata.digest().as_ref(),
+                        options,
+                    )
+                    .unwrap(),
+            );
+            signature = signature_with_metadata
+                .add_assertion(known_values::SIGNED, outer_signature);
         }
 
         self.add_assertion(known_values::SIGNED, signature)

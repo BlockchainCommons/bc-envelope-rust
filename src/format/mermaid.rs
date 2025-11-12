@@ -166,13 +166,13 @@ impl Envelope {
             let indent = "    ".repeat(element.level);
             let content = if let Some(parent) = element.parent.as_ref() {
                 let mut this_link_styles = Vec::new();
-                if !opts.monochrome {
-                    if let Some(color) =
+                if !opts.monochrome
+                    && let Some(color) =
                         element.incoming_edge.link_stroke_color()
-                    {
-                        this_link_styles.push(format!("stroke:{}", color));
-                    }
+                {
+                    this_link_styles.push(format!("stroke:{}", color));
                 }
+
                 if element.is_highlighted && parent.is_highlighted {
                     this_link_styles.push("stroke-width:4px".to_string());
                 } else {

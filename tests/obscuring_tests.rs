@@ -251,7 +251,7 @@ fn test_walk_unelide() {
     "#}.trim());
 
     // Test with partial restoration (only some envelopes provided)
-    let partial = elided.walk_unelide(&[alice.clone()]);
+    let partial = elided.walk_unelide(std::slice::from_ref(&alice));
     #[rustfmt::skip]
     assert_eq!(partial.format(), indoc! {r#"
         "Alice" [
@@ -323,7 +323,7 @@ fn test_walk_decrypt() {
     "#}.trim());
 
     // Decrypt with only one key (partial decryption)
-    let partial = encrypted.walk_decrypt(&[key1.clone()]);
+    let partial = encrypted.walk_decrypt(std::slice::from_ref(&key1));
     assert!(!partial.is_identical_to(&encrypted));
     // Note: partial is still equivalent because encrypted nodes preserve
     // digests
@@ -463,7 +463,7 @@ fn test_mixed_obscuration_operations() {
 
     // Restore everything
     let restored = obscured
-        .walk_unelide(&[knows_assertion.clone()])
+        .walk_unelide(std::slice::from_ref(&knows_assertion))
         .walk_decrypt(&[key])
         .walk_decompress(None);
 
