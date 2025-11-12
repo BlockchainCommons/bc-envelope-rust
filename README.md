@@ -20,7 +20,7 @@ Envelopes are designed to facilitate "smart documents" with a number of unique f
 
 ```toml
 [dependencies]
-bc-envelope = "0.36.0"
+bc-envelope = "0.37.0"
 ```
 
 Basic usage examples:
@@ -136,6 +136,17 @@ To financially support further development of Gordian Envelope and other project
 - Align to dependencies.
 - Feature gate ssh-agent and pqcrypto.
 - Clean up feature gates.
+
+## Version History
+
+### 0.37.0 - November 12, 2025
+
+- Align to dependencies.
+- Format.
+
+### 0.36.0 - November 3, 2025
+
+- Align to dependencies.
 
 ### 0.35.1 - October 20, 2025
 
