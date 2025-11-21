@@ -132,14 +132,14 @@ pub fn redacted_credential() -> Envelope {
 
     let credential = credential();
     let mut target = HashSet::new();
-    target.insert(credential.digest().into_owned());
+    target.insert(credential.digest());
     for assertion in credential.assertions() {
         target.extend(assertion.deep_digests());
     }
-    target.insert(credential.subject().digest().into_owned());
+    target.insert(credential.subject().digest());
     let content = credential.subject().try_unwrap().unwrap();
-    target.insert(content.digest().into_owned());
-    target.insert(content.subject().digest().into_owned());
+    target.insert(content.digest());
+    target.insert(content.subject().digest());
 
     target.extend(
         content

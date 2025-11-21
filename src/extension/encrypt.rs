@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use bc_components::{Digest, DigestProvider, Nonce, SymmetricKey, tags};
 use dcbor::prelude::*;
 
@@ -103,7 +101,7 @@ impl Envelope {
         test_nonce: Option<Nonce>,
     ) -> Result<Self> {
         let result: Self;
-        let original_digest: Cow<'_, Digest>;
+        let original_digest: Digest;
 
         match self.case() {
             EnvelopeCase::Node {
@@ -124,7 +122,7 @@ impl Envelope {
                     encrypted_subject,
                     assertions.clone(),
                 );
-                original_digest = Cow::Borrowed(envelope_digest);
+                original_digest = *envelope_digest;
             }
             EnvelopeCase::Leaf { cbor, digest } => {
                 let encoded_cbor = CBOR::to_tagged_value(
@@ -133,16 +131,16 @@ impl Envelope {
                 )
                 .to_cbor_data();
                 let encrypted_message =
-                    key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
+                    key.encrypt_with_digest(encoded_cbor, *digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message).unwrap();
-                original_digest = Cow::Borrowed(digest);
+                original_digest = *digest;
             }
             EnvelopeCase::Wrapped { digest, .. } => {
                 let encoded_cbor = self.tagged_cbor().to_cbor_data();
                 let encrypted_message =
-                    key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
+                    key.encrypt_with_digest(encoded_cbor, *digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message).unwrap();
-                original_digest = Cow::Borrowed(digest);
+                original_digest = *digest;
             }
             EnvelopeCase::KnownValue { value, digest } => {
                 let encoded_cbor = CBOR::to_tagged_value(
@@ -151,9 +149,9 @@ impl Envelope {
                 )
                 .to_cbor_data();
                 let encrypted_message =
-                    key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
+                    key.encrypt_with_digest(encoded_cbor, *digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message).unwrap();
-                original_digest = Cow::Borrowed(digest);
+                original_digest = *digest;
             }
             EnvelopeCase::Assertion(assertion) => {
                 let digest = assertion.digest();
@@ -163,7 +161,7 @@ impl Envelope {
                 )
                 .to_cbor_data();
                 let encrypted_message =
-                    key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
+                    key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message).unwrap();
                 original_digest = digest;
             }
@@ -179,7 +177,7 @@ impl Envelope {
                 )
                 .to_cbor_data();
                 let encrypted_message =
-                    key.encrypt_with_digest(encoded_cbor, &digest, test_nonce);
+                    key.encrypt_with_digest(encoded_cbor, digest, test_nonce);
                 result = Self::new_with_encrypted(encrypted_message).unwrap();
                 original_digest = digest;
             }
@@ -219,7 +217,7 @@ impl Envelope {
                     message.aad_digest().ok_or(Error::MissingDigest)?;
                 let cbor = CBOR::try_from_data(encoded_cbor)?;
                 let result_subject = Self::from_tagged_cbor(cbor)?;
-                if *result_subject.digest() != subject_digest {
+                if result_subject.digest() != subject_digest {
                     return Err(Error::InvalidDigest);
                 }
                 match self.case() {
@@ -228,7 +226,7 @@ impl Envelope {
                             result_subject,
                             assertions.clone(),
                         );
-                        if *result.digest() != *digest {
+                        if result.digest() != *digest {
                             return Err(Error::InvalidDigest);
                         }
                         Ok(result)

@@ -282,10 +282,9 @@ impl Envelope {
     ) -> Self {
         assert!(!unchecked_assertions.is_empty());
         let mut sorted_assertions = unchecked_assertions;
-        sorted_assertions.sort_by(|a, b| a.digest().cmp(&b.digest()));
-        let mut digests = vec![subject.digest().into_owned()];
-        digests
-            .extend(sorted_assertions.iter().map(|a| a.digest().into_owned()));
+        sorted_assertions.sort_by_key(|a| a.digest());
+        let mut digests = vec![subject.digest()];
+        digests.extend(sorted_assertions.iter().map(|a| a.digest()));
         let digest = Digest::from_digests(&digests);
         (EnvelopeCase::Node { subject, assertions: sorted_assertions, digest })
             .into()
@@ -310,7 +309,7 @@ impl Envelope {
 
     #[cfg(feature = "known_value")]
     pub(crate) fn new_with_known_value(value: KnownValue) -> Self {
-        let digest = value.digest().into_owned();
+        let digest = value.digest();
         (EnvelopeCase::KnownValue { value, digest }).into()
     }
 
@@ -343,7 +342,7 @@ impl Envelope {
     }
 
     pub(crate) fn new_wrapped(envelope: Self) -> Self {
-        let digest = Digest::from_digests(&[envelope.digest().into_owned()]);
+        let digest = Digest::from_digests(&[envelope.digest()]);
         (EnvelopeCase::Wrapped { envelope, digest }).into()
     }
 }
@@ -398,7 +397,7 @@ mod tests {
     #[test]
     fn test_any_compressed() {
         let data = "Hello".as_bytes();
-        let digest = data.digest().into_owned();
+        let digest = data.digest();
         let compressed = Compressed::from_decompressed_data(data, Some(digest));
         let e1 = Envelope::new_with_compressed(compressed.clone()).unwrap();
         let e2 = Envelope::try_from(compressed).unwrap();

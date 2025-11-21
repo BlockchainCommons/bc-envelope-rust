@@ -48,8 +48,7 @@ impl Attachments {
             vendor.as_ref(),
             conforms_to.as_ref().map(|s| s.as_ref()),
         );
-        self.envelopes
-            .insert(attachment.digest().into_owned(), attachment);
+        self.envelopes.insert(attachment.digest(), attachment);
     }
 
     /// Retrieves an attachment by its digest.
@@ -60,8 +59,8 @@ impl Attachments {
     /// # Returns
     /// A reference to the envelope if found, or None if no attachment exists
     /// with the given digest
-    pub fn get(&self, digest: &Digest) -> Option<&Envelope> {
-        self.envelopes.get(digest)
+    pub fn get(&self, digest: Digest) -> Option<&Envelope> {
+        self.envelopes.get(&digest)
     }
 
     /// Removes an attachment by its digest.
@@ -72,8 +71,8 @@ impl Attachments {
     /// # Returns
     /// The removed envelope if found, or None if no attachment exists with the
     /// given digest
-    pub fn remove(&mut self, digest: &Digest) -> Option<Envelope> {
-        self.envelopes.remove(digest)
+    pub fn remove(&mut self, digest: Digest) -> Option<Envelope> {
+        self.envelopes.remove(&digest)
     }
 
     /// Removes all attachments from the container.
@@ -98,7 +97,7 @@ impl Attachments {
         let attachment_envelopes = envelope.attachments()?;
         let mut attachments = Attachments::new();
         for attachment in attachment_envelopes {
-            let digest = attachment.digest().into_owned();
+            let digest = attachment.digest();
             attachments.envelopes.insert(digest, attachment);
         }
         Ok(attachments)
@@ -143,7 +142,7 @@ pub trait Attachable {
     /// # Returns
     /// A reference to the envelope if found, or None if no attachment exists
     /// with the given digest
-    fn get_attachment(&self, digest: &Digest) -> Option<&Envelope> {
+    fn get_attachment(&self, digest: Digest) -> Option<&Envelope> {
         self.attachments().get(digest)
     }
 
@@ -155,7 +154,7 @@ pub trait Attachable {
     /// # Returns
     /// The removed envelope if found, or None if no attachment exists with the
     /// given digest
-    fn remove_attachment(&mut self, digest: &Digest) -> Option<Envelope> {
+    fn remove_attachment(&mut self, digest: Digest) -> Option<Envelope> {
         self.attachments_mut().remove(digest)
     }
 

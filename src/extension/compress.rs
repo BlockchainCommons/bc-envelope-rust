@@ -94,7 +94,7 @@ impl Envelope {
             _ => {
                 let compressed = Compressed::from_decompressed_data(
                     self.tagged_cbor().to_cbor_data(),
-                    Some(self.digest().into_owned()),
+                    Some(self.digest()),
                 );
                 Ok(compressed.try_into()?)
             }
@@ -145,14 +145,14 @@ impl Envelope {
     /// ```
     pub fn decompress(&self) -> Result<Self> {
         if let EnvelopeCase::Compressed(compressed) = self.case() {
-            if let Some(digest) = compressed.digest_ref_opt() {
-                if digest != self.digest().as_ref() {
+            if let Some(digest) = compressed.digest_opt() {
+                if digest != self.digest() {
                     return Err(Error::InvalidDigest);
                 }
                 let decompressed_data = compressed.decompress()?;
                 let envelope =
                     Envelope::from_tagged_cbor_data(decompressed_data)?;
-                if envelope.digest().as_ref() != digest {
+                if envelope.digest() != digest {
                     return Err(Error::InvalidDigest);
                 }
                 Ok(envelope)

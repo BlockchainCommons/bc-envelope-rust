@@ -218,7 +218,7 @@ impl Envelope {
         recipient: &dyn Encrypter,
         content_key: &SymmetricKey,
     ) -> Self {
-        self.add_recipient_opt(recipient, content_key, None::<&Nonce>)
+        self.add_recipient_opt(recipient, content_key, None::<Nonce>)
     }
 
     /// Version of `add_recipient` that accepts an optional test nonce for
@@ -232,7 +232,7 @@ impl Envelope {
         &self,
         recipient: &dyn Encrypter,
         content_key: &SymmetricKey,
-        test_nonce: Option<&Nonce>,
+        test_nonce: Option<Nonce>,
     ) -> Self {
         let assertion =
             Self::make_has_recipient(recipient, content_key, test_nonce);
@@ -337,7 +337,7 @@ impl Envelope {
         &self,
         recipients: &[&dyn Encrypter],
     ) -> Result<Self> {
-        self.encrypt_subject_to_recipients_opt(recipients, None::<&Nonce>)
+        self.encrypt_subject_to_recipients_opt(recipients, None::<Nonce>)
     }
 
     /// Version of `encrypt_subject_to_recipients` that accepts an optional test
@@ -352,7 +352,7 @@ impl Envelope {
     pub fn encrypt_subject_to_recipients_opt(
         &self,
         recipients: &[&dyn Encrypter],
-        test_nonce: Option<&Nonce>,
+        test_nonce: Option<Nonce>,
     ) -> Result<Self> {
         let content_key = SymmetricKey::new();
         let mut e = self.encrypt_subject(&content_key)?;
@@ -407,7 +407,7 @@ impl Envelope {
         &self,
         recipient: &dyn Encrypter,
     ) -> Result<Self> {
-        self.encrypt_subject_to_recipient_opt(recipient, None::<&Nonce>)
+        self.encrypt_subject_to_recipient_opt(recipient, None::<Nonce>)
     }
 
     /// Version of `encrypt_subject_to_recipient` that accepts an optional test
@@ -422,7 +422,7 @@ impl Envelope {
     pub fn encrypt_subject_to_recipient_opt(
         &self,
         recipient: &dyn Encrypter,
-        test_nonce: Option<&Nonce>,
+        test_nonce: Option<Nonce>,
     ) -> Result<Self> {
         self.encrypt_subject_to_recipients_opt(&[recipient], test_nonce)
     }
@@ -530,7 +530,7 @@ impl Envelope {
     fn make_has_recipient(
         recipient: &dyn Encrypter,
         content_key: &SymmetricKey,
-        test_nonce: Option<&Nonce>,
+        test_nonce: Option<Nonce>,
     ) -> Self {
         let sealed_message = SealedMessage::new_opt(
             content_key.to_cbor_data(),

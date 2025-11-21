@@ -128,21 +128,21 @@ fn test_nodes_matching() {
 
     // Get some digests for targeting
     let knows_assertion = envelope.assertion_with_predicate("knows").unwrap();
-    let knows_digest = knows_assertion.digest().into_owned();
+    let knows_digest = knows_assertion.digest();
 
     #[cfg(feature = "compress")]
     let age_assertion = envelope.assertion_with_predicate("age").unwrap();
     #[cfg(feature = "compress")]
-    let age_digest = age_assertion.digest().into_owned();
+    let age_digest = age_assertion.digest();
 
     // Elide one assertion, compress another
     let mut elide_target = HashSet::new();
-    elide_target.insert(knows_digest.clone());
+    elide_target.insert(knows_digest);
 
     #[cfg(feature = "compress")]
     let mut compress_target = HashSet::new();
     #[cfg(feature = "compress")]
-    compress_target.insert(age_digest.clone());
+    compress_target.insert(age_digest);
 
     #[cfg(feature = "compress")]
     let mut obscured = envelope.elide_removing_set(&elide_target);
@@ -192,7 +192,7 @@ fn test_nodes_matching() {
 
     // Test finding with target filter
     let mut target_filter = HashSet::new();
-    target_filter.insert(knows_digest.clone());
+    target_filter.insert(knows_digest);
     let filtered =
         obscured.nodes_matching(Some(&target_filter), &[ObscureType::Elided]);
     assert_eq!(filtered.len(), 1);
@@ -287,10 +287,10 @@ fn test_walk_decrypt() {
     let age_assertion = envelope.assertion_with_predicate("age").unwrap();
 
     let mut encrypt1_target = HashSet::new();
-    encrypt1_target.insert(knows_assertion.digest().into_owned());
+    encrypt1_target.insert(knows_assertion.digest());
 
     let mut encrypt2_target = HashSet::new();
-    encrypt2_target.insert(age_assertion.digest().into_owned());
+    encrypt2_target.insert(age_assertion.digest());
 
     let encrypted = envelope
         .elide_removing_set_with_action(
@@ -361,12 +361,12 @@ fn test_walk_decompress() {
     let desc_assertion =
         envelope.assertion_with_predicate("description").unwrap();
 
-    let bio_digest = bio_assertion.digest().into_owned();
-    let desc_digest = desc_assertion.digest().into_owned();
+    let bio_digest = bio_assertion.digest();
+    let desc_digest = desc_assertion.digest();
 
     let mut compress_target = HashSet::new();
-    compress_target.insert(bio_digest.clone());
-    compress_target.insert(desc_digest.clone());
+    compress_target.insert(bio_digest);
+    compress_target.insert(desc_digest);
 
     let compressed = envelope.elide_removing_set_with_action(
         &compress_target,
@@ -388,7 +388,7 @@ fn test_walk_decompress() {
 
     // Decompress with target filter (only one node)
     let mut target = HashSet::new();
-    target.insert(bio_digest.clone());
+    target.insert(bio_digest);
 
     let partial = compressed.walk_decompress(Some(&target));
     assert!(!partial.is_identical_to(&compressed));
@@ -427,19 +427,19 @@ fn test_mixed_obscuration_operations() {
     let age_assertion = envelope.assertion_with_predicate("age").unwrap();
     let bio_assertion = envelope.assertion_with_predicate("bio").unwrap();
 
-    let knows_digest = knows_assertion.digest().into_owned();
-    let age_digest = age_assertion.digest().into_owned();
-    let bio_digest = bio_assertion.digest().into_owned();
+    let knows_digest = knows_assertion.digest();
+    let age_digest = age_assertion.digest();
+    let bio_digest = bio_assertion.digest();
 
     // Apply different obscuration types
     let mut elide_target = HashSet::new();
-    elide_target.insert(knows_digest.clone());
+    elide_target.insert(knows_digest);
 
     let mut encrypt_target = HashSet::new();
-    encrypt_target.insert(age_digest.clone());
+    encrypt_target.insert(age_digest);
 
     let mut compress_target = HashSet::new();
-    compress_target.insert(bio_digest.clone());
+    compress_target.insert(bio_digest);
 
     let obscured = envelope
         .elide_removing_set(&elide_target)

@@ -30,7 +30,7 @@
 //!                _edge: EdgeType,
 //!                state: ()|
 //!  -> ((), bool) {
-//!     digests.borrow_mut().insert(env.digest().into_owned());
+//!     digests.borrow_mut().insert(env.digest());
 //!     (state, false)
 //! };
 //!

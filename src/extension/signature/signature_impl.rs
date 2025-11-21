@@ -64,7 +64,7 @@ impl Envelope {
             let outer_signature = Envelope::new(
                 private_key
                     .sign_with_options(
-                        &signature_with_metadata.digest().as_ref(),
+                        &signature_with_metadata.digest(),
                         options,
                     )
                     .unwrap(),
@@ -335,7 +335,7 @@ impl Envelope {
         signature: &Signature,
         key: &dyn Verifier,
     ) -> bool {
-        key.verify(signature, self.subject().digest().as_ref())
+        key.verify(signature, &self.subject().digest())
     }
 
     fn has_some_signature_from_key(&self, key: &dyn Verifier) -> Result<bool> {

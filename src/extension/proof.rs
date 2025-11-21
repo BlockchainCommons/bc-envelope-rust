@@ -132,8 +132,8 @@ impl Envelope {
     /// let author_assertion = Envelope::new_assertion("author", "Alice");
     ///
     /// let mut target_set = HashSet::new();
-    /// target_set.insert(title_assertion.digest().into_owned());
-    /// target_set.insert(author_assertion.digest().into_owned());
+    /// target_set.insert(title_assertion.digest());
+    /// target_set.insert(author_assertion.digest());
     ///
     /// // Generate a proof for multiple elements
     /// let proof = document.proof_contains_set(&target_set).unwrap();
@@ -202,7 +202,7 @@ impl Envelope {
         &self,
         target: &dyn DigestProvider,
     ) -> Option<Envelope> {
-        let set = HashSet::from_iter(iter::once(target.digest().into_owned()));
+        let set = HashSet::from_iter(iter::once(target.digest()));
         self.proof_contains_set(&set)
     }
 
@@ -241,7 +241,7 @@ impl Envelope {
     /// // Create a set of elements we want to verify
     /// let author_assertion = Envelope::new_assertion("author", "Alice");
     /// let mut target_set = HashSet::new();
-    /// target_set.insert(author_assertion.digest().into_owned());
+    /// target_set.insert(author_assertion.digest());
     ///
     /// // The holder provides a proof
     /// let proof = document.proof_contains_set(&target_set).unwrap();
@@ -301,7 +301,7 @@ impl Envelope {
         target: &dyn DigestProvider,
         proof: &Envelope,
     ) -> bool {
-        let set = HashSet::from_iter(iter::once(target.digest().into_owned()));
+        let set = HashSet::from_iter(iter::once(target.digest()));
         self.confirm_contains_set(&set, proof)
     }
 }
@@ -340,7 +340,7 @@ impl Envelope {
         result: &mut HashSet<Digest>,
     ) {
         let mut current = current.clone();
-        current.insert(self.digest().into_owned());
+        current.insert(self.digest());
 
         if target.contains(&self.digest()) {
             result.extend(current.iter().cloned());

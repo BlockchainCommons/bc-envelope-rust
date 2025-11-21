@@ -1,4 +1,4 @@
-use std::{borrow::Cow, cell::RefCell, collections::HashSet};
+use std::{cell::RefCell, collections::HashSet};
 
 use bc_components::{Digest, DigestProvider};
 
@@ -39,15 +39,15 @@ impl DigestProvider for Envelope {
     /// // Even though the content is elided, the digests match
     /// assert_eq!(envelope.digest(), elided.digest());
     /// ```
-    fn digest(&self) -> Cow<'_, Digest> {
+    fn digest(&self) -> Digest {
         match self.case() {
-            EnvelopeCase::Node { digest, .. } => Cow::Borrowed(digest),
-            EnvelopeCase::Leaf { digest, .. } => Cow::Borrowed(digest),
-            EnvelopeCase::Wrapped { digest, .. } => Cow::Borrowed(digest),
+            EnvelopeCase::Node { digest, .. } => *digest,
+            EnvelopeCase::Leaf { digest, .. } => *digest,
+            EnvelopeCase::Wrapped { digest, .. } => *digest,
             EnvelopeCase::Assertion(assertion) => assertion.digest(),
-            EnvelopeCase::Elided(digest) => Cow::Borrowed(digest),
+            EnvelopeCase::Elided(digest) => *digest,
             #[cfg(feature = "known_value")]
-            EnvelopeCase::KnownValue { digest, .. } => Cow::Borrowed(digest),
+            EnvelopeCase::KnownValue { digest, .. } => *digest,
             #[cfg(feature = "encrypt")]
             EnvelopeCase::Encrypted(encrypted_message) => {
                 encrypted_message.digest()
@@ -109,8 +109,8 @@ impl Envelope {
          -> (_, bool) {
             if level < level_limit {
                 let mut result = result.borrow_mut();
-                result.insert(envelope.digest().into_owned());
-                result.insert(envelope.subject().digest().into_owned());
+                result.insert(envelope.digest());
+                result.insert(envelope.subject().digest());
             }
             ((), false) // Continue walking
         };

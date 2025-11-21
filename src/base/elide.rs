@@ -107,7 +107,7 @@ impl Envelope {
     pub fn elide(&self) -> Self {
         match self.case() {
             EnvelopeCase::Elided(_) => self.clone(),
-            _ => Self::new_elided(self.digest().into_owned()),
+            _ => Self::new_elided(self.digest()),
         }
     }
 
@@ -137,7 +137,7 @@ impl Envelope {
     /// // Create a set of digests targeting the "livesAt" assertion
     /// let mut target = HashSet::new();
     /// let livesAt_assertion = envelope.assertion_with_predicate("livesAt").unwrap();
-    /// target.insert(livesAt_assertion.digest().into_owned());
+    /// target.insert(livesAt_assertion.digest());
     ///
     /// // Elide that specific assertion
     /// let elided = envelope.elide_removing_set_with_action(&target, &ObscureAction::Elide);
@@ -176,7 +176,7 @@ impl Envelope {
     /// // Create a set of digests targeting the email assertion
     /// let mut target = HashSet::new();
     /// let email_assertion = envelope.assertion_with_predicate("email").unwrap();
-    /// target.insert(email_assertion.digest().into_owned());
+    /// target.insert(email_assertion.digest());
     ///
     /// // Elide the email assertion for privacy
     /// let redacted = envelope.elide_removing_set(&target);
@@ -273,14 +273,9 @@ impl Envelope {
     /// let mut reveal_set = HashSet::new();
     ///
     /// // Add the subject and the name assertion to the set to reveal
-    /// reveal_set.insert(envelope.subject().digest().into_owned());
-    /// reveal_set.insert(
-    ///     envelope
-    ///         .assertion_with_predicate("name")
-    ///         .unwrap()
-    ///         .digest()
-    ///         .into_owned(),
-    /// );
+    /// reveal_set.insert(envelope.subject().digest());
+    /// reveal_set
+    ///     .insert(envelope.assertion_with_predicate("name").unwrap().digest());
     ///
     /// // Create an envelope that only reveals name and hides age and SSN
     /// let selective = envelope
@@ -388,7 +383,7 @@ impl Envelope {
         is_revealing: bool,
         action: &ObscureAction,
     ) -> Self {
-        let self_digest = self.digest().into_owned();
+        let self_digest = self.digest();
         if target.contains(&self_digest) != is_revealing {
             match action {
                 ObscureAction::Elide => self.elide(),
@@ -485,10 +480,7 @@ impl Envelope {
         action: &ObscureAction,
     ) -> Self {
         self.elide_set_with_action(
-            &target
-                .iter()
-                .map(|provider| provider.digest().into_owned())
-                .collect(),
+            &target.iter().map(|provider| provider.digest()).collect(),
             is_revealing,
             action,
         )
@@ -627,11 +619,8 @@ impl Envelope {
     ///     .add_assertion("age", 30);
     ///
     /// // Elide one assertion
-    /// let knows_digest = envelope
-    ///     .assertion_with_predicate("knows")
-    ///     .unwrap()
-    ///     .digest()
-    ///     .into_owned();
+    /// let knows_digest =
+    ///     envelope.assertion_with_predicate("knows").unwrap().digest();
     /// let mut target = HashSet::new();
     /// target.insert(knows_digest.clone());
     ///
@@ -660,7 +649,7 @@ impl Envelope {
             // Check if this node matches the target digests (or if no target
             // specified)
             let digest_matches = target_digests
-                .map(|targets| targets.contains(envelope.digest().as_ref()))
+                .map(|targets| targets.contains(&envelope.digest()))
                 .unwrap_or(true);
 
             if !digest_matches {
@@ -669,7 +658,7 @@ impl Envelope {
 
             // If no obscure types specified, include all nodes
             if obscure_types.is_empty() {
-                result.borrow_mut().insert(envelope.digest().into_owned());
+                result.borrow_mut().insert(envelope.digest());
                 return ((), false);
             }
 
@@ -693,7 +682,7 @@ impl Envelope {
                 });
 
             if type_matches {
-                result.borrow_mut().insert(envelope.digest().into_owned());
+                result.borrow_mut().insert(envelope.digest());
             }
 
             ((), false)
@@ -746,8 +735,7 @@ impl Envelope {
         // Build a lookup map of digest -> envelope
         let mut envelope_map = HashMap::new();
         for envelope in envelopes {
-            envelope_map
-                .insert(envelope.digest().into_owned(), envelope.clone());
+            envelope_map.insert(envelope.digest(), envelope.clone());
         }
 
         self.walk_unelide_with_map(&envelope_map)
@@ -760,9 +748,7 @@ impl Envelope {
         match self.case() {
             EnvelopeCase::Elided(_) => {
                 // Try to find a matching envelope to restore
-                if let Some(replacement) =
-                    envelope_map.get(self.digest().as_ref())
-                {
+                if let Some(replacement) = envelope_map.get(&self.digest()) {
                     replacement.clone()
                 } else {
                     self.clone()
@@ -860,7 +846,7 @@ impl Envelope {
     ///
     /// // Replace all instances of "Bob" with "Charlie"
     /// let mut target = HashSet::new();
-    /// target.insert(bob.digest().into_owned());
+    /// target.insert(bob.digest());
     ///
     /// let modified = envelope.walk_replace(&target, &charlie).unwrap();
     ///
@@ -874,7 +860,7 @@ impl Envelope {
         replacement: &Envelope,
     ) -> Result<Self> {
         // Check if this node matches the target
-        if target.contains(self.digest().as_ref()) {
+        if target.contains(&self.digest()) {
             return Ok(replacement.clone());
         }
 
@@ -964,8 +950,7 @@ impl Envelope {
     ///     &std::collections::HashSet::from([envelope
     ///         .assertion_with_predicate("knows")
     ///         .unwrap()
-    ///         .digest()
-    ///         .into_owned()]),
+    ///         .digest()]),
     ///     &ObscureAction::Encrypt(key1.clone()),
     /// );
     ///
@@ -1066,7 +1051,7 @@ impl Envelope {
     ///
     /// // Compress one assertion
     /// let bio_assertion = envelope.assertion_with_predicate("bio").unwrap();
-    /// let bio_digest = bio_assertion.digest().into_owned();
+    /// let bio_digest = bio_assertion.digest();
     /// let mut target = HashSet::new();
     /// target.insert(bio_digest);
     ///
@@ -1088,7 +1073,7 @@ impl Envelope {
             EnvelopeCase::Compressed(_) => {
                 // Check if this node matches the target (if target specified)
                 let matches_target = target_digests
-                    .map(|targets| targets.contains(self.digest().as_ref()))
+                    .map(|targets| targets.contains(&self.digest()))
                     .unwrap_or(true);
 
                 if matches_target {

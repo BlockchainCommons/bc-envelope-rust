@@ -103,7 +103,7 @@ pub trait RequestBehavior: ExpressionBehavior {
     fn note(&self) -> &str;
 
     /// Returns the date attached to the request, if any.
-    fn date(&self) -> Option<&Date>;
+    fn date(&self) -> Option<Date>;
 }
 
 impl Request {
@@ -235,7 +235,7 @@ impl RequestBehavior for Request {
 
     /// Adds a date to the request.
     fn with_date(mut self, date: impl AsRef<Date>) -> Self {
-        self.date = Some(date.as_ref().clone());
+        self.date = Some(*date.as_ref());
         self
     }
 
@@ -249,7 +249,7 @@ impl RequestBehavior for Request {
     fn note(&self) -> &str { &self.note }
 
     /// Returns the date of the request.
-    fn date(&self) -> Option<&Date> { self.date.as_ref() }
+    fn date(&self) -> Option<Date> { self.date }
 }
 
 /// Converts a `Request` to an `Expression`.
@@ -377,7 +377,7 @@ mod tests {
             .with_parameter("param1", 42)
             .with_parameter("param2", "hello")
             .with_note("This is a test")
-            .with_date(&request_date);
+            .with_date(request_date);
 
         let envelope: Envelope = request.clone().into();
         // println!("{}", envelope.format());
@@ -403,7 +403,7 @@ mod tests {
             "hello"
         );
         assert_eq!(parsed_request.note(), "This is a test");
-        assert_eq!(parsed_request.date(), Some(&request_date));
+        assert_eq!(parsed_request.date(), Some(request_date));
 
         assert_eq!(request, parsed_request);
 

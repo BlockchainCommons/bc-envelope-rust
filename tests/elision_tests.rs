@@ -505,7 +505,7 @@ fn test_walk_replace_basic() -> EnvelopeResult<()> {
 
     // Replace all instances of Bob with Charlie
     let mut target = HashSet::new();
-    target.insert(bob.digest().into_owned());
+    target.insert(bob.digest());
 
     let modified = envelope.walk_replace(&target, &charlie)?;
 
@@ -540,7 +540,7 @@ fn test_walk_replace_subject() -> EnvelopeResult<()> {
 
     // Replace the subject (Alice) with Carol
     let mut target = HashSet::new();
-    target.insert(alice.digest().into_owned());
+    target.insert(alice.digest());
 
     let modified = envelope.walk_replace(&target, &carol)?;
 
@@ -575,7 +575,7 @@ fn test_walk_replace_nested() -> EnvelopeResult<()> {
 
     // Replace all instances of Bob with Charlie
     let mut target = HashSet::new();
-    target.insert(bob.digest().into_owned());
+    target.insert(bob.digest());
 
     let modified = envelope.walk_replace(&target, &charlie)?;
 
@@ -612,7 +612,7 @@ fn test_walk_replace_wrapped() -> EnvelopeResult<()> {
 
     // Replace Bob with Charlie
     let mut target = HashSet::new();
-    target.insert(bob.digest().into_owned());
+    target.insert(bob.digest());
 
     let modified = envelope.walk_replace(&target, &charlie)?;
 
@@ -646,7 +646,7 @@ fn test_walk_replace_no_match() -> EnvelopeResult<()> {
 
     // Try to replace Dave (who doesn't exist in the envelope)
     let mut target = HashSet::new();
-    target.insert(dave.digest().into_owned());
+    target.insert(dave.digest());
 
     let modified = envelope.walk_replace(&target, &charlie)?;
 
@@ -685,8 +685,8 @@ fn test_walk_replace_multiple_targets() -> EnvelopeResult<()> {
 
     // Replace both Bob and Carol with REDACTED
     let mut target = HashSet::new();
-    target.insert(bob.digest().into_owned());
-    target.insert(carol.digest().into_owned());
+    target.insert(bob.digest());
+    target.insert(carol.digest());
 
     let modified = envelope.walk_replace(&target, &replacement)?;
 
@@ -735,7 +735,7 @@ fn test_walk_replace_elided() -> EnvelopeResult<()> {
     // Replace the elided Bob with Charlie
     // This works because the elided node has Bob's digest
     let mut target = HashSet::new();
-    target.insert(bob.digest().into_owned());
+    target.insert(bob.digest());
 
     let modified = elided.walk_replace(&target, &charlie)?;
 
@@ -765,7 +765,7 @@ fn test_walk_replace_assertion_with_non_assertion_fails() -> EnvelopeResult<()>
 
     // Get the assertion's digest
     let knows_assertion = envelope.assertion_with_predicate("knows")?;
-    let assertion_digest = knows_assertion.digest().into_owned();
+    let assertion_digest = knows_assertion.digest();
 
     // Try to replace the entire assertion with Charlie (a non-assertion)
     let mut target = HashSet::new();

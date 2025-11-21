@@ -311,7 +311,7 @@ fn test_assertion_with_assertions() {
 
 #[test]
 fn test_digest_leaf() {
-    let digest = hello_envelope().digest().into_owned();
+    let digest = hello_envelope().digest();
     let e = Envelope::new(digest).check_encoding().unwrap();
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"

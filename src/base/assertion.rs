@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use bc_components::{Digest, DigestProvider};
 use dcbor::prelude::*;
 
@@ -71,10 +69,8 @@ impl Assertion {
     ) -> Self {
         let predicate = predicate.into_envelope();
         let object = object.into_envelope();
-        let digest = Digest::from_digests(&[
-            predicate.digest().into_owned(),
-            object.digest().into_owned(),
-        ]);
+        let digest =
+            Digest::from_digests(&[predicate.digest(), object.digest()]);
         Self { predicate, object, digest }
     }
 
@@ -97,17 +93,6 @@ impl Assertion {
     ///
     /// A clone of the assertion's object envelope.
     pub fn object(&self) -> Envelope { self.object.clone() }
-
-    /// Returns a reference to the digest of the assertion.
-    ///
-    /// The digest is calculated when the assertion is created and is used for
-    /// verification and deduplication. The digest calculation follows the rules
-    /// specified in the Gordian Envelope IETF draft, Section 4.4.
-    ///
-    /// # Returns
-    ///
-    /// A reference to the assertion's digest.
-    pub fn digest_ref(&self) -> &Digest { &self.digest }
 }
 
 /// Equality is based on digest equality, not structural equality.
@@ -115,9 +100,7 @@ impl Assertion {
 /// Two assertions are considered equal if they have the same digest,
 /// regardless of how they were constructed.
 impl PartialEq for Assertion {
-    fn eq(&self, other: &Self) -> bool {
-        self.digest_ref() == other.digest_ref()
-    }
+    fn eq(&self, other: &Self) -> bool { self.digest() == other.digest() }
 }
 
 /// Assertion implements full equality.
@@ -131,7 +114,7 @@ impl DigestProvider for Assertion {
     /// Returns a reference to the assertion's digest.
     ///
     /// This is used in the envelope digest tree calculation.
-    fn digest(&self) -> Cow<'_, Digest> { Cow::Borrowed(&self.digest) }
+    fn digest(&self) -> Digest { self.digest }
 }
 
 /// Converts an assertion to its CBOR representation.

@@ -337,8 +337,8 @@ fn test_signed_subject() {
 
     // Elided assertions
     let mut target: HashSet<Digest> = HashSet::new();
-    target.insert(envelope.digest().into_owned());
-    target.insert(envelope.subject().digest().into_owned());
+    target.insert(envelope.digest());
+    target.insert(envelope.subject().digest());
     let elided = envelope.elide_revealing_set(&target);
     #[rustfmt::skip]
     assert_actual_expected!(elided.format(), indoc! {r#"
@@ -493,14 +493,14 @@ fn test_encrypt_to_recipients() {
         .add_recipient_opt(
             &bob_public_key(),
             &fake_content_key(),
-            Some(&fake_nonce()),
+            Some(fake_nonce()),
         )
         .check_encoding()
         .unwrap()
         .add_recipient_opt(
             &carol_public_key(),
             &fake_content_key(),
-            Some(&fake_nonce()),
+            Some(fake_nonce()),
         )
         .check_encoding()
         .unwrap();

@@ -159,7 +159,7 @@ where
     fn note(&self) -> &str;
 
     /// Returns the date attached to the event, if any.
-    fn date(&self) -> Option<&Date>;
+    fn date(&self) -> Option<Date>;
 }
 
 impl<T> EventBehavior<T> for Event<T>
@@ -178,7 +178,7 @@ where
 
     /// Adds a date to the event.
     fn with_date(mut self, date: impl AsRef<Date>) -> Self {
-        self.date = Some(date.as_ref().clone());
+        self.date = Some(*date.as_ref());
         self
     }
 
@@ -192,7 +192,7 @@ where
     fn note(&self) -> &str { &self.note }
 
     /// Returns the date of the event.
-    fn date(&self) -> Option<&Date> { self.date.as_ref() }
+    fn date(&self) -> Option<Date> { self.date }
 }
 
 /// Converts an `Event<T>` to an `Envelope`.
@@ -275,7 +275,7 @@ mod tests {
         let event_date = Date::try_from("2024-07-04T11:11:11Z").unwrap();
         let event = Event::<String>::new("test", request_id())
             .with_note("This is a test")
-            .with_date(&event_date);
+            .with_date(event_date);
 
         let envelope: Envelope = event.clone().into();
         #[rustfmt::skip]
@@ -291,6 +291,6 @@ mod tests {
         let parsed_request = Event::<String>::try_from(envelope).unwrap();
         assert_eq!(parsed_request.content(), "test");
         assert_eq!(parsed_request.note(), "This is a test");
-        assert_eq!(parsed_request.date(), Some(&event_date));
+        assert_eq!(parsed_request.date(), Some(event_date));
     }
 }

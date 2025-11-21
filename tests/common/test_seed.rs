@@ -52,13 +52,13 @@ impl Seed {
         self.note = note.as_ref().to_string();
     }
 
-    pub fn creation_date(&self) -> Option<&Date> { self.creation_date.as_ref() }
+    pub fn creation_date(&self) -> Option<Date> { self.creation_date }
 
     pub fn set_creation_date(
         &mut self,
         creation_date: Option<impl AsRef<Date>>,
     ) {
-        self.creation_date = creation_date.map(|s| s.as_ref().clone());
+        self.creation_date = creation_date.map(|d| *d.as_ref());
     }
 }
 
@@ -75,7 +75,7 @@ impl CBORTaggedEncodable for Seed {
         let mut map = dcbor::Map::new();
         map.insert(1, CBOR::to_byte_string(self.data()));
         if let Some(creation_date) = self.creation_date() {
-            map.insert(2, creation_date.clone());
+            map.insert(2, creation_date);
         }
         if !self.name().is_empty() {
             map.insert(3, self.name());
@@ -116,10 +116,7 @@ impl From<Seed> for Envelope {
     fn from(seed: Seed) -> Self {
         let mut e = Envelope::new(CBOR::to_byte_string(seed.data()))
             .add_type(known_values::SEED_TYPE)
-            .add_optional_assertion(
-                known_values::DATE,
-                seed.creation_date().cloned(),
-            );
+            .add_optional_assertion(known_values::DATE, seed.creation_date());
 
         if !seed.name().is_empty() {
             e = e.add_assertion(known_values::NAME, seed.name());
@@ -156,8 +153,9 @@ impl TryFrom<Envelope> for Seed {
             .unwrap_or_default()
             .to_string();
         let creation_date = envelope
-            .extract_optional_object_for_predicate::<Date>(known_values::DATE)?
-            .map(|s| s.as_ref().clone());
+            .extract_optional_object_for_predicate::<Date>(
+                known_values::DATE,
+            )?;
         Ok(Self::new_opt(data, name, note, creation_date))
     }
 }
