@@ -85,7 +85,7 @@ pub trait RequestBehavior: ExpressionBehavior {
     /// Adds a date to the request.
     ///
     /// This timestamp typically represents when the request was created.
-    fn with_date(self, date: impl AsRef<Date>) -> Self;
+    fn with_date(self, date: Date) -> Self;
 
     //
     // Parsing
@@ -234,8 +234,8 @@ impl RequestBehavior for Request {
     }
 
     /// Adds a date to the request.
-    fn with_date(mut self, date: impl AsRef<Date>) -> Self {
-        self.date = Some(*date.as_ref());
+    fn with_date(mut self, date: Date) -> Self {
+        self.date = Some(date);
         self
     }
 

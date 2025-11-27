@@ -36,7 +36,7 @@ use crate::{Envelope, EnvelopeEncodable, Error, Result, known_values};
 ///
 /// let status_event = Event::<String>::new("System online", event_id)
 ///     .with_note("Regular status update")
-///     .with_date(&timestamp);
+///     .with_date(timestamp);
 ///
 /// // Convert to an envelope for transmission
 /// let envelope = status_event.into_envelope();
@@ -142,7 +142,7 @@ where
     /// Adds a date to the event.
     ///
     /// This timestamp typically represents when the event occurred.
-    fn with_date(self, date: impl AsRef<Date>) -> Self;
+    fn with_date(self, date: Date) -> Self;
 
     //
     // Parsing
@@ -177,8 +177,8 @@ where
     }
 
     /// Adds a date to the event.
-    fn with_date(mut self, date: impl AsRef<Date>) -> Self {
-        self.date = Some(*date.as_ref());
+    fn with_date(mut self, date: Date) -> Self {
+        self.date = Some(date);
         self
     }
 

@@ -54,11 +54,8 @@ impl Seed {
 
     pub fn creation_date(&self) -> Option<Date> { self.creation_date }
 
-    pub fn set_creation_date(
-        &mut self,
-        creation_date: Option<impl AsRef<Date>>,
-    ) {
-        self.creation_date = creation_date.map(|d| *d.as_ref());
+    pub fn set_creation_date(&mut self, creation_date: Option<Date>) {
+        self.creation_date = creation_date;
     }
 }
 
