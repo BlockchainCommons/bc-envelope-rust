@@ -252,6 +252,11 @@ pub enum Error {
     #[error("ambiguous type")]
     AmbiguousType,
 
+    /// Returned when the subject of the envelope is not the unit value.
+    #[cfg(feature = "known_value")]
+    #[error("the subject of the envelope is not the unit value")]
+    SubjectNotUnit,
+
     //
     // Expressions Extension
     /// Returned when a response envelope has an unexpected ID.

@@ -50,7 +50,7 @@ use crate::{
 ///
 ///    fn process_person(envelope: &Envelope) -> EnvelopeResult<()> {
 ///        // Verify this is a person before processing
-///        envelope.check_type_envelope("Person")?;
+///        envelope.check_type("Person")?;
 ///
 ///        // Now we can safely extract person-specific information
 ///        let name: String = envelope.subject().try_into()?;
@@ -70,8 +70,8 @@ use crate::{
 ///    envelopes
 /// 2. Implementing `TryFrom<Envelope> for DomainObject` to convert envelopes
 ///    back to objects
-/// 3. Using `check_type()` in the TryFrom implementation to verify the envelope
-///    has the correct type
+/// 3. Using `check_type_value()` or `check_type()` in the TryFrom
+///    implementation to verify the envelope has the correct type
 ///
 /// See the `test_seed.rs` file in the tests directory for an example of this
 /// pattern.
@@ -100,7 +100,7 @@ impl Envelope {
     /// let document = Envelope::new("Important Content").add_type("Document");
     ///
     /// // Verify the type was added
-    /// assert!(document.has_type_envelope("Document"));
+    /// assert!(document.has_type("Document"));
     /// ```
     ///
     /// Using a predefined Known Value type:
@@ -113,7 +113,7 @@ impl Envelope {
     /// let seed = Envelope::new(seed_data).add_type(known_values::SEED_TYPE);
     ///
     /// // Verify the type was added
-    /// assert!(seed.has_type(&known_values::SEED_TYPE));
+    /// assert!(seed.has_type_value(&known_values::SEED_TYPE));
     /// ```
     pub fn add_type(&self, object: impl EnvelopeEncodable) -> Self {
         self.add_assertion(known_values::IS_A, object)
@@ -239,14 +239,14 @@ impl Envelope {
     ///     .add_assertion("status", "Draft");
     ///
     /// // Check for various types
-    /// assert!(document.has_type_envelope("LegalDocument"));
-    /// assert!(!document.has_type_envelope("Spreadsheet"));
+    /// assert!(document.has_type("LegalDocument"));
+    /// assert!(!document.has_type("Spreadsheet"));
     ///
     /// // Can also check with an envelope
     /// let legal_doc_type = Envelope::new("LegalDocument");
-    /// assert!(document.has_type_envelope(legal_doc_type));
+    /// assert!(document.has_type(legal_doc_type));
     /// ```
-    pub fn has_type_envelope(&self, t: impl EnvelopeEncodable) -> bool {
+    pub fn has_type(&self, t: impl EnvelopeEncodable) -> bool {
         let e = t.into_envelope();
         self.types().iter().any(|x| x.digest() == e.digest())
     }
@@ -254,7 +254,7 @@ impl Envelope {
     /// Checks if the envelope has a specific type, using a Known Value as the
     /// type identifier.
     ///
-    /// Similar to `has_type_envelope`, but specifically for checking against
+    /// Similar to `has_type`, but specifically for checking against
     /// standard Known Value types from the registry.
     ///
     /// # Parameters
@@ -274,10 +274,10 @@ impl Envelope {
     /// let seed = Envelope::new(seed_data).add_type(known_values::SEED_TYPE);
     ///
     /// // Check the type using the Known Value
-    /// assert!(seed.has_type(&known_values::SEED_TYPE));
-    /// assert!(!seed.has_type(&known_values::PRIVATE_KEY_TYPE));
+    /// assert!(seed.has_type_value(&known_values::SEED_TYPE));
+    /// assert!(!seed.has_type_value(&known_values::PRIVATE_KEY_TYPE));
     /// ```
-    pub fn has_type(&self, t: &KnownValue) -> bool {
+    pub fn has_type_value(&self, t: &KnownValue) -> bool {
         let type_envelope: Envelope = t.clone().to_envelope();
         self.types()
             .iter()
@@ -286,8 +286,8 @@ impl Envelope {
 
     /// Verifies that the envelope has a specific Known Value type.
     ///
-    /// This method is similar to `has_type` but returns a Result, making it
-    /// suitable for use in validation chains with the `?` operator.
+    /// This method is similar to `has_type_value` but returns a Result, making
+    /// it suitable for use in validation chains with the `?` operator.
     ///
     /// # Parameters
     /// - `t`: The Known Value type to check for
@@ -305,7 +305,7 @@ impl Envelope {
     /// // Function that processes a seed envelope
     /// fn process_seed(envelope: &Envelope) -> EnvelopeResult<String> {
     ///     // Verify this is a seed
-    ///     envelope.check_type(&known_values::SEED_TYPE)?;
+    ///     envelope.check_type_value(&known_values::SEED_TYPE)?;
     ///
     ///     // Extract the seed data
     ///     let seed_data: String = envelope.subject().try_into()?;
@@ -329,8 +329,8 @@ impl Envelope {
     /// let result = process_seed(&not_a_seed);
     /// assert!(result.is_err());
     /// ```
-    pub fn check_type(&self, t: &KnownValue) -> Result<()> {
-        if self.has_type(t) {
+    pub fn check_type_value(&self, t: &KnownValue) -> Result<()> {
+        if self.has_type_value(t) {
             Ok(())
         } else {
             Err(Error::InvalidType)
@@ -340,7 +340,7 @@ impl Envelope {
     /// Verifies that the envelope has a specific type, using an envelope as the
     /// type identifier.
     ///
-    /// This method is similar to `has_type_envelope` but returns a Result,
+    /// This method is similar to `has_type` but returns a Result,
     /// making it suitable for use in validation chains with the `?`
     /// operator.
     ///
@@ -360,7 +360,7 @@ impl Envelope {
     /// // Function that processes a person
     /// fn process_person(envelope: &Envelope) -> EnvelopeResult<String> {
     ///     // Verify this is a person
-    ///     envelope.check_type_envelope("Person")?;
+    ///     envelope.check_type("Person")?;
     ///
     ///     // Extract the name
     ///     let name: String = envelope.subject().try_into()?;
@@ -382,8 +382,8 @@ impl Envelope {
     /// let result = process_person(&document);
     /// assert!(result.is_err());
     /// ```
-    pub fn check_type_envelope(&self, t: impl EnvelopeEncodable) -> Result<()> {
-        if self.has_type_envelope(t) {
+    pub fn check_type(&self, t: impl EnvelopeEncodable) -> Result<()> {
+        if self.has_type(t) {
             Ok(())
         } else {
             Err(Error::InvalidType)

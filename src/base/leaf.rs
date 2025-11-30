@@ -105,9 +105,29 @@ impl Envelope {
         matches!(self.case(), EnvelopeCase::KnownValue { .. })
     }
 
+    /// Constructs a unit envelope.
+    ///
+    /// Unit envelopes have the known value `''`. They represent a position
+    /// where no meaningful data *can* exist. In this sense they make a
+    /// semantically stronger assertion than `null`, which represent a
+    /// position where no meaningful data currently exists, but could exist in
+    /// the future.
     pub fn unit() -> Self { Self::new_leaf(known_values::UNIT) }
 
+    /// `true` if the subject of the envelope is the unit value, `false`
+    /// otherwise.
     pub fn is_subject_unit(&self) -> bool {
         self.extract_subject().ok() == Some(known_values::UNIT)
+    }
+
+    /// Checks that the subject of the envelope is the unit value.
+    ///
+    /// Returns `Ok(&self)` if so, or an error otherwise.
+    pub fn check_subject_unit(&self) -> Result<&Self> {
+        if self.is_subject_unit() {
+            Ok(self)
+        } else {
+            Err(Error::SubjectNotUnit)
+        }
     }
 }

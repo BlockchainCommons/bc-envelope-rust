@@ -5,7 +5,8 @@ use bc_components::Compressed;
 #[cfg(feature = "encrypt")]
 use bc_components::EncryptedMessage;
 use bc_components::{
-    ARID, Digest, EncryptedKey, JSON, PrivateKeyBase, PrivateKeys, PublicKeys, Reference, SSKRShare, Salt, SealedMessage, Signature, URI, UUID, XID
+    ARID, Digest, EncryptedKey, JSON, PrivateKeyBase, PrivateKeys, PublicKeys,
+    Reference, SSKRShare, Salt, SealedMessage, Signature, URI, UUID, XID,
 };
 use dcbor::prelude::*;
 

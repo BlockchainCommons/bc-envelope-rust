@@ -131,7 +131,7 @@ impl TryFrom<Envelope> for Seed {
     type Error = dcbor::Error;
 
     fn try_from(envelope: Envelope) -> dcbor::Result<Self> {
-        envelope.check_type(&known_values::SEED_TYPE)?;
+        envelope.check_type_value(&known_values::SEED_TYPE)?;
         let data = envelope
             .subject()
             .try_leaf()?
