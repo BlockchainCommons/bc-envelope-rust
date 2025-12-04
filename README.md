@@ -20,7 +20,7 @@ Envelopes are designed to facilitate "smart documents" with a number of unique f
 
 ```toml
 [dependencies]
-bc-envelope = "0.37.0"
+bc-envelope = "0.38.0"
 ```
 
 Basic usage examples:
@@ -131,13 +131,12 @@ To financially support further development of Gordian Envelope and other project
 
 ## Version History
 
-### 0.36.0 - November 3, 2025
+### 0.38.0 - December 3, 2025
 
+- Add support for JSON type.
+- Improve unit support with check_subject_unit method.
+- Rename check_type -> check_type_value, check_type_envelope -> check_type (breaking).
 - Align to dependencies.
-- Feature gate ssh-agent and pqcrypto.
-- Clean up feature gates.
-
-## Version History
 
 ### 0.37.0 - November 12, 2025
 
