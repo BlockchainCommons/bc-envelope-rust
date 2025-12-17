@@ -70,7 +70,7 @@ use crate::{EnvelopeEncodable, Error, Result, base::Assertion};
 /// // The digest of both envelopes remains the same
 /// assert_eq!(person.digest(), redacted.digest());
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq)]
 pub struct Envelope(RefCounted<EnvelopeCase>);
 
 impl Envelope {
@@ -116,7 +116,7 @@ impl From<&Envelope> for Envelope {
 ///
 /// It is advised to use the other Envelop APIs for most uses. Please see the
 /// queries module for more information on how to interact with envelopes.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum EnvelopeCase {
     /// Represents an envelope with a subject and one or more assertions.
     ///

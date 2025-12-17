@@ -15,7 +15,7 @@ use crate::{Envelope, EnvelopeEncodable, Result};
 ///
 /// `Attachments` provides a flexible mechanism for attaching arbitrary metadata
 /// to envelopes without modifying their core structure.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Attachments {
     /// Storage mapping from digest to envelope
     envelopes: HashMap<Digest, Envelope>,
