@@ -20,7 +20,7 @@ Envelopes are designed to facilitate "smart documents" with a number of unique f
 
 ```toml
 [dependencies]
-bc-envelope = "0.40.0"
+bc-envelope = "0.41.0"
 ```
 
 Basic usage examples:
@@ -130,6 +130,11 @@ Gordian Envelope is a project of [Blockchain Commons](https://www.blockchaincomm
 To financially support further development of Gordian Envelope and other projects, please consider becoming a Patron of Blockchain Commons through ongoing monthly patronage as a [GitHub Sponsor](https://github.com/sponsors/BlockchainCommons). You can also support Blockchain Commons with bitcoins at our [BTCPay Server](https://btcpay.blockchaincommons.com/).
 
 ## Version History
+
+### 0.41.0 - January 11, 2026
+
+- Align to dependencies
+- Add support for known-values directory loading feature
 
 ### 0.40.0 - December 19, 2025
 
