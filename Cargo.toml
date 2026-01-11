@@ -23,7 +23,7 @@ bc-rand = "^0.5.0"
 bc-crypto = { version = "^0.14.0", default-features = false, features = [] }
 bc-components = { version = "^0.31.0", default-features = false, features = [] }
 bc-ur = "^0.19.0"
-known-values = { version = "^0.14.0", optional = true }
+known-values = { version = "^0.15.0", optional = true, default-features = false }
 
 paste = "^1.0.12"
 hex = "^0.4.3"
@@ -50,6 +50,7 @@ ed25519 = ["signature", "bc-crypto/ed25519", "bc-components/ed25519"]
 encrypt = ["known_value"]
 expression = ["known_value"]
 known_value = ["dep:known-values"]
+known-values-directory-loading = ["known-values?/directory-loading"]
 multithreaded = ["dcbor/multithreaded"]
 pqcrypto = ["bc-components/pqcrypto"]
 proof = []
@@ -70,6 +71,7 @@ default = [
     "encrypt",
     "expression",
     "known_value",
+    "known-values-directory-loading",
     "pqcrypto",
     "proof",
     "recipient",
