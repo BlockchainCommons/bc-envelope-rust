@@ -112,7 +112,7 @@ impl Envelope {
     /// semantically stronger assertion than `null`, which represent a
     /// position where no meaningful data currently exists, but could exist in
     /// the future.
-    pub fn unit() -> Self { Self::new_leaf(known_values::UNIT) }
+    pub fn unit() -> Self { Self::new(known_values::UNIT) }
 
     /// `true` if the subject of the envelope is the unit value, `false`
     /// otherwise.
