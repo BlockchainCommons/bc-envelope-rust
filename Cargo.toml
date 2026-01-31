@@ -45,6 +45,7 @@ version-sync = "^0.9.0"
 
 [features]
 attachment = ["known_value", "types"]
+edge = ["known_value", "signature"]
 compress = []
 ed25519 = ["signature", "bc-crypto/ed25519", "bc-components/ed25519"]
 encrypt = ["known_value"]
@@ -67,6 +68,7 @@ types = ["known_value"]
 default = [
     "attachment",
     "compress",
+    "edge",
     "ed25519",
     "encrypt",
     "expression",

@@ -3,6 +3,8 @@ pub use bc_ur::prelude::*;
 
 #[cfg(feature = "attachment")]
 pub use crate::{Attachable, Attachments};
+#[cfg(feature = "edge")]
+pub use crate::{Edgeable, Edges};
 pub use crate::{
     DigestDisplayFormat, Envelope, EnvelopeCase, EnvelopeEncodable,
     EnvelopeSummary, Error as EnvelopeError, FormatContext, FormatContextOpt,

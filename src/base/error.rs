@@ -116,6 +116,23 @@ pub enum Error {
     AmbiguousAttachment,
 
     //
+    // Edges Extension
+    /// Returned when an edge's format is invalid per BCR-2026-003.
+    #[cfg(feature = "edge")]
+    #[error("invalid edge")]
+    InvalidEdge,
+
+    /// Returned when an edge is requested but does not exist.
+    #[cfg(feature = "edge")]
+    #[error("nonexistent edge")]
+    NonexistentEdge,
+
+    /// Returned when multiple edges match a single query.
+    #[cfg(feature = "edge")]
+    #[error("ambiguous edge")]
+    AmbiguousEdge,
+
+    //
     // Compression Extension
     /// Returned when attempting to compress an envelope that is already
     /// compressed.

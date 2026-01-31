@@ -410,6 +410,8 @@ impl EnvelopeEncodable for KnownValue {
 
 #[cfg(feature = "attachment")]
 pub use extension::attachment::{Attachable, Attachments};
+#[cfg(feature = "edge")]
+pub use extension::edge::{Edgeable, Edges};
 #[cfg(feature = "expression")]
 pub use extension::expressions::{
     Event, EventBehavior, Expression, ExpressionBehavior, Function,

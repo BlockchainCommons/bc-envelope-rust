@@ -4,6 +4,11 @@
 pub mod attachment;
 
 ///
+/// Edges Extension
+#[cfg(feature = "edge")]
+pub mod edge;
+
+///
 /// Compression Extension
 #[cfg(feature = "compress")]
 pub mod compress;
