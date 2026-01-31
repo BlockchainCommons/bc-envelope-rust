@@ -24,13 +24,6 @@ impl Envelope {
             self.clone()
         };
 
-        // Must have assertions
-        let assertions = inner.assertions();
-        if assertions.len() < 3 {
-            return Err(Error::InvalidEdge);
-        }
-
-        // Must have exactly one isA, one source, one target
         let is_a_count = inner
             .assertions_with_predicate(known_values::IS_A)
             .len();
@@ -41,8 +34,23 @@ impl Envelope {
             .assertions_with_predicate(known_values::TARGET)
             .len();
 
-        if is_a_count != 1 || source_count != 1 || target_count != 1 {
-            return Err(Error::InvalidEdge);
+        if is_a_count == 0 {
+            return Err(Error::EdgeMissingIsA);
+        }
+        if source_count == 0 {
+            return Err(Error::EdgeMissingSource);
+        }
+        if target_count == 0 {
+            return Err(Error::EdgeMissingTarget);
+        }
+        if is_a_count > 1 {
+            return Err(Error::EdgeDuplicateIsA);
+        }
+        if source_count > 1 {
+            return Err(Error::EdgeDuplicateSource);
+        }
+        if target_count > 1 {
+            return Err(Error::EdgeDuplicateTarget);
         }
 
         Ok(())

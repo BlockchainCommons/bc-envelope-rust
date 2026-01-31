@@ -77,7 +77,8 @@ fn test_validate_edge_missing_is_a() {
     let edge = Envelope::new("cred-1")
         .add_assertion(known_values::SOURCE, alice.clone())
         .add_assertion(known_values::TARGET, alice.clone());
-    assert!(edge.validate_edge().is_err());
+    let result = edge.validate_edge();
+    assert!(matches!(result, Err(EnvelopeError::EdgeMissingIsA)));
 }
 
 #[test]
@@ -86,7 +87,8 @@ fn test_validate_edge_missing_source() {
     let edge = Envelope::new("cred-1")
         .add_assertion(known_values::IS_A, "foaf:Person")
         .add_assertion(known_values::TARGET, alice.clone());
-    assert!(edge.validate_edge().is_err());
+    let result = edge.validate_edge();
+    assert!(matches!(result, Err(EnvelopeError::EdgeMissingSource)));
 }
 
 #[test]
@@ -95,13 +97,15 @@ fn test_validate_edge_missing_target() {
     let edge = Envelope::new("cred-1")
         .add_assertion(known_values::IS_A, "foaf:Person")
         .add_assertion(known_values::SOURCE, alice.clone());
-    assert!(edge.validate_edge().is_err());
+    let result = edge.validate_edge();
+    assert!(matches!(result, Err(EnvelopeError::EdgeMissingTarget)));
 }
 
 #[test]
 fn test_validate_edge_no_assertions() {
     let edge = Envelope::new("cred-1");
-    assert!(edge.validate_edge().is_err());
+    let result = edge.validate_edge();
+    assert!(matches!(result, Err(EnvelopeError::EdgeMissingIsA)));
 }
 
 #[test]
@@ -112,8 +116,34 @@ fn test_validate_edge_duplicate_is_a() {
         .add_assertion(known_values::IS_A, "schema:Thing")
         .add_assertion(known_values::SOURCE, alice.clone())
         .add_assertion(known_values::TARGET, alice.clone());
-    // Two isA assertions — invalid
-    assert!(edge.validate_edge().is_err());
+    let result = edge.validate_edge();
+    assert!(matches!(result, Err(EnvelopeError::EdgeDuplicateIsA)));
+}
+
+#[test]
+fn test_validate_edge_duplicate_source() {
+    let alice = xid_like("Alice");
+    let bob = xid_like("Bob");
+    let edge = Envelope::new("cred-1")
+        .add_assertion(known_values::IS_A, "foaf:Person")
+        .add_assertion(known_values::SOURCE, alice.clone())
+        .add_assertion(known_values::SOURCE, bob.clone())
+        .add_assertion(known_values::TARGET, alice.clone());
+    let result = edge.validate_edge();
+    assert!(matches!(result, Err(EnvelopeError::EdgeDuplicateSource)));
+}
+
+#[test]
+fn test_validate_edge_duplicate_target() {
+    let alice = xid_like("Alice");
+    let bob = xid_like("Bob");
+    let edge = Envelope::new("cred-1")
+        .add_assertion(known_values::IS_A, "foaf:Person")
+        .add_assertion(known_values::SOURCE, alice.clone())
+        .add_assertion(known_values::TARGET, alice.clone())
+        .add_assertion(known_values::TARGET, bob.clone());
+    let result = edge.validate_edge();
+    assert!(matches!(result, Err(EnvelopeError::EdgeDuplicateTarget)));
 }
 
 #[test]

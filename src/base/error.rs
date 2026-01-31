@@ -117,10 +117,35 @@ pub enum Error {
 
     //
     // Edges Extension
-    /// Returned when an edge's format is invalid per BCR-2026-003.
+    /// Returned when an edge is missing the required `'isA'` assertion.
     #[cfg(feature = "edge")]
-    #[error("invalid edge")]
-    InvalidEdge,
+    #[error("edge missing 'isA' assertion")]
+    EdgeMissingIsA,
+
+    /// Returned when an edge is missing the required `'source'` assertion.
+    #[cfg(feature = "edge")]
+    #[error("edge missing 'source' assertion")]
+    EdgeMissingSource,
+
+    /// Returned when an edge is missing the required `'target'` assertion.
+    #[cfg(feature = "edge")]
+    #[error("edge missing 'target' assertion")]
+    EdgeMissingTarget,
+
+    /// Returned when an edge has duplicate `'isA'` assertions.
+    #[cfg(feature = "edge")]
+    #[error("edge has duplicate 'isA' assertions")]
+    EdgeDuplicateIsA,
+
+    /// Returned when an edge has duplicate `'source'` assertions.
+    #[cfg(feature = "edge")]
+    #[error("edge has duplicate 'source' assertions")]
+    EdgeDuplicateSource,
+
+    /// Returned when an edge has duplicate `'target'` assertions.
+    #[cfg(feature = "edge")]
+    #[error("edge has duplicate 'target' assertions")]
+    EdgeDuplicateTarget,
 
     /// Returned when an edge is requested but does not exist.
     #[cfg(feature = "edge")]
