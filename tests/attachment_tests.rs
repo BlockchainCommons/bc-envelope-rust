@@ -28,6 +28,7 @@ fn test_attachment() -> Result<(), EnvelopeError> {
             Some("https://example.com/seed-attachment/v2"),
         );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(seed_envelope.format(), indoc! {r#"
         Bytes(16) [
@@ -91,6 +92,7 @@ fn test_attachment() -> Result<(), EnvelopeError> {
         Some("https://example.com/seed-attachment/v1"),
     )?;
     let payload = v1_attachment.attachment_payload()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(payload.format(), indoc! {r#"
         "Attachment Data V1"

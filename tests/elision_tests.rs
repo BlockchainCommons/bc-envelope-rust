@@ -28,11 +28,13 @@ fn test_envelope_elision() -> EnvelopeResult<()> {
     assert!(e1.is_equivalent_to(&e2));
     assert!(!e1.is_identical_to(&e2));
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e2.format(), indoc! {r#"
         ELIDED
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e2.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -42,6 +44,7 @@ fn test_envelope_elision() -> EnvelopeResult<()> {
 
     let e3 = e2.unelide(&e1)?;
     assert!(e3.is_equivalent_to(&e1));
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e3.format(), indoc! {r#"
         "Hello."
@@ -54,6 +57,7 @@ fn test_envelope_elision() -> EnvelopeResult<()> {
 fn test_single_assertion_remove_elision() -> EnvelopeResult<()> {
     // The original Envelope
     let e1 = single_assertion_envelope();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
@@ -63,6 +67,7 @@ fn test_single_assertion_remove_elision() -> EnvelopeResult<()> {
 
     // Elide the entire envelope
     let e2 = e1.elide_removing_target(&e1).check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e2.format(), indoc! {r#"
         ELIDED
@@ -72,6 +77,7 @@ fn test_single_assertion_remove_elision() -> EnvelopeResult<()> {
     let e3 = e1
         .elide_removing_target(&"Alice".to_envelope())
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e3.format(), indoc! {r#"
         ELIDED [
@@ -83,6 +89,7 @@ fn test_single_assertion_remove_elision() -> EnvelopeResult<()> {
     let e4 = e1
         .elide_removing_target(&"knows".to_envelope())
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e4.format(), indoc! {r#"
         "Alice" [
@@ -94,6 +101,7 @@ fn test_single_assertion_remove_elision() -> EnvelopeResult<()> {
     let e5 = e1
         .elide_removing_target(&"Bob".to_envelope())
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e5.format(), indoc! {r#"
         "Alice" [
@@ -105,6 +113,7 @@ fn test_single_assertion_remove_elision() -> EnvelopeResult<()> {
     let e6 = e1
         .elide_removing_target(&assertion_envelope())
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e6.format(), indoc! {r#"
         "Alice" [
@@ -119,6 +128,7 @@ fn test_single_assertion_remove_elision() -> EnvelopeResult<()> {
 fn test_double_assertion_remove_elision() -> EnvelopeResult<()> {
     // The original Envelope
     let e1 = double_assertion_envelope();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
@@ -129,6 +139,7 @@ fn test_double_assertion_remove_elision() -> EnvelopeResult<()> {
 
     // Elide the entire envelope
     let e2 = e1.elide_removing_target(&e1).check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e2.format(), indoc! {r#"
         ELIDED
@@ -138,6 +149,7 @@ fn test_double_assertion_remove_elision() -> EnvelopeResult<()> {
     let e3 = e1
         .elide_removing_target(&"Alice".to_envelope())
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e3.format(), indoc! {r#"
         ELIDED [
@@ -150,6 +162,7 @@ fn test_double_assertion_remove_elision() -> EnvelopeResult<()> {
     let e4 = e1
         .elide_removing_target(&"knows".to_envelope())
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e4.format(), indoc! {r#"
         "Alice" [
@@ -162,6 +175,7 @@ fn test_double_assertion_remove_elision() -> EnvelopeResult<()> {
     let e5 = e1
         .elide_removing_target(&"Bob".to_envelope())
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e5.format(), indoc! {r#"
         "Alice" [
@@ -174,6 +188,7 @@ fn test_double_assertion_remove_elision() -> EnvelopeResult<()> {
     let e6 = e1
         .elide_removing_target(&assertion_envelope())
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e6.format(), indoc! {r#"
         "Alice" [
@@ -189,6 +204,7 @@ fn test_double_assertion_remove_elision() -> EnvelopeResult<()> {
 fn test_single_assertion_reveal_elision() -> EnvelopeResult<()> {
     // The original Envelope
     let e1 = single_assertion_envelope();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
@@ -198,6 +214,7 @@ fn test_single_assertion_reveal_elision() -> EnvelopeResult<()> {
 
     // Elide revealing nothing
     let e2 = e1.elide_revealing_array(&[]).check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e2.format(), indoc! {r#"
         ELIDED
@@ -216,6 +233,7 @@ fn test_single_assertion_reveal_elision() -> EnvelopeResult<()> {
     let e4 = e1
         .elide_revealing_array(&[&e1, &"Alice".to_envelope()])
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e4.format(), indoc! {r#"
         "Alice" [
@@ -227,6 +245,7 @@ fn test_single_assertion_reveal_elision() -> EnvelopeResult<()> {
     let e5 = e1
         .elide_revealing_array(&[&e1, &assertion_envelope()])
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e5.format(), indoc! {r#"
         ELIDED [
@@ -242,6 +261,7 @@ fn test_single_assertion_reveal_elision() -> EnvelopeResult<()> {
             &"knows".to_envelope(),
         ])
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e6.format(), indoc! {r#"
         ELIDED [
@@ -257,6 +277,7 @@ fn test_single_assertion_reveal_elision() -> EnvelopeResult<()> {
             &"Bob".to_envelope(),
         ])
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e7.format(), indoc! {r#"
         ELIDED [
@@ -271,6 +292,7 @@ fn test_single_assertion_reveal_elision() -> EnvelopeResult<()> {
 fn test_double_assertion_reveal_elision() -> EnvelopeResult<()> {
     // The original Envelope
     let e1 = double_assertion_envelope();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
@@ -281,6 +303,7 @@ fn test_double_assertion_reveal_elision() -> EnvelopeResult<()> {
 
     // Elide revealing nothing
     let e2 = e1.elide_revealing_array(&[]).check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e2.format(), indoc! {r#"
         ELIDED
@@ -288,6 +311,7 @@ fn test_double_assertion_reveal_elision() -> EnvelopeResult<()> {
 
     // Reveal just the envelope's structure
     let e3 = e1.elide_revealing_array(&[&e1]).check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e3.format(), indoc! {r#"
         ELIDED [
@@ -299,6 +323,7 @@ fn test_double_assertion_reveal_elision() -> EnvelopeResult<()> {
     let e4 = e1
         .elide_revealing_array(&[&e1, &"Alice".to_envelope()])
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e4.format(), indoc! {r#"
         "Alice" [
@@ -310,6 +335,7 @@ fn test_double_assertion_reveal_elision() -> EnvelopeResult<()> {
     let e5 = e1
         .elide_revealing_array(&[&e1, &assertion_envelope()])
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e5.format(), indoc! {r#"
         ELIDED [
@@ -326,6 +352,7 @@ fn test_double_assertion_reveal_elision() -> EnvelopeResult<()> {
             &"knows".to_envelope(),
         ])
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e6.format(), indoc! {r#"
         ELIDED [
@@ -342,6 +369,7 @@ fn test_double_assertion_reveal_elision() -> EnvelopeResult<()> {
             &"Bob".to_envelope(),
         ])
         .check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e7.format(), indoc! {r#"
         ELIDED [
@@ -356,6 +384,7 @@ fn test_double_assertion_reveal_elision() -> EnvelopeResult<()> {
 #[test]
 fn test_digests() -> EnvelopeResult<()> {
     let e1 = double_assertion_envelope();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
@@ -365,12 +394,14 @@ fn test_digests() -> EnvelopeResult<()> {
     "#}.trim());
 
     let e2 = e1.elide_revealing_set(&e1.digests(0)).check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e2.format(), indoc! {r#"
         ELIDED
     "#}.trim());
 
     let e3 = e1.elide_revealing_set(&e1.digests(1)).check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e3.format(), indoc! {r#"
         "Alice" [
@@ -379,6 +410,7 @@ fn test_digests() -> EnvelopeResult<()> {
     "#}.trim());
 
     let e4 = e1.elide_revealing_set(&e1.digests(2)).check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e4.format(), indoc! {r#"
         "Alice" [
@@ -388,6 +420,7 @@ fn test_digests() -> EnvelopeResult<()> {
     "#}.trim());
 
     let e5 = e1.elide_revealing_set(&e1.digests(3)).check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e5.format(), indoc! {r#"
         "Alice" [
@@ -403,6 +436,7 @@ fn test_digests() -> EnvelopeResult<()> {
 fn test_target_reveal() -> EnvelopeResult<()> {
     let e1 =
         double_assertion_envelope().add_assertion("livesAt", "123 Main St.");
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
@@ -422,6 +456,7 @@ fn test_target_reveal() -> EnvelopeResult<()> {
     // Reveal the specific `livesAt` assertion
     target.extend(e1.assertion_with_predicate("livesAt")?.deep_digests());
     let e2 = e1.elide_revealing_set(&target).check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e2.format(), indoc! {r#"
         "Alice" [
@@ -438,6 +473,7 @@ fn test_target_reveal() -> EnvelopeResult<()> {
 fn test_targeted_remove() -> EnvelopeResult<()> {
     let e1 =
         double_assertion_envelope().add_assertion("livesAt", "123 Main St.");
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e1.format(), indoc! {r#"
         "Alice" [
@@ -451,6 +487,7 @@ fn test_targeted_remove() -> EnvelopeResult<()> {
     // Hide one of the assertions
     target2.extend(assertion_envelope().digests(1));
     let e2 = e1.elide_removing_set(&target2).check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e2.format(), indoc! {r#"
         "Alice" [
@@ -464,6 +501,7 @@ fn test_targeted_remove() -> EnvelopeResult<()> {
     // Hide one of the assertions by finding its predicate
     target3.extend(e1.assertion_with_predicate("livesAt")?.deep_digests());
     let e3 = e1.elide_removing_set(&target3).check_encoding()?;
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e3.format(), indoc! {r#"
         "Alice" [
@@ -495,6 +533,7 @@ fn test_walk_replace_basic() -> EnvelopeResult<()> {
         .add_assertion("knows", bob.clone())
         .add_assertion("likes", bob.clone());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         "Alice" [
@@ -509,6 +548,7 @@ fn test_walk_replace_basic() -> EnvelopeResult<()> {
 
     let modified = envelope.walk_replace(&target, &charlie)?;
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(modified.format(), indoc! {r#"
         "Alice" [
@@ -531,6 +571,7 @@ fn test_walk_replace_subject() -> EnvelopeResult<()> {
 
     let envelope = alice.clone().add_assertion("knows", bob.clone());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         "Alice" [
@@ -544,6 +585,7 @@ fn test_walk_replace_subject() -> EnvelopeResult<()> {
 
     let modified = envelope.walk_replace(&target, &carol)?;
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(modified.format(), indoc! {r#"
         "Carol" [
@@ -564,6 +606,7 @@ fn test_walk_replace_nested() -> EnvelopeResult<()> {
     let inner = bob.clone().add_assertion("friend", bob.clone());
     let envelope = alice.clone().add_assertion("knows", inner);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         "Alice" [
@@ -579,6 +622,7 @@ fn test_walk_replace_nested() -> EnvelopeResult<()> {
 
     let modified = envelope.walk_replace(&target, &charlie)?;
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(modified.format(), indoc! {r#"
         "Alice" [
@@ -601,6 +645,7 @@ fn test_walk_replace_wrapped() -> EnvelopeResult<()> {
     let wrapped = bob.clone().wrap();
     let envelope = alice.clone().add_assertion("data", wrapped);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         "Alice" [
@@ -616,6 +661,7 @@ fn test_walk_replace_wrapped() -> EnvelopeResult<()> {
 
     let modified = envelope.walk_replace(&target, &charlie)?;
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(modified.format(), indoc! {r#"
         "Alice" [
@@ -637,6 +683,7 @@ fn test_walk_replace_no_match() -> EnvelopeResult<()> {
 
     let envelope = alice.clone().add_assertion("knows", bob.clone());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         "Alice" [
@@ -651,6 +698,7 @@ fn test_walk_replace_no_match() -> EnvelopeResult<()> {
     let modified = envelope.walk_replace(&target, &charlie)?;
 
     // Should be identical since nothing matched
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(modified.format(), indoc! {r#"
         "Alice" [
@@ -675,6 +723,7 @@ fn test_walk_replace_multiple_targets() -> EnvelopeResult<()> {
         .add_assertion("knows", bob.clone())
         .add_assertion("likes", carol.clone());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         "Alice" [
@@ -690,6 +739,7 @@ fn test_walk_replace_multiple_targets() -> EnvelopeResult<()> {
 
     let modified = envelope.walk_replace(&target, &replacement)?;
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(modified.format(), indoc! {r#"
         "Alice" [
@@ -713,6 +763,7 @@ fn test_walk_replace_elided() -> EnvelopeResult<()> {
         .add_assertion("knows", bob.clone())
         .add_assertion("likes", bob.clone());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         "Alice" [
@@ -724,6 +775,7 @@ fn test_walk_replace_elided() -> EnvelopeResult<()> {
     // Elide Bob
     let elided = envelope.elide_removing_target(&bob);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(elided.format(), indoc! {r#"
         "Alice" [
@@ -739,6 +791,7 @@ fn test_walk_replace_elided() -> EnvelopeResult<()> {
 
     let modified = elided.walk_replace(&target, &charlie)?;
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(modified.format(), indoc! {r#"
         "Alice" [

@@ -34,6 +34,7 @@ fn test_edge_basic_format() {
     let alice = xid_like("Alice");
     let edge = make_edge("credential-1", "foaf:Person", &alice, &alice);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(edge.format(), indoc! {r#"
         "credential-1" [
@@ -50,6 +51,7 @@ fn test_edge_relationship_format() {
     let bob = xid_like("Bob");
     let edge = make_edge("knows-bob", "schema:colleague", &alice, &bob);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(edge.format(), indoc! {r#"
         "knows-bob" [
@@ -238,6 +240,7 @@ fn test_add_edge_envelope() {
 
     let doc = Envelope::new("Alice").add_edge_envelope(edge);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(doc.format(), indoc! {r#"
         "Alice" [
@@ -433,6 +436,7 @@ fn test_edges_container_roundtrip_preserves_format() -> Result<(), EnvelopeError
 
     let doc = edges.add_to_envelope(Envelope::new("Alice"));
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(doc.format(), indoc! {r#"
         "Alice" [
@@ -650,6 +654,7 @@ fn test_signed_edge_format() {
 
     let signed_edge = edge.wrap().add_signature(&alice_private_key());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(signed_edge.format(), indoc! {r#"
         {

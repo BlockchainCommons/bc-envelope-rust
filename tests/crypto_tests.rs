@@ -15,6 +15,7 @@ fn plaintext() {
     let envelope = hello_envelope();
     let ur = envelope.ur();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = (indoc! {r#"
         "Hello."
@@ -48,6 +49,7 @@ fn symmetric_encryption() {
         .unwrap();
     let ur = envelope.ur();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = (indoc! {r#"
         ENCRYPTED
@@ -145,6 +147,7 @@ fn sign_then_encrypt() {
         .unwrap();
     let ur = envelope.ur();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = (indoc! {r#"
         ENCRYPTED
@@ -219,6 +222,7 @@ fn test_encrypt_then_sign() {
         .unwrap();
     let ur = envelope.ur();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = (indoc! {r#"
         ENCRYPTED [
@@ -262,6 +266,7 @@ fn test_multi_recipient() {
         .unwrap();
     let ur = envelope.ur();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = (indoc! {r#"
         ENCRYPTED [
@@ -321,6 +326,7 @@ fn test_visible_signature_multi_recipient() {
         .unwrap();
     let ur = envelope.ur();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = (indoc! {r#"
         ENCRYPTED [
@@ -388,6 +394,7 @@ fn test_hidden_signature_multi_recipient() {
         .unwrap();
     let ur = envelope.ur();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = (indoc! {r#"
         ENCRYPTED [
@@ -454,6 +461,7 @@ fn test_secret_1() {
         .unwrap();
     envelope.check_encoding().unwrap();
     let ur = envelope.ur();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = (indoc! {r#"
         ENCRYPTED [
@@ -503,6 +511,7 @@ fn test_secret_2() {
         .check_encoding()
         .unwrap();
     let ur = envelope.ur();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = (indoc! {r#"
         ENCRYPTED [

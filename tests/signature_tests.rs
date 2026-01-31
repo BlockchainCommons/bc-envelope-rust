@@ -76,6 +76,7 @@ fn multisigned_plaintext() {
         .check_encoding()
         .unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         "Hello." [
@@ -119,6 +120,7 @@ fn signed_with_metadata() {
         .check_encoding()
         .unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         {
@@ -147,6 +149,7 @@ fn signed_with_metadata() {
         .verify_returning_metadata(&alice_public_key())
         .unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         Signature [

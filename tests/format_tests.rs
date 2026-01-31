@@ -26,6 +26,7 @@ use crate::common::{check_encoding::*, test_data::*};
 fn test_plaintext() {
     let envelope = Envelope::new(PLAINTEXT_HELLO);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         "Hello."
@@ -33,26 +34,31 @@ fn test_plaintext() {
 
     assert_actual_expected!(envelope.format_flat(), r#""Hello.""#);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.tree_format(), indoc! {r#"
         8cc96cdb "Hello."
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().context(FormatContextOpt::None)), indoc! {r#"
         8cc96cdb "Hello."
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().digest_display(DigestDisplayFormat::Full)), indoc! {r#"
         8cc96cdb771176e835114a0f8936690b41cfed0df22d014eedd64edaea945d59 "Hello."
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().digest_display(DigestDisplayFormat::UR)), indoc! {r#"
         ur:digest/hdcxlksojzuyktbykovsecbygebsldeninbdfptkwebtwzdpadglwetbgltnwdmwhlhksbbthtpy "Hello."
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         "Hello."
@@ -75,6 +81,7 @@ fn test_signed_plaintext() {
         None,
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         "Hello." [
@@ -88,6 +95,7 @@ fn test_signed_plaintext() {
     );
 
     let s = envelope.tree_format();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         949a991e NODE
@@ -100,6 +108,7 @@ fn test_signed_plaintext() {
     let s = envelope.tree_format_opt(
         &TreeFormatOpts::default().context(FormatContextOpt::None),
     );
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         949a991e NODE
@@ -109,6 +118,7 @@ fn test_signed_plaintext() {
                 b8bb043f obj 40020(h'd0f6b2577edb3f4b0f533e21577bc12a58aaca2604bc71e84bd4e2c81421900bca361a1a8de3b7dbfe1cb5c16e34cb8c9a78fe6f7a387e959bbb15f6f3d898d3')
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         subj "Hello."
@@ -122,6 +132,7 @@ fn test_signed_plaintext() {
             .hide_nodes(true)
             .context(FormatContextOpt::None),
     );
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         subj "Hello."
@@ -143,6 +154,7 @@ fn test_encrypt_subject() {
         .add_assertion("knows", "Bob")
         .encrypt_subject(&SymmetricKey::new())
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         ENCRYPTED [
@@ -155,6 +167,7 @@ fn test_encrypt_subject() {
         r#"ENCRYPTED [ "knows": "Bob" ]"#
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.tree_format(), indoc! {r#"
         8955db5e NODE
@@ -165,7 +178,8 @@ fn test_encrypt_subject() {
     "#}.trim());
 
     let actual = envelope.mermaid_format();
-    // println!("{}", actual);
+    // expected-text-output-rubric:
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         %%{ init: { 'theme': 'default', 'flowchart': { 'curve': 'basis' } } }%%
         graph LR
@@ -189,7 +203,7 @@ fn test_encrypt_subject() {
 
     let actual =
         envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true));
-    // println!("{}", actual);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(actual, indoc! {r#"
         subj ENCRYPTED
@@ -207,6 +221,7 @@ fn test_encrypt_subject() {
 #[test]
 fn test_top_level_assertion() {
     let envelope = Envelope::new_assertion("knows", "Bob");
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         "knows": "Bob"
@@ -214,6 +229,7 @@ fn test_top_level_assertion() {
 
     assert_actual_expected!(envelope.format_flat(), r#""knows": "Bob""#);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.tree_format(), indoc! {r#"
         78d666eb ASSERTION
@@ -221,6 +237,7 @@ fn test_top_level_assertion() {
             13b74194 obj "Bob"
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         ASSERTION
@@ -238,6 +255,7 @@ fn test_top_level_assertion() {
 fn test_elided_object() {
     let envelope = Envelope::new("Alice").add_assertion("knows", "Bob");
     let elided = envelope.elide_removing_target(&"Bob".to_envelope());
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(elided.format(), indoc! {r#"
         "Alice" [
@@ -250,6 +268,7 @@ fn test_elided_object() {
         r#""Alice" [ "knows": ELIDED ]"#
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(elided.tree_format(), indoc! {r#"
         8955db5e NODE
@@ -259,6 +278,7 @@ fn test_elided_object() {
                 13b74194 obj ELIDED
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(elided.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         subj "Alice"
@@ -282,6 +302,7 @@ fn test_signed_subject() {
         .add_assertion("knows", "Bob")
         .add_assertion("knows", "Carol")
         .add_signature_opt(&alice_private_key(), Some(options), None);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         "Alice" [
@@ -297,7 +318,7 @@ fn test_signed_subject() {
     );
 
     let s = envelope.tree_format();
-    // println!("{}", s);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         d595106e NODE
@@ -315,7 +336,7 @@ fn test_signed_subject() {
 
     let s =
         envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true));
-    // println!("{}", s);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         subj "Alice"
@@ -340,6 +361,7 @@ fn test_signed_subject() {
     target.insert(envelope.digest());
     target.insert(envelope.subject().digest());
     let elided = envelope.elide_revealing_set(&target);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(elided.format(), indoc! {r#"
         "Alice" [
@@ -350,7 +372,7 @@ fn test_signed_subject() {
     assert_actual_expected!(elided.format_flat(), r#""Alice" [ ELIDED (3) ]"#);
 
     let s = elided.tree_format();
-    // println!("{}", s);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         d595106e NODE
@@ -360,6 +382,7 @@ fn test_signed_subject() {
             78d666eb ELIDED
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(elided.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         subj "Alice"
@@ -384,6 +407,7 @@ fn test_wrap_then_signed() {
         .add_assertion("knows", "Carol")
         .wrap()
         .add_signature_opt(&alice_private_key(), Some(options), None);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         {
@@ -402,6 +426,7 @@ fn test_wrap_then_signed() {
     );
 
     let s = envelope.tree_format();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         66c9d594 NODE
@@ -421,6 +446,7 @@ fn test_wrap_then_signed() {
 
     let s =
         envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true));
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         subj WRAPPED
@@ -439,6 +465,7 @@ fn test_wrap_then_signed() {
     let s = envelope.tree_format_opt(
         &TreeFormatOpts::default().digest_display(DigestDisplayFormat::Full),
     );
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         66c9d5944eaedc418d8acf52df7842f50c2aa2d0da2857ad1048412cd070c3e8 NODE
@@ -459,6 +486,7 @@ fn test_wrap_then_signed() {
     let s = envelope.tree_format_opt(
         &TreeFormatOpts::default().digest_display(DigestDisplayFormat::UR),
     );
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         ur:digest/hdcxiysotlmwglpluofplgletkgmurksfwykbndroetitndehgpmbefdfpdwtijosrvsbsdlsndm NODE
@@ -504,6 +532,7 @@ fn test_encrypt_to_recipients() {
         )
         .check_encoding()
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         ENCRYPTED [
@@ -517,6 +546,7 @@ fn test_encrypt_to_recipients() {
         r#"ENCRYPTED [ 'hasRecipient': SealedMessage, 'hasRecipient': SealedMessage ]"#
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         subj ENCRYPTED
@@ -544,6 +574,7 @@ fn test_assertion_positions() {
         .add_assertion(predicate, object)
         .check_encoding()
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.format(), indoc! {r#"
         "subject" [
@@ -561,6 +592,7 @@ fn test_assertion_positions() {
         r#""subject" [ "predicate" [ "predicate-predicate": "predicate-object" ] : "object" [ "object-predicate": "object-object" ] ]"#
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.tree_format(), indoc! {r#"
         e06d7003 NODE
@@ -578,6 +610,7 @@ fn test_assertion_positions() {
                         0bdb89a6 obj "object-object"
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(envelope.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         subj "subject"
@@ -644,6 +677,7 @@ fn test_complex_metadata() {
         .check_encoding()
         .unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(book_metadata.format(), indoc! {r#"
         Digest(26d05af5) [
@@ -671,6 +705,7 @@ fn test_complex_metadata() {
         r#"Digest(26d05af5) [ "format": "EPUB", "work": ARID(7fb90a9d) [ 'isA': "novel", "author": ARID(9c747ace) [ 'dereferenceVia': "LibraryOfCongress", 'name': "Ayn Rand" ], "isbn": "9780451191144", 'dereferenceVia': "LibraryOfCongress", 'name': "Atlas Shrugged" [ 'language': "en" ], 'name': "La rebelión de Atlas" [ 'language': "es" ] ], 'dereferenceVia': "IPFS" ]"#
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(book_metadata.tree_format(), indoc! {r#"
         c93370e7 NODE
@@ -720,6 +755,7 @@ fn test_complex_metadata() {
                                 6700869c obj "en"
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(book_metadata.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         subj Digest(26d05af5)
@@ -774,6 +810,7 @@ fn test_complex_metadata() {
 #[test]
 fn test_credential() {
     let credential = credential();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(credential.format(), indoc! {r#"
         {
@@ -804,7 +841,7 @@ fn test_credential() {
     );
 
     let s = credential.tree_format();
-    // println!("{}", s);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         0b721f78 NODE
@@ -858,6 +895,7 @@ fn test_credential() {
                 f106bad1 obj "Signed by Example Electrical Engineering…"
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(credential.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true)), indoc! {r#"
         subj WRAPPED
@@ -934,6 +972,7 @@ fn test_redacted_credential() {
         .check_encoding()
         .unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(warranty.format(), indoc! {r#"
         {
@@ -968,7 +1007,7 @@ fn test_redacted_credential() {
     );
 
     let s = warranty.tree_format();
-    // println!("{}", s);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         7ab3e6b1 NODE
@@ -1026,7 +1065,7 @@ fn test_redacted_credential() {
 
     let s =
         warranty.tree_format_opt(&TreeFormatOpts::default().hide_nodes(true));
-    // println!("{}", s);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         subj WRAPPED
@@ -1086,7 +1125,7 @@ fn test_redacted_credential() {
     let actual = warranty.mermaid_format_opt(
         &MermaidFormatOpts::default().theme(MermaidTheme::Dark),
     );
-    // println!("{}", actual);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         %%{ init: { 'theme': 'dark', 'flowchart': { 'curve': 'basis' } } }%%
@@ -1253,7 +1292,7 @@ fn test_redacted_credential() {
             .orientation(MermaidOrientation::TopToBottom)
             .hide_nodes(true),
     );
-    // println!("{}", actual);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         %%{ init: { 'theme': 'forest', 'flowchart': { 'curve': 'basis' } } }%%

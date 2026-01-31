@@ -27,6 +27,7 @@ fn test_ssh_signed_plaintext() {
         .unwrap();
     let ur = envelope.ur();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         "Hello." [

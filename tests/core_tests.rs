@@ -32,6 +32,7 @@ fn test_read_legacy_leaf() {
 fn test_int_subject() {
     let e = Envelope::new(42).check_encoding().unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -44,6 +45,7 @@ fn test_int_subject() {
         "Digest(7f83f7bda2d63959d34767689f06d47576683d378d9eb8d09386c9a020395c53)"
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         42
@@ -56,6 +58,7 @@ fn test_int_subject() {
 fn test_negative_int_subject() {
     let e = Envelope::new(-42).check_encoding().unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -68,6 +71,7 @@ fn test_negative_int_subject() {
         "Digest(9e0ad272780de7aa1dbdfbc99058bb81152f623d3b95b5dfb0a036badfcc9055)"
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         -42
@@ -80,6 +84,7 @@ fn test_negative_int_subject() {
 fn test_cbor_encodable_subject() {
     let e = hello_envelope().check_encoding().unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -92,6 +97,7 @@ fn test_cbor_encodable_subject() {
         "Digest(8cc96cdb771176e835114a0f8936690b41cfed0df22d014eedd64edaea945d59)"
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         "Hello."
@@ -105,6 +111,7 @@ fn test_cbor_encodable_subject() {
 fn test_known_value_subject() {
     let e = known_value_envelope().check_encoding().unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(4)   / envelope /
@@ -115,6 +122,7 @@ fn test_known_value_subject() {
         "Digest(0fcd6a39d6ed37f2e2efa6a96214596f1b28a5cd42a5a27afc32162aaf821191)"
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         'note'
@@ -147,6 +155,7 @@ fn test_assertion_subject() {
         "Digest(78d666eb8f4c0977a0425ab6aa21ea16934a6bc97c6f0c3abaefac951c1714a2)"
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -157,6 +166,7 @@ fn test_assertion_subject() {
         )
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         "knows": "Bob"
@@ -169,6 +179,7 @@ fn test_assertion_subject() {
 fn test_subject_with_assertion() {
     let e = single_assertion_envelope().check_encoding().unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -187,6 +198,7 @@ fn test_subject_with_assertion() {
         "Digest(8955db5e016affb133df56c11fe6c5c82fa3036263d651286d134c7e56c0e9f2)"
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         "Alice" [
@@ -201,6 +213,7 @@ fn test_subject_with_assertion() {
 fn test_subject_with_two_assertions() {
     let e = double_assertion_envelope().check_encoding().unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -223,6 +236,7 @@ fn test_subject_with_two_assertions() {
         "Digest(b8d857f6e06a836fbc68ca0ce43e55ceb98eefd949119dab344e11c4ba5a0471)"
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         "Alice" [
@@ -238,6 +252,7 @@ fn test_subject_with_two_assertions() {
 fn test_wrapped() {
     let e = wrapped_envelope().check_encoding().unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -252,6 +267,7 @@ fn test_wrapped() {
         "Digest(172a5e51431062e7b13525cbceb8ad8475977444cf28423e21c0d1dcbdfcaf47)"
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         {
@@ -264,6 +280,7 @@ fn test_wrapped() {
 fn test_double_wrapped() {
     let e = double_wrapped_envelope().check_encoding().unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -280,6 +297,7 @@ fn test_double_wrapped() {
         "Digest(8b14f3bcd7c05aac8f2162e7047d7ef5d5eab7d82ee3f9dc4846c70bae4d200b)"
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         {
@@ -296,6 +314,7 @@ fn test_assertion_with_assertions() {
         .add_assertion(3, 4)
         .add_assertion(5, 6);
     let e = Envelope::new(7).add_assertion_envelope(a).unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         7 [
@@ -313,6 +332,7 @@ fn test_assertion_with_assertions() {
 fn test_digest_leaf() {
     let digest = hello_envelope().digest();
     let e = Envelope::new(digest).check_encoding().unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         Digest(8cc96cdb)
@@ -323,6 +343,7 @@ fn test_digest_leaf() {
         "Digest(07b518af92a6196bc153752aabefedb34ff8e1a7d820c01ef978dfc3e7e52e05)"
     );
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -354,6 +375,7 @@ fn test_true() {
     assert!(e.is_true());
     assert!(!e.is_false());
     assert_eq!(e, Envelope::r#true());
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         true
@@ -368,6 +390,7 @@ fn test_false() {
     assert!(!e.is_true());
     assert!(e.is_false());
     assert_eq!(e, Envelope::r#false());
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         false
@@ -380,6 +403,7 @@ fn test_unit() {
     crate::register_tags();
     let mut e = Envelope::unit().check_encoding().unwrap();
     assert!(e.is_subject_unit());
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         ''
@@ -387,6 +411,7 @@ fn test_unit() {
 
     e = e.add_assertion("foo", "bar");
     assert!(e.is_subject_unit());
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         '' [
@@ -408,6 +433,7 @@ fn test_position() {
 
     e = e.set_position(42).unwrap();
     assert_eq!(e.position().unwrap(), 42);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         "Hello" [
@@ -417,6 +443,7 @@ fn test_position() {
 
     e = e.set_position(0).unwrap();
     assert_eq!(e.position().unwrap(), 0);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         "Hello" [
@@ -426,6 +453,7 @@ fn test_position() {
 
     e = e.remove_position().unwrap();
     assert!(e.position().is_err());
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.format(), indoc! {r#"
         "Hello"

@@ -37,6 +37,7 @@ fn test_sskr() -> EnvelopeResult<()> {
     let sent_envelopes: Vec<_> = envelopes.into_iter().flatten().collect();
     let sent_urs: Vec<_> = sent_envelopes.iter().map(|e| e.ur()).collect();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         ENCRYPTED [

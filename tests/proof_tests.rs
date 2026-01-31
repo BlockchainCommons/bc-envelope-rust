@@ -25,6 +25,7 @@ fn test_friends_list() {
         .add_assertion_salted("knows", "Bob", true)
         .add_assertion_salted("knows", "Carol", true)
         .add_assertion_salted("knows", "Dan", true);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(alice_friends.format(), indoc! {r#"
         "Alice" [
@@ -67,6 +68,7 @@ fn test_friends_list() {
         .unwrap()
         .check_encoding()
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(alice_knows_bob_proof.format(), indoc! {r#"
         ELIDED [
@@ -109,6 +111,7 @@ fn test_multi_position() {
         .unwrap()
         .check_encoding()
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(knows_proof.format(), indoc! {r#"
         ELIDED [
@@ -172,6 +175,7 @@ fn test_verifiable_credential() {
         .check_encoding()
         .unwrap();
     // The proof includes digests from all the elided assertions.
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(address_proof.format(), indoc! {r#"
         {

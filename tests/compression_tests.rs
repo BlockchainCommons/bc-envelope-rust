@@ -47,7 +47,7 @@ fn test_compress_subject() {
         .add_signature_opt(&alice_private_key(), Some(options), None);
     assert_eq!(original.to_cbor_data().len(), 458);
     let s = original.tree_format();
-    // println!("{}", s);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         ec608f27 NODE
@@ -68,7 +68,7 @@ fn test_compress_subject() {
         .unwrap();
     assert_eq!(compressed.clone().to_cbor_data().len(), 374);
     let s = compressed.tree_format();
-    // println!("{}", s);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         ec608f27 NODE
@@ -78,7 +78,7 @@ fn test_compress_subject() {
                 f0d3ce4c obj Signature
     "#}.trim());
     let s = compressed.mermaid_format();
-    // println!("{}", s);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(s, indoc! {r#"
         %%{ init: { 'theme': 'default', 'flowchart': { 'curve': 'basis' } } }%%

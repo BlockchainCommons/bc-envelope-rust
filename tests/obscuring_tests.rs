@@ -159,6 +159,7 @@ fn test_nodes_matching() {
 
     // Verify the structure with elided and compressed nodes
     #[cfg(not(feature = "compress"))]
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_eq!(obscured.format(), indoc! {r#"
         "Alice" [
@@ -169,6 +170,7 @@ fn test_nodes_matching() {
     "#}.trim());
 
     #[cfg(feature = "compress")]
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_eq!(obscured.format(), indoc! {r#"
         "Alice" [
@@ -229,6 +231,7 @@ fn test_walk_unelide() {
         .elide_removing_target(&bob);
 
     // Verify parts are elided
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_eq!(elided.format(), indoc! {r#"
         ELIDED [
@@ -242,6 +245,7 @@ fn test_walk_unelide() {
         elided.walk_unelide(&[alice.clone(), bob.clone(), carol.clone()]);
 
     // The restored envelope should match original
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_eq!(restored.format(), indoc! {r#"
         "Alice" [
@@ -252,6 +256,7 @@ fn test_walk_unelide() {
 
     // Test with partial restoration (only some envelopes provided)
     let partial = elided.walk_unelide(std::slice::from_ref(&alice));
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_eq!(partial.format(), indoc! {r#"
         "Alice" [
@@ -303,6 +308,7 @@ fn test_walk_decrypt() {
         );
 
     // Verify parts are encrypted
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_eq!(encrypted.format(), indoc! {r#"
         "Alice" [
@@ -313,6 +319,7 @@ fn test_walk_decrypt() {
 
     // Decrypt with all keys
     let decrypted = encrypted.walk_decrypt(&[key1.clone(), key2.clone()]);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_eq!(decrypted.format(), indoc! {r#"
         "Alice" [
@@ -330,6 +337,7 @@ fn test_walk_decrypt() {
     assert!(partial.is_equivalent_to(&envelope));
 
     // There should still be one encrypted node remaining
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_eq!(partial.format(), indoc! {r#"
         "Alice" [
@@ -374,6 +382,7 @@ fn test_walk_decompress() {
     );
 
     // Verify parts are compressed
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_eq!(compressed.format(), indoc! {r#"
         "Alice" [

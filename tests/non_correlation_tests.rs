@@ -17,6 +17,7 @@ fn test_envelope_non_correlation() {
     let mut rng = make_fake_random_number_generator();
     let e2 = e1.add_salt_using(&mut rng).check_encoding().unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e2.format(), indoc! {r#"
         "Hello." [
@@ -24,6 +25,7 @@ fn test_envelope_non_correlation() {
         ]
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e2.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -39,6 +41,7 @@ fn test_envelope_non_correlation() {
         )
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e2.tree_format(), indoc! {r#"
         4f0f2d55 NODE
@@ -66,6 +69,7 @@ fn test_predicate_correlation() {
         .check_encoding()
         .unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let e1_expected_format = indoc! {r#"
         "Foo" [
@@ -90,6 +94,7 @@ fn test_predicate_correlation() {
     // redacting the envelope itself.
     let e1_elided = e1.elide_revealing_target(&e1).check_encoding().unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let redacted_expected_format = indoc! {r#"
         ELIDED [
@@ -118,6 +123,7 @@ fn test_add_salt() {
         )
         .check_encoding()
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let e1_expected_format = indoc! {r#"
         {
@@ -137,6 +143,7 @@ fn test_add_salt() {
 
     let e1_elided = e1.elide_revealing_target(&e1).check_encoding().unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let redacted_expected_format = indoc! {r#"
         ELIDED [

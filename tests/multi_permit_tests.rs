@@ -40,6 +40,7 @@ fn test_multi_permit() -> EnvelopeResult<()> {
     //
     let (alice_private_keys, alice_public_keys) = keypair();
     let signed_envelope = original_envelope.sign(&alice_private_keys);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         {
@@ -63,6 +64,7 @@ fn test_multi_permit() -> EnvelopeResult<()> {
     //
     let content_key = SymmetricKey::new();
     let encrypted_envelope = signed_envelope.encrypt(&content_key);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         ENCRYPTED
@@ -82,6 +84,7 @@ fn test_multi_permit() -> EnvelopeResult<()> {
         .add_secret(KeyDerivationMethod::Argon2id, password, &content_key)
         .unwrap();
     // println!("{}", locked_envelope.format());
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         ENCRYPTED [
@@ -99,7 +102,7 @@ fn test_multi_permit() -> EnvelopeResult<()> {
     let locked_envelope = locked_envelope
         .add_recipient(&alice_public_keys, &content_key)
         .add_recipient(&bob_public_keys, &content_key);
-    // println!("{}", locked_envelope.format());
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         ENCRYPTED [
@@ -133,7 +136,7 @@ fn test_multi_permit() -> EnvelopeResult<()> {
     // but each one contains a different SSKR share, so we only show the first
     // one here.
     //
-    // println!("{}", sharded_envelopes[0].format());
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         ENCRYPTED [

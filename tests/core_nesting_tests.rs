@@ -14,12 +14,14 @@ fn test_predicate_enclosures() {
     let b = Envelope::new("B");
 
     let knows_bob = Envelope::new_assertion(&knows, &bob);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(knows_bob.format(), indoc! {r#"
         "knows": "Bob"
     "#}.trim());
 
     let ab = Envelope::new_assertion(a, b);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(ab.format(),indoc! {r#"
         "A": "B"
@@ -31,6 +33,7 @@ fn test_predicate_enclosures() {
     )
     .check_encoding()
     .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(knows_ab_bob.format(), indoc! {r#"
         "knows" [
@@ -45,6 +48,7 @@ fn test_predicate_enclosures() {
     )
     .check_encoding()
     .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(knows_bob_ab.format(), indoc! {r#"
         "knows": "Bob" [
@@ -57,6 +61,7 @@ fn test_predicate_enclosures() {
         .unwrap()
         .check_encoding()
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(knows_bob_enclose_ab.format(), indoc! {r#"
         {
@@ -71,6 +76,7 @@ fn test_predicate_enclosures() {
         .unwrap()
         .check_encoding()
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(alice_knows_bob.format(), indoc! {r#"
         "Alice" [
@@ -83,6 +89,7 @@ fn test_predicate_enclosures() {
         .unwrap()
         .check_encoding()
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(alice_ab_knows_bob.format(), indoc! {r#"
         "Alice" [
@@ -99,6 +106,7 @@ fn test_predicate_enclosures() {
         .unwrap()
         .check_encoding()
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(alice_knows_ab_bob.format(), indoc! {r#"
         "Alice" [
@@ -117,6 +125,7 @@ fn test_predicate_enclosures() {
         .unwrap()
         .check_encoding()
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(alice_knows_bob_ab.format(), indoc! {r#"
         "Alice" [
@@ -134,6 +143,7 @@ fn test_predicate_enclosures() {
         .unwrap()
         .check_encoding()
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(alice_knows_ab_bob_ab.format(), indoc! {r#"
         "Alice" [
@@ -156,6 +166,7 @@ fn test_predicate_enclosures() {
         .unwrap()
         .check_encoding()
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(alice_ab_knows_ab_bob_ab.format(), indoc! {r#"
         "Alice" [
@@ -183,6 +194,7 @@ fn test_predicate_enclosures() {
         .unwrap()
         .check_encoding()
         .unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(alice_ab_knows_ab_bob_ab_enclose_ab.format(), indoc! {r#"
         "Alice" [
@@ -205,6 +217,7 @@ fn test_predicate_enclosures() {
 fn test_nesting_plaintext() {
     let envelope = Envelope::new("Hello.");
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         "Hello."
@@ -214,6 +227,7 @@ fn test_nesting_plaintext() {
     let elided_envelope = envelope.elide();
     assert!(elided_envelope.is_equivalent_to(&envelope));
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_elided_format = indoc! {r#"
         ELIDED
@@ -225,6 +239,7 @@ fn test_nesting_plaintext() {
 fn test_nesting_once() {
     let envelope = Envelope::new("Hello.").wrap().check_encoding().unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         {
@@ -241,6 +256,7 @@ fn test_nesting_once() {
 
     assert!(elided_envelope.is_equivalent_to(&envelope));
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_elided_format = indoc! {r#"
         {
@@ -258,6 +274,7 @@ fn test_nesting_twice() {
         .check_encoding()
         .unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         {
@@ -271,6 +288,7 @@ fn test_nesting_twice() {
     let target = envelope.try_unwrap().unwrap().try_unwrap().unwrap();
     let elided_envelope = envelope.elide_removing_target(&target);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_elided_format = indoc! {r#"
         {
@@ -295,6 +313,7 @@ fn test_assertions_on_all_parts_of_envelope() {
         .check_encoding()
         .unwrap();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         "subject" [
@@ -313,6 +332,7 @@ fn test_assertions_on_all_parts_of_envelope() {
 fn test_assertion_on_bare_assertion() {
     let envelope = Envelope::new_assertion("predicate", "object")
         .add_assertion("assertion-predicate", "assertion-object");
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_format = indoc! {r#"
         {

@@ -16,6 +16,7 @@ fn test_digest() {
 fn test_1() -> EnvelopeResult<()> {
     let e = Envelope::new("Hello.");
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -31,6 +32,7 @@ fn test_2() -> EnvelopeResult<()> {
     let array: Vec<u64> = vec![1, 2, 3];
     let e = Envelope::new(Into::<CBOR>::into(array));
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -50,6 +52,7 @@ fn test_3() -> EnvelopeResult<()> {
     let e3 = Envelope::new_assertion("E", "F").check_encoding()?;
 
     let e4 = e2.add_assertion_envelope(e3).unwrap();
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e4.format(), indoc! {r#"
         {
@@ -61,6 +64,7 @@ fn test_3() -> EnvelopeResult<()> {
 
     // println!("{}", e4.diagnostic_annotated());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e4.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
@@ -81,6 +85,7 @@ fn test_3() -> EnvelopeResult<()> {
 
     let e5 = e1.add_assertion_envelope(e4).unwrap().check_encoding()?;
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e5.format(), indoc! {r#"
         {
@@ -94,6 +99,7 @@ fn test_3() -> EnvelopeResult<()> {
         ]
     "#}.trim());
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     assert_actual_expected!(e5.diagnostic_annotated(), indoc! {r#"
         200(   / envelope /
