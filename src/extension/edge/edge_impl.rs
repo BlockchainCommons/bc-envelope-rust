@@ -24,15 +24,12 @@ impl Envelope {
             self.clone()
         };
 
-        let is_a_count = inner
-            .assertions_with_predicate(known_values::IS_A)
-            .len();
-        let source_count = inner
-            .assertions_with_predicate(known_values::SOURCE)
-            .len();
-        let target_count = inner
-            .assertions_with_predicate(known_values::TARGET)
-            .len();
+        let is_a_count =
+            inner.assertions_with_predicate(known_values::IS_A).len();
+        let source_count =
+            inner.assertions_with_predicate(known_values::SOURCE).len();
+        let target_count =
+            inner.assertions_with_predicate(known_values::TARGET).len();
 
         if is_a_count == 0 {
             return Err(Error::EdgeMissingIsA);

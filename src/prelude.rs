@@ -3,8 +3,6 @@ pub use bc_ur::prelude::*;
 
 #[cfg(feature = "attachment")]
 pub use crate::{Attachable, Attachments};
-#[cfg(feature = "edge")]
-pub use crate::{Edgeable, Edges};
 pub use crate::{
     DigestDisplayFormat, Envelope, EnvelopeCase, EnvelopeEncodable,
     EnvelopeSummary, Error as EnvelopeError, FormatContext, FormatContextOpt,
@@ -15,6 +13,8 @@ pub use crate::{
     walk::EdgeType,
     with_format_context,
 };
+#[cfg(feature = "edge")]
+pub use crate::{Edgeable, Edges};
 #[cfg(feature = "expression")]
 pub use crate::{
     Event, EventBehavior, Expression, ExpressionBehavior, Function,

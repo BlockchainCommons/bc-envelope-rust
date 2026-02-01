@@ -21,9 +21,7 @@ fn make_edge(
 }
 
 /// Helper to create an XID-like identifier envelope.
-fn xid_like(name: &str) -> Envelope {
-    Envelope::new(name)
-}
+fn xid_like(name: &str) -> Envelope { Envelope::new(name) }
 
 // -------------------------------------------------------------------
 // Edge construction and format
@@ -426,7 +424,8 @@ fn test_edges_container_roundtrip_empty() -> Result<(), EnvelopeError> {
 }
 
 #[test]
-fn test_edges_container_roundtrip_preserves_format() -> Result<(), EnvelopeError> {
+fn test_edges_container_roundtrip_preserves_format() -> Result<(), EnvelopeError>
+{
     let alice = xid_like("Alice");
     let bob = xid_like("Bob");
     let edge = make_edge("knows-bob", "schema:colleague", &alice, &bob);
@@ -519,7 +518,8 @@ fn test_edges_matching_by_is_a() -> Result<(), EnvelopeError> {
     assert_eq!(matching.len(), 2);
 
     let is_a_colleague = Envelope::new("schema:colleague");
-    let matching = doc.edges_matching(Some(&is_a_colleague), None, None, None)?;
+    let matching =
+        doc.edges_matching(Some(&is_a_colleague), None, None, None)?;
     assert_eq!(matching.len(), 1);
 
     let is_a_none = Envelope::new("nonexistent");
@@ -584,11 +584,13 @@ fn test_edges_matching_by_subject() -> Result<(), EnvelopeError> {
         .add_edge_envelope(edge2);
 
     let subject_filter = Envelope::new("self-desc");
-    let matching = doc.edges_matching(None, None, None, Some(&subject_filter))?;
+    let matching =
+        doc.edges_matching(None, None, None, Some(&subject_filter))?;
     assert_eq!(matching.len(), 1);
 
     let subject_filter = Envelope::new("nonexistent");
-    let matching = doc.edges_matching(None, None, None, Some(&subject_filter))?;
+    let matching =
+        doc.edges_matching(None, None, None, Some(&subject_filter))?;
     assert_eq!(matching.len(), 0);
 
     Ok(())
@@ -622,22 +624,24 @@ fn test_edges_matching_combined_filters() -> Result<(), EnvelopeError> {
 
     // foaf:Person + target Alice + subject "self-desc" => 1
     let subj = Envelope::new("self-desc");
-    let matching = doc.edges_matching(Some(&is_a), None, Some(&alice), Some(&subj))?;
+    let matching =
+        doc.edges_matching(Some(&is_a), None, Some(&alice), Some(&subj))?;
     assert_eq!(matching.len(), 1);
 
     // foaf:Person + source Alice + target Bob + subject "knows-bob" => 1
     let subj = Envelope::new("knows-bob");
-    let matching = doc.edges_matching(
-        Some(&is_a),
-        Some(&alice),
-        Some(&bob),
-        Some(&subj),
-    )?;
+    let matching =
+        doc.edges_matching(Some(&is_a), Some(&alice), Some(&bob), Some(&subj))?;
     assert_eq!(matching.len(), 1);
 
     // All filters that match nothing
     let subj = Envelope::new("nonexistent");
-    let matching = doc.edges_matching(Some(&is_a), Some(&alice), Some(&alice), Some(&subj))?;
+    let matching = doc.edges_matching(
+        Some(&is_a),
+        Some(&alice),
+        Some(&alice),
+        Some(&subj),
+    )?;
     assert_eq!(matching.len(), 0);
 
     Ok(())
@@ -695,7 +699,11 @@ fn test_edges_coexist_with_attachments() -> Result<(), EnvelopeError> {
     let edge = make_edge("cred-1", "foaf:Person", &alice, &alice);
 
     let doc = Envelope::new("Alice")
-        .add_attachment("Metadata", "com.example", Some("https://example.com/v1"))
+        .add_attachment(
+            "Metadata",
+            "com.example",
+            Some("https://example.com/v1"),
+        )
         .add_edge_envelope(edge);
 
     // Both should be present
