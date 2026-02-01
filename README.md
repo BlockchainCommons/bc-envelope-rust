@@ -20,7 +20,7 @@ Envelopes are designed to facilitate "smart documents" with a number of unique f
 
 ```toml
 [dependencies]
-bc-envelope = "0.41.1"
+bc-envelope = "0.42.0"
 ```
 
 Basic usage examples:
@@ -130,6 +130,17 @@ Gordian Envelope is a project of [Blockchain Commons](https://www.blockchaincomm
 To financially support further development of Gordian Envelope and other projects, please consider becoming a Patron of Blockchain Commons through ongoing monthly patronage as a [GitHub Sponsor](https://github.com/sponsors/BlockchainCommons). You can also support Blockchain Commons with bitcoins at our [BTCPay Server](https://btcpay.blockchaincommons.com/).
 
 ## Version History
+
+### 0.42.0 - January 31, 2026
+
+- Add new `edge` extension module implementing BCR-2026-003 edges (Edges container, Edgeable trait, impl_edgeable! macro).
+- Add edge methods on Envelope: add_edge_envelope, edges, validate_edge, edge_is_a, edge_source, edge_target, edge_subject, edges_matching.
+- Add new `edge` feature flag (enabled by default) with dependencies on `known_value` and `signature`.
+- Add 8 new Error variants for edge validation (EdgeMissingIsA, EdgeMissingSource, EdgeMissingTarget, EdgeDuplicateIsA, EdgeDuplicateSource, EdgeDuplicateTarget, NonexistentEdge, AmbiguousEdge).
+- Export Edgeable and Edges from crate root and prelude under `edge` feature gate.
+- Add comprehensive edge tests (edge_tests.rs).
+- Add `expected-text-output-rubric` comments to existing test assertions.
+- Format.
 
 ### 0.41.1 - January 12, 2026
 
