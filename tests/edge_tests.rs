@@ -768,11 +768,13 @@ fn test_multiple_edges_ur_roundtrip() -> Result<(), EnvelopeError> {
 // -------------------------------------------------------------------
 
 #[test]
-fn test_edge_with_additional_assertions() -> Result<(), EnvelopeError> {
+fn test_edge_with_additional_assertions() {
     let alice = xid_like("Alice");
     let bob = xid_like("Bob");
 
     // An edge with extra detail assertions beyond isA/source/target
+    // should fail validation per BCR-2026-003: only the three required
+    // assertions are permitted on the edge subject.
     let edge = Envelope::new("knows-bob")
         .add_assertion(known_values::IS_A, "schema:colleague")
         .add_assertion(known_values::SOURCE, alice.clone())
@@ -780,18 +782,33 @@ fn test_edge_with_additional_assertions() -> Result<(), EnvelopeError> {
         .add_assertion("department", "Engineering")
         .add_assertion("since", "2024-01-15");
 
-    // Should still validate — has the three required assertions
+    let result = edge.validate_edge();
+    assert!(matches!(
+        result,
+        Err(EnvelopeError::EdgeUnexpectedAssertion)
+    ));
+}
+
+#[test]
+fn test_edge_with_claim_detail_on_target() {
+    // Per BCR-2026-003, claim detail goes as assertions on the *target*
+    // object, not on the edge subject itself.
+    let alice = xid_like("Alice");
+    let target = xid_like("Bob")
+        .add_assertion("department", "Engineering")
+        .add_assertion("since", "2024-01-15");
+    let edge = make_edge("knows-bob", "schema:colleague", &alice, &target);
     assert!(edge.validate_edge().is_ok());
+}
 
-    // Accessors work
-    let is_a = edge.edge_is_a()?;
-    assert_actual_expected!(is_a.format(), r#""schema:colleague""#);
-
-    let source = edge.edge_source()?;
-    assert_actual_expected!(source.format(), r#""Alice""#);
-
-    let target = edge.edge_target()?;
-    assert_actual_expected!(target.format(), r#""Bob""#);
-
-    Ok(())
+#[test]
+fn test_edge_with_claim_detail_on_source() {
+    // The source XID may also carry assertions such as 'dereferenceVia'.
+    let source = xid_like("Alice").add_assertion(
+        known_values::DEREFERENCE_VIA,
+        bc_components::URI::try_from("https://example.com/xid/").unwrap(),
+    );
+    let target = xid_like("Bob");
+    let edge = make_edge("knows-bob", "schema:colleague", &source, &target);
+    assert!(edge.validate_edge().is_ok());
 }

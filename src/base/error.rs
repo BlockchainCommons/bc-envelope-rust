@@ -147,6 +147,12 @@ pub enum Error {
     #[error("edge has duplicate 'target' assertions")]
     EdgeDuplicateTarget,
 
+    /// Returned when an edge has an assertion that is not one of the
+    /// three required predicates (`'isA'`, `'source'`, `'target'`).
+    #[cfg(feature = "edge")]
+    #[error("edge has unexpected assertion")]
+    EdgeUnexpectedAssertion,
+
     /// Returned when an edge is requested but does not exist.
     #[cfg(feature = "edge")]
     #[error("nonexistent edge")]

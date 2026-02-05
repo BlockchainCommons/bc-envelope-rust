@@ -20,7 +20,7 @@ Envelopes are designed to facilitate "smart documents" with a number of unique f
 
 ```toml
 [dependencies]
-bc-envelope = "0.42.0"
+bc-envelope = "0.43.0"
 ```
 
 Basic usage examples:
@@ -130,6 +130,15 @@ Gordian Envelope is a project of [Blockchain Commons](https://www.blockchaincomm
 To financially support further development of Gordian Envelope and other projects, please consider becoming a Patron of Blockchain Commons through ongoing monthly patronage as a [GitHub Sponsor](https://github.com/sponsors/BlockchainCommons). You can also support Blockchain Commons with bitcoins at our [BTCPay Server](https://btcpay.blockchaincommons.com/).
 
 ## Version History
+
+### 0.43.0 - February 5, 2026
+
+- Add `EdgeUnexpectedAssertion` error variant for strict edge validation.
+- Rewrite `validate_edge()` to reject assertions beyond `isA`, `source`, and `target` on edge subjects (BCR-2026-003).
+- Refactor edge validation from count-based to single-pass iteration with early error returns.
+- Update edge tests: `test_edge_with_additional_assertions` now expects failure.
+- Add `test_edge_with_claim_detail_on_target` test for detail assertions on target objects.
+- Add `test_edge_with_claim_detail_on_source` test for source XIDs carrying extra assertions like `dereferenceVia`.
 
 ### 0.42.0 - January 31, 2026
 

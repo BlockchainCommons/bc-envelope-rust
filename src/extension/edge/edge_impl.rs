@@ -1,3 +1,5 @@
+use known_values::{IS_A_RAW, SOURCE_RAW, TARGET_RAW};
+
 use crate::{Envelope, Error, Result, known_values};
 
 /// Methods for working with edge envelopes on documents.
@@ -16,7 +18,8 @@ impl Envelope {
     ///
     /// An edge may be wrapped (signed) or unwrapped. The inner envelope
     /// must have exactly three assertion predicates: `'isA'`, `'source'`,
-    /// and `'target'`.
+    /// and `'target'`. No other assertions are permitted on the edge
+    /// subject.
     pub fn validate_edge(&self) -> Result<()> {
         let inner = if self.subject().is_wrapped() {
             self.subject().try_unwrap()?
@@ -24,30 +27,47 @@ impl Envelope {
             self.clone()
         };
 
-        let is_a_count =
-            inner.assertions_with_predicate(known_values::IS_A).len();
-        let source_count =
-            inner.assertions_with_predicate(known_values::SOURCE).len();
-        let target_count =
-            inner.assertions_with_predicate(known_values::TARGET).len();
+        let mut seen_is_a = false;
+        let mut seen_source = false;
+        let mut seen_target = false;
 
-        if is_a_count == 0 {
+        for assertion in inner.assertions() {
+            let predicate = assertion
+                .try_predicate()?
+                .try_known_value()
+                .map_err(|_| Error::EdgeUnexpectedAssertion)?
+                .value();
+            match predicate {
+                IS_A_RAW => {
+                    if seen_is_a {
+                        return Err(Error::EdgeDuplicateIsA);
+                    }
+                    seen_is_a = true;
+                }
+                SOURCE_RAW => {
+                    if seen_source {
+                        return Err(Error::EdgeDuplicateSource);
+                    }
+                    seen_source = true;
+                }
+                TARGET_RAW => {
+                    if seen_target {
+                        return Err(Error::EdgeDuplicateTarget);
+                    }
+                    seen_target = true;
+                }
+                _ => return Err(Error::EdgeUnexpectedAssertion),
+            }
+        }
+
+        if !seen_is_a {
             return Err(Error::EdgeMissingIsA);
         }
-        if source_count == 0 {
+        if !seen_source {
             return Err(Error::EdgeMissingSource);
         }
-        if target_count == 0 {
+        if !seen_target {
             return Err(Error::EdgeMissingTarget);
-        }
-        if is_a_count > 1 {
-            return Err(Error::EdgeDuplicateIsA);
-        }
-        if source_count > 1 {
-            return Err(Error::EdgeDuplicateSource);
-        }
-        if target_count > 1 {
-            return Err(Error::EdgeDuplicateTarget);
         }
 
         Ok(())
